@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#15171a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="トータルアカデミー">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>トータルアカデミー</title>
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand-block">
+          <h1>トータルアカデミー</h1>
+          <p class="brand-subtitle">パワーリフティングを学びながらPRを狙う</p>
+          <div class="brand-tags" aria-label="アプリのテーマ">
+            <span>LOG</span>
+            <span>PLAN</span>
+            <span>RPE</span>
+            <span>TOTAL</span>
+          </div>
+        </div>
+        <div class="export-actions">
+          <button class="text-button compact" id="exportBtn" type="button" aria-label="記録Excelを書き出す" title="記録Excelを書き出す">Log</button>
+          <button class="text-button compact" id="exportPlanBtn" type="button" aria-label="12週プランExcelを書き出す" title="12週プランExcelを書き出す">Excel</button>
+        </div>
+      </header>
+
+      <main>
+        <section class="panel athlete-panel">
+          <div class="section-title">
+            <div>
+              <p class="eyebrow">Athlete</p>
+              <h2 id="currentAthleteName">自分</h2>
+            </div>
+            <button class="text-button" id="addAthleteBtn" type="button">選手追加</button>
+          </div>
+          <div class="athlete-strip" id="athleteStrip" aria-label="選手一覧"></div>
+          <div class="profile-grid">
+            <label>
+              性別
+              <select id="sexInput">
+                <option value="male">男性</option>
+                <option value="female">女性</option>
+              </select>
+            </label>
+            <label>
+              体重
+              <input id="bodyweightInput" inputmode="decimal" type="number" min="0" step="0.1" placeholder="kg">
+            </label>
+            <label>
+              体重階級
+              <select id="weightClassInput"></select>
+            </label>
+            <label>
+              試合予定
+              <input id="meetDateInput" type="date">
+            </label>
+          </div>
+        </section>
+
+        <nav class="tabbar" aria-label="メイン画面">
+          <button class="tab active" type="button" data-view="log">記録</button>
+          <button class="tab" type="button" data-view="analysis">分析</button>
+          <button class="tab" type="button" data-view="plan">プラン</button>
+          <button class="tab" type="button" data-view="knowledge">基礎知識</button>
+          <button class="tab" type="button" data-view="history">履歴</button>
+        </nav>
+
+        <section class="view active" id="logView">
+          <form class="panel log-form" id="logForm">
+            <div class="section-title">
+              <div>
+                <p class="eyebrow">Session</p>
+                <h2>今日の記録</h2>
+              </div>
+              <input id="dateInput" type="date" required>
+            </div>
+
+            <div class="form-row">
+              <label>
+                カテゴリ
+                <select id="categorySelect"></select>
+              </label>
+              <label>
+                種目
+                <select id="exerciseSelect"></select>
+              </label>
+            </div>
+
+            <label id="customExerciseLabel" class="hidden">
+              種目名
+              <input id="customExerciseInput" type="text" placeholder="例: スパニッシュスクワット">
+            </label>
+
+            <section id="alternativePanel" class="alternative-panel hidden" aria-live="polite"></section>
+
+            <div class="input-grid">
+              <label>
+                重量 kg
+                <input id="weightInput" inputmode="decimal" type="number" min="0" step="0.5" required>
+              </label>
+              <label>
+                回数
+                <input id="repsInput" inputmode="numeric" type="number" min="1" step="1" required>
+              </label>
+              <label>
+                セット
+                <input id="setsInput" inputmode="numeric" type="number" min="1" step="1" value="1" required>
+              </label>
+              <label>
+                RPE
+                <input id="rpeInput" inputmode="decimal" type="number" min="5" max="10" step="0.5" placeholder="8">
+              </label>
+            </div>
+
+            <label>
+              メモ
+              <textarea id="noteInput" rows="3" placeholder="フォーム、痛み、疲労感、狙いなど"></textarea>
+            </label>
+
+            <button class="primary-button" type="submit">記録する</button>
+          </form>
+
+          <section class="quick-stats" id="quickStats"></section>
+        </section>
+
+        <section class="view" id="analysisView">
+          <section class="panel">
+            <div class="section-title">
+              <div>
+                <p class="eyebrow">Trend</p>
+                <h2>種目別 e1RM</h2>
+              </div>
+              <select id="chartLiftSelect" aria-label="グラフ種目"></select>
+            </div>
+            <canvas id="trendChart" width="720" height="360" aria-label="推定1RMグラフ"></canvas>
+          </section>
+
+          <section class="metric-grid" id="metricGrid"></section>
+        </section>
+
+        <section class="view" id="planView">
+          <section class="panel cycle-panel">
+            <div class="section-title">
+              <div>
+                <p class="eyebrow">PR Cycle</p>
+                <h2>PRサイクル設計</h2>
+              </div>
+              <button class="text-button" id="saveCycleBtn" type="button">保存</button>
+            </div>
+            <div class="cycle-grid">
+              <label>
+                プラン対象
+                <select id="planTargetInput">
+                  <option value="big3">BIG3</option>
+                  <option value="bench_only">ベンチプレスのみ</option>
+                </select>
+              </label>
+              <label>
+                プラン方式
+                <select id="programMethodInput">
+                  <option value="platform">トータルアカデミー式（おすすめ）</option>
+                  <option value="hps">HPS（BP向き）</option>
+                  <option value="531">5/3/1（長期型）</option>
+                  <option value="smolov_jr">Smolov Jr.（SQ/BP高負荷）</option>
+                </select>
+              </label>
+              <label>
+                週数
+                <select id="cycleLengthInput">
+                  <option value="3">3週</option>
+                  <option value="4">4週</option>
+                  <option value="6">6週</option>
+                  <option value="8">8週</option>
+                  <option value="10">10週</option>
+                  <option value="12">12週</option>
+                </select>
+              </label>
+              <label>
+                週あたり
+                <select id="daysPerWeekInput">
+                  <option value="3">週3回</option>
+                  <option value="4">週4回</option>
+                  <option value="5">週5回</option>
+                </select>
+              </label>
+              <label>
+                補助種目量
+                <select id="accessoryVolumeInput">
+                  <option value="low">少なめ</option>
+                  <option value="normal">普通</option>
+                  <option value="high">多め</option>
+                </select>
+              </label>
+              <label>
+                重点種目
+                <select id="priorityLiftInput">
+                  <option value="total">トータル重視</option>
+                  <option value="squat">スクワット重視</option>
+                  <option value="bench">ベンチ重視</option>
+                  <option value="deadlift">デッドリフト重視</option>
+                </select>
+              </label>
+              <label>
+                現在の週
+                <input id="cycleWeekInput" inputmode="numeric" type="number" min="1" max="12" step="1">
+              </label>
+            </div>
+            <p class="cycle-method-note" id="cycleMethodNote"></p>
+            <p class="program-disclaimer" id="programDisclaimer"></p>
+            <div class="max-grid">
+              <label>
+                SQ 現在1RM
+                <input id="squatMaxInput" inputmode="decimal" type="number" min="0" step="2.5" placeholder="kg">
+              </label>
+              <label>
+                BP 現在1RM
+                <input id="benchMaxInput" inputmode="decimal" type="number" min="0" step="2.5" placeholder="kg">
+              </label>
+              <label>
+                DL 現在1RM
+                <input id="deadliftMaxInput" inputmode="decimal" type="number" min="0" step="2.5" placeholder="kg">
+              </label>
+            </div>
+            <section class="facility-panel">
+              <div>
+                <h3>設備依存種目</h3>
+                <p>使える設備にチェックすると、プランの補助種目候補に入ります。</p>
+              </div>
+              <div class="facility-grid" id="facilityGrid"></div>
+            </section>
+            <div class="projection-grid" id="projectionGrid"></div>
+          </section>
+
+          <section class="panel">
+            <div class="section-title">
+              <div>
+                <p class="eyebrow">This Week</p>
+                <h2 id="cyclePhaseTitle">今週の目的</h2>
+              </div>
+              <div class="week-actions">
+                <button class="text-button" id="prevWeekBtn" type="button">前週へ</button>
+                <button class="text-button" id="nextWeekBtn" type="button">次週へ</button>
+              </div>
+            </div>
+            <p class="cycle-note" id="cyclePhaseNote"></p>
+            <section class="rpe-coach-card" id="rpeCoachCard"></section>
+            <div class="plan-list" id="planList"></div>
+          </section>
+        </section>
+
+        <section class="view" id="knowledgeView">
+          <section class="panel">
+            <div class="section-title">
+              <div>
+                <p class="eyebrow">Knowledge</p>
+                <h2>基礎知識</h2>
+              </div>
+            </div>
+            <div class="knowledge-grid">
+              <article class="knowledge-card">
+                <span>強度管理</span>
+                <h3>RPE</h3>
+                <p>そのセットがどれくらい限界に近かったかを表す主観指標です。トータルアカデミーでは予定RPEを守ることを重視します。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>強度管理</span>
+                <h3>RIR</h3>
+                <p>あと何回できそうだったかを表す余力指標です。RPE理解の補助として、RIR目安を併記しています。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>強度管理</span>
+                <h3>e1RM</h3>
+                <p>実施重量と回数から推定する1RMです。日々の調子やフォーム差もあるため、絶対値ではなく傾向として見ます。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>強度管理</span>
+                <h3>オーバーシュート</h3>
+                <p>予定より重く、またはRPEが高くなりすぎることです。強くなった証拠ではなく、疲労管理を崩す原因になることがあります。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>強度管理</span>
+                <h3>アンダーシュート</h3>
+                <p>予定より軽すぎる、またはRPEが低すぎることです。回復が良い日は次回以降に少しだけ重量を足す判断材料になります。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>プログラム</span>
+                <h3>トップセット</h3>
+                <p>その日の中心になる一番重いセットです。重さを確認しつつ、予定RPEを超えないことが大切です。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>プログラム</span>
+                <h3>バックオフ</h3>
+                <p>トップセット後に少し重量を落として行う反復です。フォームと必要な練習量を積む役割があります。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>プログラム</span>
+                <h3>Training Max</h3>
+                <p>実際のMAXより低めに設定するトレーニング用MAXです。5/3/1系では安全に積むための基準になります。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>プログラム</span>
+                <h3>ボリューム</h3>
+                <p>練習量のことです。重量、回数、セット数で決まり、伸びる刺激にも疲労にもなるため、増やしすぎない管理が重要です。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>プログラム</span>
+                <h3>強度</h3>
+                <p>最大重量に対してどれくらい重いかを表します。高強度は競技動作に近い一方、疲労が大きくなりやすいです。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>プログラム</span>
+                <h3>頻度</h3>
+                <p>週に何回その種目を練習するかです。頻度を増やすと技術練習を分散できますが、回復とのバランスが必要です。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>周期化</span>
+                <h3>蓄積期</h3>
+                <p>フォーム再現性、練習量、RPE感覚を作る時期です。表示重量を追うより、予定RPEに合わせる練習をします。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>周期化</span>
+                <h3>強化期</h3>
+                <p>蓄積期で作った土台を、より競技重量に近い練習へつなげる時期です。重さを上げつつ、失敗を増やさないことが大切です。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>周期化</span>
+                <h3>ピーキング</h3>
+                <p>PRや試合に向けて疲労を抑えながら重さに慣れる時期です。量を減らし、成功率と精度を高めます。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>周期化</span>
+                <h3>デロード</h3>
+                <p>意図的に練習量や強度を落として回復する週です。サボりではなく、次の高重量練習を成立させる準備です。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>試合</span>
+                <h3>白9本</h3>
+                <p>スクワット、ベンチ、デッドリフトの全試技を成功させる考え方です。トータルアカデミーのPR週も成功率を重視します。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>試合</span>
+                <h3>第一試技</h3>
+                <p>必ず成功させたい入りの重量です。練習で何度も安定して挙がる重量を選び、試合の流れを作ります。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>試合</span>
+                <h3>第二試技</h3>
+                <p>トータルを作るための重量です。第三試技に挑戦を残せるよう、欲張りすぎない設定が基本になります。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>試合</span>
+                <h3>第三試技</h3>
+                <p>PRや順位を狙う試技です。第一、第二を成功させたうえで、その日の状態に合わせて攻めます。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>方式</span>
+                <h3>HPS / 5/3/1 / Smolov Jr.</h3>
+                <p>アプリ内では各方式の考え方を参考にした簡略テンプレートです。公式プログラムの完全再現ではありません。</p>
+              </article>
+            </div>
+          </section>
+        </section>
+
+        <section class="view" id="historyView">
+          <section class="panel">
+            <div class="section-title">
+              <div>
+                <p class="eyebrow">History</p>
+                <h2>履歴</h2>
+              </div>
+              <button class="text-button danger" id="clearBtn" type="button">削除</button>
+            </div>
+            <div class="history-list" id="historyList"></div>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <dialog id="athleteDialog">
+      <form method="dialog" class="dialog-card" id="athleteForm">
+        <h2>選手を追加</h2>
+        <label>
+          名前
+          <input id="athleteNameInput" type="text" maxlength="32" required>
+        </label>
+        <div class="dialog-actions">
+          <button class="text-button" value="cancel" type="button" id="cancelAthleteBtn">キャンセル</button>
+          <button class="primary-button" value="default" type="submit">追加</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script src="app.js"></script>
+  </body>
+</html>
