@@ -195,6 +195,53 @@ h2 {
   margin-bottom: 12px;
 }
 
+.association-guide {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+  margin-top: 10px;
+  border: 1px solid var(--line);
+  border-left: 5px solid var(--coach);
+  border-radius: 8px;
+  background: var(--paper);
+  padding: 12px;
+}
+
+.association-guide span {
+  color: var(--coach);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.association-guide p {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.association-guide a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  border-radius: 8px;
+  background: #e9edf2;
+  color: var(--ink);
+  padding: 8px 10px;
+  font-size: 0.82rem;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.association-guide a:focus-visible,
+.association-guide a:hover {
+  background: var(--ink);
+  color: #fff;
+}
+
 .athlete-strip {
   display: flex;
   gap: 8px;
@@ -1115,6 +1162,7 @@ dialog::backdrop {
   .profile-grid,
   .input-grid,
   .form-row,
+  .association-guide,
   .cycle-grid,
   .max-grid,
   .data-actions,

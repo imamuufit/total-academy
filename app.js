@@ -274,6 +274,17 @@ const facilityExerciseOptions = [
   "pin_press"
 ];
 
+const prefectures = [
+  "北海道", "青森県", "岩手県", "宮城県", "秋田県", "山形県", "福島県",
+  "茨城県", "栃木県", "群馬県", "埼玉県", "千葉県", "東京都", "神奈川県", "山梨県",
+  "新潟県", "長野県", "富山県", "石川県", "福井県",
+  "静岡県", "愛知県", "三重県", "岐阜県",
+  "滋賀県", "京都府", "大阪府", "兵庫県", "奈良県", "和歌山県",
+  "鳥取県", "島根県", "岡山県", "広島県", "山口県",
+  "香川県", "徳島県", "愛媛県", "高知県",
+  "福岡県", "佐賀県", "長崎県", "熊本県", "大分県", "宮崎県", "鹿児島県", "沖縄県"
+];
+
 const defaultState = {
   currentAthleteId: "me",
   athletes: [
@@ -283,6 +294,7 @@ const defaultState = {
       sex: "male",
       bodyweight: "",
       weightClass: "83",
+      prefecture: "",
       meetDate: "",
       cycle: defaultCycle(),
       logs: [
@@ -305,6 +317,8 @@ const els = {
   sexInput: document.querySelector("#sexInput"),
   bodyweightInput: document.querySelector("#bodyweightInput"),
   weightClassInput: document.querySelector("#weightClassInput"),
+  prefectureInput: document.querySelector("#prefectureInput"),
+  associationGuide: document.querySelector("#associationGuide"),
   meetDateInput: document.querySelector("#meetDateInput"),
   logForm: document.querySelector("#logForm"),
   dateInput: document.querySelector("#dateInput"),
@@ -407,6 +421,7 @@ function migrateState(rawState) {
   migrated.athletes = (migrated.athletes || []).map((athlete) => ({
     ...athlete,
     sex: ["male", "female"].includes(athlete.sex) ? athlete.sex : "male",
+    prefecture: prefectures.includes(athlete.prefecture) ? athlete.prefecture : "",
     weightClass: validWeightClass(athlete.sex || "male", athlete.weightClass)
       ? athlete.weightClass
       : inferWeightClass(athlete.sex || "male", athlete.bodyweight),
@@ -520,12 +535,16 @@ function render() {
   els.deleteAthleteBtn.disabled = state.athletes.length <= 1;
   els.deleteAthleteBtn.title = state.athletes.length <= 1 ? "選手が1名のみのため削除できません" : `${athlete.name}を削除`;
   athlete.sex = ["male", "female"].includes(athlete.sex) ? athlete.sex : "male";
+  athlete.prefecture = prefectures.includes(athlete.prefecture) ? athlete.prefecture : "";
   athlete.weightClass = validWeightClass(athlete.sex, athlete.weightClass) ? athlete.weightClass : inferWeightClass(athlete.sex, athlete.bodyweight);
   els.sexInput.value = athlete.sex;
   renderWeightClassOptions(athlete);
+  renderPrefectureOptions(athlete);
   els.bodyweightInput.value = athlete.bodyweight || "";
   els.weightClassInput.value = athlete.weightClass;
+  els.prefectureInput.value = athlete.prefecture;
   els.meetDateInput.value = athlete.meetDate || "";
+  renderAssociationGuide(athlete);
   renderCycleInputs();
   renderAthletes();
   renderStats();
@@ -557,6 +576,26 @@ function renderWeightClassOptions(athlete = currentAthlete()) {
   els.weightClassInput.innerHTML = (weightClasses[athlete.sex] || weightClasses.male).map(([id, label]) => (
     `<option value="${id}">${label}</option>`
   )).join("");
+}
+
+function renderPrefectureOptions(athlete = currentAthlete()) {
+  els.prefectureInput.innerHTML = [
+    `<option value="">未設定</option>`,
+    ...prefectures.map((prefecture) => `<option value="${prefecture}">${prefecture}</option>`)
+  ].join("");
+  els.prefectureInput.value = prefectures.includes(athlete.prefecture) ? athlete.prefecture : "";
+}
+
+function renderAssociationGuide(athlete = currentAthlete()) {
+  const area = athlete.prefecture || "未設定";
+  const target = athlete.prefecture ? `${athlete.prefecture}協会` : "所属エリアの協会";
+  els.associationGuide.innerHTML = `
+    <div>
+      <span>所属エリア: ${escapeHtml(area)}</span>
+      <p>大会情報はJPA加盟都道府県協会リンクから、${escapeHtml(target)}を確認してください。</p>
+    </div>
+    <a href="https://www.jpa-powerlifting.or.jp/overview.php" target="_blank" rel="noopener">JPA加盟都道府県協会リンクを見る</a>
+  `;
 }
 
 function updateCustomExerciseVisibility() {
@@ -1960,6 +1999,12 @@ els.weightClassInput.addEventListener("change", () => {
   render();
 });
 
+els.prefectureInput.addEventListener("change", () => {
+  currentAthlete().prefecture = els.prefectureInput.value;
+  saveState();
+  render();
+});
+
 els.meetDateInput.addEventListener("change", () => {
   currentAthlete().meetDate = els.meetDateInput.value;
   saveState();
@@ -1981,7 +2026,7 @@ els.athleteForm.addEventListener("submit", (event) => {
   event.preventDefault();
   const name = els.athleteNameInput.value.trim();
   if (!name) return;
-  const athlete = { id: crypto.randomUUID(), name, sex: "male", bodyweight: "", weightClass: "83", meetDate: "", cycle: defaultCycle(), logs: [] };
+  const athlete = { id: crypto.randomUUID(), name, sex: "male", bodyweight: "", weightClass: "83", prefecture: "", meetDate: "", cycle: defaultCycle(), logs: [] };
   state.athletes.push(athlete);
   state.currentAthleteId = athlete.id;
   saveState();
