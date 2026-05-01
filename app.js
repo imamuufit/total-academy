@@ -317,6 +317,9 @@ const els = {
   repsInput: document.querySelector("#repsInput"),
   setsInput: document.querySelector("#setsInput"),
   rpeInput: document.querySelector("#rpeInput"),
+  setDetailPanel: document.querySelector("#setDetailPanel"),
+  setRows: document.querySelector("#setRows"),
+  fillSetRowsBtn: document.querySelector("#fillSetRowsBtn"),
   noteInput: document.querySelector("#noteInput"),
   quickStats: document.querySelector("#quickStats"),
   metricGrid: document.querySelector("#metricGrid"),
@@ -500,6 +503,9 @@ function e1rm(weight, reps) {
 }
 
 function volume(log) {
+  if (Array.isArray(log.setDetails) && log.setDetails.length) {
+    return log.setDetails.reduce((sum, set) => sum + Number(set.weight || 0) * Number(set.reps || 0), 0);
+  }
   return Number(log.weight) * Number(log.reps) * Number(log.sets);
 }
 
@@ -698,18 +704,29 @@ function renderHistory() {
     const name = log.exerciseName || exerciseMeta(log.exerciseId).name;
     const badge = log.badge || exerciseMeta(log.exerciseId).badge;
     const rpe = log.rpe ? ` RPE ${log.rpe}` : "";
+    const setDetails = setDetailsMarkup(log);
     return `
       <article class="history-item">
         <div>
           <span class="lift-badge">${badge}</span>
           <h2>${escapeHtml(name)} ${log.weight}kg x ${log.reps} x ${log.sets}</h2>
           <p class="history-meta">${log.date}${rpe} / e1RM ${e1rm(log.weight, log.reps)}kg</p>
+          ${setDetails}
           ${log.note ? `<p class="history-meta">${escapeHtml(log.note)}</p>` : ""}
         </div>
         <button class="delete-entry" type="button" data-delete="${log.id}" aria-label="記録を削除">×</button>
       </article>
     `;
   }).join("");
+}
+
+function setDetailsMarkup(log) {
+  if (!Array.isArray(log.setDetails) || !log.setDetails.length) return "";
+  const rows = log.setDetails.map((set, index) => {
+    const rpe = set.rpe ? ` @${set.rpe}` : "";
+    return `<span>S${index + 1} ${escapeHtml(set.weight)}kg x ${escapeHtml(set.reps)}${rpe}</span>`;
+  }).join("");
+  return `<div class="set-detail-list">${rows}</div>`;
 }
 
 function renderPlan() {
@@ -1568,6 +1585,49 @@ function escapeHtml(value) {
   }[char]));
 }
 
+function renderSetRows(prefill = false) {
+  const count = Math.max(1, Math.min(20, Number(els.setsInput.value || 1)));
+  const existing = Array.from(els.setRows.querySelectorAll(".set-row")).map((row) => ({
+    weight: row.querySelector(".set-weight").value,
+    reps: row.querySelector(".set-reps").value,
+    rpe: row.querySelector(".set-rpe").value
+  }));
+  els.setRows.innerHTML = Array.from({ length: count }, (_, index) => {
+    const previous = existing[index] || {};
+    const weight = prefill ? els.weightInput.value : previous.weight || els.weightInput.value;
+    const reps = prefill ? els.repsInput.value : previous.reps || els.repsInput.value;
+    const rpe = prefill ? els.rpeInput.value : previous.rpe || els.rpeInput.value;
+    return `
+      <div class="set-row">
+        <strong>Set ${index + 1}</strong>
+        <label>kg<input class="set-weight" inputmode="decimal" type="number" min="0" step="0.5" value="${escapeHtml(weight)}"></label>
+        <label>回数<input class="set-reps" inputmode="numeric" type="number" min="1" step="1" value="${escapeHtml(reps)}"></label>
+        <label>RPE<input class="set-rpe" inputmode="decimal" type="number" min="5" max="10" step="0.5" value="${escapeHtml(rpe)}"></label>
+      </div>
+    `;
+  }).join("");
+}
+
+function collectSetDetails() {
+  if (!els.setDetailPanel.open) return [];
+  return Array.from(els.setRows.querySelectorAll(".set-row"))
+    .map((row, index) => ({
+      set: index + 1,
+      weight: Number(row.querySelector(".set-weight").value),
+      reps: Number(row.querySelector(".set-reps").value),
+      rpe: row.querySelector(".set-rpe").value ? Number(row.querySelector(".set-rpe").value) : ""
+    }))
+    .filter((set) => set.weight && set.reps);
+}
+
+function setDetailsText(log) {
+  if (!Array.isArray(log.setDetails) || !log.setDetails.length) return "";
+  return log.setDetails.map((set, index) => {
+    const rpe = set.rpe ? ` @${set.rpe}` : "";
+    return `S${index + 1} ${set.weight}kg x ${set.reps}${rpe}`;
+  }).join(" / ");
+}
+
 function backupPayload() {
   return {
     app: "トータルアカデミー",
@@ -1646,6 +1706,13 @@ document.querySelectorAll(".tab").forEach((tab) => {
 
 els.categorySelect.addEventListener("change", renderExerciseOptions);
 els.exerciseSelect.addEventListener("change", updateCustomExerciseVisibility);
+els.setDetailPanel.addEventListener("toggle", () => {
+  if (els.setDetailPanel.open && !els.setRows.children.length) renderSetRows(true);
+});
+els.setsInput.addEventListener("change", () => {
+  if (els.setDetailPanel.open) renderSetRows();
+});
+els.fillSetRowsBtn.addEventListener("click", () => renderSetRows(true));
 els.alternativePanel.addEventListener("click", (event) => {
   const button = event.target.closest(".alternative-option");
   if (!button) return;
@@ -1720,6 +1787,7 @@ els.logForm.addEventListener("submit", (event) => {
   const exerciseId = els.exerciseSelect.value;
   const meta = exerciseMeta(exerciseId);
   const exerciseName = exerciseId === "custom" ? els.customExerciseInput.value.trim() : meta.name;
+  const setDetails = collectSetDetails();
   athlete.logs.push({
     id: crypto.randomUUID(),
     date: els.dateInput.value,
@@ -1731,12 +1799,15 @@ els.logForm.addEventListener("submit", (event) => {
     reps: Number(els.repsInput.value),
     sets: Number(els.setsInput.value),
     rpe: els.rpeInput.value ? Number(els.rpeInput.value) : "",
+    setDetails,
     note: els.noteInput.value.trim()
   });
   saveState();
   els.logForm.reset();
   els.dateInput.value = today();
   els.setsInput.value = "1";
+  els.setDetailPanel.open = false;
+  els.setRows.innerHTML = "";
   renderExerciseOptions();
   render();
 });
@@ -1842,7 +1913,7 @@ els.chartLiftSelect.addEventListener("change", drawChart);
 
 function logRows(athlete = currentAthlete()) {
   return [
-    ["選手", "性別", "階級", "日付", "カテゴリ", "種目", "重量", "回数", "セット", "RPE", "e1RM", "メモ"],
+    ["選手", "性別", "階級", "日付", "カテゴリ", "種目", "重量", "回数", "セット", "RPE", "セット詳細", "e1RM", "メモ"],
     ...athlete.logs.map((log) => [
       athlete.name,
       athlete.sex === "female" ? "女性" : "男性",
@@ -1854,6 +1925,7 @@ function logRows(athlete = currentAthlete()) {
       log.reps,
       log.sets,
       log.rpe,
+      setDetailsText(log),
       e1rm(log.weight, log.reps),
       log.note
     ])
