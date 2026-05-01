@@ -170,6 +170,11 @@ h2 {
   gap: 8px;
 }
 
+.athlete-actions {
+  display: flex;
+  gap: 8px;
+}
+
 .week-actions {
   display: flex;
   gap: 8px;
@@ -917,7 +922,18 @@ dialog::backdrop {
     min-width: 86px;
   }
 
+  .athlete-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    min-width: 96px;
+  }
+
   .week-actions .text-button {
+    min-height: 38px;
+    padding-inline: 10px;
+  }
+
+  .athlete-actions .text-button {
     min-height: 38px;
     padding-inline: 10px;
   }

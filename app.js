@@ -345,6 +345,7 @@ const els = {
   backupImportBtn: document.querySelector("#backupImportBtn"),
   backupFileInput: document.querySelector("#backupFileInput"),
   dataStatus: document.querySelector("#dataStatus"),
+  deleteAthleteBtn: document.querySelector("#deleteAthleteBtn"),
   athleteDialog: document.querySelector("#athleteDialog"),
   athleteForm: document.querySelector("#athleteForm"),
   athleteNameInput: document.querySelector("#athleteNameInput")
@@ -509,6 +510,8 @@ function sortedLogs(athlete = currentAthlete()) {
 function render() {
   const athlete = currentAthlete();
   els.currentAthleteName.textContent = athlete.name;
+  els.deleteAthleteBtn.disabled = state.athletes.length <= 1;
+  els.deleteAthleteBtn.title = state.athletes.length <= 1 ? "選手が1名のみのため削除できません" : `${athlete.name}を削除`;
   athlete.sex = ["male", "female"].includes(athlete.sex) ? athlete.sex : "male";
   athlete.weightClass = validWeightClass(athlete.sex, athlete.weightClass) ? athlete.weightClass : inferWeightClass(athlete.sex, athlete.bodyweight);
   els.sexInput.value = athlete.sex;
@@ -609,6 +612,23 @@ function renderAthletes() {
     });
     els.athleteStrip.append(button);
   });
+}
+
+function deleteCurrentAthlete() {
+  if (state.athletes.length <= 1) {
+    alert("選手が1名のみのため削除できません。");
+    return;
+  }
+  const athlete = currentAthlete();
+  const logCount = (athlete.logs || []).length;
+  const ok = window.confirm(`${athlete.name}を削除しますか？\nこの選手の記録 ${logCount}件とプラン設定も削除されます。`);
+  if (!ok) return;
+  const currentIndex = state.athletes.findIndex((item) => item.id === athlete.id);
+  state.athletes = state.athletes.filter((item) => item.id !== athlete.id);
+  const nextIndex = Math.max(0, Math.min(currentIndex, state.athletes.length - 1));
+  state.currentAthleteId = state.athletes[nextIndex].id;
+  saveState();
+  render();
 }
 
 function bestByExercise(exerciseId) {
@@ -1753,6 +1773,8 @@ document.querySelector("#addAthleteBtn").addEventListener("click", () => {
   els.athleteNameInput.value = "";
   els.athleteDialog.showModal();
 });
+
+els.deleteAthleteBtn.addEventListener("click", deleteCurrentAthlete);
 
 document.querySelector("#cancelAthleteBtn").addEventListener("click", () => {
   els.athleteDialog.close();
