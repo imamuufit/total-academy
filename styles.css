@@ -182,6 +182,10 @@ h2 {
   padding: 0 16px;
 }
 
+.primary-button.inline {
+  width: auto;
+}
+
 .athlete-panel {
   margin-bottom: 12px;
 }
@@ -560,6 +564,44 @@ canvas {
   gap: 10px;
 }
 
+.data-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.data-note {
+  margin-top: -6px;
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 800;
+  line-height: 1.55;
+}
+
+.data-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.data-status {
+  display: grid;
+  gap: 6px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  padding: 10px 12px;
+}
+
+.data-status span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.data-status strong {
+  font-size: 0.94rem;
+}
+
 .knowledge-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -885,6 +927,7 @@ dialog::backdrop {
   .form-row,
   .cycle-grid,
   .max-grid,
+  .data-actions,
   .facility-grid,
   .projection-grid,
   .quick-stats,

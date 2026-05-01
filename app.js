@@ -341,6 +341,10 @@ const els = {
   cyclePhaseTitle: document.querySelector("#cyclePhaseTitle"),
   cyclePhaseNote: document.querySelector("#cyclePhaseNote"),
   rpeCoachCard: document.querySelector("#rpeCoachCard"),
+  backupExportBtn: document.querySelector("#backupExportBtn"),
+  backupImportBtn: document.querySelector("#backupImportBtn"),
+  backupFileInput: document.querySelector("#backupFileInput"),
+  dataStatus: document.querySelector("#dataStatus"),
   athleteDialog: document.querySelector("#athleteDialog"),
   athleteForm: document.querySelector("#athleteForm"),
   athleteNameInput: document.querySelector("#athleteNameInput")
@@ -443,6 +447,7 @@ function migrateState(rawState) {
 }
 
 function saveState() {
+  state.updatedAt = new Date().toISOString();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
@@ -516,6 +521,7 @@ function render() {
   renderStats();
   renderMetrics();
   renderChartOptions();
+  renderDataStatus();
   renderHistory();
   renderPlan();
   drawChart();
@@ -1542,6 +1548,73 @@ function escapeHtml(value) {
   }[char]));
 }
 
+function backupPayload() {
+  return {
+    app: "トータルアカデミー",
+    type: "total-academy-backup",
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    storageKey: STORAGE_KEY,
+    state
+  };
+}
+
+function exportBackup() {
+  const blob = new Blob([JSON.stringify(backupPayload(), null, 2)], { type: "application/json;charset=utf-8" });
+  downloadBlob(blob, `total-academy-backup-${today()}.json`);
+}
+
+function normalizeBackupPayload(payload) {
+  if (!payload || typeof payload !== "object") throw new Error("バックアップファイルを読み込めませんでした。");
+  const rawState = payload.type === "total-academy-backup" ? payload.state : payload;
+  if (!rawState || !Array.isArray(rawState.athletes)) throw new Error("トータルアカデミーのバックアップではない可能性があります。");
+  const migrated = migrateState(rawState);
+  if (!Array.isArray(migrated.athletes) || !migrated.athletes.length) throw new Error("選手データが見つかりませんでした。");
+  if (!migrated.currentAthleteId || !migrated.athletes.some((athlete) => athlete.id === migrated.currentAthleteId)) {
+    migrated.currentAthleteId = migrated.athletes[0].id;
+  }
+  return migrated;
+}
+
+function importBackupFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.addEventListener("load", () => {
+    try {
+      const importedState = normalizeBackupPayload(JSON.parse(reader.result));
+      const logCount = importedState.athletes.reduce((sum, athlete) => sum + (athlete.logs || []).length, 0);
+      const ok = window.confirm(`バックアップを読み込みますか？\n現在の端末内データは、バックアップ内の ${importedState.athletes.length}名 / ${logCount}件の記録で上書きされます。`);
+      if (!ok) return;
+      state = importedState;
+      saveState();
+      renderExerciseControls();
+      render();
+      alert("バックアップを読み込みました。");
+    } catch (error) {
+      alert(error.message || "バックアップの読み込みに失敗しました。");
+    } finally {
+      els.backupFileInput.value = "";
+    }
+  });
+  reader.addEventListener("error", () => {
+    alert("ファイルの読み込みに失敗しました。");
+    els.backupFileInput.value = "";
+  });
+  reader.readAsText(file);
+}
+
+function renderDataStatus() {
+  if (!els.dataStatus) return;
+  const athleteCount = state.athletes.length;
+  const logCount = state.athletes.reduce((sum, athlete) => sum + (athlete.logs || []).length, 0);
+  const updated = state.updatedAt ? new Date(state.updatedAt).toLocaleString("ja-JP") : "未記録";
+  els.dataStatus.innerHTML = `
+    <span>保存状態</span>
+    <strong>この端末に ${athleteCount}名 / ${logCount}件の記録を保存中</strong>
+    <span>最終更新: ${escapeHtml(updated)}</span>
+  `;
+}
+
 document.querySelectorAll(".tab").forEach((tab) => {
   tab.addEventListener("click", () => {
     document.querySelectorAll(".tab").forEach((button) => button.classList.toggle("active", button === tab));
@@ -2083,6 +2156,16 @@ document.querySelector("#exportBtn").addEventListener("click", () => {
 });
 
 document.querySelector("#exportPlanBtn").addEventListener("click", exportPlanWorkbook);
+
+els.backupExportBtn.addEventListener("click", exportBackup);
+
+els.backupImportBtn.addEventListener("click", () => {
+  els.backupFileInput.click();
+});
+
+els.backupFileInput.addEventListener("change", () => {
+  importBackupFile(els.backupFileInput.files[0]);
+});
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {

@@ -369,6 +369,21 @@
         </section>
 
         <section class="view" id="historyView">
+          <section class="panel data-panel">
+            <div class="section-title">
+              <div>
+                <p class="eyebrow">Data</p>
+                <h2>データ管理</h2>
+              </div>
+            </div>
+            <p class="data-note">同じURLでアップデートする限り、記録はこの端末に残ります。大きな更新前はバックアップを書き出しておくと安心です。</p>
+            <div class="data-actions">
+              <button class="text-button" id="backupExportBtn" type="button">バックアップを書き出す</button>
+              <button class="primary-button inline" id="backupImportBtn" type="button">バックアップを読み込む</button>
+              <input class="hidden" id="backupFileInput" type="file" accept="application/json,.json">
+            </div>
+            <div class="data-status" id="dataStatus"></div>
+          </section>
           <section class="panel">
             <div class="section-title">
               <div>
