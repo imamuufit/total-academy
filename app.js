@@ -1088,7 +1088,7 @@ function updateCycleOptionControls(cycle) {
 
 function programMethodSelectValue(cycle) {
   if (cycle.programMethod === "platform") {
-    return cycle.buddyLevel === "level2" ? "platform_level2" : "platform_level1";
+    return cycle.buddyLevel === "level2" ? "platform_level2" : "platform";
   }
   return cycle.programMethod;
 }
