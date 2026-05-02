@@ -903,7 +903,8 @@ function setDetailsMarkup(log) {
 function renderPlan() {
   const cycle = normalizedCycle();
   const phase = cyclePhase(cycle.week, cycle.length, cycle.programMethod);
-  els.cyclePhaseTitle.textContent = `${cycle.length}週中 ${cycle.week}週目 / ${phase.name}`;
+  const levelLabel = cycle.programMethod === "platform" ? ` / ${cycle.buddyLevel === "level2" ? "Buddy Lv2" : "Buddy Lv1"}` : "";
+  els.cyclePhaseTitle.textContent = `${cycle.length}週中 ${cycle.week}週目 / ${phase.name}${levelLabel}`;
   els.cyclePhaseNote.textContent = `${phase.note} ${programMethodInfo(cycle).note}`;
   renderRpeCoach(cycle, phase);
   renderProjections(cycle);
@@ -1025,9 +1026,12 @@ function planInsight(cycle) {
   const levelWarning = cycle.programMethod === "platform" && cycle.buddyLevel === "level2" && cycle.experienceLevel === "beginner"
     ? `<p><strong>注意:</strong> Lv2はRPEを守って重量を下げられる方、直近で痛みや強い疲労がない方におすすめです。初心者はLv1から始めると安全です。</p>`
     : "";
+  const levelActiveNote = cycle.programMethod === "platform" && cycle.buddyLevel === "level2"
+    ? `<p><strong>Lv2適用中:</strong> 表示メニューは週内非線形です。SQ/DL週2回、BP週3〜4回を目安に、高強度日・ボリューム日・技術日を分けて表示します。</p>`
+    : "";
   if (!balance && cycle.planTarget === "bench_only") {
     const recommended = cycle.programMethod === "platform" ? `<span class="recommended-badge">迷ったらこれ</span>` : "";
-    return `<article class="plan-card ${cycle.programMethod === "platform" ? "recommended-plan" : ""}">${recommended}<h2>${method.label}</h2><p>${method.note}</p>${levelWarning}</article>`;
+    return `<article class="plan-card ${cycle.programMethod === "platform" ? "recommended-plan" : ""}">${recommended}<h2>${method.label}</h2><p>${method.note}</p>${levelActiveNote}${levelWarning}</article>`;
   }
   if (!balance) return "";
   const classLabel = weightClassMeta(athlete.sex, athlete.weightClass)[1];
@@ -1044,6 +1048,7 @@ function planInsight(cycle) {
       ${cycle.programMethod === "platform" ? `<span class="recommended-badge">迷ったらこれ</span>` : ""}
       <h2>${method.label} / ${athlete.sex === "female" ? "女性" : "男性"} ${classLabel} / 現在トータル ${balance.total}kg</h2>
       <p>${method.note} ${note}</p>
+      ${levelActiveNote}
       ${levelWarning}
     </article>
   `;
@@ -1656,6 +1661,11 @@ function currentCheckWork(lift, cycle) {
 }
 
 function currentCheckNote(cycle) {
+  if (cycle.buddyLevel === "level2") {
+    if (cycle.experienceLevel === "advanced") return "Lv2現在地チェック。限界1RMではなく、重めシングルで高重量慣れと試技精度を確認。失敗する重量は選ばない。";
+    if (cycle.experienceLevel === "intermediate") return "Lv2現在地チェック。シングル@8〜9で蓄積期の成果と高重量への再導入を確認。RPEが高すぎる場合は後半を控えめに調整。";
+    return "Lv2選択中でも初心者は3〜5回@8で確認。重すぎる場合はLv1への変更も検討。";
+  }
   if (cycle.experienceLevel === "advanced") return "限界1RMではなく、試技形式に近い重めシングルで再現性を確認。失敗する重量は選ばない。";
   if (cycle.experienceLevel === "intermediate") return "重めシングルで1RM付近への慣れを確認。RPEが高すぎる場合は後半を控えめに調整。";
   return "初心者は1RMではなく3〜5回@8で確認。高重量低回数への慣れとフォーム再現性を優先。";
