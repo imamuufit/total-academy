@@ -73,22 +73,23 @@
         </section>
 
         <nav class="tabbar" aria-label="メイン画面">
-          <button class="tab active" type="button" data-view="log">記録</button>
+          <button class="tab active" type="button" data-view="plan">プラン</button>
+          <button class="tab" type="button" data-view="log">自由記録</button>
           <button class="tab" type="button" data-view="analysis">分析</button>
-          <button class="tab" type="button" data-view="plan">プラン</button>
           <button class="tab" type="button" data-view="knowledge">基礎知識</button>
           <button class="tab" type="button" data-view="history">履歴</button>
         </nav>
 
-        <section class="view active" id="logView">
+        <section class="view" id="logView">
           <form class="panel log-form" id="logForm">
             <div class="section-title">
               <div>
-                <p class="eyebrow">Session</p>
-                <h2>今日の記録</h2>
+                <p class="eyebrow">Free Log</p>
+                <h2>自由トレーニング記録</h2>
               </div>
               <input id="dateInput" type="date" required>
             </div>
+            <p class="screen-note">プラン外の補助種目、単発練習、自主トレを残す場所です。</p>
 
             <div class="form-row">
               <label>
@@ -143,6 +144,7 @@
                 <h2>Buddyコメント</h2>
               </div>
             </div>
+            <p class="screen-note">プラン実績と自由記録をまとめて、次の練習判断を見直します。</p>
             <div class="academy-evaluation-list" id="academyEvaluation"></div>
           </section>
 
@@ -160,7 +162,7 @@
           <section class="metric-grid" id="metricGrid"></section>
         </section>
 
-        <section class="view" id="planView">
+        <section class="view active" id="planView">
           <section class="panel cycle-panel">
             <div class="section-title">
               <div>
@@ -169,6 +171,7 @@
               </div>
               <button class="text-button" id="saveCycleBtn" type="button">保存</button>
             </div>
+            <p class="screen-note">プラン内の実績は各メニューで入力。プラン外の練習は自由記録へ。</p>
             <div class="cycle-grid">
               <label>
                 プラン対象
