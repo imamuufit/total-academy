@@ -33,29 +33,35 @@
 
       <main>
         <section class="panel welcome-panel" id="welcomePanel">
-          <div class="welcome-copy">
-            <p class="eyebrow">Start</p>
-            <h2>Platform Buddyへようこそ</h2>
-            <p>全部を一度に覚えなくて大丈夫。まずは今日の1セットを記録するところから始めましょう。</p>
+          <div class="section-title welcome-title">
+            <div class="welcome-copy">
+              <p class="eyebrow">Start</p>
+              <h2>はじめてガイド</h2>
+            </div>
+            <button class="collapse-toggle" id="welcomeCollapseBtn" type="button" aria-label="はじめてガイドを閉じる" aria-expanded="true">▴</button>
           </div>
-          <div class="start-card-grid" aria-label="目的を選ぶ">
-            <button class="start-card" type="button" data-start-action="log">
-              <span>LOG</span>
-              <strong>今日のトレーニングを記録したい</strong>
-              <small>種目、重量、回数、RPEを残して成長を見ます。</small>
-            </button>
-            <button class="start-card recommended" type="button" data-start-action="plan">
-              <span>PLAN</span>
-              <strong>BIG3のMAX更新を狙いたい</strong>
-              <small>現在1RMからPRサイクルを作ります。</small>
-            </button>
-            <button class="start-card" type="button" data-start-action="meet">
-              <span>MEET</span>
-              <strong>パワーリフティング大会に出てみたい</strong>
-              <small>白判定、公式ルール、大会準備を確認します。</small>
-            </button>
+          <p class="collapse-summary" id="welcomeSummary"></p>
+          <div class="collapsible-content" id="welcomePanelContent">
+            <p class="welcome-message">全部を一度に覚えなくて大丈夫。まずは今日の1セットを記録するところから始めましょう。</p>
+            <div class="start-card-grid" aria-label="目的を選ぶ">
+              <button class="start-card recommended" type="button" data-start-action="plan">
+                <span>PLAN</span>
+                <strong>BIG3のMAX更新を狙いたい</strong>
+                <small>現在1RMからPRサイクルを作ります。</small>
+              </button>
+              <button class="start-card" type="button" data-start-action="log">
+                <span>LOG</span>
+                <strong>今日のトレーニングを記録したい</strong>
+                <small>種目、重量、回数、RPEを残して成長を見ます。</small>
+              </button>
+              <button class="start-card" type="button" data-start-action="meet">
+                <span>MEET</span>
+                <strong>パワーリフティング大会に出てみたい</strong>
+                <small>白判定、公式ルール、大会準備を確認します。</small>
+              </button>
+            </div>
+            <div class="start-guide" id="startGuide" aria-live="polite"></div>
           </div>
-          <div class="start-guide" id="startGuide" aria-live="polite"></div>
         </section>
 
         <section class="panel athlete-panel">
@@ -103,8 +109,8 @@
         </section>
 
         <nav class="tabbar" aria-label="メイン画面">
-          <button class="tab" type="button" data-view="log">LOG</button>
           <button class="tab active" type="button" data-view="plan">PLAN</button>
+          <button class="tab" type="button" data-view="log">LOG</button>
           <button class="tab" type="button" data-view="analysis">MAX</button>
           <button class="tab" type="button" data-view="knowledge">MEET</button>
         </nav>

@@ -642,7 +642,7 @@ const defaultState = {
   currentAthleteId: "me",
   guideMode: true,
   startAction: "plan",
-  collapsed: { profile: true, cycle: false, facilities: true, quiz: false },
+  collapsed: { welcome: true, profile: true, cycle: false, facilities: true, quiz: false },
   quiz: {
     view: "top",
     category: "",
@@ -681,6 +681,9 @@ let state = loadState();
 const els = {
   athleteStrip: document.querySelector("#athleteStrip"),
   welcomePanel: document.querySelector("#welcomePanel"),
+  welcomeCollapseBtn: document.querySelector("#welcomeCollapseBtn"),
+  welcomePanelContent: document.querySelector("#welcomePanelContent"),
+  welcomeSummary: document.querySelector("#welcomeSummary"),
   startGuide: document.querySelector("#startGuide"),
   currentAthleteName: document.querySelector("#currentAthleteName"),
   profileCollapseBtn: document.querySelector("#profileCollapseBtn"),
@@ -972,6 +975,7 @@ function renderGuideMode() {
 function renderCollapseState(athlete = currentAthlete(), cycle = normalizedCycle()) {
   state.collapsed = { ...defaultState.collapsed, ...(state.collapsed || {}) };
   applyCollapse("profile", els.profilePanelContent, els.profileCollapseBtn, "プロフィール");
+  applyCollapse("welcome", els.welcomePanelContent, els.welcomeCollapseBtn, "はじめてガイド");
   applyCollapse("cycle", els.cyclePanelContent, els.cycleCollapseBtn, "PRサイクル設計");
   applyCollapse("facilities", els.facilityGrid, els.facilityCollapseBtn, "設備依存種目");
   applyCollapse("quiz", els.quizPanelContent, els.quizCollapseBtn, "白判定クイズ");
@@ -1010,6 +1014,10 @@ function renderCollapseSummaries(athlete, cycle) {
     const total = Object.values(state.quiz?.stats || {}).reduce((sum, stat) => sum + Number(stat.attempts || 0), 0);
     const rate = total ? Math.round((correct / total) * 100) : 0;
     els.quizSummary.textContent = `進捗 ${attempted}/${ruleQuestions.length}問 / 正解率 ${rate}% / 復習 ${wrong}問`;
+  }
+  if (els.welcomeSummary) {
+    const guideLabels = { plan: "MAX更新へのPRサイクル", log: "今日のトレーニング記録", meet: "大会準備と白判定" };
+    els.welcomeSummary.textContent = `目的別ヘルプ: ${guideLabels[state.startAction] || guideLabels.plan}`;
   }
 }
 
@@ -3135,6 +3143,7 @@ function toggleCollapsed(key) {
 }
 
 els.profileCollapseBtn.addEventListener("click", () => toggleCollapsed("profile"));
+els.welcomeCollapseBtn?.addEventListener("click", () => toggleCollapsed("welcome"));
 els.cycleCollapseBtn.addEventListener("click", () => toggleCollapsed("cycle"));
 els.facilityCollapseBtn.addEventListener("click", () => toggleCollapsed("facilities"));
 els.quizCollapseBtn?.addEventListener("click", () => toggleCollapsed("quiz"));
