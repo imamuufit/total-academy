@@ -641,7 +641,8 @@ const ruleQuestions = [
 const defaultState = {
   currentAthleteId: "me",
   guideMode: true,
-  collapsed: { profile: false, cycle: false, facilities: false, quiz: false },
+  startAction: "plan",
+  collapsed: { profile: true, cycle: false, facilities: true, quiz: false },
   quiz: {
     view: "top",
     category: "",
@@ -679,6 +680,8 @@ let state = loadState();
 
 const els = {
   athleteStrip: document.querySelector("#athleteStrip"),
+  welcomePanel: document.querySelector("#welcomePanel"),
+  startGuide: document.querySelector("#startGuide"),
   currentAthleteName: document.querySelector("#currentAthleteName"),
   profileCollapseBtn: document.querySelector("#profileCollapseBtn"),
   profilePanelContent: document.querySelector("#profilePanelContent"),
@@ -798,6 +801,7 @@ function loadState() {
 function migrateState(rawState) {
   const migrated = rawState;
   migrated.guideMode = typeof migrated.guideMode === "boolean" ? migrated.guideMode : true;
+  migrated.startAction = ["log", "plan", "meet"].includes(migrated.startAction) ? migrated.startAction : "plan";
   migrated.collapsed = {
     ...defaultState.collapsed,
     ...(migrated.collapsed || {})
@@ -959,9 +963,9 @@ function renderGuideMode() {
   const enabled = guideEnabled();
   document.body.classList.toggle("guide-off", !enabled);
   if (els.guideModeBtn) {
-    els.guideModeBtn.textContent = enabled ? "ガイドON" : "スッキリ";
+    els.guideModeBtn.textContent = enabled ? "はじめて" : "すっきり";
     els.guideModeBtn.setAttribute("aria-pressed", String(enabled));
-    els.guideModeBtn.title = enabled ? "説明を表示中" : "説明を省略中";
+    els.guideModeBtn.title = enabled ? "説明を表示するモード" : "説明を減らすモード";
   }
 }
 
@@ -1012,6 +1016,7 @@ function renderCollapseSummaries(athlete, cycle) {
 function render() {
   const athlete = currentAthlete();
   renderGuideMode();
+  renderStartGuide();
   els.currentAthleteName.textContent = athlete.name;
   els.deleteAthleteBtn.disabled = state.athletes.length <= 1;
   els.deleteAthleteBtn.title = state.athletes.length <= 1 ? "選手が1名のみのため削除できません" : `${athlete.name}を削除`;
@@ -2858,13 +2863,78 @@ function renderDataStatus() {
   `;
 }
 
+function renderStartGuide() {
+  if (!els.startGuide) return;
+  const guides = {
+    log: {
+      title: "今日の記録から始める",
+      view: "log",
+      steps: ["種目を選ぶ", "重量・回数・RPEを入力", "e1RMを確認", "Buddyコメントを見る"]
+    },
+    plan: {
+      title: "MAX更新を狙う",
+      view: "plan",
+      steps: ["現在の1RMを入力", "週数と頻度を選ぶ", "PRサイクルを作成", "実施後に記録を残す"]
+    },
+    meet: {
+      title: "大会に向けて準備する",
+      view: "knowledge",
+      steps: ["公式ルールリンクを確認", "白判定クイズで基本ルールを確認", "オープナー候補を考える", "大会前チェックへ進む"]
+    }
+  };
+  const active = guides[state.startAction] || guides.plan;
+  document.querySelectorAll(".start-card").forEach((card) => {
+    card.classList.toggle("active", card.dataset.startAction === state.startAction);
+  });
+  els.startGuide.innerHTML = `
+    <div>
+      <strong>${escapeHtml(active.title)}</strong>
+      <ol>
+        ${active.steps.map((step) => `<li>${escapeHtml(step)}</li>`).join("")}
+      </ol>
+    </div>
+    <button class="primary-button inline" type="button" data-view-target="${escapeHtml(active.view)}">この画面へ進む</button>
+  `;
+}
+
+function switchView(viewName) {
+  const target = document.querySelector(`#${viewName}View`);
+  if (!target) return;
+  document.querySelectorAll(".tab").forEach((button) => button.classList.toggle("active", button.dataset.view === viewName));
+  document.querySelectorAll(".view").forEach((view) => view.classList.remove("active"));
+  target.classList.add("active");
+  target.scrollIntoView({ behavior: "smooth", block: "start" });
+  drawChart();
+}
+
 document.querySelectorAll(".tab").forEach((tab) => {
   tab.addEventListener("click", () => {
-    document.querySelectorAll(".tab").forEach((button) => button.classList.toggle("active", button === tab));
-    document.querySelectorAll(".view").forEach((view) => view.classList.remove("active"));
-    document.querySelector(`#${tab.dataset.view}View`).classList.add("active");
-    drawChart();
+    switchView(tab.dataset.view);
   });
+});
+
+document.querySelectorAll("[data-start-action]").forEach((button) => {
+  button.addEventListener("click", () => {
+    state.startAction = button.dataset.startAction;
+    saveState();
+    renderStartGuide();
+  });
+});
+
+document.addEventListener("click", (event) => {
+  const viewTarget = event.target.closest("[data-view-target]");
+  if (viewTarget) {
+    switchView(viewTarget.dataset.viewTarget);
+    return;
+  }
+  const meetAction = event.target.closest("[data-meet-action]");
+  if (meetAction?.dataset.meetAction === "quiz") {
+    resetQuizSession("categories");
+    state.collapsed = { ...defaultState.collapsed, ...(state.collapsed || {}), quiz: false };
+    saveState();
+    render();
+    els.quizPanelContent?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 });
 
 els.categorySelect.addEventListener("change", renderExerciseOptions);

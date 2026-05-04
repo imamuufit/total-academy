@@ -32,6 +32,32 @@
       </header>
 
       <main>
+        <section class="panel welcome-panel" id="welcomePanel">
+          <div class="welcome-copy">
+            <p class="eyebrow">Start</p>
+            <h2>Platform Buddyへようこそ</h2>
+            <p>全部を一度に覚えなくて大丈夫。まずは今日の1セットを記録するところから始めましょう。</p>
+          </div>
+          <div class="start-card-grid" aria-label="目的を選ぶ">
+            <button class="start-card" type="button" data-start-action="log">
+              <span>LOG</span>
+              <strong>今日のトレーニングを記録したい</strong>
+              <small>種目、重量、回数、RPEを残して成長を見ます。</small>
+            </button>
+            <button class="start-card recommended" type="button" data-start-action="plan">
+              <span>PLAN</span>
+              <strong>BIG3のMAX更新を狙いたい</strong>
+              <small>現在1RMからPRサイクルを作ります。</small>
+            </button>
+            <button class="start-card" type="button" data-start-action="meet">
+              <span>MEET</span>
+              <strong>パワーリフティング大会に出てみたい</strong>
+              <small>白判定、公式ルール、大会準備を確認します。</small>
+            </button>
+          </div>
+          <div class="start-guide" id="startGuide" aria-live="polite"></div>
+        </section>
+
         <section class="panel athlete-panel">
           <div class="section-title">
             <div>
@@ -77,11 +103,10 @@
         </section>
 
         <nav class="tabbar" aria-label="メイン画面">
-          <button class="tab active" type="button" data-view="plan">プラン</button>
-          <button class="tab" type="button" data-view="log">自由記録</button>
-          <button class="tab" type="button" data-view="analysis">分析</button>
-          <button class="tab" type="button" data-view="knowledge">基礎知識</button>
-          <button class="tab" type="button" data-view="history">履歴</button>
+          <button class="tab" type="button" data-view="log">LOG</button>
+          <button class="tab active" type="button" data-view="plan">PLAN</button>
+          <button class="tab" type="button" data-view="analysis">MAX</button>
+          <button class="tab" type="button" data-view="knowledge">MEET</button>
         </nav>
 
         <section class="view" id="logView">
@@ -138,6 +163,16 @@
           </form>
 
           <section class="quick-stats" id="quickStats"></section>
+          <section class="panel compact-panel">
+            <div class="section-title">
+              <div>
+                <p class="eyebrow">Log Archive</p>
+                <h2>履歴・データ管理</h2>
+              </div>
+              <button class="text-button" type="button" data-view-target="history">開く</button>
+            </div>
+            <p class="screen-note">過去ログの確認、バックアップ、Excel出力はここから開けます。</p>
+          </section>
         </section>
 
         <section class="view" id="analysisView">
@@ -175,7 +210,7 @@
               </div>
               <div class="plan-actions">
                 <button class="collapse-toggle" id="cycleCollapseBtn" type="button" aria-label="PRサイクル設計を閉じる" aria-expanded="true">▴</button>
-                <button class="text-button" id="guideModeBtn" type="button">ガイドON</button>
+                <button class="text-button" id="guideModeBtn" type="button">はじめて</button>
                 <button class="text-button" id="saveCycleBtn" type="button">保存</button>
               </div>
             </div>
@@ -301,9 +336,26 @@
           <section class="panel">
             <div class="section-title">
               <div>
-                <p class="eyebrow">Knowledge</p>
-                <h2>基礎知識</h2>
+                <p class="eyebrow">Meet Prep</p>
+                <h2>大会準備</h2>
               </div>
+            </div>
+            <div class="meet-shortcut-grid">
+              <a class="meet-shortcut" href="https://www.powerlifting.sport/rules/codes/info/technical-rules" target="_blank" rel="noopener">
+                <span>RULE</span>
+                <strong>IPF公式ルール</strong>
+                <small>大会前は必ず最新情報を確認。</small>
+              </a>
+              <a class="meet-shortcut" href="https://www.jpa-powerlifting.or.jp/rules-members.php" target="_blank" rel="noopener">
+                <span>JPA</span>
+                <strong>JPAルールブック</strong>
+                <small>国内大会の要項・通達も確認。</small>
+              </a>
+              <button class="meet-shortcut" type="button" data-meet-action="quiz">
+                <span>3択</span>
+                <strong>白判定クイズ</strong>
+                <small>赤判定を減らす基本を復習。</small>
+              </button>
             </div>
             <section class="quiz-panel" aria-labelledby="quizTitle">
               <div class="quiz-head">
@@ -318,6 +370,12 @@
                 <div id="quizApp"></div>
               </div>
             </section>
+            <div class="section-title knowledge-title">
+              <div>
+                <p class="eyebrow">Learn as you lift</p>
+                <h2>使いながら学ぶ基礎知識</h2>
+              </div>
+            </div>
             <div class="knowledge-grid">
               <article class="knowledge-card official-rules-card">
                 <span>公式情報</span>
