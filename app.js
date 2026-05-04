@@ -1562,8 +1562,10 @@ function renderCycleInputs() {
   els.cycleMethodNote.textContent = methodControlNote(cycle);
   els.programDisclaimer.textContent = programDisclaimerText(cycle);
   els.programDisclaimer.classList.toggle("hidden", cycle.programMethod === "platform");
-  els.cycleWeekInput.max = String(cycle.length);
-  els.cycleWeekInput.value = String(cycle.week);
+  if (els.cycleWeekInput) {
+    els.cycleWeekInput.max = String(cycle.length);
+    els.cycleWeekInput.value = String(cycle.week);
+  }
   els.squatMaxInput.value = cycle.maxes.squat || "";
   els.benchMaxInput.value = cycle.maxes.bench || "";
   els.deadliftMaxInput.value = cycle.maxes.deadlift || "";
@@ -1670,7 +1672,7 @@ function updateCycleFromInputs() {
   cycle.accessoryVolume = els.accessoryVolumeInput.value;
   cycle.priorityLift = els.priorityLiftInput.value;
   cycle.experienceLevel = els.experienceLevelInput.value;
-  cycle.week = Math.min(Math.max(Number(els.cycleWeekInput.value || 1), 1), cycle.length);
+  cycle.week = Math.min(Math.max(Number(cycle.week || 1), 1), cycle.length);
   cycle.availableFacilityExercises = [...els.facilityGrid.querySelectorAll("input:checked")].map((input) => input.value);
   cycle.maxes = {
     squat: els.squatMaxInput.value,
@@ -3201,7 +3203,7 @@ document.querySelector("#nextWeekBtn").addEventListener("click", () => {
   els.benchMaxInput,
   els.deadliftMaxInput
 ].forEach((input) => {
-  input.addEventListener("change", updateCycleFromInputs);
+  input?.addEventListener("change", updateCycleFromInputs);
 });
 
 els.chartLiftSelect.addEventListener("change", drawChart);
