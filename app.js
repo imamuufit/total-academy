@@ -1415,9 +1415,19 @@ function applyCollapse(key, content, button, label) {
   const collapsed = Boolean(state.collapsed?.[key]);
   content?.classList.toggle("collapsed", collapsed);
   if (button) {
-    button.textContent = collapsed ? "▾" : "▴";
+    button.textContent = collapsed ? "⌄" : "⌃";
+    button.dataset.collapseKey = key;
     button.setAttribute("aria-expanded", String(!collapsed));
     button.setAttribute("aria-label", `${label}を${collapsed ? "開く" : "閉じる"}`);
+    const header = button.closest(".section-title, .facility-head");
+    if (header) {
+      header.classList.add("accordion-header");
+      header.dataset.collapseKey = key;
+      header.setAttribute("role", "button");
+      header.setAttribute("tabindex", "0");
+      header.setAttribute("aria-expanded", String(!collapsed));
+      header.setAttribute("aria-label", `${label}を${collapsed ? "開く" : "閉じる"}`);
+    }
   }
 }
 
@@ -1453,7 +1463,8 @@ function renderCollapseSummaries(athlete, cycle) {
   }
   if (els.welcomeSummary) {
     const guideLabels = { plan: "MAX更新へのPRサイクル", log: "今日のトレーニング記録", meet: "大会準備と白判定" };
-    els.welcomeSummary.textContent = `目的別ヘルプ: ${guideLabels[state.startAction] || guideLabels.plan}`;
+    const hint = guideEnabled() ? " / ⌄を押すと詳細が開きます" : "";
+    els.welcomeSummary.textContent = `目的別ヘルプ: ${guideLabels[state.startAction] || guideLabels.plan}${hint}`;
   }
   if (els.buddyMethodSummary) {
     const level = cycle.buddyLevel === "level2" ? "Lv2 実戦寄り" : "Lv1 標準";
@@ -4104,7 +4115,20 @@ document.querySelectorAll("[data-start-action]").forEach((button) => {
   });
 });
 
+document.addEventListener("keydown", (event) => {
+  const accordionHeader = event.target.closest?.(".accordion-header");
+  if (!accordionHeader || !["Enter", " "].includes(event.key)) return;
+  if (event.target.closest("button, a, input, select, textarea, label")) return;
+  event.preventDefault();
+  toggleCollapsed(accordionHeader.dataset.collapseKey);
+});
+
 document.addEventListener("click", (event) => {
+  const accordionHeader = event.target.closest(".accordion-header");
+  if (accordionHeader && !event.target.closest("button, a, input, select, textarea, label")) {
+    toggleCollapsed(accordionHeader.dataset.collapseKey);
+    return;
+  }
   const onboardingAction = event.target.closest("[data-onboarding-action]");
   if (onboardingAction) {
     const action = onboardingAction.dataset.onboardingAction;
