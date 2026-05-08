@@ -1028,7 +1028,7 @@ const defaultState = {
   currentAthleteId: "me",
   guideMode: true,
   startAction: "plan",
-  onboarding: { done: false, step: "intro", goal: "big3" },
+  onboarding: { done: false, step: "intro", goal: "big3", dailyLastShown: "" },
   collapsed: { welcome: true, profile: true, buddyMethod: true, cycle: false, facilities: true, meetNote: true, quiz: false },
   quiz: {
     view: "top",
@@ -1513,17 +1513,29 @@ function render() {
 function renderOnboarding() {
   if (!els.onboardingScreen) return;
   state.onboarding = { ...defaultState.onboarding, ...(state.onboarding || {}) };
-  const show = !state.onboarding.done;
+  const daily = shouldShowDailyEntry();
+  const show = !state.onboarding.done || daily;
   els.onboardingScreen.classList.toggle("hidden", !show);
   document.body.classList.toggle("onboarding-active", show);
   if (!show) return;
-  const step = ["intro", "goal", "profile", "complete"].includes(state.onboarding.step) ? state.onboarding.step : "intro";
+  const step = state.onboarding.done ? "daily" : ["intro", "goal", "profile", "complete"].includes(state.onboarding.step) ? state.onboarding.step : "intro";
   els.onboardingScreen.querySelectorAll("[data-onboarding-step]").forEach((panel) => {
     panel.classList.toggle("hidden", panel.dataset.onboardingStep !== step);
   });
   els.onboardingScreen.querySelectorAll("[data-onboarding-goal]").forEach((button) => {
     button.classList.toggle("active", button.dataset.onboardingGoal === state.onboarding.goal);
   });
+}
+
+function shouldShowDailyEntry() {
+  return Boolean(state.onboarding?.done && state.onboarding.dailyLastShown !== today());
+}
+
+function closeDailyEntry(viewName = "") {
+  state.onboarding = { ...defaultState.onboarding, ...(state.onboarding || {}), done: true, dailyLastShown: today() };
+  saveState();
+  render();
+  if (viewName) switchView(viewName);
 }
 
 function renderExerciseControls() {
@@ -4147,10 +4159,28 @@ document.addEventListener("click", (event) => {
     } else if (action === "finish") {
       state.onboarding.done = true;
       state.onboarding.step = "intro";
+      state.onboarding.dailyLastShown = today();
       saveState();
       render();
       switchView("plan");
       return;
+    } else if (action === "daily-plan") {
+      closeDailyEntry("plan");
+      return;
+    } else if (action === "daily-log") {
+      closeDailyEntry("log");
+      return;
+    } else if (action === "daily-max") {
+      closeDailyEntry("analysis");
+      return;
+    } else if (action === "daily-meet") {
+      closeDailyEntry("knowledge");
+      return;
+    } else if (action === "daily-close") {
+      closeDailyEntry();
+      return;
+    } else if (action === "restart-first") {
+      state.onboarding = { ...defaultState.onboarding, done: false, step: "intro", goal: "big3", dailyLastShown: today() };
     }
     saveState();
     render();

@@ -433,13 +433,15 @@ h2 {
   gap: 14px;
 }
 
-.onboarding-goals {
+.onboarding-goals,
+.daily-entry-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
 }
 
-.onboarding-goals button {
+.onboarding-goals button,
+.daily-entry-grid button {
   display: grid;
   gap: 7px;
   border: 1px solid var(--line);
@@ -451,12 +453,14 @@ h2 {
 }
 
 .onboarding-goals button.active,
-.onboarding-goals button:hover {
+.onboarding-goals button:hover,
+.daily-entry-grid button:hover {
   border-color: var(--accent);
   box-shadow: inset 0 0 0 2px rgba(180, 35, 24, 0.12);
 }
 
 .onboarding-goals span,
+.daily-entry-grid span,
 .onboarding-hint {
   color: var(--muted);
   font-size: 0.82rem;
@@ -2366,6 +2370,7 @@ dialog::backdrop {
   .form-row,
   .association-guide,
   .onboarding-goals,
+  .daily-entry-grid,
   .onboarding-grid,
   .start-card-grid,
   .start-guide,
