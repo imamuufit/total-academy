@@ -1028,6 +1028,7 @@ const defaultState = {
   currentAthleteId: "me",
   guideMode: true,
   startAction: "plan",
+  onboarding: { done: false, step: "intro", goal: "big3" },
   collapsed: { welcome: true, profile: true, buddyMethod: true, cycle: false, facilities: true, meetNote: true, quiz: false },
   quiz: {
     view: "top",
@@ -1073,6 +1074,15 @@ const els = {
   welcomePanelContent: document.querySelector("#welcomePanelContent"),
   welcomeSummary: document.querySelector("#welcomeSummary"),
   startGuide: document.querySelector("#startGuide"),
+  onboardingScreen: document.querySelector("#onboardingScreen"),
+  onboardingExperience: document.querySelector("#onboardingExperience"),
+  onboardingDays: document.querySelector("#onboardingDays"),
+  onboardingBodyweight: document.querySelector("#onboardingBodyweight"),
+  onboardingRpeExperience: document.querySelector("#onboardingRpeExperience"),
+  onboardingSquatMax: document.querySelector("#onboardingSquatMax"),
+  onboardingBenchMax: document.querySelector("#onboardingBenchMax"),
+  onboardingDeadliftMax: document.querySelector("#onboardingDeadliftMax"),
+  restartOnboardingBtn: document.querySelector("#restartOnboardingBtn"),
   currentAthleteName: document.querySelector("#currentAthleteName"),
   profileCollapseBtn: document.querySelector("#profileCollapseBtn"),
   profilePanelContent: document.querySelector("#profilePanelContent"),
@@ -1215,6 +1225,9 @@ function migrateState(rawState) {
   const migrated = rawState;
   migrated.guideMode = typeof migrated.guideMode === "boolean" ? migrated.guideMode : true;
   migrated.startAction = ["log", "plan", "meet"].includes(migrated.startAction) ? migrated.startAction : "plan";
+  migrated.onboarding = migrated.onboarding && typeof migrated.onboarding === "object"
+    ? { ...defaultState.onboarding, ...migrated.onboarding }
+    : { ...defaultState.onboarding, done: true };
   migrated.collapsed = {
     ...defaultState.collapsed,
     ...(migrated.collapsed || {})
@@ -1451,6 +1464,7 @@ function renderCollapseSummaries(athlete, cycle) {
 function render() {
   const athlete = currentAthlete();
   renderGuideMode();
+  renderOnboarding();
   renderStartGuide();
   els.currentAthleteName.textContent = athlete.name;
   els.deleteAthleteBtn.disabled = state.athletes.length <= 1;
@@ -1479,6 +1493,22 @@ function render() {
   renderMeetNotebook(athlete);
   renderQuiz();
   drawChart();
+}
+
+function renderOnboarding() {
+  if (!els.onboardingScreen) return;
+  state.onboarding = { ...defaultState.onboarding, ...(state.onboarding || {}) };
+  const show = !state.onboarding.done;
+  els.onboardingScreen.classList.toggle("hidden", !show);
+  document.body.classList.toggle("onboarding-active", show);
+  if (!show) return;
+  const step = ["intro", "goal", "profile", "complete"].includes(state.onboarding.step) ? state.onboarding.step : "intro";
+  els.onboardingScreen.querySelectorAll("[data-onboarding-step]").forEach((panel) => {
+    panel.classList.toggle("hidden", panel.dataset.onboardingStep !== step);
+  });
+  els.onboardingScreen.querySelectorAll("[data-onboarding-goal]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.onboardingGoal === state.onboarding.goal);
+  });
 }
 
 function renderExerciseControls() {
@@ -3998,6 +4028,58 @@ function renderStartGuide() {
   `;
 }
 
+function onboardingDefaults(goal) {
+  const base = {
+    planTarget: "big3",
+    programMethod: "platform",
+    buddyLevel: "level1",
+    length: 12,
+    daysPerWeek: 4,
+    accessoryVolume: "normal",
+    priorityLift: "total",
+    experienceLevel: "beginner"
+  };
+  if (goal === "bench") {
+    return { ...base, planTarget: "bench_only", priorityLift: "bench", daysPerWeek: 4 };
+  }
+  if (goal === "meet") {
+    return { ...base, length: 12, daysPerWeek: 4, priorityLift: "total" };
+  }
+  if (goal === "learn") {
+    return { ...base, length: 10, daysPerWeek: 3, accessoryVolume: "low" };
+  }
+  return base;
+}
+
+function applyOnboardingPlan() {
+  const athlete = currentAthlete();
+  const goal = state.onboarding?.goal || "big3";
+  const defaults = onboardingDefaults(goal);
+  const cycle = normalizedCycle();
+  Object.assign(cycle, defaults, {
+    week: 1,
+    recoveryMode: false,
+    recoveryForWeek: null,
+    recoveryFromWeek: null,
+    pendingRecoveryAlert: null,
+    maxes: {
+      squat: els.onboardingSquatMax?.value || cycle.maxes.squat || "",
+      bench: els.onboardingBenchMax?.value || cycle.maxes.bench || "",
+      deadlift: els.onboardingDeadliftMax?.value || cycle.maxes.deadlift || ""
+    }
+  });
+  cycle.daysPerWeek = Number(els.onboardingDays?.value || defaults.daysPerWeek);
+  cycle.experienceLevel = els.onboardingExperience?.value || defaults.experienceLevel;
+  athlete.bodyweight = els.onboardingBodyweight?.value || athlete.bodyweight || "";
+  athlete.weightClass = inferWeightClass(athlete.sex || "male", athlete.bodyweight);
+  athlete.rpeExperience = els.onboardingRpeExperience?.value || "learning";
+  state.startAction = goal === "meet" ? "meet" : "plan";
+  state.collapsed = { ...defaultState.collapsed, ...(state.collapsed || {}), cycle: false, buddyMethod: true, welcome: true };
+  state.onboarding.step = "complete";
+  saveState();
+  render();
+}
+
 function switchView(viewName) {
   const target = document.querySelector(`#${viewName}View`);
   if (!target) return;
@@ -4023,6 +4105,41 @@ document.querySelectorAll("[data-start-action]").forEach((button) => {
 });
 
 document.addEventListener("click", (event) => {
+  const onboardingAction = event.target.closest("[data-onboarding-action]");
+  if (onboardingAction) {
+    const action = onboardingAction.dataset.onboardingAction;
+    state.onboarding = { ...defaultState.onboarding, ...(state.onboarding || {}) };
+    if (action === "start") {
+      state.onboarding.step = "goal";
+    } else if (action === "back") {
+      state.onboarding.step = "goal";
+    } else if (action === "create") {
+      applyOnboardingPlan();
+      return;
+    } else if (action === "finish") {
+      state.onboarding.done = true;
+      state.onboarding.step = "intro";
+      saveState();
+      render();
+      switchView("plan");
+      return;
+    }
+    saveState();
+    render();
+    return;
+  }
+  const onboardingGoal = event.target.closest("[data-onboarding-goal]");
+  if (onboardingGoal) {
+    state.onboarding = { ...defaultState.onboarding, ...(state.onboarding || {}) };
+    state.onboarding.goal = onboardingGoal.dataset.onboardingGoal;
+    const defaults = onboardingDefaults(state.onboarding.goal);
+    if (els.onboardingDays) els.onboardingDays.value = String(defaults.daysPerWeek);
+    if (els.onboardingExperience) els.onboardingExperience.value = defaults.experienceLevel;
+    state.onboarding.step = "profile";
+    saveState();
+    render();
+    return;
+  }
   const viewTarget = event.target.closest("[data-view-target]");
   if (viewTarget) {
     switchView(viewTarget.dataset.viewTarget);
@@ -4323,6 +4440,12 @@ document.querySelector("#clearBtn").addEventListener("click", () => {
 document.querySelector("#saveCycleBtn").addEventListener("click", updateCycleFromInputs);
 els.guideModeBtn.addEventListener("click", () => {
   state.guideMode = !guideEnabled();
+  saveState();
+  render();
+});
+
+els.restartOnboardingBtn?.addEventListener("click", () => {
+  state.onboarding = { ...defaultState.onboarding, done: false, step: "intro", goal: "big3" };
   saveState();
   render();
 });
