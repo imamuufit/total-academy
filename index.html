@@ -168,6 +168,16 @@
           </div>
         </section>
 
+        <section class="guide-mode-bar" aria-label="表示モード">
+          <div>
+            <span>ガイドモード</span>
+            <small id="guideModeDescription">説明を表示して使う</small>
+          </div>
+          <button class="guide-mode-toggle" id="guideModeBtn" type="button" aria-pressed="true">
+            オン
+          </button>
+        </section>
+
         <nav class="tabbar" aria-label="メイン画面">
           <button class="tab active" type="button" data-view="plan">PLAN</button>
           <button class="tab" type="button" data-view="log">LOG</button>
@@ -302,7 +312,6 @@
               </div>
               <div class="plan-actions">
                 <button class="collapse-toggle" id="cycleCollapseBtn" type="button" aria-label="PRサイクル設計を閉じる" aria-expanded="true">▴</button>
-                <button class="text-button" id="guideModeBtn" type="button">はじめて</button>
                 <button class="text-button" id="saveCycleBtn" type="button">保存</button>
               </div>
             </div>

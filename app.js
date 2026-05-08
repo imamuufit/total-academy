@@ -1135,6 +1135,7 @@ const els = {
   backupFileInput: document.querySelector("#backupFileInput"),
   dataStatus: document.querySelector("#dataStatus"),
   guideModeBtn: document.querySelector("#guideModeBtn"),
+  guideModeDescription: document.querySelector("#guideModeDescription"),
   buddyMethodCollapseBtn: document.querySelector("#buddyMethodCollapseBtn"),
   buddyMethodPanelContent: document.querySelector("#buddyMethodPanelContent"),
   buddyMethodSummary: document.querySelector("#buddyMethodSummary"),
@@ -1393,9 +1394,12 @@ function renderGuideMode() {
   const enabled = guideEnabled();
   document.body.classList.toggle("guide-off", !enabled);
   if (els.guideModeBtn) {
-    els.guideModeBtn.textContent = enabled ? "はじめて" : "すっきり";
+    els.guideModeBtn.textContent = enabled ? "オン" : "オフ";
     els.guideModeBtn.setAttribute("aria-pressed", String(enabled));
     els.guideModeBtn.title = enabled ? "説明を表示するモード" : "説明を減らすモード";
+  }
+  if (els.guideModeDescription) {
+    els.guideModeDescription.textContent = enabled ? "説明を表示して使う" : "入力と記録を優先する";
   }
 }
 
