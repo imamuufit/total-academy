@@ -2185,7 +2185,8 @@ function renderPlan() {
   const insight = planInsight(cycle);
   const calibration = rpeCalibrationCard(cycle);
   const learningCard = weekLearningCard(cycle, phase);
-  els.planList.innerHTML = `${calibration}${learningCard}${insight}${weeklyTemplate(cycle).map((day, index) => {
+  const checkCarryover = currentCheckCarryoverCard(cycle);
+  els.planList.innerHTML = `${calibration}${learningCard}${checkCarryover}${insight}${weeklyTemplate(cycle).map((day, index) => {
     const mainItems = day.items.filter((item) => item.lift || item.kind === "accessory").slice(0, 3).map((item) => item.name).join(" / ");
     return `
       <details class="day-card plan-day" ${index === 0 ? "open" : ""}>
@@ -2302,10 +2303,11 @@ function renderRpeCoach(cycle, phase) {
     return;
   }
   const isAccumulation = phase.name === "蓄積期";
+  const isBridge = phase.name === "ブリッジ週";
   const guide = cycle.programMethod === "platform" && cycle.buddyLevel === "level2"
     ? "Lv2はRPEと%1RMを併用します。表示重量は刺激の下限と上限を守るための目安です。@8を超える日は重量を下げ、軽くても+2.5kg程度に留めて週全体の波を崩さないでください。"
-    : isAccumulation
-    ? "蓄積期はRPEを覚える練習期間です。RIRは単なる残り回数ではなく、競技フォームを保ったまま残せる回数として見ます。予定RPEより重いなら -2.5〜5kg、軽すぎるなら +2.5〜5kgで調整してください。"
+    : isAccumulation || isBridge
+    ? "蓄積期はMAX更新を狙う週ではありません。フォーム再現性・練習量・RPE感覚を作り、現在地チェックで確かめるための期間です。予定RPEより重いなら -2.5〜5kg、軽すぎる時だけ +2.5〜5kgで調整してください。"
     : "表示重量は提案です。予定RPEを超えそうなら重量を下げ、余裕がありすぎる時だけ小さく上げます。RIRはフォーム再現性を含めた余力として使います。";
   els.rpeCoachCard.innerHTML = `
     <div>
@@ -2326,6 +2328,7 @@ function renderRpeCoach(cycle, phase) {
 function phasePurpose(phase, cycle = normalizedCycle()) {
   const name = phase?.name || "";
   if (name.includes("蓄積")) return "フォーム再現性・練習量・RPE感覚を作る。";
+  if (name.includes("ブリッジ")) return "蓄積期の土台を保ちながら、現在地チェック前に疲労を増やしすぎない。";
   if (name.includes("現在地")) return "限界MAXではなく、後半サイクルの設定材料を確認する。";
   if (name.includes("強化")) return "競技重量に近い練習を増やし、成功率を保ちながら重さへつなげる。";
   if (name.includes("ピーキング")) return "強さを作るより、強さを発揮する準備をする。";
@@ -2340,12 +2343,37 @@ function weekLearningCard(cycle, phase) {
   const whiteNine = isPlatform && (cycle.week === cycle.length || (phase.name || "").includes("MAX"))
     ? `<p class="white-nine-note"><strong>白9本:</strong> 第一を確実に、第二でトータルを作り、第三で挑戦する。成功試技を積み上げることも競技力です。</p>`
     : "";
+  const accumulationNote = isPlatform && ((phase.name || "").includes("蓄積") || (phase.name || "").includes("ブリッジ"))
+    ? `<p class="guide-note">この時期はMAX更新を狙う週ではありません。フォーム再現性・練習量・RPE感覚を作り、後半で重さを発揮するための土台を整えます。</p>`
+    : "";
   return `
     <article class="plan-card week-learning-card">
       <span class="recommended-badge">この週の目的</span>
       <h2>${escapeHtml(phase.name)}</h2>
       <p>${escapeHtml(phasePurpose(phase, cycle))}</p>
+      ${accumulationNote}
       ${whiteNine}
+    </article>
+  `;
+}
+
+function currentCheckCarryoverCard(cycle) {
+  if (!guideEnabled() || cycle.programMethod !== "platform" || cycle.week <= 5) return "";
+  const entries = planFeedbackEntriesForWeek(cycle, 5);
+  if (!entries.length) return "";
+  const heavy = entries.filter((entry) => rpeDiff(entry) >= 1);
+  const light = entries.filter((entry) => rpeDiff(entry) <= -1);
+  let message = "現在地チェックの記録を後半ブロックの判断材料にします。W6以降は表示重量を盲信せず、予定RPEとフォーム再現性を優先してください。";
+  if (heavy.length) {
+    message = "現在地チェックで予定より重く出た種目があります。後半ブロックは初週から追いすぎず、該当種目は -2.5〜5kg やバックオフ減を候補にしてください。";
+  } else if (light.length) {
+    message = "現在地チェックは余裕を持って終えられています。後半ブロックで +2.5kg 程度の上積みは候補ですが、予定RPEを超えない範囲で進めましょう。";
+  }
+  return `
+    <article class="plan-card week-learning-card">
+      <span class="recommended-badge">現在地チェック反映</span>
+      <h2>後半ブロックの入り方</h2>
+      <p>${message}</p>
     </article>
   `;
 }
@@ -2539,7 +2567,7 @@ function planInsight(cycle) {
   const method = programMethodInfo(cycle);
   const balance = liftBalance(cycle, athlete);
   const levelWarning = cycle.programMethod === "platform" && cycle.buddyLevel === "level2" && cycle.experienceLevel === "beginner"
-    ? `<p class="safety-note"><strong>注意:</strong> Lv2はRPEを守って重量を下げられる方、直近で痛みや強い疲労がない方におすすめです。初心者はLv1から始めると安全です。</p>`
+    ? `<p class="safety-note"><strong>注意:</strong> Lv2は中級者向けです。RPEに慣れていない方や、まず1サイクル完走を優先したい方はLv1推奨です。</p>`
     : "";
   const levelActiveNote = cycle.programMethod === "platform" && cycle.buddyLevel === "level2"
     ? `<p class="guide-note"><strong>Lv2適用中:</strong> 表示メニューは週内非線形です。SQ/DL週2回、BP週3〜4回を目安に、高強度日・ボリューム日・技術日を分けて表示します。</p>`
@@ -2719,6 +2747,12 @@ function cyclePhase(week, length, programMethod = "platform") {
     return {
       name: "現在地チェック",
       note: "3日程度の休養で疲労を抜き、前半4週で作ったフォーム再現性とRPE感覚を確認する週。限界MAXは必須ではありません。"
+    };
+  }
+  if (programMethod === "platform" && length === 10 && week === 4) {
+    return {
+      name: "ブリッジ週",
+      note: "前半4週の蓄積を保ちながら、現在地チェック前に疲労を溜めすぎない週。重さよりフォーム再現性と予定RPEを優先します。"
     };
   }
   if (programMethod === "platform" && week === length) {
@@ -3014,8 +3048,8 @@ function prescriptionForWeek(liftId, max, week, length, daysPerWeek, variant = "
 
   if (phase === "PRテスト") {
     return {
-      title: `第一 @6 / 第二 @7.5 / 第三 ${prRange.low}〜${prRange.high}kg`,
-      detail: "白9本を優先。第一と第二は当日の感覚で確実に通し、第三だけPR候補から選ぶ。"
+      title: `第一 @7〜8 / 第二 @8〜9 / 第三 ${prRange.low}〜${prRange.high}kg @9〜10`,
+      detail: "白9本を優先。第一は確実に成功している重量、第二はトータルを作る重量、第三だけPR候補から選ぶ。"
     };
   }
 
@@ -3028,8 +3062,8 @@ function prescriptionForWeek(liftId, max, week, length, daysPerWeek, variant = "
 
   return {
     title: `トップ ${topWeight}kg x ${intensity.reps} @${intensity.topRpe} / バックオフ ${backoffWeight}kg x ${intensity.backoffReps} x ${intensity.backoffSets} @${intensity.backoffRpe}`,
-    detail: phase === "蓄積期"
-      ? "RPE練習週。重く感じたら-2.5〜5kg、軽すぎる時だけ+2.5〜5kg。"
+    detail: phase === "蓄積期" || phase === "ブリッジ週"
+      ? "MAX更新を狙う週ではなく、RPE練習とフォーム再現性を作る週。重く感じたら-2.5〜5kg、軽すぎる時だけ+2.5〜5kg。"
       : "次週につながる良い反復を優先。上振れ狙いではなく予定RPEで止める。"
   };
 }
@@ -3045,17 +3079,35 @@ function level2PrescriptionForWeek(liftId, max, week, length, daysPerWeek, varia
     light: { single: 0, backoff: 0.58, reps: 3, sets: 3, topRpe: "", backoffRpe: "6", label: "軽めの日" }
   };
   const base = variants[variant] || variants.main;
-  const phaseBump = phase === "蓄積期" ? progress * 0.08 : phase === "強化期" ? 0.05 + progress * 0.1 : 0.08 + progress * 0.08;
+  const phaseBump = phase === "蓄積期" || phase === "ブリッジ週" ? progress * 0.08 : phase === "強化期" ? 0.05 + progress * 0.1 : 0.08 + progress * 0.08;
   const priorityBump = isPriority ? 0.02 : 0;
   const singlePercent = Math.min(0.9, (base.single + phaseBump + priorityBump) * liftFatigue);
-  const backoffPercent = Math.min(0.82, (base.backoff + phaseBump * 0.65 + priorityBump * 0.5) * liftFatigue);
+  let backoffPercent = Math.min(0.82, (base.backoff + phaseBump * 0.65 + priorityBump * 0.5) * liftFatigue);
+  if (variant === "volume") backoffPercent = level2VolumePercentCap(liftId, backoffPercent);
   const backoffWeight = roundToIncrement(max * backoffPercent, 2.5);
 
   if (phase === "ピーキング期") {
-    const single = roundToIncrement(max * Math.min(0.9, (variant === "main" ? 0.84 : 0.76) * liftFatigue + priorityBump), 2.5);
+    if (variant !== "main") {
+      const peakingAccessoryPercent = variant === "volume"
+        ? level2VolumePercentCap(liftId, Math.min(backoffPercent, 0.74))
+        : variant === "technique"
+          ? Math.min(backoffPercent, 0.68)
+          : Math.min(backoffPercent, 0.62);
+      const peakingReps = liftId === "deadlift" && variant === "volume" ? 4 : base.reps;
+      const peakingSets = Math.min(base.sets, liftId === "deadlift" ? 3 : 4);
+      return {
+        title: `${roundToIncrement(max * peakingAccessoryPercent, 2.5)}kg x ${peakingReps} x ${peakingSets} @${base.backoffRpe}`,
+        detail: `Lv2ピーキングの${base.label}。メイン日の競技重量接触を邪魔しない範囲で、目安${Math.round(peakingAccessoryPercent * 100)}%に抑えます。`
+      };
+    }
+    const weeksOut = Math.max(1, length - week);
+    const peakingBase = weeksOut >= 3 ? 0.86 : weeksOut === 2 ? 0.885 : 0.91;
+    const peakingPercent = Math.min(0.92, (peakingBase + (isPriority ? 0.01 : 0)) * liftFatigue);
+    const peakingRpe = weeksOut >= 3 ? "7〜7.5" : weeksOut === 2 ? "7.5〜8" : "8前後";
+    const single = roundToIncrement(max * peakingPercent, 2.5);
     return {
-      title: `トップ ${single}kg x 1 @7.5〜8 / バックオフ ${roundToIncrement(single * 0.86, 2.5)}kg x 2 x 2 @7`,
-      detail: "Lv2ピーキング。第三試技候補は練習で追わず、第一・第二の成功率とフォーム再現を優先。"
+      title: `トップ ${single}kg x 1 @${peakingRpe} / バックオフ ${roundToIncrement(single * 0.84, 2.5)}kg x 2 x 2 @7`,
+      detail: `Lv2ピーキング。低ボリュームのシングルで競技重量へ近づく週。目安${Math.round(peakingPercent * 100)}%。第三試技候補は練習で追い切らない。`
     };
   }
 
@@ -3067,10 +3119,17 @@ function level2PrescriptionForWeek(liftId, max, week, length, daysPerWeek, varia
     };
   }
 
+  const reps = variant === "volume" && liftId === "deadlift" ? 4 : base.reps;
+  const sets = variant === "volume" && liftId === "deadlift" ? Math.min(base.sets, 4) : base.sets;
   return {
-    title: `${backoffWeight}kg x ${base.reps} x ${base.sets} @${base.backoffRpe}`,
+    title: `${backoffWeight}kg x ${reps} x ${sets} @${base.backoffRpe}`,
     detail: `Lv2 ${base.label}。目安 ${Math.round(backoffPercent * 100)}%。高強度日のために良い反復だけを残す。`
   };
+}
+
+function level2VolumePercentCap(liftId, percent) {
+  const caps = { squat: 0.78, bench: 0.82, deadlift: 0.75 };
+  return Math.min(percent, caps[liftId] || 0.8);
 }
 
 function j(codes) {
@@ -3312,13 +3371,18 @@ function finalMeetTemplate(cycle) {
 function finalAttemptItem(lift, cycle) {
   const max = Number(cycle.maxes[lift] || bestE1rm(lift) || 0);
   const range = max ? projectedPrRange(lift, max, cycle.length, cycle.daysPerWeek, cycle.priorityLift) : { low: "-", high: "-" };
-  const first = max ? roundToIncrement(max * 0.9, 2.5) : "-";
-  const second = max ? roundToIncrement(max * 0.97, 2.5) : "-";
+  const attemptPercents = {
+    beginner: [0.88, 0.94],
+    intermediate: [0.9, 0.96],
+    advanced: [0.92, 0.98]
+  }[cycle.experienceLevel] || [0.9, 0.96];
+  const first = max ? roundToIncrement(max * attemptPercents[0], 2.5) : "-";
+  const second = max ? roundToIncrement(max * attemptPercents[1], 2.5) : "-";
   return methodItem(
     lift,
     exerciseMeta(lift).name,
-    `第一 ${first}kg @6 / 第二 ${second}kg @7.5 / 第三 ${range.low}〜${range.high}kg`,
-    "SQ→BP→DLの順で実施。白9本を優先し、第一・第二で成功を作って第三だけMAX更新候補から選ぶ。"
+    `第一 ${first}kg @7〜8 / 第二 ${second}kg @8〜9 / 第三 ${range.low}〜${range.high}kg @9〜10`,
+    "SQ→BP→DLの順で実施。第一は練習で確実に成功している重量、第二はトータルを作る重量、第三だけPRまたは挑戦重量として選ぶ。"
   );
 }
 
@@ -3477,7 +3541,7 @@ function priorityDay(day, index, daysPerWeek, priorityLift) {
 }
 
 function accessoryLimitFor(daysPerWeek, accessoryVolume, phase) {
-  if (phase === "PRテスト") return 0;
+  if (phase === "PRテスト" || phase === "大会想定MAXチェック") return 0;
   const base = {
     3: { low: 2, normal: 3, high: 4 },
     4: { low: 1, normal: 2, high: 3 },
@@ -3498,7 +3562,8 @@ function adjustAccessories(day, accessoryLimit, cycle) {
       return;
     }
     if (accessoryCount >= accessoryLimit) return;
-    const availableItem = availableAccessory(item, cycle);
+    const fatigueManagedItem = lowBackFriendlyAccessory(item, day, keptItems, cycle);
+    const availableItem = availableAccessory(fatigueManagedItem, cycle);
     if (!availableItem) return;
     keptItems.push(availableItem);
     accessoryCount += 1;
@@ -3514,6 +3579,28 @@ function adjustAccessories(day, accessoryLimit, cycle) {
 
 function accessory(exerciseId, work, note) {
   return { kind: "accessory", exerciseId, name: exerciseMeta(exerciseId).name, work, note };
+}
+
+function lowBackFriendlyAccessory(item, day, currentItems = [], cycle = normalizedCycle()) {
+  const isDeadliftDay = day.title.includes("DL") || day.title.includes("デッド") || day.items.some((entry) => entry.lift === "deadlift" && entry.variant === "main");
+  if (!isDeadliftDay) return item;
+  const name = String(item.name || "");
+  const id = item.exerciseId || "";
+  const lowBackHeavy = ["rdl", "back_extension", "stiff_leg_deadlift", "good_morning"].includes(id)
+    || name.includes("RDL")
+    || name.includes("ルーマニアン")
+    || name.includes("バックエクステンション")
+    || name.includes("バーベルロー");
+  if (!lowBackHeavy) return item;
+
+  const used = new Set(currentItems.map((entry) => entry.exerciseId).filter(Boolean));
+  const replacements = [
+    accessory("leg_curl", "10-12回 x 3", "デッドリフト日の腰背部疲労を増やしすぎないハム補強"),
+    accessory("chest_supported_row", "8-12回 x 3", "腰を使わず背中で引く"),
+    accessory("lat_pulldown", "8-12回 x 3", "腰背部を休めた広背筋補強"),
+    accessory("ab_rollout", "8-12回 x 3", "ブレーシング補強")
+  ];
+  return replacements.find((candidate) => !used.has(candidate.exerciseId) && availableAccessory(candidate, cycle)) || item;
 }
 
 function availableAccessory(item, cycle) {
