@@ -1247,7 +1247,7 @@ function migrateState(rawState) {
       planTarget: ["big3", "bench_only"].includes((athlete.cycle || {}).planTarget)
         ? athlete.cycle.planTarget
         : "big3",
-      programMethod: ["platform", "hps", "531", "smolov_jr"].includes((athlete.cycle || {}).programMethod)
+      programMethod: ["platform", "rebuild16", "hps", "531", "smolov_jr"].includes((athlete.cycle || {}).programMethod)
         ? athlete.cycle.programMethod
         : "platform",
       buddyLevel: ["level1", "level2"].includes((athlete.cycle || {}).buddyLevel)
@@ -2328,6 +2328,8 @@ function renderRpeCoach(cycle, phase) {
 
 function phasePurpose(phase, cycle = normalizedCycle()) {
   const name = phase?.name || "";
+  if (name.includes("Reset 蓄積")) return "大会後や高疲労後のフォーム再現性・練習量・RPE感覚を戻す。";
+  if (name.includes("移行")) return "鍛え込まず、疲労を抜き、Lv2用Training Maxと次週の入り方を決める。";
   if (name.includes("蓄積")) return "フォーム再現性・練習量・RPE感覚を作る。";
   if (name.includes("ブリッジ")) return "蓄積期の土台を保ちながら、現在地チェック前に疲労を増やしすぎない。";
   if (name.includes("現在地")) return "限界MAXではなく、後半サイクルの設定材料を確認する。";
@@ -2359,7 +2361,9 @@ function weekLearningCard(cycle, phase) {
 }
 
 function currentCheckCarryoverCard(cycle) {
-  if (!guideEnabled() || cycle.programMethod !== "platform" || cycle.week <= 5) return "";
+  if (!guideEnabled()) return "";
+  if (cycle.programMethod === "rebuild16") return rebuild16CarryoverCard(cycle);
+  if (cycle.programMethod !== "platform" || cycle.week <= 5) return "";
   const entries = planFeedbackEntriesForWeek(cycle, 5);
   if (!entries.length && cycle.length !== 10) return "";
   const heavy = entries.filter((entry) => rpeDiff(entry) >= 1);
@@ -2382,6 +2386,28 @@ function currentCheckCarryoverCard(cycle) {
       <p>${message}</p>
     </article>
   `;
+}
+
+function rebuild16CarryoverCard(cycle) {
+  if (cycle.week >= 7 && cycle.week <= 10) {
+    return `
+      <article class="plan-card week-learning-card">
+        <span class="recommended-badge">Reset結果の反映</span>
+        <h2>Lv2へ入る前の判断</h2>
+        <p>W5 Reset現在地チェックが@8前後なら予定通りLv2へ。@9近く出た種目は、W7のトップシングルまたはバックオフを-2.5〜5kg控えめに入る候補があります。</p>
+      </article>
+    `;
+  }
+  if (cycle.week >= 12 && cycle.week <= 15) {
+    return `
+      <article class="plan-card week-learning-card">
+        <span class="recommended-badge">Lv2現在地チェック反映</span>
+        <h2>後半ブロックの入り方</h2>
+        <p>W11 Lv2現在地チェックが@8前後なら予定通り。@9近く出た場合は、W12以降のトップシングルまたはバックオフを-2.5〜5kgして入りましょう。</p>
+      </article>
+    `;
+  }
+  return "";
 }
 
 function tenWeekBenchCareCard(cycle) {
@@ -2531,6 +2557,7 @@ function programMethodInfo(cycle = normalizedCycle()) {
     : "前半4週で現在のMAXを安定させ、休養後の現在地チェックで再現性を確認し、後半の強化・ピーキングから大会想定MAXチェックへ進む標準プランです。";
   const info = {
     platform: [platformLabel, platformNote],
+    rebuild16: ["Buddy Rebuild 16（大会後リビルド）", "大会後・高疲労・停滞・ブランク明けに、すぐLv2へ入らず、Lv1 Resetでフォーム・RPE感覚・練習量・疲労状態を整えてから実戦寄りのLv2へ進むリビルド型プランです。"],
     hps: ["HPS（BP向き）", "Hypertrophy → Power → Strength のDUP型。特にベンチ強化との相性が良い方式です。"],
     "531": ["5/3/1（長期型）", "Training Maxを使って堅実に積む長期型。AMRAPは余力を残して止めます。"],
     smolov_jr: ["Smolov Jr.（SQ/BP高負荷）", "3週・週4固定の短期集中高ボリューム方式。SQ/BP向けで、DLには適用しません。補助種目は最小限にします。"]
@@ -2541,6 +2568,7 @@ function programMethodInfo(cycle = normalizedCycle()) {
 function methodDefaults(programMethod, planTarget = "big3") {
   const defaults = {
     platform: { length: 12, daysPerWeek: 4, accessoryVolume: "normal", locked: [] },
+    rebuild16: { length: 16, daysPerWeek: 4, accessoryVolume: "normal", locked: ["length"] },
     hps: { length: 6, daysPerWeek: 3, accessoryVolume: "normal", locked: ["length", "daysPerWeek"] },
     "531": { length: 12, daysPerWeek: planTarget === "bench_only" ? 2 : 4, accessoryVolume: "normal", locked: [] },
     smolov_jr: { length: 3, daysPerWeek: 4, accessoryVolume: "low", locked: ["length", "daysPerWeek", "accessoryVolume"] }
@@ -2550,6 +2578,7 @@ function methodDefaults(programMethod, planTarget = "big3") {
 
 function allowedCycleLengths(cycle) {
   if (cycle.programMethod === "platform") return [10, 12];
+  if (cycle.programMethod === "rebuild16") return [16];
   if (cycle.programMethod === "hps") return [6];
   if (cycle.programMethod === "531") return [4, 8, 12];
   if (cycle.programMethod === "smolov_jr") return [3];
@@ -2558,6 +2587,7 @@ function allowedCycleLengths(cycle) {
 
 function allowedDaysPerWeek(cycle) {
   if (cycle.programMethod === "platform") return [3, 4, 5];
+  if (cycle.programMethod === "rebuild16") return [3, 4, 5];
   if (cycle.programMethod === "hps") return [3];
   if (cycle.programMethod === "531") return cycle.planTarget === "bench_only" ? [1, 2, 3] : [3, 4];
   if (cycle.programMethod === "smolov_jr") return [4];
@@ -2581,7 +2611,7 @@ function applyProgramRules(cycle, previousMethod = cycle.programMethod, previous
   cycle.week = Math.min(Number(cycle.week || 1), Number(cycle.length));
   if (cycle.planTarget === "bench_only") cycle.priorityLift = "bench";
   if (cycle.programMethod === "smolov_jr" && !["squat", "bench"].includes(cycle.priorityLift)) cycle.priorityLift = "bench";
-  if (cycle.programMethod !== "platform") cycle.buddyLevel = "level1";
+  if (!["platform", "rebuild16"].includes(cycle.programMethod)) cycle.buddyLevel = "level1";
   return cycle;
 }
 
@@ -2593,13 +2623,16 @@ function planInsight(cycle) {
   const levelWarning = cycle.programMethod === "platform" && cycle.buddyLevel === "level2" && cycle.experienceLevel === "beginner"
     ? `<p class="safety-note"><strong>注意:</strong> Lv2は中級者向けです。RPEに慣れていない方や、まず1サイクル完走を優先したい方はLv1推奨です。</p>`
     : "";
+  const rebuildNote = cycle.programMethod === "rebuild16"
+    ? `<p class="safety-note"><strong>推奨:</strong> 大会後・高疲労・停滞・ブランク明け向け。初心者用に戻るプランではなく、次のLv2へ入るための再準備ブロックです。</p>`
+    : "";
   const levelActiveNote = cycle.programMethod === "platform" && cycle.buddyLevel === "level2"
     ? `<p class="guide-note"><strong>Lv2適用中:</strong> 表示メニューは週内非線形です。SQ/DL週2回、BP週3〜4回を目安に、高強度日・ボリューム日・技術日を分けて表示します。</p>`
     : "";
   if (!showGuide && !levelWarning) return "";
   if (!balance && cycle.planTarget === "bench_only") {
     const recommended = cycle.programMethod === "platform" ? `<span class="recommended-badge">迷ったらこれ</span>` : "";
-    return `<article class="plan-card ${cycle.programMethod === "platform" ? "recommended-plan" : ""}">${recommended}<h2>${method.label}</h2>${showGuide ? `<p class="guide-note">${method.note}</p>${levelActiveNote}` : ""}${levelWarning}</article>`;
+    return `<article class="plan-card ${["platform", "rebuild16"].includes(cycle.programMethod) ? "recommended-plan" : ""}">${recommended}<h2>${method.label}</h2>${showGuide ? `<p class="guide-note">${method.note}</p>${levelActiveNote}` : ""}${levelWarning}${rebuildNote}</article>`;
   }
   if (!balance) return "";
   const classLabel = weightClassMeta(athlete.sex, athlete.weightClass)[1];
@@ -2612,11 +2645,12 @@ function planInsight(cycle) {
       : `${recommendedName}が相対的に低めです。今の選択は${selectedName}重視なので、目的が明確ならそのままでOKです。`;
 
   return `
-    <article class="plan-card ${cycle.programMethod === "platform" ? "recommended-plan" : ""}">
-      ${cycle.programMethod === "platform" ? `<span class="recommended-badge">迷ったらこれ</span>` : ""}
+    <article class="plan-card ${["platform", "rebuild16"].includes(cycle.programMethod) ? "recommended-plan" : ""}">
+      ${cycle.programMethod === "platform" ? `<span class="recommended-badge">迷ったらこれ</span>` : cycle.programMethod === "rebuild16" ? `<span class="recommended-badge">リビルド型</span>` : ""}
       <h2>${method.label} / ${athlete.sex === "female" ? "女性" : "男性"} ${classLabel} / 現在トータル ${balance.total}kg</h2>
       ${showGuide ? `<p class="guide-note">${method.note} ${note}</p>${levelActiveNote}` : ""}
       ${levelWarning}
+      ${rebuildNote}
     </article>
   `;
 }
@@ -2633,7 +2667,7 @@ function renderCycleInputs() {
   els.experienceLevelInput.value = cycle.experienceLevel;
   els.cycleMethodNote.textContent = methodControlNote(cycle);
   els.programDisclaimer.textContent = programDisclaimerText(cycle);
-  els.programDisclaimer.classList.toggle("hidden", cycle.programMethod === "platform");
+  els.programDisclaimer.classList.toggle("hidden", ["platform", "rebuild16"].includes(cycle.programMethod));
   if (els.cycleWeekInput) {
     els.cycleWeekInput.max = String(cycle.length);
     els.cycleWeekInput.value = String(cycle.week);
@@ -2645,7 +2679,7 @@ function renderCycleInputs() {
 }
 
 function updateCycleOptionControls(cycle) {
-  const lengthLabels = { 3: "3週", 4: "4週", 6: "6週", 8: "8週", 10: "10週", 12: "12週" };
+  const lengthLabels = { 3: "3週", 4: "4週", 6: "6週", 8: "8週", 10: "10週", 12: "12週", 16: "16週" };
   const dayLabels = { 1: "週1回", 2: "週2回", 3: "週3回", 4: "週4回", 5: "週5回" };
   els.cycleLengthInput.innerHTML = allowedCycleLengths(cycle).map((value) => `<option value="${value}">${lengthLabels[value]}</option>`).join("");
   els.daysPerWeekInput.innerHTML = allowedDaysPerWeek(cycle).map((value) => `<option value="${value}">${dayLabels[value]}</option>`).join("");
@@ -2685,6 +2719,7 @@ function methodControlNote(cycle) {
       : "Lv1はRPE習得とフォーム再現を優先する標準プランです。";
     return `トレーニング週数は${cycle.length}週。現在地チェック前の休養ブロックを含むため、想定完了期間は約${cycle.length + 1}週です。${levelNote}`;
   }
+  if (cycle.programMethod === "rebuild16") return "Buddy Rebuild 16は16週固定。W1〜W5でLv1 Reset、W6で移行、W7〜W16でLv2 10週へ進む大会後・高疲労向けの再準備プランです。";
   if (!locked.length) return "この方式では週数・頻度を選択できます。";
   if (cycle.programMethod === "hps") return "HPSは6週・週3回固定です。Hypertrophy → Power → Strengthの順で回します。";
   if (cycle.programMethod === "smolov_jr") return "Smolov Jr.は3週・週4回・補助少なめ固定です。SQ/BP向けで、DLには適用しません。";
@@ -2692,7 +2727,7 @@ function methodControlNote(cycle) {
 }
 
 function programDisclaimerText(cycle) {
-  if (cycle.programMethod === "platform") return "";
+  if (["platform", "rebuild16"].includes(cycle.programMethod)) return "";
   return "注記: HPS、5/3/1、Smolov Jr.は各メソッドの考え方を参考にしたPlatform Buddy用の簡略テンプレートです。公式プログラムの完全再現、公式提携、公式承認を示すものではありません。";
 }
 
@@ -2715,7 +2750,7 @@ function normalizedCycle() {
   athlete.cycle.length = Number(athlete.cycle.length || 12);
   athlete.cycle.daysPerWeek = Number(athlete.cycle.daysPerWeek || 4);
   athlete.cycle.planTarget = ["big3", "bench_only"].includes(athlete.cycle.planTarget) ? athlete.cycle.planTarget : "big3";
-  athlete.cycle.programMethod = ["platform", "hps", "531", "smolov_jr"].includes(athlete.cycle.programMethod) ? athlete.cycle.programMethod : "platform";
+  athlete.cycle.programMethod = ["platform", "rebuild16", "hps", "531", "smolov_jr"].includes(athlete.cycle.programMethod) ? athlete.cycle.programMethod : "platform";
   athlete.cycle.buddyLevel = ["level1", "level2"].includes(athlete.cycle.buddyLevel) ? athlete.cycle.buddyLevel : "level1";
   athlete.cycle.accessoryVolume = athlete.cycle.accessoryVolume || "normal";
   athlete.cycle.priorityLift = ["total", "squat", "bench", "deadlift"].includes(athlete.cycle.priorityLift)
@@ -2767,13 +2802,14 @@ function updateCycleFromInputs() {
 }
 
 function cyclePhase(week, length, programMethod = "platform") {
+  if (programMethod === "rebuild16") return rebuild16Phase(week);
   if (programMethod === "platform" && length >= 10 && week === 5) {
     return {
       name: "現在地チェック",
       note: "3日程度の休養で疲労を抜き、前半4週で作ったフォーム再現性とRPE感覚を確認する週。限界MAXは必須ではありません。"
     };
   }
-  if (programMethod === "platform" && length >= 10 && week === 4) {
+  if (programMethod === "platform" && [10, 12].includes(Number(length)) && week === 4) {
     return {
       name: "ブリッジ週",
       note: "この週は強化期ではなく、現在地チェックへつなぐブリッジ週です。フォーム再現性とRPE感覚を保ちながら、少しだけ競技重量へ近づけます。疲労を溜めすぎず、W5の現在地チェックに備えましょう。"
@@ -2805,6 +2841,34 @@ function cyclePhase(week, length, programMethod = "platform") {
     };
   }
   return { name: "大会想定MAXチェック", note: "SQ→BP→DLの順で確認する週。" };
+}
+
+function rebuild16Phase(week) {
+  if (week <= 4) {
+    return {
+      name: "Lv1 Reset 蓄積期",
+      note: "大会後や高疲労時に、フォーム再現性・RPE感覚・練習量を戻す週。高重量を急いで狙わない。"
+    };
+  }
+  if (week === 5) {
+    return {
+      name: "Reset 現在地チェック",
+      note: "限界MAXではなく、次のLv2に入るための現在地を確認する週。"
+    };
+  }
+  if (week === 6) {
+    return {
+      name: "移行週",
+      note: "鍛える週ではなく、W5の結果を整理し、疲労を抜き、Lv2用Training Maxを決める準備週。"
+    };
+  }
+  const lv2Week = week - 6;
+  const lv2Phase = cyclePhase(lv2Week, 10, "platform");
+  const label = lv2Phase.name === "大会想定MAXチェック" ? "大会想定MAXチェック" : `Lv2 ${lv2Phase.name}`;
+  return {
+    name: label,
+    note: lv2Phase.note
+  };
 }
 
 function renderProjections(cycle) {
@@ -3253,6 +3317,7 @@ function intensityForWeek(week, length) {
 }
 
 function weeklyTemplate(cycle) {
+  if (cycle.programMethod === "rebuild16") return rebuild16Template(cycle);
   if (cycle.programMethod === "hps") return hpsTemplate(cycle);
   if (cycle.programMethod === "531") return fiveThreeOneTemplate(cycle);
   if (cycle.programMethod === "smolov_jr") return smolovJrTemplate(cycle);
@@ -3298,6 +3363,72 @@ function weeklyTemplate(cycle) {
       items: adjustAccessories(bridgeDay, accessoryLimit, cycle)
     };
   });
+}
+
+function rebuild16Template(cycle) {
+  if (cycle.week <= 5) {
+    const resetCycle = {
+      ...cycle,
+      programMethod: "platform",
+      buddyLevel: "level1",
+      length: 16,
+      week: cycle.week
+    };
+    return materializeTemplateDays(weeklyTemplate(resetCycle), resetCycle, "Reset");
+  }
+  if (cycle.week === 6) return rebuildTransitionTemplate(cycle);
+
+  const lv2Cycle = {
+    ...cycle,
+    programMethod: "platform",
+    buddyLevel: "level2",
+    length: 10,
+    week: cycle.week - 6
+  };
+  return materializeTemplateDays(weeklyTemplate(lv2Cycle), lv2Cycle, "Lv2");
+}
+
+function materializeTemplateDays(days, sourceCycle, prefix = "") {
+  return days.map((day) => ({
+    ...day,
+    title: prefix ? `${prefix} ${day.title}` : day.title,
+    items: day.items.map((item) => {
+      if (item.kind !== "main") return item;
+      const max = Number(sourceCycle.maxes[item.lift] || bestE1rm(item.lift) || 0);
+      const prescription = prescriptionForWeek(item.lift, max, sourceCycle.week, sourceCycle.length, sourceCycle.daysPerWeek, item.variant, sourceCycle.priorityLift, sourceCycle.buddyLevel);
+      return methodItem(item.lift, item.name, prescription.title, prescription.detail);
+    })
+  }));
+}
+
+function rebuildTransitionTemplate(cycle) {
+  const max = (lift, percent) => {
+    const base = Number(cycle.maxes[lift] || bestE1rm(lift) || 0);
+    return base ? `${roundToIncrement(base * percent, 2.5)}kg` : "1RM未設定";
+  };
+  return [
+    {
+      title: "移行週 Day1 フォーム確認",
+      items: [
+        methodItem("squat", "スクワット", `${max("squat", 0.6)} x 3 x 2 @6`, "W5の結果を整理する週。鍛え込まず、深さ・ラック・セットアップを確認。"),
+        methodItem("bench", "ベンチプレス", `${max("bench", 0.6)} x 3 x 2 @6`, "止め、コール、肩甲骨の位置を確認。疲労を残さない。")
+      ]
+    },
+    {
+      title: "移行週 Day2 軽い引きと補助",
+      items: [
+        methodItem("deadlift", "デッドリフト", `${max("deadlift", 0.55)} x 3 x 2 @6`, "引き切りと下ろし方だけ確認。重さを足さない。"),
+        { kind: "accessory", name: "軽い背中・体幹補助", work: "通常の半分 / RPE6以下", note: "パンプ狙いで追い込まない。疲労を抜いてLv2へ入る。" }
+      ]
+    },
+    {
+      title: "移行週 Day3 Lv2準備",
+      items: [
+        { kind: "accessory", name: "Training Max確認", work: "W5のRPEとフォーム動画を確認", note: "W5が@9近い場合、Lv2開始は-2.5〜5kg控えめに入る。" },
+        { kind: "accessory", name: "完全休養または散歩", work: "20分まで", note: "次週からLv2 10週。疲労を持ち越さない。" }
+      ]
+    }
+  ].slice(0, cycle.daysPerWeek);
 }
 
 function trimLevel2BridgeDay(day) {
