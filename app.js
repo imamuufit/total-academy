@@ -3176,16 +3176,16 @@ function level2BridgePrescription(liftId, max, variant, isPriority, liftFatigue,
     };
   }
   const percentMap = {
-    volume: { squat: 0.72, bench: 0.74, deadlift: 0.7 },
-    technique: { squat: 0.64, bench: 0.64, deadlift: 0.62 },
-    light: { squat: 0.58, bench: 0.58, deadlift: 0.56 }
+    volume: { squat: 0.7, bench: 0.72, deadlift: 0.68 },
+    technique: { squat: 0.62, bench: 0.62, deadlift: 0.6 },
+    light: { squat: 0.52, bench: 0.52, deadlift: 0.5 }
   };
   const percent = (percentMap[variant]?.[liftId] || percentMap[variant]?.squat || 0.64) * liftFatigue;
-  const reps = variant === "volume" && liftId === "deadlift" ? 4 : base.reps;
-  const sets = variant === "volume" ? Math.min(base.sets, liftId === "deadlift" ? 3 : 4) : base.sets;
+  const reps = variant === "volume" ? 4 : variant === "technique" ? 2 : 2;
+  const sets = variant === "volume" ? (isPriority ? 3 : 2) : variant === "technique" ? 2 : 1;
   return {
-    title: `${roundToIncrement(max * percent, 2.5)}kg x ${reps} x ${sets} @${variant === "volume" ? "6.5〜7" : base.backoffRpe}`,
-    detail: `Lv2ブリッジ週の${base.label}。現在地チェック前なので、重さより動作精度と疲労を残さないことを優先します。`
+    title: `${roundToIncrement(max * percent, 2.5)}kg x ${reps} x ${sets} @${variant === "volume" ? "6.5〜7" : "6前後"}`,
+    detail: `Lv2ブリッジ週の${base.label}。鍛え込む週ではなく、現在地チェック前の動作確認です。通常より1〜2セット少なく、疲労を残さず終えます。`
   };
 }
 
@@ -3268,11 +3268,30 @@ function weeklyTemplate(cycle) {
   };
   return (templates[cycle.daysPerWeek] || templates[4]).map((day, index) => {
     const focusedDay = priorityDay(day, index, cycle.daysPerWeek, cycle.priorityLift);
+    const bridgeDay = phase === "ブリッジ週" ? trimLevel2BridgeDay(focusedDay) : focusedDay;
     return {
-      ...focusedDay,
-      items: adjustAccessories(focusedDay, accessoryLimit, cycle)
+      ...bridgeDay,
+      items: adjustAccessories(bridgeDay, accessoryLimit, cycle)
     };
   });
+}
+
+function trimLevel2BridgeDay(day) {
+  const mainItems = day.items.filter((item) => item.kind === "main" && item.variant !== "light");
+  const accessoryItems = day.items.filter((item) => item.kind === "accessory").slice(0, 1).map((item) => ({
+    ...item,
+    work: bridgeAccessoryWork(item.work),
+    note: `${item.note || ""} / ブリッジ週なので軽く確認`
+  }));
+  return { ...day, items: [...mainItems, ...accessoryItems] };
+}
+
+function bridgeAccessoryWork(work = "") {
+  return String(work)
+    .replace(/x\s*[2345]/g, "x 1")
+    .replace(/10-15回/g, "10-12回")
+    .replace(/12-15回/g, "10-12回")
+    .replace(/8-12回/g, "8-10回");
 }
 
 function buddyLevel2Template(cycle, phase) {
@@ -3614,6 +3633,7 @@ function accessoryLimitFor(daysPerWeek, accessoryVolume, phase, cycle = null) {
     }
     return Math.max(0, base - 1);
   }
+  if (phase === "ブリッジ週" && cycle?.buddyLevel === "level2") return Math.min(1, base);
   if (phase === "強化期" && accessoryVolume === "high") return Math.max(1, base - 1);
   return base;
 }
