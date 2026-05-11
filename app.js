@@ -2365,7 +2365,7 @@ function currentCheckCarryoverCard(cycle) {
   const light = entries.filter((entry) => rpeDiff(entry) <= -1);
   let message = "現在地チェックの記録を後半ブロックの判断材料にします。W6以降は表示重量を盲信せず、予定RPEとフォーム再現性を優先してください。";
   if (heavy.length) {
-    message = "現在地チェックで予定より重く出た種目があります。後半ブロックは初週から追いすぎず、該当種目は -2.5〜5kg やバックオフ減を候補にしてください。";
+    message = "現在地チェックで予定より重く出た種目があります。@9近くまで上がった場合は後半ブロックで強く攻めすぎず、該当種目は -2.5〜5kg やバックオフ減を候補にしてください。";
   } else if (light.length) {
     message = "現在地チェックは余裕を持って終えられています。後半ブロックで +2.5kg 程度の上積みは候補ですが、予定RPEを超えない範囲で進めましょう。";
   }
@@ -2749,10 +2749,10 @@ function cyclePhase(week, length, programMethod = "platform") {
       note: "3日程度の休養で疲労を抜き、前半4週で作ったフォーム再現性とRPE感覚を確認する週。限界MAXは必須ではありません。"
     };
   }
-  if (programMethod === "platform" && length === 10 && week === 4) {
+  if (programMethod === "platform" && length >= 10 && week === 4) {
     return {
       name: "ブリッジ週",
-      note: "前半4週の蓄積を保ちながら、現在地チェック前に疲労を溜めすぎない週。重さよりフォーム再現性と予定RPEを優先します。"
+      note: "この週は強化期ではなく、現在地チェックへつなぐブリッジ週です。フォーム再現性とRPE感覚を保ちながら、少しだけ競技重量へ近づけます。疲労を溜めすぎず、W5の現在地チェックに備えましょう。"
     };
   }
   if (programMethod === "platform" && week === length) {
@@ -3040,7 +3040,7 @@ function prescriptionForWeek(liftId, max, week, length, daysPerWeek, variant = "
   if (buddyLevel === "level2" && !["大会想定MAXチェック", "現在地チェック"].includes(phase)) {
     return level2PrescriptionForWeek(liftId, max, week, length, daysPerWeek, variant, priorityLift, phase);
   }
-  const intensity = intensityForWeek(week, length);
+  const intensity = phase === "ブリッジ週" ? bridgeIntensity() : intensityForWeek(week, length);
   const variantScale = { main: 1, volume: 0.92, technique: 0.85, light: 0.78 }[variant] || 1;
   const topWeight = roundToIncrement(max * intensity.top * variantScale, 2.5);
   const backoffWeight = roundToIncrement(topWeight * intensity.backoff, 2.5);
@@ -3079,6 +3079,10 @@ function level2PrescriptionForWeek(liftId, max, week, length, daysPerWeek, varia
     light: { single: 0, backoff: 0.58, reps: 3, sets: 3, topRpe: "", backoffRpe: "6", label: "軽めの日" }
   };
   const base = variants[variant] || variants.main;
+  if (phase === "ブリッジ週") {
+    const bridge = level2BridgePrescription(liftId, max, variant, isPriority, liftFatigue, base);
+    return bridge;
+  }
   const phaseBump = phase === "蓄積期" || phase === "ブリッジ週" ? progress * 0.08 : phase === "強化期" ? 0.05 + progress * 0.1 : 0.08 + progress * 0.08;
   const priorityBump = isPriority ? 0.02 : 0;
   const singlePercent = Math.min(0.9, (base.single + phaseBump + priorityBump) * liftFatigue);
@@ -3087,27 +3091,30 @@ function level2PrescriptionForWeek(liftId, max, week, length, daysPerWeek, varia
   const backoffWeight = roundToIncrement(max * backoffPercent, 2.5);
 
   if (phase === "ピーキング期") {
+    const weeksOut = Math.max(1, length - week);
     if (variant !== "main") {
+      const volumePlan = level2PeakingVolumePlan(weeksOut, variant, liftId, base);
       const peakingAccessoryPercent = variant === "volume"
         ? level2VolumePercentCap(liftId, Math.min(backoffPercent, 0.74))
         : variant === "technique"
           ? Math.min(backoffPercent, 0.68)
           : Math.min(backoffPercent, 0.62);
-      const peakingReps = liftId === "deadlift" && variant === "volume" ? 4 : base.reps;
-      const peakingSets = Math.min(base.sets, liftId === "deadlift" ? 3 : 4);
+      const peakingReps = volumePlan.reps;
+      const peakingSets = volumePlan.sets;
       return {
         title: `${roundToIncrement(max * peakingAccessoryPercent, 2.5)}kg x ${peakingReps} x ${peakingSets} @${base.backoffRpe}`,
-        detail: `Lv2ピーキングの${base.label}。メイン日の競技重量接触を邪魔しない範囲で、目安${Math.round(peakingAccessoryPercent * 100)}%に抑えます。`
+        detail: `Lv2ピーキングの${base.label}。W${week}は通常量の約${volumePlan.label}まで減らし、メイン日の競技重量接触を邪魔しない範囲に抑えます。`
       };
     }
-    const weeksOut = Math.max(1, length - week);
     const peakingBase = weeksOut >= 3 ? 0.86 : weeksOut === 2 ? 0.885 : 0.91;
     const peakingPercent = Math.min(0.92, (peakingBase + (isPriority ? 0.01 : 0)) * liftFatigue);
     const peakingRpe = weeksOut >= 3 ? "7〜7.5" : weeksOut === 2 ? "7.5〜8" : "8前後";
+    const backoffReps = weeksOut <= 1 ? 1 : 2;
+    const backoffSets = weeksOut >= 3 ? 2 : 1;
     const single = roundToIncrement(max * peakingPercent, 2.5);
     return {
-      title: `トップ ${single}kg x 1 @${peakingRpe} / バックオフ ${roundToIncrement(single * 0.84, 2.5)}kg x 2 x 2 @7`,
-      detail: `Lv2ピーキング。低ボリュームのシングルで競技重量へ近づく週。目安${Math.round(peakingPercent * 100)}%。第三試技候補は練習で追い切らない。`
+      title: `トップ ${single}kg x 1 @${peakingRpe} / バックオフ ${roundToIncrement(single * 0.84, 2.5)}kg x ${backoffReps} x ${backoffSets} @7`,
+      detail: `Lv2ピーキング。強度は残し、ボリュームはW12へ向けて段階的に減らします。目安${Math.round(peakingPercent * 100)}%。第三試技候補は練習で追い切らない。`
     };
   }
 
@@ -3130,6 +3137,56 @@ function level2PrescriptionForWeek(liftId, max, week, length, daysPerWeek, varia
 function level2VolumePercentCap(liftId, percent) {
   const caps = { squat: 0.78, bench: 0.82, deadlift: 0.75 };
   return Math.min(percent, caps[liftId] || 0.8);
+}
+
+function level2PeakingVolumePlan(weeksOut, variant, liftId, base) {
+  const scale = weeksOut >= 3 ? 0.7 : weeksOut === 2 ? 0.5 : 0.3;
+  const label = weeksOut >= 3 ? "60〜70%" : weeksOut === 2 ? "40〜50%" : "20〜30%";
+  const cappedBaseSets = variant === "volume" && liftId === "deadlift" ? Math.min(base.sets, 3) : Math.min(base.sets, 4);
+  const sets = Math.max(1, Math.round(cappedBaseSets * scale));
+  const reps = variant === "volume"
+    ? weeksOut >= 3 ? (liftId === "deadlift" ? 4 : 4) : 3
+    : variant === "technique"
+      ? 2
+      : 2;
+  return { reps, sets, label };
+}
+
+function bridgeIntensity() {
+  return {
+    top: 0.73,
+    backoff: 0.88,
+    reps: 4,
+    backoffReps: 4,
+    backoffSets: 2,
+    topRpe: "6.5〜7",
+    backoffRpe: "6.5"
+  };
+}
+
+function level2BridgePrescription(liftId, max, variant, isPriority, liftFatigue, base) {
+  if (variant === "main") {
+    const singlePercent = Math.min(0.82, (0.78 + (isPriority ? 0.01 : 0)) * liftFatigue);
+    const backoffPercent = Math.min(0.74, (0.72 + (isPriority ? 0.005 : 0)) * liftFatigue);
+    const single = roundToIncrement(max * singlePercent, 2.5);
+    const backoff = roundToIncrement(max * backoffPercent, 2.5);
+    return {
+      title: `トップS ${single}kg x 1 @6.5〜7 / バックオフ ${backoff}kg x 4 x 2 @6.5`,
+      detail: `Lv2ブリッジ週。強化期ではなく現在地チェックへの準備です。目安${Math.round(singlePercent * 100)}%→${Math.round(backoffPercent * 100)}%。疲労を残さず終えます。`
+    };
+  }
+  const percentMap = {
+    volume: { squat: 0.72, bench: 0.74, deadlift: 0.7 },
+    technique: { squat: 0.64, bench: 0.64, deadlift: 0.62 },
+    light: { squat: 0.58, bench: 0.58, deadlift: 0.56 }
+  };
+  const percent = (percentMap[variant]?.[liftId] || percentMap[variant]?.squat || 0.64) * liftFatigue;
+  const reps = variant === "volume" && liftId === "deadlift" ? 4 : base.reps;
+  const sets = variant === "volume" ? Math.min(base.sets, liftId === "deadlift" ? 3 : 4) : base.sets;
+  return {
+    title: `${roundToIncrement(max * percent, 2.5)}kg x ${reps} x ${sets} @${variant === "volume" ? "6.5〜7" : base.backoffRpe}`,
+    detail: `Lv2ブリッジ週の${base.label}。現在地チェック前なので、重さより動作精度と疲労を残さないことを優先します。`
+  };
 }
 
 function j(codes) {
@@ -3219,7 +3276,7 @@ function weeklyTemplate(cycle) {
 }
 
 function buddyLevel2Template(cycle, phase) {
-  const accessoryLimit = accessoryLimitFor(cycle.daysPerWeek, cycle.accessoryVolume, phase);
+  const accessoryLimit = accessoryLimitFor(cycle.daysPerWeek, cycle.accessoryVolume, phase, cycle);
   const squat = exerciseMeta("squat").name;
   const bench = exerciseMeta("bench").name;
   const deadlift = exerciseMeta("deadlift").name;
@@ -3339,13 +3396,13 @@ function currentCheckWork(lift, cycle) {
 
 function currentCheckNote(cycle) {
   if (cycle.buddyLevel === "level2") {
-    if (cycle.experienceLevel === "advanced") return "Lv2現在地チェック。限界1RMではなく、重めシングルで高重量慣れと試技精度を確認。失敗する重量は選ばない。";
-    if (cycle.experienceLevel === "intermediate") return "Lv2現在地チェック。シングル@8〜9で蓄積期の成果と高重量への再導入を確認。RPEが高すぎる場合は後半を控えめに調整。";
-    return "Lv2選択中でも初心者は3〜5回@8で確認。重すぎる場合はLv1への変更も検討。";
+    if (cycle.experienceLevel === "advanced") return "Lv2現在地チェック。限界1RMではなく、重めシングルで高重量慣れと試技精度を確認。@8前後が基準、@9まで上がった場合は後半を攻めすぎない。";
+    if (cycle.experienceLevel === "intermediate") return "Lv2現在地チェック。シングル@8前後を基準に蓄積期の成果と高重量への再導入を確認。@9近くなら後半ブロックは控えめに入る。";
+    return "Lv2選択中でも初心者は3〜5回@8で確認。5回やり切るより、RPE8で止めることを優先。重すぎる場合はLv1への変更も検討。";
   }
-  if (cycle.experienceLevel === "advanced") return "限界1RMではなく、試技形式に近い重めシングルで再現性を確認。失敗する重量は選ばない。";
-  if (cycle.experienceLevel === "intermediate") return "重めシングルで1RM付近への慣れを確認。RPEが高すぎる場合は後半を控えめに調整。";
-  return "初心者は1RMではなく3〜5回@8で確認。高重量低回数への慣れとフォーム再現性を優先。";
+  if (cycle.experienceLevel === "advanced") return "限界1RMではなく、試技形式に近い重めシングルで再現性を確認。@8前後が基準、@9なら後半は控えめに入る。";
+  if (cycle.experienceLevel === "intermediate") return "重めシングルで1RM付近への慣れを確認。@8前後を基準にし、RPEが高すぎる場合は後半を控えめに調整。";
+  return "初心者は1RMではなく3〜5回@8で確認。5回やり切ることより、RPE8で止めることとフォーム再現性を優先。";
 }
 
 function finalMeetTemplate(cycle) {
@@ -3382,7 +3439,7 @@ function finalAttemptItem(lift, cycle) {
     lift,
     exerciseMeta(lift).name,
     `第一 ${first}kg @7〜8 / 第二 ${second}kg @8〜9 / 第三 ${range.low}〜${range.high}kg @9〜10`,
-    "SQ→BP→DLの順で実施。第一は練習で確実に成功している重量、第二はトータルを作る重量、第三だけPRまたは挑戦重量として選ぶ。"
+    "SQ→BP→DLの順で実施。第一は確実に成功している重量、第二はトータルを作る重量。第二が@8以下なら第三は上の候補、@9以上なら小幅PRまたは成功優先を選ぶ。"
   );
 }
 
@@ -3540,7 +3597,7 @@ function priorityDay(day, index, daysPerWeek, priorityLift) {
   return { ...day, title, items };
 }
 
-function accessoryLimitFor(daysPerWeek, accessoryVolume, phase) {
+function accessoryLimitFor(daysPerWeek, accessoryVolume, phase, cycle = null) {
   if (phase === "PRテスト" || phase === "大会想定MAXチェック") return 0;
   const base = {
     3: { low: 2, normal: 3, high: 4 },
@@ -3548,7 +3605,15 @@ function accessoryLimitFor(daysPerWeek, accessoryVolume, phase) {
     5: { low: 1, normal: 1, high: 2 }
   }[daysPerWeek]?.[accessoryVolume] ?? 2;
 
-  if (phase === "ピーキング期") return Math.max(0, base - 1);
+  if (phase === "ピーキング期") {
+    if (cycle?.buddyLevel === "level2") {
+      const weeksOut = Math.max(1, Number(cycle.length || 0) - Number(cycle.week || 0));
+      if (weeksOut >= 3) return Math.max(0, base - 1);
+      if (weeksOut === 2) return Math.max(0, base - 2);
+      return 0;
+    }
+    return Math.max(0, base - 1);
+  }
   if (phase === "強化期" && accessoryVolume === "high") return Math.max(1, base - 1);
   return base;
 }
