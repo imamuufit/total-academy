@@ -2186,7 +2186,8 @@ function renderPlan() {
   const calibration = rpeCalibrationCard(cycle);
   const learningCard = weekLearningCard(cycle, phase);
   const checkCarryover = currentCheckCarryoverCard(cycle);
-  els.planList.innerHTML = `${calibration}${learningCard}${checkCarryover}${insight}${weeklyTemplate(cycle).map((day, index) => {
+  const tenWeekBenchCare = tenWeekBenchCareCard(cycle);
+  els.planList.innerHTML = `${calibration}${learningCard}${checkCarryover}${tenWeekBenchCare}${insight}${weeklyTemplate(cycle).map((day, index) => {
     const mainItems = day.items.filter((item) => item.lift || item.kind === "accessory").slice(0, 3).map((item) => item.name).join(" / ");
     return `
       <details class="day-card plan-day" ${index === 0 ? "open" : ""}>
@@ -2360,10 +2361,15 @@ function weekLearningCard(cycle, phase) {
 function currentCheckCarryoverCard(cycle) {
   if (!guideEnabled() || cycle.programMethod !== "platform" || cycle.week <= 5) return "";
   const entries = planFeedbackEntriesForWeek(cycle, 5);
-  if (!entries.length) return "";
+  if (!entries.length && cycle.length !== 10) return "";
   const heavy = entries.filter((entry) => rpeDiff(entry) >= 1);
   const light = entries.filter((entry) => rpeDiff(entry) <= -1);
   let message = "現在地チェックの記録を後半ブロックの判断材料にします。W6以降は表示重量を盲信せず、予定RPEとフォーム再現性を優先してください。";
+  if (cycle.length === 10) {
+    message = cycle.buddyLevel === "level2"
+      ? "10週版はW5チェック後すぐW6強化期に入ります。W5チェックが@8前後なら予定通り。@9近く出た場合は、W6のトップシングルまたはバックオフを-2.5〜5kgして入りましょう。"
+      : "10週版はW5チェック後すぐW6強化期に入ります。W5現在地チェックで3回@8だった場合、W6は予定重量より-2.5〜5kgから入る候補があります。5回@8で余裕があった場合は予定通り進めましょう。";
+  }
   if (heavy.length) {
     message = "現在地チェックで予定より重く出た種目があります。@9近くまで上がった場合は後半ブロックで強く攻めすぎず、該当種目は -2.5〜5kg やバックオフ減を候補にしてください。";
   } else if (light.length) {
@@ -2374,6 +2380,24 @@ function currentCheckCarryoverCard(cycle) {
       <span class="recommended-badge">現在地チェック反映</span>
       <h2>後半ブロックの入り方</h2>
       <p>${message}</p>
+    </article>
+  `;
+}
+
+function tenWeekBenchCareCard(cycle) {
+  if (!guideEnabled()) return "";
+  const show = cycle.programMethod === "platform"
+    && cycle.length === 10
+    && cycle.buddyLevel === "level2"
+    && cycle.daysPerWeek === 5
+    && cycle.priorityLift === "bench"
+    && [6, 7].includes(Number(cycle.week));
+  if (!show) return "";
+  return `
+    <article class="plan-card week-learning-card">
+      <span class="recommended-badge">ベンチ頻度の調整</span>
+      <h2>押せる状態を保つ</h2>
+      <p>肘・肩・前腕に違和感がある場合は、ナローBPまたは三頭補助を減らしてください。ベンチ頻度を守ることより、押せる状態を保つことを優先します。</p>
     </article>
   `;
 }
