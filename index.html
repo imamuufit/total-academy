@@ -65,6 +65,11 @@
                 <option value="4" selected>週4回</option>
                 <option value="5">週5回</option>
               </select></label>
+              <label>競技カテゴリー<select id="onboardingSex">
+                <option value="male">男性</option>
+                <option value="female">女性</option>
+                <option value="">未設定</option>
+              </select></label>
               <label>体重<input id="onboardingBodyweight" inputmode="decimal" type="number" min="20" step="0.1" placeholder="例: 83"></label>
               <label>RPE使用経験<select id="onboardingRpeExperience">
                 <option value="learning">ほぼ初めて</option>
@@ -140,6 +145,8 @@
           </div>
         </section>
 
+        <section class="meet-prep-announcement hidden" id="meetPrepAnnouncement" role="button" tabindex="0" data-view-target="knowledge" aria-label="大会準備へ進む"></section>
+
         <section class="panel athlete-panel">
           <div class="section-title">
             <div>
@@ -159,6 +166,7 @@
               <label>
                 性別
                 <select id="sexInput">
+                  <option value="">未設定</option>
                   <option value="male">男性</option>
                   <option value="female">女性</option>
                 </select>
@@ -476,6 +484,16 @@
                 <small>赤判定を減らす基本を復習。</small>
               </button>
             </div>
+            <section class="meet-prep-checklist" id="meetPrepChecklist" aria-labelledby="meetPrepChecklistTitle">
+              <div class="section-title">
+                <div>
+                  <p class="eyebrow">Meet Checklist</p>
+                  <h3 id="meetPrepChecklistTitle">大会準備チェックリスト</h3>
+                </div>
+              </div>
+              <p class="meet-rule-note">本アプリはJPA/IPF公式アプリではありません。ルール確認は必ず最新の公式ルールブック、大会要項、当日の審判・大会運営の指示を優先してください。</p>
+              <div class="meet-checklist-grid"></div>
+            </section>
             <section class="meet-note-panel" aria-labelledby="meetNoteTitle">
               <div class="section-title">
                 <div>

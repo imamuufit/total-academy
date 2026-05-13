@@ -63,7 +63,7 @@ button {
   z-index: 1;
   width: min(100%, 980px);
   margin: 0 auto;
-  padding: max(18px, env(safe-area-inset-top)) 16px 28px;
+  padding: max(18px, env(safe-area-inset-top)) 16px calc(96px + env(safe-area-inset-bottom));
 }
 
 .topbar {
@@ -324,16 +324,22 @@ h2 {
 }
 
 .guide-mode-bar {
+  position: fixed;
+  right: 14px;
+  bottom: calc(14px + env(safe-area-inset-bottom));
+  z-index: 90;
+  width: min(210px, calc(100vw - 28px));
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin: 0 0 10px;
+  margin: 0;
   border: 1px solid var(--line);
   border-left: 5px solid var(--accent);
   border-radius: 8px;
   background: #fffefa;
-  padding: 10px 12px;
+  padding: 8px 10px;
+  box-shadow: 0 10px 30px rgba(21, 23, 26, 0.18);
 }
 
 .guide-mode-bar div {
@@ -356,11 +362,11 @@ h2 {
 .guide-mode-toggle {
   border: 1px solid var(--line);
   border-radius: 999px;
-  min-width: 72px;
-  min-height: 38px;
+  min-width: 82px;
+  min-height: 34px;
   background: var(--ink);
   color: #fff;
-  font-size: 0.86rem;
+  font-size: 0.78rem;
   font-weight: 900;
 }
 
@@ -672,6 +678,49 @@ h2 {
 .association-guide a:hover {
   background: var(--ink);
   color: #fff;
+}
+
+.meet-prep-announcement {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  border: 1px solid #ead7aa;
+  border-left: 5px solid var(--coach);
+  border-radius: 8px;
+  background: #fff9e8;
+  padding: 12px;
+  cursor: pointer;
+}
+
+.meet-prep-announcement div {
+  display: grid;
+  gap: 4px;
+}
+
+.meet-prep-announcement span {
+  color: var(--coach);
+  font-size: 0.74rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.meet-prep-announcement strong {
+  color: var(--ink);
+  font-size: 1rem;
+}
+
+.meet-prep-announcement p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.meet-prep-announcement.hidden {
+  display: none;
 }
 
 .athlete-strip {
@@ -1551,6 +1600,43 @@ canvas {
   font-weight: 900;
 }
 
+.plan-prescription {
+  display: grid;
+  gap: 8px;
+}
+
+.plan-prescription-block {
+  display: grid;
+  gap: 3px;
+  border: 1px solid #ead7aa;
+  border-radius: 8px;
+  background: #fff9e8;
+  padding: 8px 9px;
+}
+
+.plan-prescription-block span {
+  width: fit-content;
+  border-radius: 999px;
+  background: var(--ink);
+  color: #fff;
+  padding: 3px 7px;
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.plan-prescription-block strong {
+  color: var(--ink);
+  font-size: 0.94rem;
+}
+
+.plan-prescription-block small,
+.plan-prescription-block em {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-style: normal;
+  font-weight: 900;
+}
+
 .exercise-row p,
 .projection-card p {
   margin: 0;
@@ -1932,6 +2018,44 @@ dialog::backdrop {
   padding: 14px;
 }
 
+.meet-prep-checklist {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 14px;
+  border: 1px solid var(--line);
+  border-left: 5px solid var(--coach);
+  border-radius: 8px;
+  background:
+    repeating-linear-gradient(180deg, rgba(21, 23, 26, 0) 0 28px, rgba(21, 23, 26, 0.035) 29px, rgba(21, 23, 26, 0) 30px),
+    #fffefa;
+  padding: 14px;
+}
+
+.meet-checklist-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.meet-check-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  padding: 9px 10px;
+  color: var(--ink);
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.meet-check-item input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+
 .meet-note-form {
   display: grid;
   gap: 12px;
@@ -1969,7 +2093,7 @@ dialog::backdrop {
 
 .meet-attempt-row {
   display: grid;
-  grid-template-columns: 34px minmax(72px, 0.8fr) 1fr 1fr 1fr;
+  grid-template-columns: 34px minmax(72px, 0.8fr) 0.7fr 0.7fr 0.7fr 1fr 1fr;
   gap: 8px;
   align-items: center;
 }
@@ -2369,6 +2493,7 @@ dialog::backdrop {
   .input-grid,
   .form-row,
   .association-guide,
+  .meet-checklist-grid,
   .onboarding-goals,
   .daily-entry-grid,
   .onboarding-grid,
@@ -2495,8 +2620,30 @@ dialog::backdrop {
     grid-template-columns: 34px repeat(2, minmax(0, 1fr));
   }
 
+  .meet-attempt-row .meet-attempt-judge {
+    grid-column: span 1;
+  }
+
+  .meet-attempt-row .meet-attempt-red,
   .meet-attempt-row select:last-child {
     grid-column: 2 / -1;
+  }
+
+  .meet-prep-announcement {
+    align-items: stretch;
+    display: grid;
+  }
+
+  .guide-mode-bar {
+    right: 10px;
+    bottom: calc(10px + env(safe-area-inset-bottom));
+    width: min(178px, calc(100vw - 20px));
+    gap: 8px;
+    padding: 7px 8px;
+  }
+
+  .guide-mode-bar small {
+    display: none;
   }
 
   .meet-note-card summary {

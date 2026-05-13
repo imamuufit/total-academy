@@ -135,6 +135,24 @@ const meetAttemptResults = {
   fail: "失敗",
   pass: "未実施"
 };
+const meetJudgeOptions = {
+  "": "未入力",
+  white: "白",
+  red: "赤"
+};
+const meetPrepChecklistItems = [
+  ["guideline", "大会要項確認"],
+  ["weighin", "検量時間確認"],
+  ["rules", "最新ルール確認"],
+  ["singlet", "シングレット"],
+  ["belt", "ベルト"],
+  ["wristwraps", "リストラップ"],
+  ["kneesleeves", "ニースリーブ"],
+  ["socks", "ハイソックス"],
+  ["shoes", "シューズ"],
+  ["openers", "オープナー候補"],
+  ["notebook", "大会ノート準備"]
+];
 const meetRedReasons = {
   none: "赤なし",
   depth: "深さ",
@@ -1050,6 +1068,7 @@ const defaultState = {
       weightClass: "83",
       prefecture: "",
       meetDate: "",
+      meetChecklist: {},
       cycle: defaultCycle(),
       meetNotes: [],
       logs: [
@@ -1077,6 +1096,7 @@ const els = {
   onboardingScreen: document.querySelector("#onboardingScreen"),
   onboardingExperience: document.querySelector("#onboardingExperience"),
   onboardingDays: document.querySelector("#onboardingDays"),
+  onboardingSex: document.querySelector("#onboardingSex"),
   onboardingBodyweight: document.querySelector("#onboardingBodyweight"),
   onboardingRpeExperience: document.querySelector("#onboardingRpeExperience"),
   onboardingSquatMax: document.querySelector("#onboardingSquatMax"),
@@ -1093,6 +1113,8 @@ const els = {
   prefectureInput: document.querySelector("#prefectureInput"),
   associationGuide: document.querySelector("#associationGuide"),
   meetDateInput: document.querySelector("#meetDateInput"),
+  meetPrepAnnouncement: document.querySelector("#meetPrepAnnouncement"),
+  meetPrepChecklist: document.querySelector("#meetPrepChecklist"),
   logForm: document.querySelector("#logForm"),
   dateInput: document.querySelector("#dateInput"),
   categorySelect: document.querySelector("#categorySelect"),
@@ -1236,7 +1258,7 @@ function migrateState(rawState) {
   migrated.quiz = normalizeQuizState(migrated.quiz);
   migrated.athletes = (migrated.athletes || []).map((athlete) => ({
     ...athlete,
-    sex: ["male", "female"].includes(athlete.sex) ? athlete.sex : "male",
+    sex: ["male", "female", ""].includes(athlete.sex) ? athlete.sex : "male",
     prefecture: prefectures.includes(athlete.prefecture) ? athlete.prefecture : "",
     weightClass: validWeightClass(athlete.sex || "male", athlete.weightClass)
       ? athlete.weightClass
@@ -1266,6 +1288,7 @@ function migrateState(rawState) {
     },
     rpeFeedback: athlete.rpeFeedback || {},
     rpeCalibration: athlete.rpeCalibration || {},
+    meetChecklist: athlete.meetChecklist && typeof athlete.meetChecklist === "object" ? athlete.meetChecklist : {},
     meetNotes: Array.isArray(athlete.meetNotes) ? athlete.meetNotes : [],
     logs: (athlete.logs || []).map((log) => {
       if (log.exerciseId) {
@@ -1394,7 +1417,7 @@ function renderGuideMode() {
   const enabled = guideEnabled();
   document.body.classList.toggle("guide-off", !enabled);
   if (els.guideModeBtn) {
-    els.guideModeBtn.textContent = enabled ? "オン" : "オフ";
+    els.guideModeBtn.textContent = enabled ? "ガイドON" : "ガイドOFF";
     els.guideModeBtn.setAttribute("aria-pressed", String(enabled));
     els.guideModeBtn.title = enabled ? "説明を表示するモード" : "説明を減らすモード";
   }
@@ -1437,7 +1460,7 @@ function applyCollapse(key, content, button, label) {
 
 function renderCollapseSummaries(athlete, cycle) {
   const classLabel = weightClassMeta(athlete.sex, athlete.weightClass)[1];
-  const sexLabel = athlete.sex === "female" ? "女性" : "男性";
+  const sexLabel = athlete.sex === "female" ? "女性" : athlete.sex === "male" ? "男性" : "性別未設定";
   const bodyweight = athlete.bodyweight ? `${athlete.bodyweight}kg` : "体重未設定";
   const prefecture = athlete.prefecture || "エリア未設定";
   const meet = athlete.meetDate ? `試合 ${athlete.meetDate}` : "試合未設定";
@@ -1484,7 +1507,7 @@ function render() {
   els.currentAthleteName.textContent = athlete.name;
   els.deleteAthleteBtn.disabled = state.athletes.length <= 1;
   els.deleteAthleteBtn.title = state.athletes.length <= 1 ? "選手が1名のみのため削除できません" : `${athlete.name}を削除`;
-  athlete.sex = ["male", "female"].includes(athlete.sex) ? athlete.sex : "male";
+  athlete.sex = ["male", "female", ""].includes(athlete.sex) ? athlete.sex : "male";
   athlete.prefecture = prefectures.includes(athlete.prefecture) ? athlete.prefecture : "";
   athlete.weightClass = validWeightClass(athlete.sex, athlete.weightClass) ? athlete.weightClass : inferWeightClass(athlete.sex, athlete.bodyweight);
   els.sexInput.value = athlete.sex;
@@ -1495,6 +1518,8 @@ function render() {
   els.prefectureInput.value = athlete.prefecture;
   els.meetDateInput.value = athlete.meetDate || "";
   renderAssociationGuide(athlete);
+  renderMeetPrepAnnouncement(athlete);
+  renderMeetPrepChecklist(athlete);
   renderCycleInputs();
   renderCollapseState(athlete, normalizedCycle());
   renderAthletes();
@@ -1579,6 +1604,45 @@ function renderAssociationGuide(athlete = currentAthlete()) {
   `;
 }
 
+function daysUntilMeet(athlete = currentAthlete()) {
+  if (!athlete.meetDate) return null;
+  const diff = new Date(`${athlete.meetDate}T00:00:00`) - new Date(`${today()}T00:00:00`);
+  return Math.ceil(diff / 86400000);
+}
+
+function renderMeetPrepAnnouncement(athlete = currentAthlete()) {
+  if (!els.meetPrepAnnouncement) return;
+  const days = daysUntilMeet(athlete);
+  if (days === null) {
+    els.meetPrepAnnouncement.classList.add("hidden");
+    els.meetPrepAnnouncement.innerHTML = "";
+    return;
+  }
+  const timing = days > 0 ? `大会まであと${days}日` : days === 0 ? "大会当日" : `大会から${Math.abs(days)}日経過`;
+  els.meetPrepAnnouncement.classList.remove("hidden");
+  els.meetPrepAnnouncement.innerHTML = `
+    <div>
+      <span>大会準備アナウンス</span>
+      <strong>${escapeHtml(timing)}</strong>
+      <p>大会出場に向けて、必要な準備は進んでいますか？タップするとMEETのチェックリストへ進みます。</p>
+    </div>
+    <button class="text-button compact" type="button" data-view-target="knowledge">MEETへ</button>
+  `;
+}
+
+function renderMeetPrepChecklist(athlete = currentAthlete()) {
+  if (!els.meetPrepChecklist) return;
+  const grid = els.meetPrepChecklist.querySelector(".meet-checklist-grid");
+  if (!grid) return;
+  athlete.meetChecklist = athlete.meetChecklist && typeof athlete.meetChecklist === "object" ? athlete.meetChecklist : {};
+  grid.innerHTML = meetPrepChecklistItems.map(([id, label]) => `
+    <label class="meet-check-item">
+      <input type="checkbox" data-meet-check="${escapeHtml(id)}" ${athlete.meetChecklist[id] ? "checked" : ""}>
+      <span>${escapeHtml(label)}</span>
+    </label>
+  `).join("");
+}
+
 function renderMeetNotebook(athlete = currentAthlete()) {
   if (!els.meetAttemptGrid || !els.meetNoteList) return;
   if (els.meetReviewDateInput && !els.meetReviewDateInput.value) els.meetReviewDateInput.value = today();
@@ -1603,8 +1667,14 @@ function meetAttemptRowMarkup(lift, attempt) {
     <div class="meet-attempt-row" data-lift="${escapeHtml(lift.id)}" data-attempt="${attempt}">
       <strong>${attempt}</strong>
       <input class="meet-attempt-weight" inputmode="decimal" type="number" min="0" step="2.5" placeholder="kg" aria-label="${escapeHtml(lift.label)} 第${attempt}試技 重量">
-      <select class="meet-attempt-result" aria-label="${escapeHtml(lift.label)} 第${attempt}試技 結果">
-        ${optionMarkup(meetAttemptResults, "pass")}
+      <select class="meet-attempt-judge" data-judge="1" aria-label="${escapeHtml(lift.label)} 第${attempt}試技 審判1">
+        ${optionMarkup(meetJudgeOptions, "")}
+      </select>
+      <select class="meet-attempt-judge" data-judge="2" aria-label="${escapeHtml(lift.label)} 第${attempt}試技 審判2">
+        ${optionMarkup(meetJudgeOptions, "")}
+      </select>
+      <select class="meet-attempt-judge" data-judge="3" aria-label="${escapeHtml(lift.label)} 第${attempt}試技 審判3">
+        ${optionMarkup(meetJudgeOptions, "")}
       </select>
       <select class="meet-attempt-red" aria-label="${escapeHtml(lift.label)} 第${attempt}試技 赤判定理由">
         ${optionMarkup(meetRedReasonOptions[lift.id] || meetRedReasonOptions.squat, "none")}
@@ -1629,35 +1699,46 @@ function meetRedReasonLabel(lift, reason) {
 function collectMeetAttempts() {
   return Array.from(els.meetAttemptGrid.querySelectorAll(".meet-attempt-row")).map((row) => {
     const weight = row.querySelector(".meet-attempt-weight").value ? Number(row.querySelector(".meet-attempt-weight").value) : "";
-    const selectedResult = row.querySelector(".meet-attempt-result").value;
+    const judges = Array.from(row.querySelectorAll(".meet-attempt-judge")).map((select) => select.value);
     const redReason = row.querySelector(".meet-attempt-red").value;
-    const result = redReason !== "none" ? "fail" : weight && selectedResult === "pass" ? "success" : selectedResult;
+    const result = meetResultFromJudges(judges, weight, redReason);
     return {
       lift: row.dataset.lift,
       attempt: Number(row.dataset.attempt),
       weight,
       result,
+      judges,
       redReason,
       stickingPoint: row.querySelector(".meet-attempt-sticking").value
     };
   });
 }
 
+function meetResultFromJudges(judges = [], weight = "", redReason = "none") {
+  const enteredJudges = judges.filter(Boolean);
+  if (!enteredJudges.length && !weight && redReason === "none") return "pass";
+  const white = enteredJudges.filter((value) => value === "white").length;
+  const red = enteredJudges.filter((value) => value === "red").length;
+  if (white >= 2) return "success";
+  if (red >= 2 || redReason !== "none") return "fail";
+  return "pass";
+}
+
 function meetAttemptIsEntered(attempt) {
-  return attempt.weight || attempt.result !== "pass" || attempt.redReason !== "none" || attempt.stickingPoint !== "none";
+  return attempt.weight || attempt.result !== "pass" || attempt.redReason !== "none" || attempt.stickingPoint !== "none" || (attempt.judges || []).some(Boolean);
 }
 
 function successfulMeetTotal(attempts = []) {
   return meetReviewLifts.reduce((sum, lift) => {
     const best = attempts
-      .filter((attempt) => attempt.lift === lift.id && attempt.result === "success")
+      .filter((attempt) => attempt.lift === lift.id && (attempt.judges?.some(Boolean) ? meetResultFromJudges(attempt.judges, attempt.weight, attempt.redReason) : attempt.result) === "success")
       .reduce((max, attempt) => Math.max(max, Number(attempt.weight || 0)), 0);
     return sum + best;
   }, 0);
 }
 
 function meetSuccessCount(attempts = []) {
-  return attempts.filter((attempt) => attempt.result === "success").length;
+  return attempts.filter((attempt) => (attempt.judges?.some(Boolean) ? meetResultFromJudges(attempt.judges, attempt.weight, attempt.redReason) : attempt.result) === "success").length;
 }
 
 function meetEnteredAttempts(attempts = []) {
@@ -1750,10 +1831,22 @@ function meetNoteCardMarkup(note) {
 function meetAttemptChipMarkup(attempt) {
   if (!meetAttemptIsEntered(attempt)) return "";
   const lift = meetReviewLifts.find((item) => item.id === attempt.lift);
-  const resultClass = attempt.result === "success" ? "success" : attempt.result === "fail" ? "fail" : "pass";
+  const result = attempt.judges?.some(Boolean) ? meetResultFromJudges(attempt.judges, attempt.weight, attempt.redReason) : attempt.result;
+  const resultClass = result === "success" ? "success" : result === "fail" ? "fail" : "pass";
   const reason = attempt.redReason && attempt.redReason !== "none" ? ` / ${meetRedReasonLabel(attempt.lift, attempt.redReason)}` : "";
   const sticking = attempt.stickingPoint && attempt.stickingPoint !== "none" ? ` / ${meetStickingPoints[attempt.stickingPoint] || attempt.stickingPoint}` : "";
-  return `<span class="meet-attempt-chip ${resultClass}">${escapeHtml(lift?.short || attempt.lift)}${attempt.attempt} ${attempt.weight || "-"}kg ${meetAttemptResults[attempt.result] || "-"}${escapeHtml(reason)}${escapeHtml(sticking)}</span>`;
+  const judges = attempt.judges?.some(Boolean) ? ` 判定:${meetJudgeSummary(attempt.judges)}` : "";
+  return `<span class="meet-attempt-chip ${resultClass}">${escapeHtml(lift?.short || attempt.lift)}${attempt.attempt} ${attempt.weight || "-"}kg ${meetAttemptResultLabel(result)}${escapeHtml(judges)}${escapeHtml(reason)}${escapeHtml(sticking)}</span>`;
+}
+
+function meetJudgeSummary(judges = []) {
+  return judges.map((value) => value === "white" ? "白" : value === "red" ? "赤" : "-").join("/");
+}
+
+function meetAttemptResultLabel(result) {
+  if (result === "success") return "判定結果:成功";
+  if (result === "fail") return "判定結果:失敗";
+  return "判定結果:未記録";
 }
 
 function meetBuddyReview(note) {
@@ -1904,7 +1997,7 @@ function renderMetrics() {
     metric("直近7日ボリューム", `${weeklyVolume.toLocaleString()}kg`),
     metric("平均RPE", rpeLogs.length ? avgRpe.toFixed(1) : "-"),
     metric("記録種目数", `${exerciseCount}`),
-    metric("階級", `${athlete.sex === "female" ? "女性" : "男性"} ${classLabel}`),
+    metric("階級", `${athlete.sex === "female" ? "女性" : athlete.sex === "male" ? "男性" : "未設定"} ${classLabel}`),
     metric("試合まで", meetDays === null ? "-" : `${meetDays}日`)
   ].join("");
 }
@@ -2647,7 +2740,7 @@ function planInsight(cycle) {
   return `
     <article class="plan-card ${["platform", "rebuild16"].includes(cycle.programMethod) ? "recommended-plan" : ""}">
       ${cycle.programMethod === "platform" ? `<span class="recommended-badge">迷ったらこれ</span>` : cycle.programMethod === "rebuild16" ? `<span class="recommended-badge">リビルド型</span>` : ""}
-      <h2>${method.label} / ${athlete.sex === "female" ? "女性" : "男性"} ${classLabel} / 現在トータル ${balance.total}kg</h2>
+      <h2>${method.label} / ${athlete.sex === "female" ? "女性" : athlete.sex === "male" ? "男性" : "未設定"} ${classLabel} / 現在トータル ${balance.total}kg</h2>
       ${showGuide ? `<p class="guide-note">${method.note} ${note}</p>${levelActiveNote}` : ""}
       ${levelWarning}
       ${rebuildNote}
@@ -2949,7 +3042,7 @@ function exerciseLine(item, cycle, dayIndex = 0, itemIndex = 0) {
   if (item.kind === "method") {
     const note = guideEnabled() && item.note ? `<p class="guide-note">${escapeHtml(item.note)}</p>` : "";
     const actual = shouldShowActualInput(item) ? actualInputBlock(item, cycle, item.work, item.note, dayIndex, itemIndex) : "";
-    return `<div class="exercise-row"><strong>${escapeHtml(item.name)}</strong><span>${escapeHtml(item.work)}</span>${note}${actual}</div>`;
+    return `<div class="exercise-row"><strong>${escapeHtml(item.name)}</strong>${planPrescriptionMarkup(item.work)}${note}${actual}</div>`;
   }
   if (item.kind === "accessory") {
     const badge = item.exerciseId && equipmentLabel(item.exerciseId)
@@ -2962,7 +3055,50 @@ function exerciseLine(item, cycle, dayIndex = 0, itemIndex = 0) {
   const max = Number(cycle.maxes[item.lift] || bestE1rm(item.lift) || 0);
   const prescription = prescriptionForWeek(item.lift, max, cycle.week, cycle.length, cycle.daysPerWeek, item.variant, cycle.priorityLift, cycle.buddyLevel);
   const detail = guideEnabled() && prescription.detail ? `<p class="guide-note">${prescription.detail}</p>` : "";
-  return `<div class="exercise-row"><strong>${item.name}</strong><span>${prescription.title}</span>${detail}${actualInputBlock(item, cycle, prescription.title, prescription.detail, dayIndex, itemIndex)}</div>`;
+  return `<div class="exercise-row"><strong>${item.name}</strong>${planPrescriptionMarkup(prescription.title)}${detail}${actualInputBlock(item, cycle, prescription.title, prescription.detail, dayIndex, itemIndex)}</div>`;
+}
+
+function planPrescriptionMarkup(title = "") {
+  const blocks = parsePrescriptionBlocks(title);
+  if (!blocks.length) return `<span>${escapeHtml(title)}</span>`;
+  return `
+    <div class="plan-prescription">
+      ${blocks.map((block) => `
+        <div class="plan-prescription-block">
+          <span>${escapeHtml(block.label)}</span>
+          <strong>推奨重量：${escapeHtml(block.weight)}kg</strong>
+          <small>調整範囲：${escapeHtml(block.range)}kg</small>
+          <em>目標：${escapeHtml(block.goal)}</em>
+        </div>
+      `).join("")}
+      ${guideEnabled() ? `<p class="guide-note">その日の調子に合わせて範囲内で重量を選びます。軽く感じる日は上限寄り、重く感じる日は下限寄り。最優先は予定RPEを守ることです。</p>` : ""}
+    </div>
+  `;
+}
+
+function parsePrescriptionBlocks(title = "") {
+  const matches = [...String(title).matchAll(/([\d.]+)kg\s*x\s*([\d+]+)(?:\s*x\s*([\d+]+))?\s*@([^\s/]+)/g)];
+  return matches.map((match, index) => {
+    const weight = Number(match[1]);
+    const reps = match[2];
+    const sets = match[3];
+    const rpe = match[4];
+    return {
+      label: index === 0 ? "トップセット" : "バックオフセット",
+      weight: formatNumber(weight),
+      range: recommendationRange(weight),
+      goal: `${reps}回${sets ? ` ×${sets}セット` : ""} @${rpe}`
+    };
+  });
+}
+
+function recommendationRange(weight) {
+  const step = weight >= 100 ? 5 : 2.5;
+  return `${formatNumber(roundToIncrement(Math.max(0, weight - step), 2.5))}〜${formatNumber(roundToIncrement(weight + step, 2.5))}`;
+}
+
+function formatNumber(value) {
+  return Number(value).toFixed(1).replace(/\.0$/, "");
 }
 
 function shouldShowActualInput(item) {
@@ -4424,6 +4560,7 @@ function applyOnboardingPlan() {
   });
   cycle.daysPerWeek = Number(els.onboardingDays?.value || defaults.daysPerWeek);
   cycle.experienceLevel = els.onboardingExperience?.value || defaults.experienceLevel;
+  if (els.onboardingSex) athlete.sex = els.onboardingSex.value;
   athlete.bodyweight = els.onboardingBodyweight?.value || athlete.bodyweight || "";
   athlete.weightClass = inferWeightClass(athlete.sex || "male", athlete.bodyweight);
   athlete.rpeExperience = els.onboardingRpeExperience?.value || "learning";
@@ -4520,6 +4657,7 @@ document.addEventListener("click", (event) => {
     const defaults = onboardingDefaults(state.onboarding.goal);
     if (els.onboardingDays) els.onboardingDays.value = String(defaults.daysPerWeek);
     if (els.onboardingExperience) els.onboardingExperience.value = defaults.experienceLevel;
+    if (els.onboardingSex) els.onboardingSex.value = currentAthlete().sex || "";
     state.onboarding.step = "profile";
     saveState();
     render();
@@ -4537,6 +4675,14 @@ document.addEventListener("click", (event) => {
     saveState();
     render();
     els.quizPanelContent?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+  const meetCheck = event.target.closest("[data-meet-check]");
+  if (meetCheck) {
+    const athlete = currentAthlete();
+    athlete.meetChecklist = athlete.meetChecklist && typeof athlete.meetChecklist === "object" ? athlete.meetChecklist : {};
+    athlete.meetChecklist[meetCheck.dataset.meetCheck] = meetCheck.checked;
+    saveState();
+    return;
   }
   const deleteMeetNote = event.target.closest("[data-delete-meet-note]");
   if (deleteMeetNote) {
@@ -4770,7 +4916,7 @@ els.prefectureInput.addEventListener("change", () => {
 els.meetDateInput.addEventListener("change", () => {
   currentAthlete().meetDate = els.meetDateInput.value;
   saveState();
-  renderMetrics();
+  render();
 });
 
 document.querySelector("#addAthleteBtn").addEventListener("click", () => {
@@ -4788,7 +4934,7 @@ els.athleteForm.addEventListener("submit", (event) => {
   event.preventDefault();
   const name = els.athleteNameInput.value.trim();
   if (!name) return;
-  const athlete = { id: crypto.randomUUID(), name, sex: "male", bodyweight: "", weightClass: "83", prefecture: "", meetDate: "", cycle: defaultCycle(), meetNotes: [], logs: [] };
+  const athlete = { id: crypto.randomUUID(), name, sex: "male", bodyweight: "", weightClass: "83", prefecture: "", meetDate: "", meetChecklist: {}, cycle: defaultCycle(), meetNotes: [], logs: [] };
   state.athletes.push(athlete);
   state.currentAthleteId = athlete.id;
   saveState();
@@ -4963,7 +5109,7 @@ function logRows(athlete = currentAthlete()) {
     ["選手", "性別", "階級", "日付", "カテゴリ", "種目", "重量", "回数", "セット", "RPE", "RPE自信度", "セット詳細", "e1RM", "メモ"],
     ...athlete.logs.map((log) => [
       athlete.name,
-      athlete.sex === "female" ? "女性" : "男性",
+      athlete.sex === "female" ? "女性" : athlete.sex === "male" ? "男性" : "未設定",
       weightClassMeta(athlete.sex || "male", athlete.weightClass || inferWeightClass(athlete.sex || "male", athlete.bodyweight))[1],
       log.date,
       exerciseCatalog[log.category]?.label || log.category,
@@ -5014,7 +5160,7 @@ function workbookSheets() {
   const summary = [
     [cell("Platform Buddy プラン概要", 1), "", "", ""],
     [cell("選手", 7), cell(athlete.name, 8), cell("現在週", 7), cell(`${cycle.week}週目 / ${phase.name}`, 8)],
-    [cell("性別", 7), cell(athlete.sex === "female" ? "女性" : "男性", 8), cell("階級", 7), cell(classLabel, 8)],
+    [cell("性別", 7), cell(athlete.sex === "female" ? "女性" : athlete.sex === "male" ? "男性" : "未設定", 8), cell("階級", 7), cell(classLabel, 8)],
     [cell("体重", 7), cell(athlete.bodyweight ? `${athlete.bodyweight}kg` : "-", 8), cell("対象", 7), cell(cycle.planTarget === "bench_only" ? "ベンチプレスのみ" : "BIG3", 8)],
     [cell("プラン方式", 7), cell(programMethodInfo(cycle).label, 8), cell("重点種目", 7), cell(cycle.priorityLift === "total" ? "トータル重視" : `${mainLiftNames[cycle.priorityLift]}重視`, 8)],
     [cell("週数", 7), cell(`${cycle.length}週`, 8), cell("想定完了", 7), cell(cycle.programMethod === "platform" ? `約${cycle.length + 1}週` : `${cycle.length}週`, 8)],
