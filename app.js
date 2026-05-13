@@ -136,9 +136,11 @@ const meetAttemptResults = {
   pass: "未実施"
 };
 const meetJudgeOptions = {
-  "": "未入力",
+  pass: "未実施",
   white: "白",
-  red: "赤"
+  red1: "赤① 深さ/胸接触/ロックアウト",
+  red2: "赤② 下がり/姿勢/支持",
+  red3: "赤③ コール/ラック/足"
 };
 const meetPrepChecklistItems = [
   ["guideline", "大会要項確認"],
@@ -1668,16 +1670,13 @@ function meetAttemptRowMarkup(lift, attempt) {
       <strong>${attempt}</strong>
       <input class="meet-attempt-weight" inputmode="decimal" type="number" min="0" step="2.5" placeholder="kg" aria-label="${escapeHtml(lift.label)} 第${attempt}試技 重量">
       <select class="meet-attempt-judge" data-judge="1" aria-label="${escapeHtml(lift.label)} 第${attempt}試技 審判1">
-        ${optionMarkup(meetJudgeOptions, "")}
+        ${optionMarkup(meetJudgeOptions, "pass")}
       </select>
       <select class="meet-attempt-judge" data-judge="2" aria-label="${escapeHtml(lift.label)} 第${attempt}試技 審判2">
-        ${optionMarkup(meetJudgeOptions, "")}
+        ${optionMarkup(meetJudgeOptions, "pass")}
       </select>
       <select class="meet-attempt-judge" data-judge="3" aria-label="${escapeHtml(lift.label)} 第${attempt}試技 審判3">
-        ${optionMarkup(meetJudgeOptions, "")}
-      </select>
-      <select class="meet-attempt-red" aria-label="${escapeHtml(lift.label)} 第${attempt}試技 赤判定理由">
-        ${optionMarkup(meetRedReasonOptions[lift.id] || meetRedReasonOptions.squat, "none")}
+        ${optionMarkup(meetJudgeOptions, "pass")}
       </select>
       <select class="meet-attempt-sticking" aria-label="${escapeHtml(lift.label)} 第${attempt}試技 きつかった位置">
         ${optionMarkup(meetStickingPoints, "none")}
@@ -1700,7 +1699,7 @@ function collectMeetAttempts() {
   return Array.from(els.meetAttemptGrid.querySelectorAll(".meet-attempt-row")).map((row) => {
     const weight = row.querySelector(".meet-attempt-weight").value ? Number(row.querySelector(".meet-attempt-weight").value) : "";
     const judges = Array.from(row.querySelectorAll(".meet-attempt-judge")).map((select) => select.value);
-    const redReason = row.querySelector(".meet-attempt-red").value;
+    const redReason = firstRedCard(judges);
     const result = meetResultFromJudges(judges, weight, redReason);
     return {
       lift: row.dataset.lift,
@@ -1715,30 +1714,42 @@ function collectMeetAttempts() {
 }
 
 function meetResultFromJudges(judges = [], weight = "", redReason = "none") {
-  const enteredJudges = judges.filter(Boolean);
+  const enteredJudges = judges.filter((value) => value && value !== "pass");
   if (!enteredJudges.length && !weight && redReason === "none") return "pass";
   const white = enteredJudges.filter((value) => value === "white").length;
-  const red = enteredJudges.filter((value) => value === "red").length;
+  const red = enteredJudges.filter((value) => isRedCard(value)).length;
   if (white >= 2) return "success";
-  if (red >= 2 || redReason !== "none") return "fail";
+  if (red >= 2 || (!enteredJudges.length && redReason !== "none")) return "fail";
   return "pass";
 }
 
+function isRedCard(value) {
+  return /^red[123]$/.test(String(value || ""));
+}
+
+function firstRedCard(judges = []) {
+  return judges.find(isRedCard) || "none";
+}
+
+function hasJudgeInput(judges = []) {
+  return judges.some((value) => value && value !== "pass");
+}
+
 function meetAttemptIsEntered(attempt) {
-  return attempt.weight || attempt.result !== "pass" || attempt.redReason !== "none" || attempt.stickingPoint !== "none" || (attempt.judges || []).some(Boolean);
+  return attempt.weight || attempt.result !== "pass" || attempt.redReason !== "none" || attempt.stickingPoint !== "none" || hasJudgeInput(attempt.judges || []);
 }
 
 function successfulMeetTotal(attempts = []) {
   return meetReviewLifts.reduce((sum, lift) => {
     const best = attempts
-      .filter((attempt) => attempt.lift === lift.id && (attempt.judges?.some(Boolean) ? meetResultFromJudges(attempt.judges, attempt.weight, attempt.redReason) : attempt.result) === "success")
+      .filter((attempt) => attempt.lift === lift.id && (hasJudgeInput(attempt.judges) ? meetResultFromJudges(attempt.judges, attempt.weight, attempt.redReason) : attempt.result) === "success")
       .reduce((max, attempt) => Math.max(max, Number(attempt.weight || 0)), 0);
     return sum + best;
   }, 0);
 }
 
 function meetSuccessCount(attempts = []) {
-  return attempts.filter((attempt) => (attempt.judges?.some(Boolean) ? meetResultFromJudges(attempt.judges, attempt.weight, attempt.redReason) : attempt.result) === "success").length;
+  return attempts.filter((attempt) => (hasJudgeInput(attempt.judges) ? meetResultFromJudges(attempt.judges, attempt.weight, attempt.redReason) : attempt.result) === "success").length;
 }
 
 function meetEnteredAttempts(attempts = []) {
@@ -1831,16 +1842,23 @@ function meetNoteCardMarkup(note) {
 function meetAttemptChipMarkup(attempt) {
   if (!meetAttemptIsEntered(attempt)) return "";
   const lift = meetReviewLifts.find((item) => item.id === attempt.lift);
-  const result = attempt.judges?.some(Boolean) ? meetResultFromJudges(attempt.judges, attempt.weight, attempt.redReason) : attempt.result;
+  const result = hasJudgeInput(attempt.judges || []) ? meetResultFromJudges(attempt.judges, attempt.weight, attempt.redReason) : attempt.result;
   const resultClass = result === "success" ? "success" : result === "fail" ? "fail" : "pass";
   const reason = attempt.redReason && attempt.redReason !== "none" ? ` / ${meetRedReasonLabel(attempt.lift, attempt.redReason)}` : "";
   const sticking = attempt.stickingPoint && attempt.stickingPoint !== "none" ? ` / ${meetStickingPoints[attempt.stickingPoint] || attempt.stickingPoint}` : "";
-  const judges = attempt.judges?.some(Boolean) ? ` 判定:${meetJudgeSummary(attempt.judges)}` : "";
+  const judges = hasJudgeInput(attempt.judges || []) ? ` 判定:${meetJudgeSummary(attempt.judges)}` : "";
   return `<span class="meet-attempt-chip ${resultClass}">${escapeHtml(lift?.short || attempt.lift)}${attempt.attempt} ${attempt.weight || "-"}kg ${meetAttemptResultLabel(result)}${escapeHtml(judges)}${escapeHtml(reason)}${escapeHtml(sticking)}</span>`;
 }
 
 function meetJudgeSummary(judges = []) {
-  return judges.map((value) => value === "white" ? "白" : value === "red" ? "赤" : "-").join("/");
+  return judges.map((value) => value === "white" ? "白" : isRedCard(value) ? meetRedCardShortLabel(value) : "未").join("/");
+}
+
+function meetRedCardShortLabel(value) {
+  if (value === "red1") return "赤①";
+  if (value === "red2") return "赤②";
+  if (value === "red3") return "赤③";
+  return "赤";
 }
 
 function meetAttemptResultLabel(result) {
@@ -1863,7 +1881,7 @@ function meetBuddyReview(note) {
 
   const reasons = attempts.map((attempt) => attempt.redReason).filter((reason) => reason && reason !== "none");
   const points = attempts.map((attempt) => attempt.stickingPoint).filter((point) => point && point !== "none");
-  const hasRed = (lift, red) => attempts.some((attempt) => attempt.lift === lift && attempt.redReason === red);
+  const hasRed = (lift, red) => attempts.some((attempt) => attempt.lift === lift && (attempt.redReason === red || (attempt.judges || []).includes(red)));
   if (hasRed("squat", "red1")) messages.push("スクワット赤①が出ています。次サイクルは深さの再現性を最優先にし、ポーズスクワットやテンポで毎回同じボトムを作りましょう。");
   if (hasRed("squat", "red2")) messages.push("スクワット赤②が出ています。スタート/フィニッシュ姿勢、膝ロック、切り返し後の下がりを動画で確認しましょう。");
   if (hasRed("squat", "red3")) messages.push("スクワット赤③が出ています。足の動き、主審コール、ラック動作を普段のセットから大会式に寄せましょう。");
