@@ -1150,6 +1150,8 @@ const els = {
   priorityLiftInput: document.querySelector("#priorityLiftInput"),
   experienceLevelInput: document.querySelector("#experienceLevelInput"),
   cycleMethodNote: document.querySelector("#cycleMethodNote"),
+  cycleSetupPanel: document.querySelector("#cycleSetupPanel"),
+  programMethodGuide: document.querySelector("#programMethodGuide"),
   programDisclaimer: document.querySelector("#programDisclaimer"),
   facilityGrid: document.querySelector("#facilityGrid"),
   cycleWeekInput: document.querySelector("#cycleWeekInput"),
@@ -1544,6 +1546,7 @@ function render() {
   renderMeetPrepAnnouncement(athlete);
   renderMeetPrepChecklist(athlete);
   renderCycleInputs();
+  renderCycleSetupCard(athlete, normalizedCycle());
   renderCollapseState(athlete, normalizedCycle());
   renderAthletes();
   renderStats();
@@ -2991,6 +2994,60 @@ function planInsight(cycle) {
   `;
 }
 
+function recommendedProgramLabel(athlete = currentAthlete(), cycle = normalizedCycle()) {
+  if (cycle.programMethod === "rebuild16") return "Buddy Rebuild 16";
+  if (cycle.programMethod !== "platform") return programMethodInfo(cycle).label.replace(" / BIG3", "").replace(" / ベンチプレスのみ", "");
+  if (cycle.experienceLevel === "beginner") return "Buddyメソッド Lv1";
+  return "Buddyメソッド Lv2";
+}
+
+function renderCycleSetupCard(athlete = currentAthlete(), cycle = normalizedCycle()) {
+  if (!els.cycleSetupPanel) return;
+  const liftIds = activePlanLiftIds(cycle);
+  const maxReady = liftIds.filter((liftId) => Number(cycle.maxes[liftId] || bestE1rm(liftId) || 0));
+  const currentTotalValue = liftIds.reduce((sum, liftId) => sum + Number(cycle.maxes[liftId] || bestE1rm(liftId) || 0), 0);
+  const goalTargetValue = cycle.planTarget === "bench_only" ? dashboardGoalValue("bench", athlete) : dashboardGoalTotal(athlete);
+  const remaining = goalTargetValue ? goalTargetValue - currentTotalValue : null;
+  const maxStatus = maxReady.length === liftIds.length
+    ? "入力済み"
+    : `${maxReady.length}/${liftIds.length} 種目`;
+  const goalStatus = goalTargetValue ? `${formatNumber(goalTargetValue)}kg` : "未設定";
+  const gapText = goalTargetValue
+    ? remaining > 0
+      ? `目標まであと ${formatNumber(remaining)}kg`
+      : "目標到達圏内"
+    : "目標を入れると距離が見えます";
+  const selected = programMethodInfo(cycle).label.replace(" / BIG3", "").replace(" / ベンチプレスのみ", "");
+  const ready = maxReady.length === liftIds.length;
+  els.cycleSetupPanel.innerHTML = `
+    <div class="section-title">
+      <div>
+        <p class="eyebrow">Cycle Setup</p>
+        <h2>PRサイクル準備</h2>
+      </div>
+      <button class="primary-button inline" type="button" data-cycle-setup-action="open">${ready ? "PRサイクル設定へ進む" : "現在1RMを確認する"}</button>
+    </div>
+    <p class="screen-note">ダッシュボードで入力した現在1RMと目標をもとに、PRサイクル設計へ進みます。ここが「現在地を見る」から「計画を作る」への接続地点です。</p>
+    <div class="cycle-setup-grid">
+      <article>
+        <span>現在1RM</span>
+        <strong>${escapeHtml(maxStatus)}</strong>
+        <p>${ready ? `${liftIds.map((liftId) => `${mainLiftNames[liftId]} ${formatNumber(Number(cycle.maxes[liftId] || bestE1rm(liftId) || 0))}kg`).join(" / ")}` : "ダッシュボードで現在1RMを入力してください。"}</p>
+      </article>
+      <article>
+        <span>目標</span>
+        <strong>${escapeHtml(goalStatus)}</strong>
+        <p>${escapeHtml(gapText)}</p>
+      </article>
+      <article>
+        <span>推奨の入口</span>
+        <strong>${escapeHtml(recommendedProgramLabel(athlete, cycle))}</strong>
+        <p>現在の選択: ${escapeHtml(selected)}。迷ったら、まず完走できる強度から始めます。</p>
+      </article>
+    </div>
+  `;
+}
+
 function renderCycleInputs() {
   const cycle = normalizedCycle();
   els.planTargetInput.value = cycle.planTarget;
@@ -3002,6 +3059,7 @@ function renderCycleInputs() {
   els.priorityLiftInput.value = cycle.priorityLift;
   els.experienceLevelInput.value = cycle.experienceLevel;
   els.cycleMethodNote.textContent = methodControlNote(cycle);
+  renderProgramMethodGuide(cycle);
   els.programDisclaimer.textContent = programDisclaimerText(cycle);
   els.programDisclaimer.classList.toggle("hidden", ["platform", "rebuild16"].includes(cycle.programMethod));
   if (els.cycleWeekInput) {
@@ -3012,6 +3070,37 @@ function renderCycleInputs() {
   els.benchMaxInput.value = cycle.maxes.bench || "";
   els.deadliftMaxInput.value = cycle.maxes.deadlift || "";
   renderFacilityOptions(cycle);
+}
+
+function renderProgramMethodGuide(cycle = normalizedCycle()) {
+  if (!els.programMethodGuide) return;
+  const method = programMethodInfo(cycle);
+  const current = method.label.replace(" / BIG3", "").replace(" / ベンチプレスのみ", "");
+  const cards = [
+    ["Buddy Lv1", "RPE感覚、フォーム再現性、1サイクル完走を重視。初中級者や迷った人の標準ルートです。"],
+    ["Buddy Lv2", "RPEと%1RMを併用し、週内の強弱と高重量シングルを少し増やす中級者向けです。"],
+    ["Rebuild 16", "大会後、高疲労、停滞、ブランク明けに一度整えてからLv2へ進む再準備プランです。"]
+  ];
+  const showBuddyCards = ["platform", "rebuild16"].includes(cycle.programMethod);
+  els.programMethodGuide.innerHTML = `
+    <div class="method-guide-head">
+      <span>選択中プラン</span>
+      <strong>${escapeHtml(current)}</strong>
+      <p>${escapeHtml(method.note)}</p>
+    </div>
+    ${showBuddyCards ? `
+      <div class="method-guide-grid">
+        ${cards.map(([title, body]) => `
+          <article>
+            <strong>${escapeHtml(title)}</strong>
+            <p>${escapeHtml(body)}</p>
+          </article>
+        `).join("")}
+      </div>
+    ` : `
+      <p class="program-disclaimer inline">この方式は各メソッドの考え方を参考にした簡略テンプレートです。完全再現ではありません。</p>
+    `}
+  `;
 }
 
 function updateCycleOptionControls(cycle) {
@@ -4909,6 +4998,14 @@ document.addEventListener("click", (event) => {
   const viewTarget = event.target.closest("[data-view-target]");
   if (viewTarget) {
     switchView(viewTarget.dataset.viewTarget);
+    return;
+  }
+  const setupAction = event.target.closest("[data-cycle-setup-action]");
+  if (setupAction) {
+    state.collapsed = { ...defaultState.collapsed, ...(state.collapsed || {}), cycle: false };
+    saveState();
+    render();
+    els.cyclePanelContent?.closest(".cycle-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
     return;
   }
   const meetAction = event.target.closest("[data-meet-action]");

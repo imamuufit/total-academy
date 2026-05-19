@@ -284,7 +284,7 @@
                 <h2>Buddyコメント</h2>
               </div>
             </div>
-            <p class="screen-note">プラン実績と自由記録をまとめて、次の練習判断を見直します。</p>
+            <p class="screen-note">自分は強くなっているのか、目標へ近づいているのかを確認する画面です。e1RM、記録傾向、Buddyコメントから次の練習判断を見直します。</p>
             <div class="academy-evaluation-list" id="academyEvaluation"></div>
           </section>
 
@@ -303,7 +303,7 @@
         </section>
 
         <section class="view active" id="planView">
-          <section class="panel buddy-method-panel">
+          <section class="panel buddy-method-panel hidden">
             <div class="section-title">
               <div>
                 <p class="eyebrow">Buddy Method</p>
@@ -334,6 +334,7 @@
               </div>
             </div>
           </section>
+          <section class="panel cycle-setup-panel" id="cycleSetupPanel"></section>
           <section class="panel cycle-panel">
             <div class="section-title">
               <div>
@@ -413,6 +414,7 @@
                 </label>
               </div>
               <p class="cycle-method-note" id="cycleMethodNote"></p>
+              <section class="program-method-guide" id="programMethodGuide"></section>
               <p class="program-disclaimer" id="programDisclaimer"></p>
               <div class="max-grid">
                 <label>
@@ -468,6 +470,7 @@
                 <h2>大会準備</h2>
               </div>
             </div>
+            <p class="screen-note">大会に出る人だけでなく、白判定の基準で練習を見直す場所です。ルール、持ち物、試技の振り返りをここで確認します。</p>
             <div class="meet-shortcut-grid">
               <a class="meet-shortcut" href="https://www.powerlifting.sport/rules/codes/info/technical-rules" target="_blank" rel="noopener">
                 <span>RULE</span>

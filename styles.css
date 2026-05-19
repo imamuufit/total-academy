@@ -1335,6 +1335,82 @@ textarea {
   line-height: 1.5;
 }
 
+.cycle-setup-panel {
+  border-left: 5px solid var(--accent);
+}
+
+.cycle-setup-grid,
+.method-guide-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.cycle-setup-grid article,
+.method-guide-grid article,
+.program-method-guide {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fffefa;
+}
+
+.cycle-setup-grid article {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+}
+
+.cycle-setup-grid span,
+.method-guide-head span {
+  color: var(--accent-dark);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.cycle-setup-grid strong,
+.method-guide-head strong {
+  color: var(--ink);
+  font-size: 1rem;
+}
+
+.cycle-setup-grid p,
+.method-guide-head p,
+.method-guide-grid p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.program-method-guide {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 12px;
+}
+
+.method-guide-head {
+  display: grid;
+  gap: 5px;
+}
+
+.method-guide-grid article {
+  display: grid;
+  gap: 5px;
+  padding: 10px;
+}
+
+.method-guide-grid strong {
+  color: var(--ink);
+  font-size: 0.92rem;
+}
+
+.program-disclaimer.inline {
+  margin-top: 0;
+}
+
 .buddy-method-panel {
   margin-bottom: 12px;
 }
@@ -2687,6 +2763,8 @@ dialog::backdrop {
   .onboarding-grid,
   .start-card-grid,
   .start-guide,
+  .cycle-setup-grid,
+  .method-guide-grid,
   .method-level-grid,
   .meet-shortcut-grid,
   .cycle-grid,
