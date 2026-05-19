@@ -348,7 +348,7 @@
             </div>
             <p class="collapse-summary" id="cycleSummary"></p>
             <div class="collapsible-content" id="cyclePanelContent">
-              <p class="screen-note">プラン内の実績は各メニューで入力。プラン外の練習は自由記録へ。</p>
+              <p class="screen-note">現在1RMと目標はダッシュボードで入力。ここでは、どの方式で、何週間、週何回でMAX更新を狙うかを決めます。</p>
               <div class="cycle-grid">
                 <label>
                   プラン対象
@@ -416,20 +416,23 @@
               <p class="cycle-method-note" id="cycleMethodNote"></p>
               <section class="program-method-guide" id="programMethodGuide"></section>
               <p class="program-disclaimer" id="programDisclaimer"></p>
-              <div class="max-grid">
-                <label>
-                  SQ 現在1RM
-                  <input id="squatMaxInput" inputmode="decimal" type="number" min="0" step="2.5" placeholder="kg">
-                </label>
-                <label>
-                  BP 現在1RM
-                  <input id="benchMaxInput" inputmode="decimal" type="number" min="0" step="2.5" placeholder="kg">
-                </label>
-                <label>
-                  DL 現在1RM
-                  <input id="deadliftMaxInput" inputmode="decimal" type="number" min="0" step="2.5" placeholder="kg">
-                </label>
-              </div>
+              <details class="cycle-advanced-details">
+                <summary>現在1RMをPRサイクル内でも修正する</summary>
+                <div class="max-grid">
+                  <label>
+                    SQ 現在1RM
+                    <input id="squatMaxInput" inputmode="decimal" type="number" min="0" step="2.5" placeholder="kg">
+                  </label>
+                  <label>
+                    BP 現在1RM
+                    <input id="benchMaxInput" inputmode="decimal" type="number" min="0" step="2.5" placeholder="kg">
+                  </label>
+                  <label>
+                    DL 現在1RM
+                    <input id="deadliftMaxInput" inputmode="decimal" type="number" min="0" step="2.5" placeholder="kg">
+                  </label>
+                </div>
+              </details>
               <section class="facility-panel">
                 <div class="facility-head">
                   <div>

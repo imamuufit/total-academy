@@ -4820,19 +4820,22 @@ function renderStartGuide() {
   if (!els.startGuide) return;
   const guides = {
     log: {
-      title: "今日の記録から始める",
+      title: "自由記録へ進む",
       view: "log",
-      steps: ["種目を選ぶ", "重量・回数・RPEを入力", "e1RMを確認", "Buddyコメントを見る"]
+      button: "LOGを開く",
+      note: "プラン外の練習や補助種目を残します。"
     },
     plan: {
-      title: "MAX更新を狙う",
+      title: "PRサイクルを作る",
       view: "plan",
-      steps: ["現在の1RMを入力", "週数と頻度を選ぶ", "PRサイクルを作成", "実施後に記録を残す"]
+      button: "PLANを開く",
+      note: "現在1RMと目標から、MAX更新までの計画を作ります。"
     },
     meet: {
-      title: "大会に向けて準備する",
+      title: "大会準備へ進む",
       view: "knowledge",
-      steps: ["公式ルールリンクを確認", "白判定クイズで基本ルールを確認", "大会後は大会ノートに9本を残す", "次サイクルの課題へつなぐ"]
+      button: "MEETを開く",
+      note: "白判定、公式ルール、持ち物、大会ノートを確認します。"
     }
   };
   const active = guides[state.startAction] || guides.plan;
@@ -4842,11 +4845,9 @@ function renderStartGuide() {
   els.startGuide.innerHTML = `
     <div>
       <strong>${escapeHtml(active.title)}</strong>
-      <ol>
-        ${active.steps.map((step) => `<li>${escapeHtml(step)}</li>`).join("")}
-      </ol>
+      <p>${escapeHtml(active.note)}</p>
     </div>
-    <button class="primary-button inline" type="button" data-view-target="${escapeHtml(active.view)}">この画面へ進む</button>
+    <button class="primary-button inline" type="button" data-view-target="${escapeHtml(active.view)}">${escapeHtml(active.button)}</button>
   `;
 }
 

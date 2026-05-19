@@ -604,6 +604,14 @@ h2 {
   gap: 8px;
 }
 
+.start-guide p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
 .start-guide ol {
   display: flex;
   flex-wrap: wrap;
@@ -1409,6 +1417,21 @@ textarea {
 
 .program-disclaimer.inline {
   margin-top: 0;
+}
+
+.cycle-advanced-details {
+  margin-top: 10px;
+  border: 1px dashed rgba(78, 67, 56, 0.28);
+  border-radius: 8px;
+  background: rgba(255, 254, 250, 0.7);
+  padding: 10px;
+}
+
+.cycle-advanced-details summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 900;
 }
 
 .buddy-method-panel {
