@@ -1710,7 +1710,6 @@ function renderAthleteDashboard(athlete = currentAthlete(), cycle = normalizedCy
   const goalValues = Object.fromEntries(mainLiftIds.map((liftId) => [liftId, dashboardGoalValue(liftId, athlete)]));
   const goalTotalValue = dashboardGoalTotal(athlete);
   const remaining = goalTotalValue ? goalTotalValue - currentTotalValue : null;
-  const countdown = meetCountdownText(athlete);
   const methodLabel = programMethodInfo(cycle).label.replace(" / BIG3", "").replace(" / ベンチプレスのみ", "");
   const totalPercent = achievementPercent(currentTotalValue, goalTotalValue);
   const goalLine = goalTotalValue
@@ -1776,11 +1775,6 @@ function renderAthleteDashboard(athlete = currentAthlete(), cycle = normalizedCy
         <strong>${escapeHtml(methodLabel)}</strong>
         <p>W${cycle.week} / 次の節目: ${escapeHtml(nextCycleMilestone(cycle))}</p>
       </article>
-      <article class="dashboard-card meet">
-        <span>次の大会</span>
-        <strong>${escapeHtml(countdown.label)}</strong>
-        <p>${escapeHtml(countdown.message)}</p>
-      </article>
     </div>
     <div class="achievement-grid">
       ${progressCards}
@@ -1797,12 +1791,13 @@ function renderMeetPrepAnnouncement(athlete = currentAthlete()) {
     return;
   }
   const timing = days > 0 ? `大会まであと${days}日` : days === 0 ? "大会当日" : `大会から${Math.abs(days)}日経過`;
+  const countdown = meetCountdownText(athlete);
   els.meetPrepAnnouncement.classList.remove("hidden");
   els.meetPrepAnnouncement.innerHTML = `
     <div>
       <span>大会準備アナウンス</span>
       <strong>${escapeHtml(timing)}</strong>
-      <p>大会出場に向けて、必要な準備は進んでいますか？タップするとMEETのチェックリストへ進みます。</p>
+      <p>${escapeHtml(countdown.message)} タップするとMEETのチェックリストへ進みます。</p>
     </div>
     <button class="text-button compact" type="button" data-view-target="knowledge">MEETへ</button>
   `;
@@ -2457,10 +2452,10 @@ function renderPlan() {
   }
   const phase = cyclePhase(cycle.week, cycle.length, cycle.programMethod);
   const levelLabel = cycle.programMethod === "platform" ? ` / ${cycle.buddyLevel === "level2" ? "Buddy Lv2" : "Buddy Lv1"}` : "";
-  els.cyclePhaseTitle.textContent = `${cycle.length}週中 ${cycle.week}週目 / ${phase.name}${levelLabel}`;
+  els.cyclePhaseTitle.textContent = `今週の短期目標 / ${cycle.length}週中 ${cycle.week}週目 / ${phase.name}${levelLabel}`;
   const purpose = phasePurpose(phase, cycle);
   const goal = phaseGoalText(cycle, phase);
-  els.cyclePhaseNote.textContent = guideEnabled() ? `この週の目標: ${goal} 目的: ${purpose} ${programMethodInfo(cycle).note}` : "";
+  els.cyclePhaseNote.textContent = guideEnabled() ? `短期目標: ${goal} そのための目的: ${purpose} ${programMethodInfo(cycle).note}` : "";
   renderRpeCoach(cycle, phase);
   renderProjections(cycle);
 
@@ -2659,7 +2654,8 @@ function phaseGoalText(cycle = normalizedCycle(), phase = cyclePhase(cycle.week,
     if (cycle.week === 6) return "W7からLv2へ入れるように、疲労を抜きながらフォーム、RPE、Training Maxを整理します。鍛え込まず、次に進める状態を作ることが目標です。";
   }
   if (name.includes("蓄積") || name.includes("ブリッジ")) {
-    return `W5現在地チェックで、${liftTargetRangeText(cycle, 0.75, 0.82)}を3〜5回@8以内で扱える状態を目指します。最初より同じ重量が軽く感じる、または1〜2回分の余裕が増えていれば成功です。`;
+    const checkLabel = cycle.week < 4 ? "4週間後のW5現在地チェック" : cycle.week === 4 ? "来週のW5現在地チェック" : "W5現在地チェック";
+    return `${checkLabel}で、${liftTargetRangeText(cycle, 0.75, 0.82)}を3〜5回@8以内で扱える状態を目指します。最初より同じ重量が軽く感じる、または1〜2回分の余裕が増えていれば成功です。`;
   }
   if (name.includes("現在地")) {
     return "3〜5回@8で今の実力を確認します。5回やり切ることより、RPE8で止めることが目標です。結果を後半ブロックの重量判断に使います。";
@@ -2690,10 +2686,10 @@ function weekLearningCard(cycle, phase) {
     : "";
   return `
     <article class="plan-card week-learning-card">
-      <span class="recommended-badge">この週の目標</span>
-      <h2>${escapeHtml(phase.name)}</h2>
+      <span class="recommended-badge">短期目標</span>
+      <h2>この週で目指すこと</h2>
       <p>${escapeHtml(phaseGoalText(cycle, phase))}</p>
-      <p class="guide-note">目的: ${escapeHtml(phasePurpose(phase, cycle))}</p>
+      <p class="guide-note"><strong>${escapeHtml(phase.name)}</strong> の目的: ${escapeHtml(phasePurpose(phase, cycle))}</p>
       ${accumulationNote}
       ${whiteNine}
     </article>
