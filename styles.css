@@ -380,6 +380,86 @@ h2 {
   color: var(--muted);
 }
 
+.wellness-floating {
+  position: fixed;
+  right: 14px;
+  bottom: calc(82px + env(safe-area-inset-bottom));
+  z-index: 91;
+  width: min(220px, calc(100vw - 28px));
+  border: 1px solid var(--line);
+  border-left: 5px solid var(--coach);
+  border-radius: 8px;
+  background: #fffefa;
+  padding: 8px 10px;
+  box-shadow: 0 10px 30px rgba(21, 23, 26, 0.18);
+  cursor: pointer;
+}
+
+.wellness-floating div:first-child {
+  display: grid;
+  gap: 2px;
+}
+
+.wellness-floating span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.wellness-floating strong {
+  color: var(--ink);
+  font-size: 0.98rem;
+  line-height: 1.12;
+}
+
+.wellness-floating small {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.wellness-floating.good {
+  border-left-color: var(--green);
+}
+
+.wellness-floating.normal {
+  border-left-color: var(--coach);
+}
+
+.wellness-floating.caution {
+  border-left-color: #d97706;
+}
+
+.wellness-floating.fatigue,
+.wellness-floating.alert {
+  border-left-color: var(--accent);
+}
+
+.wellness-floating.expanded {
+  width: min(320px, calc(100vw - 28px));
+}
+
+.wellness-floating-detail {
+  display: grid;
+  gap: 7px;
+  margin-top: 10px;
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+}
+
+.wellness-floating-detail p {
+  color: var(--ink);
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.wellness-floating-detail div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .welcome-panel {
   display: grid;
   gap: 10px;
@@ -490,6 +570,106 @@ h2 {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
+}
+
+.wellness-check-card {
+  display: grid;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-left: 5px solid #d97706;
+  border-radius: 8px;
+  background: #fffaf0;
+  padding: 14px;
+}
+
+.wellness-check-head {
+  display: grid;
+  gap: 3px;
+}
+
+.wellness-check-head span,
+.wellness-field > span,
+.wellness-result span {
+  color: var(--accent-dark);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.wellness-check-head strong {
+  color: var(--ink);
+  font-size: 1rem;
+}
+
+.wellness-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.wellness-field {
+  display: grid;
+  gap: 7px;
+}
+
+.wellness-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.wellness-options button {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  min-height: 34px;
+  background: #fff;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 900;
+}
+
+.wellness-options button.active {
+  border-color: var(--accent);
+  background: var(--ink);
+  color: #fff;
+}
+
+.wellness-result {
+  display: grid;
+  gap: 4px;
+  border: 1px solid var(--line);
+  border-left: 5px solid var(--coach);
+  border-radius: 8px;
+  background: #fff;
+  padding: 10px;
+}
+
+.wellness-result strong {
+  color: var(--ink);
+}
+
+.wellness-result p {
+  color: var(--muted);
+  font-size: 0.83rem;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.wellness-result.good {
+  border-left-color: var(--green);
+}
+
+.wellness-result.caution {
+  border-left-color: #d97706;
+}
+
+.wellness-result.fatigue,
+.wellness-result.alert {
+  border-left-color: var(--accent);
+}
+
+.wellness-actions {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .onboarding-actions {
@@ -2783,6 +2963,7 @@ dialog::backdrop {
   .meet-checklist-grid,
   .onboarding-goals,
   .daily-entry-grid,
+  .wellness-grid,
   .onboarding-grid,
   .start-card-grid,
   .start-guide,
@@ -2971,6 +3152,17 @@ dialog::backdrop {
 
   .guide-mode-bar small {
     display: none;
+  }
+
+  .wellness-floating {
+    right: 10px;
+    bottom: calc(70px + env(safe-area-inset-bottom));
+    width: min(190px, calc(100vw - 20px));
+    padding: 7px 8px;
+  }
+
+  .wellness-floating.expanded {
+    width: min(300px, calc(100vw - 20px));
   }
 
   .meet-note-card summary {

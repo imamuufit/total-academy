@@ -155,6 +155,64 @@ const meetPrepChecklistItems = [
   ["openers", "オープナー候補"],
   ["notebook", "大会ノート準備"]
 ];
+
+const wellnessFields = [
+  {
+    id: "sleep",
+    label: "睡眠",
+    weight: 20,
+    defaultValue: "normal",
+    choices: [
+      { value: "good", label: "良い", factor: 1 },
+      { value: "normal", label: "普通", factor: 0.7 },
+      { value: "bad", label: "悪い", factor: 0 }
+    ]
+  },
+  {
+    id: "nutrition",
+    label: "食事・水分",
+    weight: 10,
+    defaultValue: "normal",
+    choices: [
+      { value: "good", label: "十分", factor: 1 },
+      { value: "normal", label: "普通", factor: 0.7 },
+      { value: "bad", label: "不足", factor: 0.2 }
+    ]
+  },
+  {
+    id: "fatigue",
+    label: "疲労・筋肉痛",
+    weight: 25,
+    defaultValue: "normal",
+    choices: [
+      { value: "good", label: "軽い", factor: 1 },
+      { value: "normal", label: "普通", factor: 0.7 },
+      { value: "bad", label: "重い", factor: 0.15 }
+    ]
+  },
+  {
+    id: "pain",
+    label: "関節・痛み",
+    weight: 30,
+    defaultValue: "good",
+    choices: [
+      { value: "good", label: "なし", factor: 1 },
+      { value: "normal", label: "少し", factor: 0.45 },
+      { value: "bad", label: "強い", factor: 0 }
+    ]
+  },
+  {
+    id: "mental",
+    label: "集中・気持ち",
+    weight: 15,
+    defaultValue: "normal",
+    choices: [
+      { value: "good", label: "高い", factor: 1 },
+      { value: "normal", label: "普通", factor: 0.7 },
+      { value: "bad", label: "低い", factor: 0.25 }
+    ]
+  }
+];
 const meetRedReasons = {
   none: "赤なし",
   depth: "深さ",
@@ -1047,6 +1105,7 @@ const ruleQuestions = [
 const defaultState = {
   currentAthleteId: "me",
   guideMode: true,
+  wellnessExpanded: false,
   startAction: "plan",
   onboarding: { done: false, step: "intro", goal: "big3", dailyLastShown: "" },
   collapsed: { welcome: true, profile: true, buddyMethod: true, cycle: false, facilities: true, meetNote: true, quiz: false },
@@ -1071,6 +1130,7 @@ const defaultState = {
       prefecture: "",
       meetDate: "",
       goals: defaultGoals(),
+      wellness: {},
       meetChecklist: {},
       cycle: defaultCycle(),
       meetNotes: [],
@@ -1122,6 +1182,8 @@ const els = {
   goalDeadliftInput: document.querySelector("#goalDeadliftInput"),
   goalTotalInput: document.querySelector("#goalTotalInput"),
   meetPrepAnnouncement: document.querySelector("#meetPrepAnnouncement"),
+  wellnessFloating: document.querySelector("#wellnessFloating"),
+  dailyWellnessResult: document.querySelector("#dailyWellnessResult"),
   meetPrepChecklist: document.querySelector("#meetPrepChecklist"),
   logForm: document.querySelector("#logForm"),
   dateInput: document.querySelector("#dateInput"),
@@ -1232,6 +1294,105 @@ function normalizeGoals(goals = {}) {
   };
 }
 
+function defaultWellnessEntry() {
+  return Object.fromEntries(wellnessFields.map((field) => [field.id, field.defaultValue]));
+}
+
+function normalizeWellnessEntry(entry = {}) {
+  const normalized = { ...defaultWellnessEntry(), ...(entry && typeof entry === "object" ? entry : {}) };
+  wellnessFields.forEach((field) => {
+    const validValues = field.choices.map((choice) => choice.value);
+    if (!validValues.includes(normalized[field.id])) normalized[field.id] = field.defaultValue;
+  });
+  normalized.completed = entry?.completed === true;
+  normalized.date = entry?.date || today();
+  normalized.updatedAt = entry?.updatedAt || "";
+  return normalized;
+}
+
+function normalizeWellnessEntries(entries = {}) {
+  if (!entries || typeof entries !== "object" || Array.isArray(entries)) return {};
+  return Object.fromEntries(Object.entries(entries).map(([date, entry]) => [date, normalizeWellnessEntry({ date, ...entry })]));
+}
+
+function wellnessChoice(fieldId, value) {
+  const field = wellnessFields.find((item) => item.id === fieldId);
+  if (!field) return null;
+  return field.choices.find((choice) => choice.value === value) || field.choices[1] || field.choices[0];
+}
+
+function wellnessChoiceLabel(fieldId, value) {
+  return wellnessChoice(fieldId, value)?.label || "-";
+}
+
+function todayWellnessEntry(athlete = currentAthlete()) {
+  athlete.wellness = normalizeWellnessEntries(athlete.wellness);
+  return normalizeWellnessEntry({ date: today(), ...(athlete.wellness[today()] || {}) });
+}
+
+function wellnessEvaluation(entry = todayWellnessEntry()) {
+  if (!entry.completed) {
+    return {
+      score: null,
+      status: "unset",
+      label: "未入力",
+      short: "体調チェック",
+      recommendation: "今日の状態を入力すると、提案重量レンジのどこから始めるかを表示します。"
+    };
+  }
+  let score = wellnessFields.reduce((sum, field) => {
+    const choice = wellnessChoice(field.id, entry[field.id]);
+    return sum + field.weight * Number(choice?.factor ?? 0);
+  }, 0);
+  if (entry.sleep === "bad" && entry.fatigue === "bad") score = Math.min(score, 65);
+  if (entry.pain === "normal" && entry.fatigue === "bad") score = Math.min(score, 55);
+  if (entry.pain === "bad") score = Math.min(score, 39);
+  score = Math.max(0, Math.min(100, Math.round(score)));
+  if (entry.pain === "bad" || score <= 39) {
+    return {
+      score,
+      status: "alert",
+      label: "アラート",
+      short: "高重量なし",
+      recommendation: "強い痛みや低コンディションの日です。高重量挑戦は避け、休養・代替種目・フォーム確認を優先しましょう。"
+    };
+  }
+  if (score <= 54) {
+    return {
+      score,
+      status: "fatigue",
+      label: "疲労強め",
+      short: "下限以下も候補",
+      recommendation: "提案重量レンジの下限、または下限より-2.5kgから開始。バックオフや補助種目は1セット減らす候補があります。"
+    };
+  }
+  if (score <= 69) {
+    return {
+      score,
+      status: "caution",
+      label: "注意",
+      short: "下限寄り推奨",
+      recommendation: "提案重量レンジの下限寄りから開始。ウォームアップで重く感じる日は無理に上げず、予定RPEを優先しましょう。"
+    };
+  }
+  if (score <= 84) {
+    return {
+      score,
+      status: "normal",
+      label: "通常",
+      short: "中央寄り",
+      recommendation: "提案重量レンジの中央付近から開始。予定RPEに合えばそのまま進め、軽ければ少しだけ上限寄りを試せます。"
+    };
+  }
+  return {
+    score,
+    status: "good",
+    label: "良好",
+    short: "中央〜上限寄り",
+    recommendation: "状態は良好です。フォーム再現性が保てる範囲で、提案重量レンジの中央〜上限寄りも候補になります。"
+  };
+}
+
 function sampleLog(offset, category, exerciseId, weight, reps, sets, rpe, note) {
   const meta = exerciseMeta(exerciseId);
   return {
@@ -1268,6 +1429,7 @@ function loadState() {
 function migrateState(rawState) {
   const migrated = rawState;
   migrated.guideMode = typeof migrated.guideMode === "boolean" ? migrated.guideMode : true;
+  migrated.wellnessExpanded = migrated.wellnessExpanded === true;
   migrated.startAction = ["log", "plan", "meet"].includes(migrated.startAction) ? migrated.startAction : "plan";
   migrated.onboarding = migrated.onboarding && typeof migrated.onboarding === "object"
     ? { ...defaultState.onboarding, ...migrated.onboarding }
@@ -1310,6 +1472,7 @@ function migrateState(rawState) {
     rpeFeedback: athlete.rpeFeedback || {},
     rpeCalibration: athlete.rpeCalibration || {},
     goals: normalizeGoals(athlete.goals),
+    wellness: normalizeWellnessEntries(athlete.wellness),
     meetChecklist: athlete.meetChecklist && typeof athlete.meetChecklist === "object" ? athlete.meetChecklist : {},
     meetNotes: Array.isArray(athlete.meetNotes) ? athlete.meetNotes : [],
     logs: (athlete.logs || []).map((log) => {
@@ -1448,6 +1611,88 @@ function renderGuideMode() {
   }
 }
 
+function renderWellnessUI() {
+  const athlete = currentAthlete();
+  const entry = todayWellnessEntry(athlete);
+  const evaluation = wellnessEvaluation(entry);
+  document.querySelectorAll("[data-wellness-option]").forEach((button) => {
+    const field = button.dataset.wellnessField;
+    button.classList.toggle("active", entry[field] === button.dataset.wellnessValue);
+  });
+  if (els.dailyWellnessResult) {
+    els.dailyWellnessResult.className = `wellness-result ${evaluation.status}`;
+    els.dailyWellnessResult.innerHTML = `
+      <span>${entry.completed ? `スコア ${evaluation.score}/100` : "未保存"}</span>
+      <strong>${escapeHtml(evaluation.label)}：${escapeHtml(evaluation.short)}</strong>
+      <p>${escapeHtml(evaluation.recommendation)}</p>
+    `;
+  }
+  if (!els.wellnessFloating) return;
+  const expanded = state.wellnessExpanded === true && entry.completed;
+  els.wellnessFloating.className = `wellness-floating ${evaluation.status}${expanded ? " expanded" : ""}`;
+  els.wellnessFloating.dataset.wellnessFloating = "true";
+  els.wellnessFloating.setAttribute("role", "button");
+  els.wellnessFloating.setAttribute("tabindex", "0");
+  els.wellnessFloating.setAttribute("aria-label", entry.completed ? "今日のBuddy方針" : "今日のウェルネスチェックを開く");
+  if (!entry.completed) {
+    els.wellnessFloating.innerHTML = `
+      <div>
+        <span>今日の状態</span>
+        <strong>未入力</strong>
+        <small>タップして体調チェック</small>
+      </div>
+    `;
+    return;
+  }
+  const details = expanded
+    ? `
+      <div class="wellness-floating-detail">
+        ${wellnessFields.map((field) => `<span>${escapeHtml(field.label)}：${escapeHtml(wellnessChoiceLabel(field.id, entry[field.id]))}</span>`).join("")}
+        <p>${escapeHtml(evaluation.recommendation)}</p>
+        <div>
+          <button class="text-button compact" type="button" data-wellness-recheck>再チェック</button>
+          <button class="text-button compact" type="button" data-wellness-close>閉じる</button>
+        </div>
+      </div>
+    `
+    : "";
+  els.wellnessFloating.innerHTML = `
+    <div>
+      <span>今日のBuddy方針</span>
+      <strong>${escapeHtml(evaluation.label)}</strong>
+      <small>${escapeHtml(evaluation.short)} / ${evaluation.score}点</small>
+    </div>
+    ${details}
+  `;
+}
+
+function saveTodayWellness(values = {}) {
+  const athlete = currentAthlete();
+  athlete.wellness = normalizeWellnessEntries(athlete.wellness);
+  const entry = normalizeWellnessEntry({ date: today(), ...(athlete.wellness[today()] || {}), ...values });
+  entry.completed = true;
+  entry.updatedAt = new Date().toISOString();
+  athlete.wellness[today()] = entry;
+  saveState();
+  renderWellnessUI();
+}
+
+function saveWellnessFromButtons() {
+  const values = defaultWellnessEntry();
+  wellnessFields.forEach((field) => {
+    const active = document.querySelector(`[data-wellness-option][data-wellness-field="${field.id}"].active`);
+    values[field.id] = active?.dataset.wellnessValue || values[field.id];
+  });
+  saveTodayWellness(values);
+}
+
+function openDailyWellness() {
+  state.wellnessExpanded = false;
+  state.onboarding = { ...defaultState.onboarding, ...(state.onboarding || {}), done: true, dailyLastShown: "" };
+  saveState();
+  render();
+}
+
 function renderCollapseState(athlete = currentAthlete(), cycle = normalizedCycle()) {
   state.collapsed = { ...defaultState.collapsed, ...(state.collapsed || {}) };
   applyCollapse("profile", els.profilePanelContent, els.profileCollapseBtn, "プロフィール");
@@ -1525,6 +1770,7 @@ function render() {
   const athlete = currentAthlete();
   renderGuideMode();
   renderOnboarding();
+  renderWellnessUI();
   renderStartGuide();
   els.currentAthleteName.textContent = athlete.name;
   els.deleteAthleteBtn.disabled = state.athletes.length <= 1;
@@ -4942,6 +5188,37 @@ document.addEventListener("click", (event) => {
     toggleCollapsed(accordionHeader.dataset.collapseKey);
     return;
   }
+  const wellnessOption = event.target.closest("[data-wellness-option]");
+  if (wellnessOption) {
+    saveTodayWellness({ [wellnessOption.dataset.wellnessField]: wellnessOption.dataset.wellnessValue });
+    return;
+  }
+  if (event.target.closest("[data-wellness-save]")) {
+    saveWellnessFromButtons();
+    return;
+  }
+  if (event.target.closest("[data-wellness-recheck]")) {
+    openDailyWellness();
+    return;
+  }
+  if (event.target.closest("[data-wellness-close]")) {
+    state.wellnessExpanded = false;
+    saveState();
+    renderWellnessUI();
+    return;
+  }
+  const wellnessFloating = event.target.closest("[data-wellness-floating]");
+  if (wellnessFloating) {
+    const entry = todayWellnessEntry();
+    if (!entry.completed) {
+      openDailyWellness();
+      return;
+    }
+    state.wellnessExpanded = !state.wellnessExpanded;
+    saveState();
+    renderWellnessUI();
+    return;
+  }
   const onboardingAction = event.target.closest("[data-onboarding-action]");
   if (onboardingAction) {
     const action = onboardingAction.dataset.onboardingAction;
@@ -5297,7 +5574,7 @@ els.athleteForm.addEventListener("submit", (event) => {
   event.preventDefault();
   const name = els.athleteNameInput.value.trim();
   if (!name) return;
-  const athlete = { id: crypto.randomUUID(), name, sex: "male", bodyweight: "", weightClass: "83", prefecture: "", meetDate: "", goals: defaultGoals(), meetChecklist: {}, cycle: defaultCycle(), meetNotes: [], logs: [] };
+  const athlete = { id: crypto.randomUUID(), name, sex: "male", bodyweight: "", weightClass: "83", prefecture: "", meetDate: "", goals: defaultGoals(), wellness: {}, meetChecklist: {}, cycle: defaultCycle(), meetNotes: [], logs: [] };
   state.athletes.push(athlete);
   state.currentAthleteId = athlete.id;
   saveState();

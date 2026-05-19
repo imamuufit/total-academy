@@ -99,6 +99,59 @@
             <p class="eyebrow">Today's Entry</p>
             <h3>今日はどこへ進みますか？</h3>
             <p>今日の1セットが、次のMAX更新と白判定につながります。必要な場所へすぐ進みましょう。</p>
+            <section class="wellness-check-card" id="dailyWellnessCard">
+              <div class="wellness-check-head">
+                <span>今日のウェルネスチェック</span>
+                <strong>今日のBuddy方針を決める</strong>
+              </div>
+              <p>睡眠、栄養、疲労、痛み、集中力から、今日の提案重量レンジのどこを選ぶかを決めます。自動で重量を変えるのではなく、判断材料として使います。</p>
+              <div class="wellness-grid" aria-label="今日の体調">
+                <div class="wellness-field" data-wellness-field="sleep">
+                  <span>睡眠</span>
+                  <div class="wellness-options">
+                    <button type="button" data-wellness-option data-wellness-field="sleep" data-wellness-value="good">良い</button>
+                    <button type="button" data-wellness-option data-wellness-field="sleep" data-wellness-value="normal">普通</button>
+                    <button type="button" data-wellness-option data-wellness-field="sleep" data-wellness-value="bad">悪い</button>
+                  </div>
+                </div>
+                <div class="wellness-field" data-wellness-field="nutrition">
+                  <span>食事・水分</span>
+                  <div class="wellness-options">
+                    <button type="button" data-wellness-option data-wellness-field="nutrition" data-wellness-value="good">十分</button>
+                    <button type="button" data-wellness-option data-wellness-field="nutrition" data-wellness-value="normal">普通</button>
+                    <button type="button" data-wellness-option data-wellness-field="nutrition" data-wellness-value="bad">不足</button>
+                  </div>
+                </div>
+                <div class="wellness-field" data-wellness-field="fatigue">
+                  <span>疲労・筋肉痛</span>
+                  <div class="wellness-options">
+                    <button type="button" data-wellness-option data-wellness-field="fatigue" data-wellness-value="good">軽い</button>
+                    <button type="button" data-wellness-option data-wellness-field="fatigue" data-wellness-value="normal">普通</button>
+                    <button type="button" data-wellness-option data-wellness-field="fatigue" data-wellness-value="bad">重い</button>
+                  </div>
+                </div>
+                <div class="wellness-field" data-wellness-field="pain">
+                  <span>関節・痛み</span>
+                  <div class="wellness-options">
+                    <button type="button" data-wellness-option data-wellness-field="pain" data-wellness-value="good">なし</button>
+                    <button type="button" data-wellness-option data-wellness-field="pain" data-wellness-value="normal">少し</button>
+                    <button type="button" data-wellness-option data-wellness-field="pain" data-wellness-value="bad">強い</button>
+                  </div>
+                </div>
+                <div class="wellness-field" data-wellness-field="mental">
+                  <span>集中・気持ち</span>
+                  <div class="wellness-options">
+                    <button type="button" data-wellness-option data-wellness-field="mental" data-wellness-value="good">高い</button>
+                    <button type="button" data-wellness-option data-wellness-field="mental" data-wellness-value="normal">普通</button>
+                    <button type="button" data-wellness-option data-wellness-field="mental" data-wellness-value="bad">低い</button>
+                  </div>
+                </div>
+              </div>
+              <div class="wellness-result" id="dailyWellnessResult" aria-live="polite"></div>
+              <div class="wellness-actions">
+                <button class="text-button compact" type="button" data-wellness-save>今日の状態を保存</button>
+              </div>
+            </section>
             <div class="daily-entry-grid">
               <button type="button" data-onboarding-action="daily-plan"><strong>今日のプランへ</strong><span>W1 Day1や現在週のメニューを進める</span></button>
               <button type="button" data-onboarding-action="daily-log"><strong>トレーニングを記録</strong><span>プラン外の練習や自由記録を残す</span></button>
@@ -192,6 +245,8 @@
             <section class="association-guide" id="associationGuide"></section>
           </div>
         </section>
+
+        <section class="wellness-floating" id="wellnessFloating" aria-live="polite"></section>
 
         <section class="guide-mode-bar" aria-label="表示モード">
           <div>
