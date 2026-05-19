@@ -1657,6 +1657,18 @@ function dashboardGoalTotal(athlete = currentAthlete()) {
   return explicit || liftTotal;
 }
 
+function achievementPercent(current, goal) {
+  if (!goal) return null;
+  return Math.max(0, Math.round((Number(current || 0) / Number(goal)) * 100));
+}
+
+function achievementText(current, goal) {
+  if (!goal) return "目標未設定";
+  const gap = Number(goal) - Number(current || 0);
+  if (gap <= 0) return "目標達成圏内";
+  return `あと ${formatNumber(gap)}kg`;
+}
+
 function meetCountdownText(athlete = currentAthlete()) {
   const days = daysUntilMeet(athlete);
   if (days === null) return { label: "未設定", message: "大会日を入れると、残り日数と準備の入口が表示されます。" };
@@ -1700,18 +1712,53 @@ function renderAthleteDashboard(athlete = currentAthlete(), cycle = normalizedCy
   const remaining = goalTotalValue ? goalTotalValue - currentTotalValue : null;
   const countdown = meetCountdownText(athlete);
   const methodLabel = programMethodInfo(cycle).label.replace(" / BIG3", "").replace(" / ベンチプレスのみ", "");
+  const totalPercent = achievementPercent(currentTotalValue, goalTotalValue);
   const goalLine = goalTotalValue
     ? remaining > 0
       ? `目標TOTALまであと +${formatNumber(remaining)}kg`
       : "目標TOTALに到達済み、または更新圏内です"
     : "目標BIG3を入力すると距離が見えます";
+  const liftInputs = mainLiftIds.map((liftId) => `
+    <label>
+      <span>現在 ${mainLiftNames[liftId]} 1RM</span>
+      <input data-current-max-input="${liftId}" inputmode="decimal" type="number" min="0" step="2.5" value="${escapeHtml(cycle.maxes[liftId] || "")}" placeholder="kg">
+    </label>
+    <label>
+      <span>目標 ${mainLiftNames[liftId]}</span>
+      <input data-goal-input="${liftId}" inputmode="decimal" type="number" min="0" step="2.5" value="${escapeHtml(athlete.goals[liftId] || "")}" placeholder="kg">
+    </label>
+  `).join("");
+  const progressCards = [
+    ...mainLiftIds.map((liftId) => ({
+      label: mainLiftNames[liftId],
+      current: currentValues[liftId],
+      goal: goalValues[liftId]
+    })),
+    { label: "TOTAL", current: currentTotalValue, goal: goalTotalValue }
+  ].map((item) => {
+    const percent = achievementPercent(item.current, item.goal);
+    return `
+      <article class="achievement-card">
+        <span>${escapeHtml(item.label)}</span>
+        <strong>${percent === null ? "-" : `${percent}%`}</strong>
+        <p>${escapeHtml(achievementText(item.current, item.goal))}</p>
+      </article>
+    `;
+  }).join("");
   els.athleteDashboard.innerHTML = `
     <div class="dashboard-head">
       <div>
         <span>ATHLETE DASHBOARD</span>
-        <strong>現在地と目標</strong>
+        <strong>現在1RM・目標・達成率</strong>
       </div>
       <button class="text-button compact" type="button" data-view-target="plan">PLANへ</button>
+    </div>
+    <div class="dashboard-input-grid">
+      ${liftInputs}
+      <label class="goal-total-input">
+        <span>目標TOTAL</span>
+        <input data-goal-input="total" inputmode="decimal" type="number" min="0" step="2.5" value="${escapeHtml(athlete.goals.total || "")}" placeholder="BIG3合計を自動表示">
+      </label>
     </div>
     <div class="dashboard-grid">
       <article class="dashboard-card">
@@ -1722,7 +1769,7 @@ function renderAthleteDashboard(athlete = currentAthlete(), cycle = normalizedCy
       <article class="dashboard-card goal">
         <span>目標</span>
         <strong>${goalTotalValue ? `${formatNumber(goalTotalValue)}kg` : "未設定"}</strong>
-        <p>${goalLine}</p>
+        <p>${goalLine}${totalPercent === null ? "" : ` / 達成率 ${totalPercent}%`}</p>
       </article>
       <article class="dashboard-card">
         <span>進行中プラン</span>
@@ -1734,6 +1781,9 @@ function renderAthleteDashboard(athlete = currentAthlete(), cycle = normalizedCy
         <strong>${escapeHtml(countdown.label)}</strong>
         <p>${escapeHtml(countdown.message)}</p>
       </article>
+    </div>
+    <div class="achievement-grid">
+      ${progressCards}
     </div>
   `;
 }
@@ -2409,7 +2459,8 @@ function renderPlan() {
   const levelLabel = cycle.programMethod === "platform" ? ` / ${cycle.buddyLevel === "level2" ? "Buddy Lv2" : "Buddy Lv1"}` : "";
   els.cyclePhaseTitle.textContent = `${cycle.length}週中 ${cycle.week}週目 / ${phase.name}${levelLabel}`;
   const purpose = phasePurpose(phase, cycle);
-  els.cyclePhaseNote.textContent = guideEnabled() ? `この週の目的: ${purpose} ${phase.note} ${programMethodInfo(cycle).note}` : "";
+  const goal = phaseGoalText(cycle, phase);
+  els.cyclePhaseNote.textContent = guideEnabled() ? `この週の目標: ${goal} 目的: ${purpose} ${programMethodInfo(cycle).note}` : "";
   renderRpeCoach(cycle, phase);
   renderProjections(cycle);
 
@@ -2577,6 +2628,57 @@ function phasePurpose(phase, cycle = normalizedCycle()) {
   return "今週の練習目的を確認し、予定RPEを守って次週へつなげる。";
 }
 
+function liftTargetRangeText(cycle = normalizedCycle(), low = 0.75, high = 0.82) {
+  return activePlanLiftIds(cycle).map((liftId) => {
+    const max = Number(cycle.maxes[liftId] || bestE1rm(liftId) || 0);
+    if (!max) return `${mainLiftNames[liftId]} 未設定`;
+    const lower = roundToIncrement(max * low, 2.5);
+    const upper = roundToIncrement(max * high, 2.5);
+    return `${mainLiftNames[liftId]} ${formatNumber(lower)}〜${formatNumber(upper)}kg`;
+  }).join(" / ");
+}
+
+function finalTargetText(cycle = normalizedCycle()) {
+  const athlete = currentAthlete();
+  athlete.goals = normalizeGoals(athlete.goals);
+  return activePlanLiftIds(cycle).map((liftId) => {
+    const max = Number(cycle.maxes[liftId] || bestE1rm(liftId) || 0);
+    const goal = dashboardGoalValue(liftId, athlete);
+    if (goal) return `${mainLiftNames[liftId]} ${formatNumber(goal)}kg`;
+    if (!max) return `${mainLiftNames[liftId]} 目標未設定`;
+    const range = projectedPrRange(liftId, max, cycle.length, cycle.daysPerWeek, cycle.priorityLift, athlete);
+    return `${mainLiftNames[liftId]} ${formatNumber(range.low)}〜${formatNumber(range.high)}kg`;
+  }).join(" / ");
+}
+
+function phaseGoalText(cycle = normalizedCycle(), phase = cyclePhase(cycle.week, cycle.length, cycle.programMethod)) {
+  const name = phase?.name || "";
+  if (cycle.programMethod === "rebuild16") {
+    if (cycle.week <= 4) return `W5 Reset現在地チェックで、${liftTargetRangeText(cycle, 0.72, 0.8)}をRPE8以内で再現できる状態を目指します。大会後や疲労後でも「また積める身体」に戻すことがゴールです。`;
+    if (cycle.week === 5) return "限界MAXではなく、次のLv2に入るためのTraining Max候補を確認します。3〜5回@8で止め、強く見せるより正確に現在地を見ることが目標です。";
+    if (cycle.week === 6) return "W7からLv2へ入れるように、疲労を抜きながらフォーム、RPE、Training Maxを整理します。鍛え込まず、次に進める状態を作ることが目標です。";
+  }
+  if (name.includes("蓄積") || name.includes("ブリッジ")) {
+    return `W5現在地チェックで、${liftTargetRangeText(cycle, 0.75, 0.82)}を3〜5回@8以内で扱える状態を目指します。最初より同じ重量が軽く感じる、または1〜2回分の余裕が増えていれば成功です。`;
+  }
+  if (name.includes("現在地")) {
+    return "3〜5回@8で今の実力を確認します。5回やり切ることより、RPE8で止めることが目標です。結果を後半ブロックの重量判断に使います。";
+  }
+  if (name.includes("強化")) {
+    return `ピーキング前までに、${liftTargetRangeText(cycle, 0.82, 0.9)}付近をフォームを崩さず扱える状態を目指します。重さに慣れつつ、予定RPEを守ることが目標です。`;
+  }
+  if (name.includes("ピーキング")) {
+    return "最終チェックで強さを発揮できるように、重さへの接触を残しながら疲労を抜きます。練習量を増やすより、成功率とバーの再現性を上げることが目標です。";
+  }
+  if (name.includes("MAX") || name.includes("PR") || cycle.week === cycle.length) {
+    return `第一を確実に、第二でトータルを作り、第三で${finalTargetText(cycle)}付近へ挑戦できる状態を目指します。成功試技を積み上げることも競技力です。`;
+  }
+  if (cycle.recoveryMode || name.includes("デロード") || name.includes("休養")) {
+    return "次の週に進める身体へ戻すことが目標です。表示上限を超えず、RPE6以下でフォーム確認に留めましょう。";
+  }
+  return "次の節目へ向けて、予定RPEを守りながら今日の練習を積み上げることが目標です。";
+}
+
 function weekLearningCard(cycle, phase) {
   if (!guideEnabled()) return "";
   const isPlatform = cycle.programMethod === "platform";
@@ -2588,9 +2690,10 @@ function weekLearningCard(cycle, phase) {
     : "";
   return `
     <article class="plan-card week-learning-card">
-      <span class="recommended-badge">この週の目的</span>
+      <span class="recommended-badge">この週の目標</span>
       <h2>${escapeHtml(phase.name)}</h2>
-      <p>${escapeHtml(phasePurpose(phase, cycle))}</p>
+      <p>${escapeHtml(phaseGoalText(cycle, phase))}</p>
+      <p class="guide-note">目的: ${escapeHtml(phasePurpose(phase, cycle))}</p>
       ${accumulationNote}
       ${whiteNine}
     </article>
@@ -5063,14 +5166,26 @@ els.meetDateInput.addEventListener("change", () => {
   render();
 });
 
-document.querySelectorAll("[data-goal-input]").forEach((input) => {
-  input.addEventListener("change", () => {
+document.addEventListener("change", (event) => {
+  const currentMaxInput = event.target.closest?.("[data-current-max-input]");
+  if (currentMaxInput) {
+    const liftId = currentMaxInput.dataset.currentMaxInput;
+    if (mainLiftIds.includes(liftId)) {
+      const cycle = normalizedCycle();
+      cycle.maxes[liftId] = currentMaxInput.value;
+      saveState();
+      render();
+    }
+    return;
+  }
+  const goalInput = event.target.closest?.("[data-goal-input]");
+  if (goalInput) {
     const athlete = currentAthlete();
     athlete.goals = normalizeGoals(athlete.goals);
-    athlete.goals[input.dataset.goalInput] = input.value;
+    athlete.goals[goalInput.dataset.goalInput] = goalInput.value;
     saveState();
     render();
-  });
+  }
 });
 
 document.querySelector("#addAthleteBtn").addEventListener("click", () => {

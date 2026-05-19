@@ -805,6 +805,35 @@ h2 {
   gap: 8px;
 }
 
+.dashboard-input-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.dashboard-input-grid label {
+  gap: 5px;
+  border: 1px solid rgba(78, 67, 56, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.7);
+  padding: 8px;
+}
+
+.dashboard-input-grid span {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 900;
+}
+
+.dashboard-input-grid input {
+  min-height: 38px;
+  padding: 8px 9px;
+}
+
+.goal-total-input {
+  grid-column: span 3;
+}
+
 .dashboard-card {
   display: grid;
   align-content: start;
@@ -836,6 +865,40 @@ h2 {
 
 .dashboard-card.meet {
   border-color: rgba(180, 35, 24, 0.24);
+}
+
+.achievement-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.achievement-card {
+  display: grid;
+  gap: 4px;
+  border: 1px dashed rgba(78, 67, 56, 0.26);
+  border-radius: 8px;
+  background: rgba(251, 246, 236, 0.78);
+  padding: 9px;
+}
+
+.achievement-card span {
+  color: var(--coach);
+  font-size: 0.7rem;
+  font-weight: 900;
+}
+
+.achievement-card strong {
+  color: var(--ink);
+  font-size: 1.08rem;
+}
+
+.achievement-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+  line-height: 1.35;
 }
 
 .profile-grid,
@@ -2605,6 +2668,8 @@ dialog::backdrop {
   .input-grid,
   .form-row,
   .dashboard-grid,
+  .dashboard-input-grid,
+  .achievement-grid,
   .association-guide,
   .meet-checklist-grid,
   .onboarding-goals,
@@ -2677,6 +2742,10 @@ dialog::backdrop {
 
   .dashboard-card {
     min-height: auto;
+  }
+
+  .goal-total-input {
+    grid-column: auto;
   }
 
   .dashboard-card strong {
