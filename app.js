@@ -1199,6 +1199,8 @@ const els = {
   noteInput: document.querySelector("#noteInput"),
   quickStats: document.querySelector("#quickStats"),
   metricGrid: document.querySelector("#metricGrid"),
+  weeklyDataSummary: document.querySelector("#weeklyDataSummary"),
+  weeklyDataChart: document.querySelector("#weeklyDataChart"),
   academyEvaluation: document.querySelector("#academyEvaluation"),
   historyList: document.querySelector("#historyList"),
   planList: document.querySelector("#planList"),
@@ -1797,6 +1799,7 @@ function render() {
   renderAthletes();
   renderStats();
   renderMetrics();
+  renderWeeklyDataSummary(athlete, normalizedCycle());
   renderAcademyEvaluation();
   renderChartOptions();
   renderDataStatus();
@@ -1804,6 +1807,7 @@ function render() {
   renderPlan();
   renderMeetNotebook(athlete);
   renderQuiz();
+  drawWeeklyDataChart(athlete);
   drawChart();
 }
 
@@ -2442,6 +2446,165 @@ function renderMetrics() {
 
 function metric(label, value) {
   return `<article class="stat-card"><span>${label}</span><strong>${value}</strong></article>`;
+}
+
+function plannedRpeFromLog(log = {}) {
+  const fromPlanText = String(log.planText || "").match(/@([\d.]+)/);
+  const fromNote = String(log.note || "").match(/RPE\s*([\d.]+)/i);
+  return Number(log.plannedRpe || fromNote?.[1] || fromPlanText?.[1] || 0);
+}
+
+function weeklyDataSnapshot(athlete = currentAthlete(), cycle = normalizedCycle()) {
+  const dates = Array.from({ length: 7 }, (_, index) => today(index - 6));
+  athlete.wellness = normalizeWellnessEntries(athlete.wellness);
+  const logs = (athlete.logs || []).filter((log) => daysAgo(log.date) >= 0 && daysAgo(log.date) <= 6);
+  const planLogs = logs.filter((log) => log.source === "plan");
+  const planDaysDone = new Set(planLogs.map((log) => log.date)).size;
+  const planTargetDays = Math.max(1, Number(cycle.daysPerWeek || 4));
+  const volumeTotal = Math.round(logs.reduce((sum, log) => sum + volume(log), 0));
+  const rpePairs = planLogs
+    .map((log) => {
+      const planned = plannedRpeFromLog(log);
+      return planned && log.rpe ? { planned, actual: Number(log.rpe), diff: Number(log.rpe) - planned, date: log.date } : null;
+    })
+    .filter(Boolean);
+  const avgRpeDiff = rpePairs.length
+    ? rpePairs.reduce((sum, item) => sum + item.diff, 0) / rpePairs.length
+    : null;
+  const highRpeDays = new Set(rpePairs.filter((item) => item.diff >= 1).map((item) => item.date));
+  const wellnessScores = dates
+    .map((date) => {
+      const entry = normalizeWellnessEntry({ date, ...(athlete.wellness[date] || {}) });
+      const evaluation = wellnessEvaluation(entry);
+      return entry.completed ? { date, score: evaluation.score, status: evaluation.status } : null;
+    })
+    .filter(Boolean);
+  const wellnessAverage = wellnessScores.length
+    ? Math.round(wellnessScores.reduce((sum, item) => sum + item.score, 0) / wellnessScores.length)
+    : null;
+  const dailyRows = dates.map((date) => {
+    const dayLogs = logs.filter((log) => log.date === date);
+    const entry = normalizeWellnessEntry({ date, ...(athlete.wellness[date] || {}) });
+    const evaluation = wellnessEvaluation(entry);
+    return {
+      date,
+      volume: Math.round(dayLogs.reduce((sum, log) => sum + volume(log), 0)),
+      wellness: entry.completed ? evaluation.score : null,
+      wellnessStatus: entry.completed ? evaluation.status : "unset",
+      highRpe: highRpeDays.has(date)
+    };
+  });
+  const e1rmChanges = Object.fromEntries(mainLiftIds.map((liftId) => {
+    const recent = bestE1rmByRange(athlete, liftId, 0, 6);
+    const previous = bestE1rmByRange(athlete, liftId, 7, 13);
+    return [liftId, recent && previous ? Math.round((recent - previous) * 10) / 10 : null];
+  }));
+  return {
+    dates,
+    logs,
+    planLogs,
+    planDaysDone,
+    planTargetDays,
+    volumeTotal,
+    rpePairs,
+    avgRpeDiff,
+    wellnessScores,
+    wellnessAverage,
+    dailyRows,
+    e1rmChanges
+  };
+}
+
+function bestE1rmByRange(athlete, liftId, minDaysAgo, maxDaysAgo) {
+  const values = (athlete.logs || [])
+    .filter((log) => log.exerciseId === liftId && daysAgo(log.date) >= minDaysAgo && daysAgo(log.date) <= maxDaysAgo)
+    .map((log) => e1rm(log.weight, log.reps));
+  return values.length ? Math.max(...values) : null;
+}
+
+function weeklyDataVerdict(snapshot) {
+  if (!snapshot.logs.length && !snapshot.wellnessScores.length) {
+    return {
+      status: "info",
+      title: "今週のデータを集めましょう",
+      message: "ウェルネスチェックとプラン実績が入ると、体調と練習内容の釣り合いを1週間単位で確認できます。"
+    };
+  }
+  if ((snapshot.wellnessAverage !== null && snapshot.wellnessAverage <= 54) || (snapshot.avgRpeDiff !== null && snapshot.avgRpeDiff >= 1.5)) {
+    return {
+      status: "danger",
+      title: "再調整候補",
+      message: "体調または実績RPEが強く出ています。来週は提案重量レンジの下限寄り、バックオフ削減、必要なら回復週を候補にしましょう。"
+    };
+  }
+  if ((snapshot.wellnessAverage !== null && snapshot.wellnessAverage <= 69) || (snapshot.avgRpeDiff !== null && snapshot.avgRpeDiff >= 0.75)) {
+    return {
+      status: "warn",
+      title: "やや注意",
+      message: "今週は少し疲労が見えます。重量更新より予定RPEとフォーム再現性を優先し、次回は中央〜下限寄りから入りましょう。"
+    };
+  }
+  if (snapshot.avgRpeDiff !== null && snapshot.avgRpeDiff <= -0.75 && snapshot.planDaysDone >= Math.min(snapshot.planTargetDays, 3)) {
+    return {
+      status: "info",
+      title: "余力あり",
+      message: "予定RPEより軽く進んでいます。フォームが安定しているなら、次回は調整範囲の中央〜上限寄りを試す候補があります。"
+    };
+  }
+  return {
+    status: "ok",
+    title: "順調",
+    message: "体調とトレーニング負荷の釣り合いは大きく崩れていません。今の流れで、予定RPEを守りながら次の週へ進みましょう。"
+  };
+}
+
+function renderWeeklyDataSummary(athlete = currentAthlete(), cycle = normalizedCycle()) {
+  if (!els.weeklyDataSummary) return;
+  const snapshot = weeklyDataSnapshot(athlete, cycle);
+  const verdict = weeklyDataVerdict(snapshot);
+  const planRate = Math.min(100, Math.round((snapshot.planDaysDone / snapshot.planTargetDays) * 100));
+  const rpeDiffText = snapshot.avgRpeDiff === null
+    ? "-"
+    : `${snapshot.avgRpeDiff >= 0 ? "+" : ""}${snapshot.avgRpeDiff.toFixed(1)}`;
+  const wellnessText = snapshot.wellnessAverage === null ? "-" : `${snapshot.wellnessAverage}点`;
+  const e1rmText = mainLiftIds.map((liftId) => {
+    const value = snapshot.e1rmChanges[liftId];
+    return `${mainLiftNames[liftId]} ${value === null ? "-" : `${value >= 0 ? "+" : ""}${formatNumber(value)}kg`}`;
+  }).join(" / ");
+  els.weeklyDataSummary.innerHTML = `
+    <article class="weekly-verdict ${verdict.status}">
+      <span>Buddy判定</span>
+      <strong>${escapeHtml(verdict.title)}</strong>
+      <p>${escapeHtml(verdict.message)}</p>
+    </article>
+    <div class="weekly-data-grid">
+      <article class="weekly-data-card">
+        <span>ウェルネス平均</span>
+        <strong>${escapeHtml(wellnessText)}</strong>
+        <p>${snapshot.wellnessScores.length}/7日入力</p>
+      </article>
+      <article class="weekly-data-card">
+        <span>プラン実施</span>
+        <strong>${snapshot.planDaysDone}/${snapshot.planTargetDays}日</strong>
+        <p>達成率 ${planRate}%</p>
+      </article>
+      <article class="weekly-data-card">
+        <span>予定RPEとの差</span>
+        <strong>${escapeHtml(rpeDiffText)}</strong>
+        <p>+は重く、-は軽く出た週</p>
+      </article>
+      <article class="weekly-data-card">
+        <span>週間ボリューム</span>
+        <strong>${snapshot.volumeTotal.toLocaleString()}kg</strong>
+        <p>LOGとPLANの合計</p>
+      </article>
+      <article class="weekly-data-card wide">
+        <span>e1RM変化</span>
+        <strong>${escapeHtml(e1rmText)}</strong>
+        <p>直近7日とその前7日のベスト比較</p>
+      </article>
+    </div>
+  `;
 }
 
 function renderAcademyEvaluation() {
@@ -4610,6 +4773,85 @@ function roundToIncrement(value, increment) {
   return Math.round(Number(value) / increment) * increment;
 }
 
+function drawWeeklyDataChart(athlete = currentAthlete()) {
+  if (!els.weeklyDataChart) return;
+  const ctx = els.weeklyDataChart.getContext("2d");
+  const width = els.weeklyDataChart.width;
+  const height = els.weeklyDataChart.height;
+  const snapshot = weeklyDataSnapshot(athlete, normalizedCycle());
+  ctx.clearRect(0, 0, width, height);
+  ctx.fillStyle = "#fbfaf7";
+  ctx.fillRect(0, 0, width, height);
+  ctx.strokeStyle = "#ded8cf";
+  ctx.lineWidth = 1;
+  for (let i = 1; i <= 4; i += 1) {
+    const y = 28 + ((height - 72) / 4) * i;
+    ctx.beginPath();
+    ctx.moveTo(44, y);
+    ctx.lineTo(width - 22, y);
+    ctx.stroke();
+  }
+  if (!snapshot.logs.length && !snapshot.wellnessScores.length) {
+    ctx.fillStyle = "#667085";
+    ctx.font = "22px sans-serif";
+    ctx.fillText("今週の体調とトレーニング記録が入ると表示されます", 52, height / 2);
+    return;
+  }
+
+  const chartLeft = 52;
+  const chartRight = width - 30;
+  const chartTop = 32;
+  const chartBottom = height - 44;
+  const chartHeight = chartBottom - chartTop;
+  const maxVolume = Math.max(1, ...snapshot.dailyRows.map((row) => row.volume));
+  const step = (chartRight - chartLeft) / snapshot.dailyRows.length;
+
+  snapshot.dailyRows.forEach((row, index) => {
+    const barHeight = (row.volume / maxVolume) * chartHeight;
+    const x = chartLeft + index * step + step * 0.18;
+    const y = chartBottom - barHeight;
+    ctx.fillStyle = row.highRpe ? "rgba(180, 35, 24, 0.68)" : "rgba(47, 111, 115, 0.45)";
+    ctx.fillRect(x, y, step * 0.55, Math.max(2, barHeight));
+    ctx.fillStyle = "#667085";
+    ctx.font = "14px sans-serif";
+    ctx.fillText(row.date.slice(5), x - 2, height - 18);
+    if (row.highRpe) {
+      ctx.fillStyle = "#b42318";
+      ctx.beginPath();
+      ctx.arc(x + step * 0.28, y - 8, 5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  });
+
+  const wellnessPoints = snapshot.dailyRows
+    .map((row, index) => row.wellness === null ? null : ({
+      x: chartLeft + index * step + step * 0.45,
+      y: chartBottom - (row.wellness / 100) * chartHeight,
+      score: row.wellness
+    }))
+    .filter(Boolean);
+  if (wellnessPoints.length) {
+    ctx.strokeStyle = "#b42318";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    wellnessPoints.forEach((point, index) => {
+      if (index === 0) ctx.moveTo(point.x, point.y);
+      else ctx.lineTo(point.x, point.y);
+    });
+    ctx.stroke();
+    wellnessPoints.forEach((point) => {
+      ctx.fillStyle = "#15171a";
+      ctx.beginPath();
+      ctx.arc(point.x, point.y, 5, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  }
+
+  ctx.fillStyle = "#15171a";
+  ctx.font = "15px sans-serif";
+  ctx.fillText("棒: 週間ボリューム / 線: ウェルネス / 赤点: 予定RPEより重い日", 52, 20);
+}
+
 function drawChart() {
   const ctx = els.trendChart.getContext("2d");
   const width = els.trendChart.width;
@@ -5157,6 +5399,7 @@ function switchView(viewName) {
   document.querySelectorAll(".view").forEach((view) => view.classList.remove("active"));
   target.classList.add("active");
   target.scrollIntoView({ behavior: "smooth", block: "start" });
+  drawWeeklyDataChart(currentAthlete());
   drawChart();
 }
 

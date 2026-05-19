@@ -21,7 +21,7 @@
           <div class="brand-tags" aria-label="アプリのテーマ">
             <span>LOG</span>
             <span>PLAN</span>
-            <span>MAX</span>
+            <span>DATA</span>
             <span>MEET</span>
           </div>
         </div>
@@ -90,7 +90,7 @@
 
           <div class="onboarding-step hidden" data-onboarding-step="complete">
             <h3>PRサイクルを作成しました</h3>
-            <p>あとは実際にプログラムに沿って体験してみましょう。W1 Day1の実績を入力すると、履歴に残り、MAX画面や今後のRPE補正に反映されます。</p>
+            <p>あとは実際にプログラムに沿って体験してみましょう。W1 Day1の実績を入力すると、履歴に残り、DATA画面や今後のRPE補正に反映されます。</p>
             <p class="onboarding-hint">サイクル終了後は、更新できた重量をもとに次のプランを作成できます。</p>
             <button class="primary-button" type="button" data-onboarding-action="finish">W1 Day1へ進む</button>
           </div>
@@ -155,7 +155,7 @@
             <div class="daily-entry-grid">
               <button type="button" data-onboarding-action="daily-plan"><strong>今日のプランへ</strong><span>W1 Day1や現在週のメニューを進める</span></button>
               <button type="button" data-onboarding-action="daily-log"><strong>トレーニングを記録</strong><span>プラン外の練習や自由記録を残す</span></button>
-              <button type="button" data-onboarding-action="daily-max"><strong>MAXを確認</strong><span>e1RM、ボリューム、Buddyコメントを見る</span></button>
+              <button type="button" data-onboarding-action="daily-max"><strong>DATAを確認</strong><span>e1RM、ボリューム、体調、Buddyコメントを見る</span></button>
               <button type="button" data-onboarding-action="daily-meet"><strong>大会準備・ルール確認</strong><span>白判定クイズや公式ルールへ進む</span></button>
             </div>
             <div class="onboarding-actions">
@@ -261,7 +261,7 @@
         <nav class="tabbar" aria-label="メイン画面">
           <button class="tab active" type="button" data-view="plan">PLAN</button>
           <button class="tab" type="button" data-view="log">LOG</button>
-          <button class="tab" type="button" data-view="analysis">MAX</button>
+          <button class="tab" type="button" data-view="analysis">DATA</button>
           <button class="tab" type="button" data-view="knowledge">MEET</button>
         </nav>
 
@@ -332,6 +332,18 @@
         </section>
 
         <section class="view" id="analysisView">
+          <section class="panel weekly-data-panel">
+            <div class="section-title">
+              <div>
+                <p class="eyebrow">Weekly Data</p>
+                <h2>今週の進捗</h2>
+              </div>
+            </div>
+            <p class="screen-note">その日だけで判断せず、直近7日間のウェルネス、プラン実施、RPE差、ボリューム、e1RM変化をまとめて確認します。</p>
+            <div class="weekly-data-summary" id="weeklyDataSummary"></div>
+            <canvas id="weeklyDataChart" width="720" height="320" aria-label="週間の体調とトレーニング負荷グラフ"></canvas>
+          </section>
+
           <section class="panel academy-evaluation-panel">
             <div class="section-title">
               <div>

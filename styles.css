@@ -1495,6 +1495,88 @@ textarea {
   color: var(--accent);
 }
 
+.weekly-data-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.weekly-data-summary {
+  display: grid;
+  gap: 10px;
+}
+
+.weekly-verdict {
+  display: grid;
+  gap: 5px;
+  border: 1px solid var(--line);
+  border-left: 5px solid var(--coach);
+  border-radius: 8px;
+  background: #fffefa;
+  padding: 12px;
+}
+
+.weekly-verdict span,
+.weekly-data-card span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.weekly-verdict strong {
+  color: var(--ink);
+  font-size: 1.05rem;
+}
+
+.weekly-verdict p,
+.weekly-data-card p {
+  color: var(--muted);
+  font-size: 0.83rem;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.weekly-verdict.ok {
+  border-left-color: var(--green);
+}
+
+.weekly-verdict.info {
+  border-left-color: var(--blue);
+}
+
+.weekly-verdict.warn {
+  border-left-color: #d97706;
+  background: #fff9e8;
+}
+
+.weekly-verdict.danger {
+  border-left-color: var(--accent);
+  background: #fff1f0;
+}
+
+.weekly-data-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.weekly-data-card {
+  display: grid;
+  gap: 5px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  padding: 12px;
+}
+
+.weekly-data-card strong {
+  font-size: 1.25rem;
+  line-height: 1.15;
+}
+
+.weekly-data-card.wide {
+  grid-column: span 4;
+}
+
 .cycle-note {
   margin: -4px 0 14px;
   color: var(--muted);
@@ -2959,6 +3041,7 @@ dialog::backdrop {
   .dashboard-grid,
   .dashboard-input-grid,
   .achievement-grid,
+  .weekly-data-grid,
   .association-guide,
   .meet-checklist-grid,
   .onboarding-goals,
@@ -3037,6 +3120,10 @@ dialog::backdrop {
   }
 
   .goal-total-input {
+    grid-column: auto;
+  }
+
+  .weekly-data-card.wide {
     grid-column: auto;
   }
 
