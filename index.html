@@ -36,9 +36,10 @@
           <p class="eyebrow">First Setup</p>
           <h2>Platform Buddy</h2>
           <p class="onboarding-subtitle">MAX更新から大会挑戦まで、1人で始めたリフターを支える相棒。</p>
+          <p class="onboarding-value">BIG3をなんとなく練習する状態から、目標を持ち、計画的にMAX更新を狙い、大会挑戦まで進めるリフターへ。</p>
 
           <div class="onboarding-step" data-onboarding-step="intro">
-            <p>最初はPLAN作成まで一本道で案内します。現在地を入力して、W1 Day1を体験できる状態まで一緒に進みましょう。</p>
+            <p>Platform Buddyは、ただ記録するだけのアプリではありません。あなたのBIG3の現在地を見える化し、目標を設定し、PRサイクルを通じて「次に何をすれば強くなれるか」を示すアプリです。</p>
             <button class="primary-button" type="button" data-onboarding-action="start">はじめて設定を始める</button>
           </div>
 
@@ -123,7 +124,7 @@
           </div>
           <p class="collapse-summary" id="welcomeSummary"></p>
           <div class="collapsible-content" id="welcomePanelContent">
-            <p class="welcome-message">全部を一度に覚えなくて大丈夫。まずは今日の1セットを記録するところから始めましょう。</p>
+            <p class="welcome-message">BIG3を楽しむ人を、計画的に強くなるリフターへ。Platform Buddyは現在地、目標、進捗、次の行動をつなげる相棒です。</p>
             <div class="start-card-grid" aria-label="目的を選ぶ">
               <button class="start-card recommended" type="button" data-start-action="plan">
                 <span>PLAN</span>
@@ -160,6 +161,7 @@
             </div>
           </div>
           <p class="collapse-summary" id="profileSummary"></p>
+          <section class="athlete-dashboard" id="athleteDashboard" aria-live="polite"></section>
           <div class="collapsible-content" id="profilePanelContent">
             <div class="athlete-strip" id="athleteStrip" aria-label="選手一覧"></div>
             <div class="profile-grid">
@@ -186,6 +188,22 @@
               <label>
                 試合予定
                 <input id="meetDateInput" type="date">
+              </label>
+              <label>
+                目標スクワット
+                <input id="goalSquatInput" data-goal-input="squat" inputmode="decimal" type="number" min="0" step="2.5" placeholder="kg">
+              </label>
+              <label>
+                目標ベンチプレス
+                <input id="goalBenchInput" data-goal-input="bench" inputmode="decimal" type="number" min="0" step="2.5" placeholder="kg">
+              </label>
+              <label>
+                目標デッドリフト
+                <input id="goalDeadliftInput" data-goal-input="deadlift" inputmode="decimal" type="number" min="0" step="2.5" placeholder="kg">
+              </label>
+              <label>
+                目標トータル
+                <input id="goalTotalInput" data-goal-input="total" inputmode="decimal" type="number" min="0" step="2.5" placeholder="自動合計も可">
               </label>
             </div>
             <section class="association-guide" id="associationGuide"></section>

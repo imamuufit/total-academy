@@ -1070,6 +1070,7 @@ const defaultState = {
       weightClass: "83",
       prefecture: "",
       meetDate: "",
+      goals: defaultGoals(),
       meetChecklist: {},
       cycle: defaultCycle(),
       meetNotes: [],
@@ -1115,6 +1116,11 @@ const els = {
   prefectureInput: document.querySelector("#prefectureInput"),
   associationGuide: document.querySelector("#associationGuide"),
   meetDateInput: document.querySelector("#meetDateInput"),
+  athleteDashboard: document.querySelector("#athleteDashboard"),
+  goalSquatInput: document.querySelector("#goalSquatInput"),
+  goalBenchInput: document.querySelector("#goalBenchInput"),
+  goalDeadliftInput: document.querySelector("#goalDeadliftInput"),
+  goalTotalInput: document.querySelector("#goalTotalInput"),
   meetPrepAnnouncement: document.querySelector("#meetPrepAnnouncement"),
   meetPrepChecklist: document.querySelector("#meetPrepChecklist"),
   logForm: document.querySelector("#logForm"),
@@ -1213,6 +1219,17 @@ function defaultCycle() {
   };
 }
 
+function defaultGoals() {
+  return { squat: "", bench: "", deadlift: "", total: "" };
+}
+
+function normalizeGoals(goals = {}) {
+  return {
+    ...defaultGoals(),
+    ...(goals && typeof goals === "object" ? goals : {})
+  };
+}
+
 function sampleLog(offset, category, exerciseId, weight, reps, sets, rpe, note) {
   const meta = exerciseMeta(exerciseId);
   return {
@@ -1290,6 +1307,7 @@ function migrateState(rawState) {
     },
     rpeFeedback: athlete.rpeFeedback || {},
     rpeCalibration: athlete.rpeCalibration || {},
+    goals: normalizeGoals(athlete.goals),
     meetChecklist: athlete.meetChecklist && typeof athlete.meetChecklist === "object" ? athlete.meetChecklist : {},
     meetNotes: Array.isArray(athlete.meetNotes) ? athlete.meetNotes : [],
     logs: (athlete.logs || []).map((log) => {
@@ -1519,7 +1537,10 @@ function render() {
   els.weightClassInput.value = athlete.weightClass;
   els.prefectureInput.value = athlete.prefecture;
   els.meetDateInput.value = athlete.meetDate || "";
+  athlete.goals = normalizeGoals(athlete.goals);
+  renderGoalInputs(athlete);
   renderAssociationGuide(athlete);
+  renderAthleteDashboard(athlete, normalizedCycle());
   renderMeetPrepAnnouncement(athlete);
   renderMeetPrepChecklist(athlete);
   renderCycleInputs();
@@ -1610,6 +1631,111 @@ function daysUntilMeet(athlete = currentAthlete()) {
   if (!athlete.meetDate) return null;
   const diff = new Date(`${athlete.meetDate}T00:00:00`) - new Date(`${today()}T00:00:00`);
   return Math.ceil(diff / 86400000);
+}
+
+function renderGoalInputs(athlete = currentAthlete()) {
+  athlete.goals = normalizeGoals(athlete.goals);
+  if (els.goalSquatInput) els.goalSquatInput.value = athlete.goals.squat || "";
+  if (els.goalBenchInput) els.goalBenchInput.value = athlete.goals.bench || "";
+  if (els.goalDeadliftInput) els.goalDeadliftInput.value = athlete.goals.deadlift || "";
+  if (els.goalTotalInput) els.goalTotalInput.value = athlete.goals.total || "";
+}
+
+function dashboardCurrentMax(liftId, cycle = normalizedCycle()) {
+  return Number(cycle.maxes?.[liftId] || bestE1rm(liftId) || 0);
+}
+
+function dashboardGoalValue(liftId, athlete = currentAthlete()) {
+  athlete.goals = normalizeGoals(athlete.goals);
+  return Number(athlete.goals[liftId] || 0);
+}
+
+function dashboardGoalTotal(athlete = currentAthlete()) {
+  athlete.goals = normalizeGoals(athlete.goals);
+  const explicit = Number(athlete.goals.total || 0);
+  const liftTotal = mainLiftIds.reduce((sum, liftId) => sum + dashboardGoalValue(liftId, athlete), 0);
+  return explicit || liftTotal;
+}
+
+function meetCountdownText(athlete = currentAthlete()) {
+  const days = daysUntilMeet(athlete);
+  if (days === null) return { label: "未設定", message: "大会日を入れると、残り日数と準備の入口が表示されます。" };
+  if (days > 60) return { label: `D-${days}`, message: "大会要項とプラン全体の流れを確認しておきましょう。" };
+  if (days >= 31) return { label: `D-${days}`, message: "プラン進行と大会要項の確認を進める時期です。" };
+  if (days >= 15) return { label: `D-${days}`, message: "ギア、検量、ルール、オープナー候補を確認しましょう。" };
+  if (days >= 7) return { label: `D-${days}`, message: "疲労管理、ピーキング、持ち物準備を優先しましょう。" };
+  if (days >= 1) return { label: `D-${days}`, message: "忘れ物、移動、検量、試技順を最終確認しましょう。" };
+  if (days === 0) return { label: "D-Day", message: "今日は大会当日。第一試技は白を取りに行きましょう。" };
+  return { label: `D+${Math.abs(days)}`, message: "大会ノートに結果と次回課題を残しましょう。" };
+}
+
+function nextCycleMilestone(cycle = normalizedCycle()) {
+  const week = Number(cycle.week || 1);
+  const length = Number(cycle.length || 12);
+  const milestones = cycle.programMethod === "rebuild16"
+    ? [
+      [5, "Reset現在地チェック"],
+      [6, "移行週"],
+      [11, "Lv2現在地チェック"],
+      [16, "大会想定MAXチェック"]
+    ]
+    : cycle.programMethod === "platform"
+      ? [
+        [4, "ブリッジ週"],
+        [5, "現在地チェック"],
+        [length, "大会想定MAXチェック"]
+      ]
+      : [[length, "最終週"]];
+  const next = milestones.find(([milestoneWeek]) => milestoneWeek >= week) || milestones.at(-1);
+  return next ? `W${next[0]} ${next[1]}` : "未設定";
+}
+
+function renderAthleteDashboard(athlete = currentAthlete(), cycle = normalizedCycle()) {
+  if (!els.athleteDashboard) return;
+  athlete.goals = normalizeGoals(athlete.goals);
+  const currentValues = Object.fromEntries(mainLiftIds.map((liftId) => [liftId, dashboardCurrentMax(liftId, cycle)]));
+  const currentTotalValue = mainLiftIds.reduce((sum, liftId) => sum + currentValues[liftId], 0);
+  const goalValues = Object.fromEntries(mainLiftIds.map((liftId) => [liftId, dashboardGoalValue(liftId, athlete)]));
+  const goalTotalValue = dashboardGoalTotal(athlete);
+  const remaining = goalTotalValue ? goalTotalValue - currentTotalValue : null;
+  const countdown = meetCountdownText(athlete);
+  const methodLabel = programMethodInfo(cycle).label.replace(" / BIG3", "").replace(" / ベンチプレスのみ", "");
+  const goalLine = goalTotalValue
+    ? remaining > 0
+      ? `目標TOTALまであと +${formatNumber(remaining)}kg`
+      : "目標TOTALに到達済み、または更新圏内です"
+    : "目標BIG3を入力すると距離が見えます";
+  els.athleteDashboard.innerHTML = `
+    <div class="dashboard-head">
+      <div>
+        <span>ATHLETE DASHBOARD</span>
+        <strong>現在地と目標</strong>
+      </div>
+      <button class="text-button compact" type="button" data-view-target="plan">PLANへ</button>
+    </div>
+    <div class="dashboard-grid">
+      <article class="dashboard-card">
+        <span>現在地</span>
+        <strong>${formatNumber(currentTotalValue)}kg</strong>
+        <p>SQ ${formatNumber(currentValues.squat)} / BP ${formatNumber(currentValues.bench)} / DL ${formatNumber(currentValues.deadlift)}</p>
+      </article>
+      <article class="dashboard-card goal">
+        <span>目標</span>
+        <strong>${goalTotalValue ? `${formatNumber(goalTotalValue)}kg` : "未設定"}</strong>
+        <p>${goalLine}</p>
+      </article>
+      <article class="dashboard-card">
+        <span>進行中プラン</span>
+        <strong>${escapeHtml(methodLabel)}</strong>
+        <p>W${cycle.week} / 次の節目: ${escapeHtml(nextCycleMilestone(cycle))}</p>
+      </article>
+      <article class="dashboard-card meet">
+        <span>次の大会</span>
+        <strong>${escapeHtml(countdown.label)}</strong>
+        <p>${escapeHtml(countdown.message)}</p>
+      </article>
+    </div>
+  `;
 }
 
 function renderMeetPrepAnnouncement(athlete = currentAthlete()) {
@@ -4937,6 +5063,16 @@ els.meetDateInput.addEventListener("change", () => {
   render();
 });
 
+document.querySelectorAll("[data-goal-input]").forEach((input) => {
+  input.addEventListener("change", () => {
+    const athlete = currentAthlete();
+    athlete.goals = normalizeGoals(athlete.goals);
+    athlete.goals[input.dataset.goalInput] = input.value;
+    saveState();
+    render();
+  });
+});
+
 document.querySelector("#addAthleteBtn").addEventListener("click", () => {
   els.athleteNameInput.value = "";
   els.athleteDialog.showModal();
@@ -4952,7 +5088,7 @@ els.athleteForm.addEventListener("submit", (event) => {
   event.preventDefault();
   const name = els.athleteNameInput.value.trim();
   if (!name) return;
-  const athlete = { id: crypto.randomUUID(), name, sex: "male", bodyweight: "", weightClass: "83", prefecture: "", meetDate: "", meetChecklist: {}, cycle: defaultCycle(), meetNotes: [], logs: [] };
+  const athlete = { id: crypto.randomUUID(), name, sex: "male", bodyweight: "", weightClass: "83", prefecture: "", meetDate: "", goals: defaultGoals(), meetChecklist: {}, cycle: defaultCycle(), meetNotes: [], logs: [] };
   state.athletes.push(athlete);
   state.currentAthleteId = athlete.id;
   saveState();
