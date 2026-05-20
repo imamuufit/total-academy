@@ -10,7 +10,7 @@
     <title>Platform Buddy</title>
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=89">
   </head>
   <body>
     <div class="app-shell">
@@ -952,6 +952,6 @@
       </form>
     </dialog>
 
-    <script src="app.js"></script>
+    <script src="app.js?v=89"></script>
   </body>
 </html>

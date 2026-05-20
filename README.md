@@ -4,7 +4,7 @@
   "description": "MAX更新から大会挑戦まで、1人で始めたリフターを支える記録・分析・プランアプリ。",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#f3f5f7",
+  "background_color": "#06090d",
   "theme_color": "#15171a",
   "icons": [
     {

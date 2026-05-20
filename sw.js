@@ -4671,6 +4671,100 @@ dialog::backdrop {
   }
 }
 
+.home-hero-card {
+  background:
+    linear-gradient(90deg, rgba(6, 9, 13, 0.92), rgba(6, 9, 13, 0.52)),
+    radial-gradient(circle at 82% 18%, rgba(255, 255, 255, 0.12), transparent 30%),
+    var(--asset-home) 62% center / cover no-repeat,
+    linear-gradient(145deg, #10161d, #06090d);
+}
+
+#planView::before {
+  content: "PLAN";
+  display: grid;
+  align-items: end;
+  min-height: 128px;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 22px;
+  background:
+    linear-gradient(90deg, rgba(6, 9, 13, 0.9), rgba(6, 9, 13, 0.5)),
+    var(--asset-plan) center / cover no-repeat;
+  color: #fff;
+  padding: 16px;
+  font-size: 1.8rem;
+  font-style: italic;
+  font-weight: 1000;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.22);
+}
+
+.meet-prep-announcement {
+  background:
+    linear-gradient(90deg, rgba(6, 9, 13, 0.96), rgba(6, 9, 13, 0.52)),
+    radial-gradient(circle at 82% 22%, rgba(180, 35, 24, 0.28), transparent 32%),
+    var(--asset-meet) center / cover no-repeat,
+    #0b1117;
+  color: #fff;
+}
+
+.home-card.buddy,
+.academy-evaluation-panel,
+.weekly-verdict {
+  position: relative;
+  overflow: hidden;
+}
+
+.home-card.buddy::after,
+.academy-evaluation-panel::after,
+.weekly-verdict::after {
+  content: "";
+  position: absolute;
+  right: -10px;
+  bottom: -18px;
+  width: 108px;
+  height: 108px;
+  border-radius: 20px;
+  background: var(--asset-buddy) center 38% / 150% auto no-repeat;
+  opacity: 0.24;
+  pointer-events: none;
+}
+
+.home-card.buddy > *,
+.academy-evaluation-panel > *,
+.weekly-verdict > * {
+  position: relative;
+  z-index: 1;
+}
+
+.plan-prescription-block {
+  position: relative;
+}
+
+.plan-prescription-block::before {
+  content: "";
+  position: absolute;
+  left: 14px;
+  top: 14px;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background-image: var(--asset-icons);
+  background-size: 300% 300%;
+  background-position: 0% 100%;
+  background-repeat: no-repeat;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.14);
+}
+
+.plan-prescription-block:nth-child(2)::before {
+  background-position: 50% 100%;
+}
+
+.plan-prescription-block span,
+.plan-prescription-block strong,
+.plan-prescription-block small,
+.plan-prescription-block em {
+  margin-left: 48px;
+}
+
 @media (max-width: 640px) {
   .home-hero-card {
     background:
