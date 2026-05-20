@@ -1,23 +1,957 @@
-{
-  "name": "Platform Buddy",
-  "short_name": "Buddy",
-  "description": "MAX更新から大会挑戦まで、1人で始めたリフターを支える記録・分析・プランアプリ。",
-  "start_url": ".",
-  "display": "standalone",
-  "background_color": "#f3f5f7",
-  "theme_color": "#15171a",
-  "icons": [
-    {
-      "src": "icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    },
-    {
-      "src": "apple-touch-icon.png",
-      "sizes": "180x180",
-      "type": "image/png",
-      "purpose": "any"
-    }
-  ]
-}
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#15171a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Platform Buddy">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Platform Buddy</title>
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand-block">
+          <h1>Platform Buddy</h1>
+          <p class="brand-subtitle">強くなりたい気持ちを、計画に変える。<br>現在地を知り、目標までの距離を見える化し、週ごとの課題をクリアしながらMAX更新へ進む。<br>Platform Buddyは、BIG3を楽しむあなたを、計画的に強くなるリフターへ導くアプリです。</p>
+          <div class="brand-tags" aria-label="アプリのテーマ">
+            <span>LOG</span>
+            <span>PLAN</span>
+            <span>DATA</span>
+            <span>MEET</span>
+          </div>
+        </div>
+        <div class="export-actions">
+          <button class="text-button compact" id="exportBtn" type="button" aria-label="記録Excelを書き出す" title="記録Excelを書き出す">Log</button>
+          <button class="text-button compact" id="exportPlanBtn" type="button" aria-label="12週プランExcelを書き出す" title="12週プランExcelを書き出す">Excel</button>
+        </div>
+      </header>
+
+      <section class="onboarding-screen hidden" id="onboardingScreen" aria-live="polite">
+        <div class="onboarding-card">
+          <p class="eyebrow">First Setup</p>
+          <h2>Platform Buddy</h2>
+          <p class="onboarding-subtitle">強くなりたい気持ちを、計画に変える。</p>
+          <p class="onboarding-value">現在1RMと目標を入れると、目標までの差、達成率、PRサイクル、次にやるべき練習が見えるようになります。</p>
+
+          <div class="onboarding-step" data-onboarding-step="intro">
+            <p>Platform Buddyは、BIG3の現在地を入力し、目標までの距離を見ながら、計画的にMAX更新と大会挑戦へ進むためのアプリです。</p>
+            <button class="primary-button" type="button" data-onboarding-action="start">はじめて設定を始める</button>
+          </div>
+
+          <div class="onboarding-step hidden" data-onboarding-step="goal">
+            <h3>まず目的を選んでください</h3>
+            <div class="onboarding-goals">
+              <button type="button" data-onboarding-goal="big3"><strong>BIG3のMAX更新を狙いたい</strong><span>スクワット・ベンチ・デッドを伸ばす標準ルート</span></button>
+              <button type="button" data-onboarding-goal="bench"><strong>ベンチプレスを伸ばしたい</strong><span>ベンチ中心でPRサイクルを始める</span></button>
+              <button type="button" data-onboarding-goal="meet"><strong>大会に出てみたい</strong><span>白判定と大会形式を意識して進める</span></button>
+              <button type="button" data-onboarding-goal="learn"><strong>まずはパワーリフティングを学びたい</strong><span>低めの頻度でRPEと基礎を覚える</span></button>
+            </div>
+          </div>
+
+          <div class="onboarding-step hidden" data-onboarding-step="profile">
+            <h3>現在地を入力</h3>
+            <div class="onboarding-grid">
+              <label>トレーニング経験<select id="onboardingExperience">
+                <option value="beginner">初心者</option>
+                <option value="intermediate">中級者</option>
+                <option value="advanced">上級者</option>
+              </select></label>
+              <label>週あたり練習回数<select id="onboardingDays">
+                <option value="3">週3回</option>
+                <option value="4" selected>週4回</option>
+                <option value="5">週5回</option>
+              </select></label>
+              <label>競技カテゴリー<select id="onboardingSex">
+                <option value="male">男性</option>
+                <option value="female">女性</option>
+                <option value="">未設定</option>
+              </select></label>
+              <label>体重<input id="onboardingBodyweight" inputmode="decimal" type="number" min="20" step="0.1" placeholder="例: 83"></label>
+              <label>RPE使用経験<select id="onboardingRpeExperience">
+                <option value="learning">ほぼ初めて</option>
+                <option value="unsure">少し使ったことがある</option>
+                <option value="solid">普段から使っている</option>
+              </select></label>
+              <label>スクワットMAX<input id="onboardingSquatMax" inputmode="decimal" type="number" min="0" step="0.5" placeholder="例: 140"></label>
+              <label>ベンチプレスMAX<input id="onboardingBenchMax" inputmode="decimal" type="number" min="0" step="0.5" placeholder="例: 100"></label>
+              <label>デッドリフトMAX<input id="onboardingDeadliftMax" inputmode="decimal" type="number" min="0" step="0.5" placeholder="例: 160"></label>
+            </div>
+            <p class="onboarding-hint">正確な1RMが分からない場合は、最近の重めセットからの推定MAXで大丈夫です。後からPLAN画面で修正できます。</p>
+            <div class="onboarding-actions">
+              <button class="text-button" type="button" data-onboarding-action="back">戻る</button>
+              <button class="primary-button" type="button" data-onboarding-action="create">プランを作成</button>
+            </div>
+          </div>
+
+          <div class="onboarding-step hidden" data-onboarding-step="complete">
+            <h3>PRサイクルを作成しました</h3>
+            <p>あとは実際にプログラムに沿って体験してみましょう。W1 Day1の実績を入力すると、履歴に残り、DATA画面や今後のRPE補正に反映されます。</p>
+            <p class="onboarding-hint">サイクル終了後は、更新できた重量をもとに次のプランを作成できます。</p>
+            <button class="primary-button" type="button" data-onboarding-action="finish">W1 Day1へ進む</button>
+          </div>
+
+          <div class="onboarding-step hidden" data-onboarding-step="daily">
+            <p class="eyebrow">Today's Entry</p>
+            <h3>今日はどこへ進みますか？</h3>
+            <p>今日の1セットが、次のMAX更新と白判定につながります。必要な場所へすぐ進みましょう。</p>
+            <section class="wellness-check-card" id="dailyWellnessCard">
+              <div class="wellness-check-head">
+                <span>今日のウェルネスチェック</span>
+                <strong>今日のBuddy方針を決める</strong>
+              </div>
+              <p>睡眠、栄養、疲労、痛み、集中力から、今日の提案重量レンジのどこを選ぶかを決めます。自動で重量を変えるのではなく、判断材料として使います。</p>
+              <div class="wellness-grid" aria-label="今日の体調">
+                <div class="wellness-field" data-wellness-field="sleep">
+                  <span>睡眠</span>
+                  <div class="wellness-options">
+                    <button type="button" data-wellness-option data-wellness-field="sleep" data-wellness-value="good">良い</button>
+                    <button type="button" data-wellness-option data-wellness-field="sleep" data-wellness-value="normal">普通</button>
+                    <button type="button" data-wellness-option data-wellness-field="sleep" data-wellness-value="bad">悪い</button>
+                  </div>
+                </div>
+                <div class="wellness-field" data-wellness-field="nutrition">
+                  <span>食事・水分</span>
+                  <div class="wellness-options">
+                    <button type="button" data-wellness-option data-wellness-field="nutrition" data-wellness-value="good">十分</button>
+                    <button type="button" data-wellness-option data-wellness-field="nutrition" data-wellness-value="normal">普通</button>
+                    <button type="button" data-wellness-option data-wellness-field="nutrition" data-wellness-value="bad">不足</button>
+                  </div>
+                </div>
+                <div class="wellness-field" data-wellness-field="fatigue">
+                  <span>疲労・筋肉痛</span>
+                  <div class="wellness-options">
+                    <button type="button" data-wellness-option data-wellness-field="fatigue" data-wellness-value="good">軽い</button>
+                    <button type="button" data-wellness-option data-wellness-field="fatigue" data-wellness-value="normal">普通</button>
+                    <button type="button" data-wellness-option data-wellness-field="fatigue" data-wellness-value="bad">重い</button>
+                  </div>
+                </div>
+                <div class="wellness-field" data-wellness-field="pain">
+                  <span>関節・痛み</span>
+                  <div class="wellness-options">
+                    <button type="button" data-wellness-option data-wellness-field="pain" data-wellness-value="good">なし</button>
+                    <button type="button" data-wellness-option data-wellness-field="pain" data-wellness-value="normal">少し</button>
+                    <button type="button" data-wellness-option data-wellness-field="pain" data-wellness-value="bad">強い</button>
+                  </div>
+                </div>
+                <div class="wellness-field" data-wellness-field="mental">
+                  <span>集中・気持ち</span>
+                  <div class="wellness-options">
+                    <button type="button" data-wellness-option data-wellness-field="mental" data-wellness-value="good">高い</button>
+                    <button type="button" data-wellness-option data-wellness-field="mental" data-wellness-value="normal">普通</button>
+                    <button type="button" data-wellness-option data-wellness-field="mental" data-wellness-value="bad">低い</button>
+                  </div>
+                </div>
+              </div>
+              <div class="wellness-result" id="dailyWellnessResult" aria-live="polite"></div>
+              <div class="wellness-actions">
+                <button class="text-button compact" type="button" data-wellness-save>今日の状態を保存</button>
+              </div>
+            </section>
+            <div class="daily-entry-grid">
+              <button type="button" data-onboarding-action="daily-plan"><strong>今日のプランへ</strong><span>W1 Day1や現在週のメニューを進める</span></button>
+              <button type="button" data-onboarding-action="daily-log"><strong>トレーニングを記録</strong><span>プラン外の練習や自由記録を残す</span></button>
+              <button type="button" data-onboarding-action="daily-max"><strong>DATAを確認</strong><span>e1RM、ボリューム、体調、Buddyコメントを見る</span></button>
+              <button type="button" data-onboarding-action="daily-meet"><strong>大会準備・ルール確認</strong><span>白判定クイズや公式ルールへ進む</span></button>
+            </div>
+            <div class="onboarding-actions">
+              <button class="text-button" type="button" data-onboarding-action="restart-first">初回ガイドをもう一度見る</button>
+              <button class="text-button" type="button" data-onboarding-action="daily-close">閉じる</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <main>
+        <section class="panel welcome-panel" id="welcomePanel">
+          <div class="section-title welcome-title">
+            <div class="welcome-copy">
+              <p class="eyebrow">Start</p>
+              <h2>はじめてガイド</h2>
+            </div>
+            <button class="collapse-toggle" id="welcomeCollapseBtn" type="button" aria-label="はじめてガイドを閉じる" aria-expanded="true">▴</button>
+          </div>
+          <p class="collapse-summary" id="welcomeSummary"></p>
+          <div class="collapsible-content" id="welcomePanelContent">
+            <div class="start-card-grid" aria-label="目的を選ぶ">
+              <button class="start-card recommended" type="button" data-start-action="plan">
+                <span>PLAN</span>
+                <strong>BIG3のMAX更新を狙いたい</strong>
+                <small>現在1RMからPRサイクルを作ります。</small>
+              </button>
+              <button class="start-card" type="button" data-start-action="log">
+                <span>LOG</span>
+                <strong>今日のトレーニングを記録したい</strong>
+                <small>種目、重量、回数、RPEを残して成長を見ます。</small>
+              </button>
+              <button class="start-card" type="button" data-start-action="meet">
+                <span>MEET</span>
+                <strong>パワーリフティング大会に出てみたい</strong>
+                <small>白判定、公式ルール、大会準備を確認します。</small>
+              </button>
+            </div>
+            <div class="start-guide" id="startGuide" aria-live="polite"></div>
+          </div>
+        </section>
+
+        <section class="meet-prep-announcement hidden" id="meetPrepAnnouncement" role="button" tabindex="0" data-view-target="knowledge" aria-label="大会準備へ進む"></section>
+
+        <section class="panel athlete-panel">
+          <div class="section-title">
+            <div>
+              <p class="eyebrow">Athlete</p>
+              <h2 id="currentAthleteName">自分</h2>
+            </div>
+            <div class="athlete-actions">
+              <button class="text-button" id="addAthleteBtn" type="button">選手追加</button>
+              <button class="text-button danger" id="deleteAthleteBtn" type="button">選手削除</button>
+              <button class="collapse-toggle" id="profileCollapseBtn" type="button" aria-label="プロフィールを閉じる" aria-expanded="true">▴</button>
+            </div>
+          </div>
+          <p class="collapse-summary" id="profileSummary"></p>
+          <section class="athlete-dashboard" id="athleteDashboard" aria-live="polite"></section>
+          <div class="collapsible-content" id="profilePanelContent">
+            <div class="athlete-strip" id="athleteStrip" aria-label="選手一覧"></div>
+            <div class="profile-grid">
+              <label>
+                性別
+                <select id="sexInput">
+                  <option value="">未設定</option>
+                  <option value="male">男性</option>
+                  <option value="female">女性</option>
+                </select>
+              </label>
+              <label>
+                体重
+                <input id="bodyweightInput" inputmode="decimal" type="number" min="0" step="0.1" placeholder="kg">
+              </label>
+              <label>
+                体重階級
+                <select id="weightClassInput"></select>
+              </label>
+              <label>
+                都道府県
+                <select id="prefectureInput"></select>
+              </label>
+              <label>
+                試合予定
+                <input id="meetDateInput" type="date">
+              </label>
+            </div>
+            <section class="association-guide" id="associationGuide"></section>
+          </div>
+        </section>
+
+        <section class="wellness-floating" id="wellnessFloating" aria-live="polite"></section>
+
+        <section class="guide-mode-bar" aria-label="表示モード">
+          <div>
+            <span>ガイド<br>モード</span>
+            <small id="guideModeDescription">説明を表示して使う</small>
+          </div>
+          <button class="guide-mode-toggle" id="guideModeBtn" type="button" aria-pressed="true">
+            オン
+          </button>
+        </section>
+
+        <nav class="tabbar" aria-label="メイン画面">
+          <button class="tab active" type="button" data-view="home">HOME</button>
+          <button class="tab" type="button" data-view="plan">PLAN</button>
+          <button class="tab" type="button" data-view="log">LOG</button>
+          <button class="tab" type="button" data-view="analysis">DATA</button>
+          <button class="tab" type="button" data-view="knowledge">MEET</button>
+        </nav>
+
+        <section class="view active" id="homeView">
+          <section class="home-dashboard" id="homeDashboard" aria-live="polite"></section>
+        </section>
+
+        <section class="view" id="logView">
+          <form class="panel log-form" id="logForm">
+            <div class="section-title">
+              <div>
+                <p class="eyebrow">Free Log</p>
+                <h2>自由トレーニング記録</h2>
+              </div>
+              <input id="dateInput" type="date" required>
+            </div>
+            <p class="screen-note">プラン外の補助種目、単発練習、自主トレを残す場所です。</p>
+
+            <div class="form-row">
+              <label>
+                カテゴリ
+                <select id="categorySelect"></select>
+              </label>
+              <label>
+                種目
+                <select id="exerciseSelect"></select>
+              </label>
+            </div>
+
+            <label id="customExerciseLabel" class="hidden">
+              種目名
+              <input id="customExerciseInput" type="text" placeholder="例: スパニッシュスクワット">
+            </label>
+
+            <section id="alternativePanel" class="alternative-panel hidden" aria-live="polite"></section>
+
+            <label class="set-count-label">
+              セット数
+              <input id="setsInput" inputmode="numeric" type="number" min="1" max="20" step="1" value="1" required>
+            </label>
+
+            <section class="set-detail-panel" id="setDetailPanel">
+              <div class="set-detail-head">
+                <div>
+                  <h3>セット入力</h3>
+                  <p>Set1を入力してコピーすると、同じ内容を下のセットへ反映できます。</p>
+                </div>
+                <button class="text-button compact" id="fillSetRowsBtn" type="button">Set1を下へコピー</button>
+              </div>
+              <div class="set-rows" id="setRows"></div>
+            </section>
+
+            <label>
+              メモ
+              <textarea id="noteInput" rows="3" placeholder="フォーム、痛み、疲労感、狙いなど"></textarea>
+            </label>
+
+            <button class="primary-button" type="submit">記録する</button>
+          </form>
+
+          <section class="quick-stats" id="quickStats"></section>
+          <section class="panel compact-panel">
+            <div class="section-title">
+              <div>
+                <p class="eyebrow">Log Archive</p>
+                <h2>履歴・データ管理</h2>
+              </div>
+              <button class="text-button" type="button" data-view-target="history">開く</button>
+            </div>
+            <p class="screen-note">過去ログの確認、バックアップ、Excel出力はここから開けます。</p>
+          </section>
+        </section>
+
+        <section class="view" id="analysisView">
+          <section class="panel weekly-data-panel">
+            <div class="section-title">
+              <div>
+                <p class="eyebrow">Weekly Data</p>
+                <h2>今週の進捗</h2>
+              </div>
+            </div>
+            <p class="screen-note">その日だけで判断せず、直近7日間のウェルネス、プラン実施、RPE差、ボリューム、e1RM変化をまとめて確認します。</p>
+            <div class="weekly-data-summary" id="weeklyDataSummary"></div>
+            <canvas id="weeklyDataChart" width="720" height="320" aria-label="週間の体調とトレーニング負荷グラフ"></canvas>
+          </section>
+
+          <section class="panel academy-evaluation-panel">
+            <div class="section-title">
+              <div>
+                <p class="eyebrow">Buddy Review</p>
+                <h2>Buddyコメント</h2>
+              </div>
+            </div>
+            <p class="screen-note">自分は強くなっているのか、目標へ近づいているのかを確認する画面です。e1RM、記録傾向、Buddyコメントから次の練習判断を見直します。</p>
+            <div class="academy-evaluation-list" id="academyEvaluation"></div>
+          </section>
+
+          <section class="panel">
+            <div class="section-title">
+              <div>
+                <p class="eyebrow">Trend</p>
+                <h2>種目別 e1RM</h2>
+              </div>
+              <select id="chartLiftSelect" aria-label="グラフ種目"></select>
+            </div>
+            <canvas id="trendChart" width="720" height="360" aria-label="推定1RMグラフ"></canvas>
+          </section>
+
+          <section class="metric-grid" id="metricGrid"></section>
+        </section>
+
+        <section class="view" id="planView">
+          <section class="panel buddy-method-panel hidden">
+            <div class="section-title">
+              <div>
+                <p class="eyebrow">Buddy Method</p>
+                <h2>Buddyメソッドとは？</h2>
+              </div>
+              <button class="collapse-toggle" id="buddyMethodCollapseBtn" type="button" aria-label="Buddyメソッドとは？を開く" aria-expanded="false">▾</button>
+            </div>
+            <p class="collapse-summary" id="buddyMethodSummary"></p>
+            <div class="collapsible-content" id="buddyMethodPanelContent">
+              <p class="screen-note">Buddyメソッドは、Platform Buddy独自のPRサイクルです。毎回やみくもに重い重量を狙うのではなく、現在地、RPE、フォーム再現性、疲労管理、大会形式チェックを学びながらPRへ進むために設計しています。</p>
+              <p class="program-disclaimer">本メソッドは科学的知見を参考に設計した学習・実践用テンプレートです。特定の研究でそのまま証明された万能プログラムではなく、実施中のRPE・疲労・フォームに応じた調整を前提にしています。</p>
+              <div class="method-level-grid">
+                <article>
+                  <span>Lv1</span>
+                  <strong>標準 / 初中級者向け</strong>
+                  <p>RPE感覚、フォーム再現性、1サイクル完走を重視。軽めに見える週も、後半の成功率を作るための練習です。</p>
+                </article>
+                <article>
+                  <span>Lv2</span>
+                  <strong>実戦寄り / 中級者向け</strong>
+                  <p>RPEと%1RMを併用し、週内の強弱、高重量シングル、競技特異性を少し高めます。</p>
+                </article>
+                <article>
+                  <span>Rebuild</span>
+                  <strong>大会後リビルド16週</strong>
+                  <p>大会後・高疲労・停滞・ブランク明けに、Lv1 Resetで整えてからLv2へ進む再準備プランです。</p>
+                </article>
+              </div>
+            </div>
+          </section>
+          <section class="panel cycle-setup-panel" id="cycleSetupPanel"></section>
+          <section class="panel cycle-panel">
+            <div class="section-title">
+              <div>
+                <p class="eyebrow">PR Cycle</p>
+                <h2>PRサイクル設計</h2>
+              </div>
+              <div class="plan-actions">
+                <button class="collapse-toggle" id="cycleCollapseBtn" type="button" aria-label="PRサイクル設計を閉じる" aria-expanded="true">▴</button>
+                <button class="text-button" id="saveCycleBtn" type="button">保存</button>
+              </div>
+            </div>
+            <p class="collapse-summary" id="cycleSummary"></p>
+            <div class="collapsible-content" id="cyclePanelContent">
+              <p class="screen-note">現在1RMと目標はダッシュボードで入力。ここでは、どの方式で、何週間、週何回でMAX更新を狙うかを決めます。</p>
+              <div class="cycle-grid">
+                <label>
+                  プラン対象
+                  <select id="planTargetInput">
+                    <option value="big3">BIG3</option>
+                    <option value="bench_only">ベンチプレスのみ</option>
+                  </select>
+                </label>
+                <label>
+                  プラン方式
+                  <select id="programMethodInput">
+                    <option value="platform">Buddyメソッド Lv1（標準）</option>
+                    <option value="platform_level2">Buddyメソッド Lv2（実戦寄り）</option>
+                    <option value="rebuild16">Buddy Rebuild 16（大会後リビルド）</option>
+                    <option value="hps">HPS（BP向き）</option>
+                    <option value="531">5/3/1（長期型）</option>
+                    <option value="smolov_jr">Smolov Jr.（SQ/BP高負荷）</option>
+                  </select>
+                </label>
+                <label>
+                  週数
+                  <select id="cycleLengthInput">
+                    <option value="3">3週</option>
+                    <option value="4">4週</option>
+                    <option value="6">6週</option>
+                    <option value="8">8週</option>
+                    <option value="10">10週</option>
+                    <option value="12">12週</option>
+                  </select>
+                </label>
+                <label>
+                  週あたり
+                  <select id="daysPerWeekInput">
+                    <option value="3">週3回</option>
+                    <option value="4">週4回</option>
+                    <option value="5">週5回</option>
+                  </select>
+                </label>
+                <label>
+                  補助種目量
+                  <select id="accessoryVolumeInput">
+                    <option value="low">少なめ</option>
+                    <option value="normal">普通</option>
+                    <option value="high">多め</option>
+                  </select>
+                </label>
+                <label>
+                  重点種目
+                  <select id="priorityLiftInput">
+                    <option value="total">トータル重視</option>
+                    <option value="squat">スクワット重視</option>
+                    <option value="bench">ベンチ重視</option>
+                    <option value="deadlift">デッドリフト重視</option>
+                  </select>
+                </label>
+                <label>
+                  経験レベル
+                  <select id="experienceLevelInput">
+                    <option value="beginner">初心者</option>
+                    <option value="intermediate">中級者</option>
+                    <option value="advanced">上級者</option>
+                  </select>
+                </label>
+              </div>
+              <p class="cycle-method-note" id="cycleMethodNote"></p>
+              <section class="program-method-guide" id="programMethodGuide"></section>
+              <p class="program-disclaimer" id="programDisclaimer"></p>
+              <details class="cycle-advanced-details">
+                <summary>現在1RMをPRサイクル内でも修正する</summary>
+                <div class="max-grid">
+                  <label>
+                    SQ 現在1RM
+                    <input id="squatMaxInput" inputmode="decimal" type="number" min="0" step="2.5" placeholder="kg">
+                  </label>
+                  <label>
+                    BP 現在1RM
+                    <input id="benchMaxInput" inputmode="decimal" type="number" min="0" step="2.5" placeholder="kg">
+                  </label>
+                  <label>
+                    DL 現在1RM
+                    <input id="deadliftMaxInput" inputmode="decimal" type="number" min="0" step="2.5" placeholder="kg">
+                  </label>
+                </div>
+              </details>
+              <section class="facility-panel">
+                <div class="facility-head">
+                  <div>
+                    <h3>設備依存種目</h3>
+                    <p>使える設備にチェックすると、プランの補助種目候補に入ります。</p>
+                  </div>
+                  <button class="collapse-toggle" id="facilityCollapseBtn" type="button" aria-label="設備依存種目を閉じる" aria-expanded="true">▴</button>
+                </div>
+                <p class="collapse-summary" id="facilitySummary"></p>
+                <div class="facility-grid collapsible-content" id="facilityGrid"></div>
+              </section>
+              <div class="projection-grid" id="projectionGrid"></div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="section-title">
+              <div>
+                <p class="eyebrow">This Week</p>
+                <h2 id="cyclePhaseTitle">今週の目的</h2>
+              </div>
+              <div class="week-actions">
+                <button class="text-button" id="prevWeekBtn" type="button">前週へ</button>
+                <button class="text-button" id="nextWeekBtn" type="button">次週へ</button>
+              </div>
+            </div>
+            <p class="cycle-note" id="cyclePhaseNote"></p>
+            <section class="rpe-coach-card" id="rpeCoachCard"></section>
+            <div class="plan-list" id="planList"></div>
+          </section>
+        </section>
+
+        <section class="view" id="knowledgeView">
+          <section class="panel">
+            <div class="section-title">
+              <div>
+                <p class="eyebrow">Meet Prep</p>
+                <h2>大会準備</h2>
+              </div>
+            </div>
+            <p class="screen-note">大会に出る人だけでなく、白判定の基準で練習を見直す場所です。ルール、持ち物、試技の振り返りをここで確認します。</p>
+            <div class="meet-shortcut-grid">
+              <a class="meet-shortcut" href="https://www.powerlifting.sport/rules/codes/info/technical-rules" target="_blank" rel="noopener">
+                <span>RULE</span>
+                <strong>IPF公式ルール</strong>
+                <small>大会前は必ず最新情報を確認。</small>
+              </a>
+              <a class="meet-shortcut" href="https://www.jpa-powerlifting.or.jp/rules-members.php" target="_blank" rel="noopener">
+                <span>JPA</span>
+                <strong>JPAルールブック</strong>
+                <small>国内大会の要項・通達も確認。</small>
+              </a>
+              <button class="meet-shortcut" type="button" data-meet-action="quiz">
+                <span>3択</span>
+                <strong>白判定クイズ</strong>
+                <small>赤判定を減らす基本を復習。</small>
+              </button>
+            </div>
+            <section class="meet-prep-checklist" id="meetPrepChecklist" aria-labelledby="meetPrepChecklistTitle">
+              <div class="section-title">
+                <div>
+                  <p class="eyebrow">Meet Checklist</p>
+                  <h3 id="meetPrepChecklistTitle">大会準備チェックリスト</h3>
+                </div>
+              </div>
+              <p class="meet-rule-note">本アプリはJPA/IPF公式アプリではありません。ルール確認は必ず最新の公式ルールブック、大会要項、当日の審判・大会運営の指示を優先してください。</p>
+              <div class="meet-checklist-grid"></div>
+            </section>
+            <section class="meet-note-panel" aria-labelledby="meetNoteTitle">
+              <div class="section-title">
+                <div>
+                  <p class="eyebrow">Meet Notebook</p>
+                  <h3 id="meetNoteTitle">大会ノート</h3>
+                </div>
+                <button class="collapse-toggle" id="meetNoteCollapseBtn" type="button" aria-label="大会ノートを開く" aria-expanded="false">▾</button>
+              </div>
+              <p class="collapse-summary" id="meetNoteSummary"></p>
+              <div class="collapsible-content" id="meetNotePanelContent">
+                <p class="screen-note">試合の記憶が薄れる前に、9本の結果・赤判定・きつかった位置・次回課題を残します。</p>
+                <form class="meet-note-form" id="meetNoteForm">
+                  <div class="input-grid">
+                    <label>
+                      大会名
+                      <input id="meetNameInput" type="text" maxlength="60" placeholder="例：春季県大会">
+                    </label>
+                    <label>
+                      大会日
+                      <input id="meetReviewDateInput" type="date">
+                    </label>
+                    <label>
+                      階級
+                      <input id="meetReviewWeightClassInput" type="text" maxlength="20" placeholder="例：83kg級">
+                    </label>
+                    <label>
+                      検量体重
+                      <input id="meetReviewBodyweightInput" inputmode="decimal" type="number" min="0" step="0.1" placeholder="kg">
+                    </label>
+                    <label>
+                      トータル
+                      <input id="meetReviewTotalInput" inputmode="decimal" type="number" min="0" step="2.5" placeholder="kg">
+                    </label>
+                  </div>
+                  <p class="meet-rule-note">赤判定の選択肢は、IPF/JPAのFailure Cardsに合わせて赤①・赤②・赤③で記録します。最終判断は大会要項・最新ルール・審判説明を優先してください。</p>
+                  <div class="meet-attempt-grid" id="meetAttemptGrid"></div>
+                  <div class="input-grid">
+                    <label>
+                      自己感想
+                      <textarea id="meetSelfInput" rows="3" placeholder="例：初出場で緊張したが、第二試技から落ち着けた"></textarea>
+                    </label>
+                    <label>
+                      良かった点
+                      <textarea id="meetGoodInput" rows="3" placeholder="例：第一試技は落ち着いて白を取れた"></textarea>
+                    </label>
+                    <label>
+                      次回への課題
+                      <textarea id="meetIssueInput" rows="3" placeholder="例：スクワットの深さ、ベンチの静止を練習する"></textarea>
+                    </label>
+                  </div>
+                  <button class="primary-button" type="submit">大会ノートを保存</button>
+                </form>
+                <div class="meet-review-preview" id="meetReviewPreview"></div>
+                <div class="meet-note-list" id="meetNoteList"></div>
+              </div>
+            </section>
+            <section class="quiz-panel" aria-labelledby="quizTitle">
+              <div class="quiz-head">
+                <div>
+                  <p class="eyebrow">White Lights</p>
+                  <h3 id="quizTitle">白判定クイズ｜3択で覚えるルール</h3>
+                </div>
+                <button class="collapse-toggle" id="quizCollapseBtn" type="button" aria-label="白判定クイズを閉じる" aria-expanded="true">▴</button>
+              </div>
+              <p class="collapse-summary" id="quizSummary"></p>
+              <div class="collapsible-content" id="quizPanelContent">
+                <div id="quizApp"></div>
+              </div>
+            </section>
+            <div class="section-title knowledge-title">
+              <div>
+                <p class="eyebrow">Learn as you lift</p>
+                <h2>使いながら学ぶ基礎知識</h2>
+              </div>
+            </div>
+            <div class="knowledge-grid">
+              <article class="knowledge-card official-rules-card">
+                <span>公式情報</span>
+                <h3>公式ルール</h3>
+                <p>試合に出る前は、IPF技術規則とJPAルールブック・通達の最新版を確認しましょう。アプリ内の説明は学習補助であり、正式判断は公式ルールが基準です。</p>
+                <div class="rule-links">
+                  <a href="https://www.powerlifting.sport/rules/codes/info/technical-rules" target="_blank" rel="noopener">IPF公式ルールを見る</a>
+                  <a href="https://www.jpa-powerlifting.or.jp/rules-members.php" target="_blank" rel="noopener">JPAルールブックを見る</a>
+                </div>
+              </article>
+              <article class="knowledge-card">
+                <span>強度管理</span>
+                <h3>RPE</h3>
+                <p>そのセットがどれくらい限界に近かったかを表す主観指標です。最初から正確に当てるものではなく、記録と動画確認を通して育てる感覚として扱います。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>強度管理</span>
+                <h3>RIR</h3>
+                <p>Platform Buddyでは「競技フォームを保ったまま、あと何回できそうか」と定義します。深さ、止め、ロックアウト、バー軌道が崩れる余力は多く数えません。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>強度管理</span>
+                <h3>RPE自信度</h3>
+                <p>実績RPEにどれくらい自信があるかの自己申告です。迷うこと自体が悪いのではなく、次回の観察ポイントを作るための学習メモです。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>強度管理</span>
+                <h3>e1RM</h3>
+                <p>実施重量と回数から推定する1RMです。日々の調子やフォーム差もあるため、絶対値ではなく傾向として見ます。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>強度管理</span>
+                <h3>オーバーシュート</h3>
+                <p>予定より重く、またはRPEが高くなりすぎることです。強くなった証拠ではなく、疲労管理を崩す原因になることがあります。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>強度管理</span>
+                <h3>アンダーシュート</h3>
+                <p>予定より軽すぎる、またはRPEが低すぎることです。回復が良い日は次回以降に少しだけ重量を足す判断材料になります。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>強度管理</span>
+                <h3>主観強度</h3>
+                <p>重量そのものではなく、その日の体感で見た重さです。同じ180kgでも、睡眠や疲労でRPEは変わります。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>強度管理</span>
+                <h3>絶対強度</h3>
+                <p>実際に持った重量そのものです。競技では大切ですが、毎回これだけを追うと疲労管理が難しくなります。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>強度管理</span>
+                <h3>%1RM</h3>
+                <p>現在の1RMに対する割合です。80%なら1RMの8割。RPEと合わせると、重さと体感のズレを見やすくなります。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>強度管理</span>
+                <h3>レップPR</h3>
+                <p>同じ重量で過去より多く挙げる、または同じ回数を重くする更新です。MAX挑戦前の成長確認として役立ちます。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>プログラム</span>
+                <h3>トップセット</h3>
+                <p>その日の中心になる一番重いセットです。重さを確認しつつ、予定RPEを超えないことが大切です。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>プログラム</span>
+                <h3>バックオフ</h3>
+                <p>トップセット後に少し重量を落として行う反復です。フォームと必要な練習量を積む役割があります。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>プログラム</span>
+                <h3>Training Max</h3>
+                <p>実際のMAXより低めに設定するトレーニング用MAXです。5/3/1系では安全に積むための基準になります。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>プログラム</span>
+                <h3>ボリューム</h3>
+                <p>練習量のことです。重量、回数、セット数で決まり、伸びる刺激にも疲労にもなるため、増やしすぎない管理が重要です。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>プログラム</span>
+                <h3>強度</h3>
+                <p>最大重量に対してどれくらい重いかを表します。高強度は競技動作に近い一方、疲労が大きくなりやすいです。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>プログラム</span>
+                <h3>頻度</h3>
+                <p>週に何回その種目を練習するかです。頻度を増やすと技術練習を分散できますが、回復とのバランスが必要です。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>プログラム</span>
+                <h3>特異性</h3>
+                <p>伸ばしたい動作に近い練習ほど、その競技力に直結しやすいという考え方です。BIG3はBIG3で練習する意味があります。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>プログラム</span>
+                <h3>バリエーション種目</h3>
+                <p>ポーズ、テンポ、ハイバーなど、競技種目に近い派生種目です。弱点補強やフォーム修正に使います。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>プログラム</span>
+                <h3>アクセサリー種目</h3>
+                <p>BIG3を支える筋量や弱点を補う補助種目です。主役ではなく、競技練習を助ける脇役として量を調整します。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>プログラム</span>
+                <h3>テクニック練習</h3>
+                <p>限界まで追い込む練習ではなく、同じフォームを再現するための練習です。軽めの日にも大きな意味があります。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>周期化</span>
+                <h3>蓄積期</h3>
+                <p>フォーム再現性、練習量、RPE感覚を作る時期です。表示重量を追うより、予定RPEに合わせる練習をします。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>周期化</span>
+                <h3>強化期</h3>
+                <p>蓄積期で作った土台を、より競技重量に近い練習へつなげる時期です。重さを上げつつ、失敗を増やさないことが大切です。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>周期化</span>
+                <h3>ピーキング</h3>
+                <p>PRや試合に向けて疲労を抑えながら重さに慣れる時期です。量を減らし、成功率と精度を高めます。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>周期化</span>
+                <h3>デロード</h3>
+                <p>意図的に練習量や強度を落として回復する週です。サボりではなく、次の高重量練習を成立させる準備です。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>周期化</span>
+                <h3>現在地チェック</h3>
+                <p>蓄積期後に疲労を抜いて行う確認週です。限界MAXを狙うのではなく、後半へ進むための再現性とRPE感覚を確認します。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>周期化</span>
+                <h3>休養ブロック</h3>
+                <p>現在地チェックや大会想定前に3日程度の休養を入れる考え方です。疲労を抜き、重い重量の成功率を高めます。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>周期化</span>
+                <h3>テーパリング</h3>
+                <p>大会やMAX測定前に練習量を落として疲労を抜く調整です。強くなる練習ではなく、強さを出す準備です。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>周期化</span>
+                <h3>フィットネスと疲労</h3>
+                <p>練習で体力は上がりますが、同時に疲労も溜まります。ピーキングでは体力を残しながら疲労を減らすことを狙います。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>周期化</span>
+                <h3>非線形</h3>
+                <p>毎回まっすぐ重くするのではなく、週内で重い日・軽い日を作る考え方です。中級者以降の疲労管理に役立ちます。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>周期化</span>
+                <h3>オートレギュレーション</h3>
+                <p>その日の体調やRPEに合わせて重量や量を微調整する考え方です。予定を守るために、あえて重量を下げる判断も含みます。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>試合</span>
+                <h3>試技形式</h3>
+                <p>スクワット、ベンチプレス、デッドリフトを大会と同じ順番で確認する形式です。最終週は通常練習ではなく試技練習として扱います。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>試合</span>
+                <h3>白9本</h3>
+                <p>スクワット、ベンチ、デッドリフトの全試技を成功させる考え方です。Platform BuddyのPR週も成功率を重視します。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>試合</span>
+                <h3>第一試技</h3>
+                <p>必ず成功させたい入りの重量です。練習で何度も安定して挙がる重量を選び、試合の流れを作ります。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>試合</span>
+                <h3>第二試技</h3>
+                <p>トータルを作るための重量です。第三試技に挑戦を残せるよう、欲張りすぎない設定が基本になります。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>試合</span>
+                <h3>第三試技</h3>
+                <p>PRや順位を狙う試技です。第一、第二を成功させたうえで、その日の状態に合わせて攻めます。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>試合</span>
+                <h3>オープナー</h3>
+                <p>第一試技のことです。緊張しても成功できる重量を選び、白判定で試合を始めるための入口になります。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>試合</span>
+                <h3>コール</h3>
+                <p>主審の合図です。スクワット、ベンチ、デッドリフトで必要な合図が違うため、普段から待つ練習が必要です。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>試合</span>
+                <h3>赤判定</h3>
+                <p>試技が失敗と判定されることです。力不足だけでなく、深さ、静止、コール無視、下ろし方でも起こります。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>試合</span>
+                <h3>検量</h3>
+                <p>大会当日に体重階級を確認する手続きです。時間や方法は大会要項で確認し、補給計画も含めて準備します。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>試合</span>
+                <h3>ラック高</h3>
+                <p>スクワットやベンチで使うラックの高さです。大会当日に迷わないよう、普段から自分の高さを記録しておくと安心です。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>試合</span>
+                <h3>セコンド</h3>
+                <p>大会中に重量選択や準備を助けるサポート役です。個人参加でも、事前に流れを決めておくと落ち着きます。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>試合</span>
+                <h3>アップ計画</h3>
+                <p>第一試技へ向けたウォームアップ重量と時間配分です。早すぎても遅すぎても焦るため、事前に流れを作ります。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>試合</span>
+                <h3>試技申請</h3>
+                <p>次に挑戦する重量を大会側へ出すことです。時間制限があるため、第二・第三の候補を事前に考えておきます。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>コンディション</span>
+                <h3>回復</h3>
+                <p>睡眠、食事、ストレス管理によって練習の成果を出せる状態に戻すことです。強くなる時間は練習外にもあります。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>コンディション</span>
+                <h3>疲労</h3>
+                <p>練習や生活でパフォーマンスが一時的に落ちる状態です。疲労がある日は、重量よりフォームと予定RPEを優先します。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>コンディション</span>
+                <h3>違和感</h3>
+                <p>痛み未満でも、いつもと違う感覚です。記録に残しておくと、疲労やフォーム変化を早めに見直せます。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>コンディション</span>
+                <h3>ピークアウト</h3>
+                <p>疲労や調整のズレで、本番前に調子の山を過ぎてしまうことです。重い練習を増やしすぎない判断が大切です。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>方式</span>
+                <h3>HPS / 5/3/1 / Smolov Jr.</h3>
+                <p>アプリ内では各方式の考え方を参考にした簡略テンプレートです。公式プログラムの完全再現ではありません。</p>
+              </article>
+              <article class="knowledge-card">
+                <span>評価</span>
+                <h3>アカデミー評価</h3>
+                <p>RPE、練習量、記録頻度、BIG3バランスから保守的にコメントします。診断ではなく、次の練習判断を助ける目安です。</p>
+              </article>
+            </div>
+          </section>
+        </section>
+
+        <section class="view" id="historyView">
+          <section class="panel data-panel">
+            <div class="section-title">
+              <div>
+                <p class="eyebrow">Data</p>
+                <h2>データ管理</h2>
+              </div>
+            </div>
+            <p class="data-note">同じURLでアップデートする限り、記録はこの端末に残ります。大きな更新前はバックアップを書き出しておくと安心です。</p>
+            <div class="data-actions">
+              <button class="text-button" id="backupExportBtn" type="button">バックアップを書き出す</button>
+              <button class="primary-button inline" id="backupImportBtn" type="button">バックアップを読み込む</button>
+              <button class="text-button" id="restartOnboardingBtn" type="button">初回ガイドをもう一度見る</button>
+              <input class="hidden" id="backupFileInput" type="file" accept="application/json,.json">
+            </div>
+            <div class="data-status" id="dataStatus"></div>
+          </section>
+          <section class="panel">
+            <div class="section-title">
+              <div>
+                <p class="eyebrow">History</p>
+                <h2>履歴</h2>
+              </div>
+              <button class="text-button danger" id="clearBtn" type="button">削除</button>
+            </div>
+            <div class="history-list" id="historyList"></div>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <dialog id="athleteDialog">
+      <form method="dialog" class="dialog-card" id="athleteForm">
+        <h2>選手を追加</h2>
+        <label>
+          名前
+          <input id="athleteNameInput" type="text" maxlength="32" required>
+        </label>
+        <div class="dialog-actions">
+          <button class="text-button" value="cancel" type="button" id="cancelAthleteBtn">キャンセル</button>
+          <button class="primary-button" value="default" type="submit">追加</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script src="app.js"></script>
+  </body>
+</html>
