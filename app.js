@@ -2098,40 +2098,43 @@ function renderHomeDashboard(athlete = currentAthlete(), cycle = normalizedCycle
     <section class="home-hero-card">
       <div>
         <span>Platform Buddy</span>
-        <h2>今日やることを、すぐ決める。</h2>
-        <p>現在地、目標、体調、プランをカードで確認して、次の1セットへ進みましょう。</p>
+        <h2>強くなりたい気持ちを、計画に変える。</h2>
+        <p>現在地、目標、今日の体調、次の行動をカードで確認して、MAX更新へ進みましょう。</p>
+      </div>
+      <div class="home-hero-visual" aria-hidden="true">
+        <i></i><b></b><i></i>
       </div>
       <button class="home-guide-chip" type="button" data-view-target="plan">PLANへ</button>
     </section>
     <section class="home-card-grid">
       <button class="home-card primary" type="button" data-view-target="plan">
-        <span>今日のプラン</span>
+        <div class="home-card-top"><i class="home-icon plan" aria-hidden="true"></i><span>今日のプラン</span></div>
         <strong>${escapeHtml(method)} / W${cycle.week}</strong>
         <p>${escapeHtml(phase.name)}: ${escapeHtml(phaseGoalText(cycle, phase))}</p>
       </button>
       <button class="home-card" type="button" data-view-target="analysis">
-        <span>現在地</span>
-        <strong>TOTAL ${formatNumber(currentTotal)}kg</strong>
+        <div class="home-card-top"><i class="home-icon location" aria-hidden="true"></i><span>現在地</span></div>
+        <strong class="home-metric">TOTAL ${formatNumber(currentTotal)}kg</strong>
         <p>SQ ${formatNumber(currentValues.squat)} / BP ${formatNumber(currentValues.bench)} / DL ${formatNumber(currentValues.deadlift)}</p>
       </button>
       <button class="home-card goal" type="button" data-view-target="plan">
-        <span>目標</span>
+        <div class="home-card-top"><i class="home-icon target" aria-hidden="true"></i><span>目標</span></div>
         <strong>${escapeHtml(goalLine)}</strong>
         <div class="home-progress"><i style="width:${Math.min(100, totalPercent || 0)}%"></i></div>
         <p>${escapeHtml(percentLine)} / SQ ${formatNumber(goalValues.squat || 0)} BP ${formatNumber(goalValues.bench || 0)} DL ${formatNumber(goalValues.deadlift || 0)}</p>
       </button>
       <button class="home-card meet" type="button" data-view-target="knowledge">
-        <span>次の大会</span>
-        <strong>${escapeHtml(meetLabel)}</strong>
+        <div class="home-card-top"><i class="home-icon meet" aria-hidden="true"></i><span>次の大会</span></div>
+        <strong class="home-metric">${escapeHtml(meetLabel)}</strong>
         <p>${escapeHtml(meetText)}</p>
       </button>
       <button class="home-card wellness ${escapeHtml(wellness.status)}" type="button" data-wellness-floating>
-        <span>今日の体調</span>
+        <div class="home-card-top"><i class="home-icon wellness" aria-hidden="true"></i><span>今日の体調</span></div>
         <strong>${escapeHtml(wellness.label)}</strong>
         <p>${wellnessEntry.completed ? `${escapeHtml(wellness.short)} / 詳細を見る` : "未入力 / タップしてチェック"}</p>
       </button>
       <button class="home-card buddy ${escapeHtml(weekly.status)}" type="button" data-view-target="analysis">
-        <span>Buddyコメント</span>
+        <div class="home-card-top"><i class="home-icon buddy" aria-hidden="true"></i><span>Buddyコメント</span></div>
         <strong>${escapeHtml(weekly.title)}</strong>
         <p>${escapeHtml(weekly.message)}</p>
       </button>
