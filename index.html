@@ -259,11 +259,16 @@
         </section>
 
         <nav class="tabbar" aria-label="メイン画面">
-          <button class="tab active" type="button" data-view="plan">PLAN</button>
+          <button class="tab active" type="button" data-view="home">HOME</button>
+          <button class="tab" type="button" data-view="plan">PLAN</button>
           <button class="tab" type="button" data-view="log">LOG</button>
           <button class="tab" type="button" data-view="analysis">DATA</button>
           <button class="tab" type="button" data-view="knowledge">MEET</button>
         </nav>
+
+        <section class="view active" id="homeView">
+          <section class="home-dashboard" id="homeDashboard" aria-live="polite"></section>
+        </section>
 
         <section class="view" id="logView">
           <form class="panel log-form" id="logForm">
@@ -369,7 +374,7 @@
           <section class="metric-grid" id="metricGrid"></section>
         </section>
 
-        <section class="view active" id="planView">
+        <section class="view" id="planView">
           <section class="panel buddy-method-panel hidden">
             <div class="section-title">
               <div>

@@ -1200,7 +1200,7 @@ textarea {
   top: 0;
   z-index: 10;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 6px;
   padding: 8px 0;
   background: rgba(245, 241, 232, 0.94);
@@ -1225,6 +1225,194 @@ textarea {
 .view.active {
   display: grid;
   gap: 12px;
+}
+
+.welcome-panel {
+  display: none;
+}
+
+.home-mode .athlete-panel,
+.home-mode .meet-prep-announcement {
+  display: none;
+}
+
+.home-dashboard {
+  display: grid;
+  gap: 12px;
+}
+
+.home-hero-card,
+.home-card,
+.home-shortcut-grid button {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+
+.home-hero-card {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 190px;
+  overflow: hidden;
+  position: relative;
+  background:
+    linear-gradient(90deg, rgba(21, 23, 26, 0.98), rgba(21, 23, 26, 0.78)),
+    radial-gradient(circle at 86% 34%, rgba(180, 35, 24, 0.42), transparent 28%),
+    var(--ink);
+  color: #fff;
+  padding: 22px;
+}
+
+.home-hero-card::after {
+  content: "";
+  position: absolute;
+  right: -58px;
+  bottom: -48px;
+  width: 210px;
+  height: 210px;
+  border: 16px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+}
+
+.home-hero-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.home-hero-card span,
+.home-card span,
+.home-shortcut-grid span {
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.home-hero-card span {
+  color: #ffb4ad;
+}
+
+.home-hero-card h2 {
+  margin: 8px 0 8px;
+  color: #fff;
+  font-size: clamp(1.7rem, 5vw, 2.8rem);
+  line-height: 1.1;
+  text-decoration: none;
+}
+
+.home-hero-card p {
+  max-width: 560px;
+  color: #d8dee6;
+  font-size: 0.94rem;
+  font-weight: 800;
+  line-height: 1.55;
+}
+
+.home-guide-chip {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  min-height: 42px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  padding: 0 14px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.home-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.home-card {
+  display: grid;
+  gap: 8px;
+  min-height: 148px;
+  background: #fffefa;
+  color: var(--ink);
+  padding: 16px;
+  text-align: left;
+}
+
+.home-card.primary {
+  border-left: 6px solid var(--green);
+}
+
+.home-card.goal {
+  border-left: 6px solid var(--accent);
+}
+
+.home-card.meet {
+  border-left: 6px solid #b7791f;
+}
+
+.home-card.wellness {
+  border-left: 6px solid var(--coach);
+}
+
+.home-card.buddy {
+  border-left: 6px solid var(--blue);
+}
+
+.home-card.buddy.warn,
+.home-card.wellness.caution {
+  border-left-color: #d97706;
+}
+
+.home-card.buddy.danger,
+.home-card.wellness.alert,
+.home-card.wellness.fatigue {
+  border-left-color: var(--accent);
+}
+
+.home-card strong {
+  font-size: 1.35rem;
+  line-height: 1.18;
+}
+
+.home-card p {
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.home-progress {
+  overflow: hidden;
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: #e8dfd2;
+}
+
+.home-progress i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+}
+
+.home-shortcut-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.home-shortcut-grid button {
+  display: grid;
+  gap: 5px;
+  min-height: 74px;
+  background: #fffefa;
+  color: var(--ink);
+  padding: 12px;
+  text-align: left;
+}
+
+.home-shortcut-grid strong {
+  font-size: 0.94rem;
 }
 
 .log-form {
@@ -2958,7 +3146,7 @@ dialog::backdrop {
 
 @media (max-width: 640px) {
   .app-shell {
-    padding-inline: 12px;
+    padding: max(12px, env(safe-area-inset-top)) 12px calc(150px + env(safe-area-inset-bottom));
   }
 
   .panel {
@@ -2988,6 +3176,16 @@ dialog::backdrop {
 
   .export-actions .text-button {
     flex: 1;
+  }
+
+  .home-mode .topbar {
+    display: flex;
+    align-items: center;
+  }
+
+  .home-mode .brand-subtitle,
+  .home-mode .export-actions {
+    display: none;
   }
 
   .brand-tags {
@@ -3309,6 +3507,77 @@ dialog::backdrop {
     line-height: 1.3;
   }
 
+  .home-dashboard {
+    gap: 10px;
+  }
+
+  .home-hero-card {
+    align-items: flex-start;
+    display: grid;
+    min-height: 210px;
+    padding: 18px;
+  }
+
+  .home-hero-card h2 {
+    font-size: 1.72rem;
+  }
+
+  .home-hero-card p {
+    font-size: 0.78rem;
+    line-height: 1.45;
+  }
+
+  .home-guide-chip {
+    width: fit-content;
+    min-height: 36px;
+    padding: 0 12px;
+    font-size: 0.78rem;
+  }
+
+  .home-card-grid {
+    grid-template-columns: 1fr;
+    gap: 9px;
+  }
+
+  .home-card {
+    min-height: auto;
+    gap: 5px;
+    padding: 12px;
+  }
+
+  .home-card strong {
+    font-size: 1.08rem;
+  }
+
+  .home-card p {
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: 0.74rem;
+    line-height: 1.35;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .home-shortcut-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .home-shortcut-grid button {
+    min-height: 58px;
+    padding: 8px 5px;
+    text-align: center;
+  }
+
+  .home-shortcut-grid span {
+    font-size: 0.58rem;
+  }
+
+  .home-shortcut-grid strong {
+    font-size: 0.68rem;
+    line-height: 1.2;
+  }
+
   .start-card {
     min-height: auto;
     grid-template-columns: auto 1fr;
@@ -3409,7 +3678,7 @@ dialog::backdrop {
 
   .guide-mode-bar {
     right: 10px;
-    bottom: calc(10px + env(safe-area-inset-bottom));
+    bottom: calc(82px + env(safe-area-inset-bottom));
     width: min(158px, calc(100vw - 20px));
     gap: 8px;
     padding: 7px 8px;
@@ -3431,7 +3700,7 @@ dialog::backdrop {
 
   .wellness-floating {
     right: 10px;
-    bottom: calc(70px + env(safe-area-inset-bottom));
+    bottom: calc(138px + env(safe-area-inset-bottom));
     width: min(132px, calc(100vw - 20px));
     padding: 7px 8px;
   }
@@ -3480,11 +3749,36 @@ dialog::backdrop {
   }
 
   .tabbar {
+    position: fixed;
+    left: 10px;
+    right: 10px;
+    bottom: calc(10px + env(safe-area-inset-bottom));
+    top: auto;
+    z-index: 88;
     gap: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 14px;
+    background: rgba(21, 23, 26, 0.94);
+    padding: 6px;
+    box-shadow: 0 12px 34px rgba(21, 23, 26, 0.26);
   }
 
   .tab,
   .segment {
     font-size: 0.8rem;
+  }
+
+  .tabbar .tab {
+    min-height: 48px;
+    border-radius: 10px;
+    background: transparent;
+    color: #b8c0cc;
+    font-size: 0.66rem;
+  }
+
+  .tabbar .tab.active {
+    background: rgba(180, 35, 24, 0.22);
+    color: #fff;
+    box-shadow: inset 0 -3px 0 var(--accent);
   }
 }

@@ -1156,6 +1156,7 @@ const els = {
   welcomePanelContent: document.querySelector("#welcomePanelContent"),
   welcomeSummary: document.querySelector("#welcomeSummary"),
   startGuide: document.querySelector("#startGuide"),
+  homeDashboard: document.querySelector("#homeDashboard"),
   onboardingScreen: document.querySelector("#onboardingScreen"),
   onboardingExperience: document.querySelector("#onboardingExperience"),
   onboardingDays: document.querySelector("#onboardingDays"),
@@ -1771,10 +1772,12 @@ function renderCollapseSummaries(athlete, cycle) {
 
 function render() {
   const athlete = currentAthlete();
+  updateActiveViewClass();
   renderGuideMode();
   renderOnboarding();
   renderWellnessUI();
   renderStartGuide();
+  renderHomeDashboard(athlete, normalizedCycle());
   els.currentAthleteName.textContent = athlete.name;
   els.deleteAthleteBtn.disabled = state.athletes.length <= 1;
   els.deleteAthleteBtn.title = state.athletes.length <= 1 ? "選手が1名のみのため削除できません" : `${athlete.name}を削除`;
@@ -2068,6 +2071,78 @@ function renderMeetPrepChecklist(athlete = currentAthlete()) {
       <span>${escapeHtml(label)}</span>
     </label>
   `).join("");
+}
+
+function renderHomeDashboard(athlete = currentAthlete(), cycle = normalizedCycle()) {
+  if (!els.homeDashboard) return;
+  const currentValues = Object.fromEntries(mainLiftIds.map((liftId) => [liftId, dashboardCurrentMax(liftId, cycle)]));
+  const currentTotal = mainLiftIds.reduce((sum, liftId) => sum + currentValues[liftId], 0);
+  const goalTotal = dashboardGoalTotal(athlete);
+  const goalValues = Object.fromEntries(mainLiftIds.map((liftId) => [liftId, dashboardGoalValue(liftId, athlete)]));
+  const remaining = goalTotal ? Math.max(0, goalTotal - currentTotal) : null;
+  const totalPercent = achievementPercent(currentTotal, goalTotal);
+  const phase = cyclePhase(cycle.week, cycle.length, cycle.programMethod);
+  const method = programMethodInfo(cycle).label.replace(" / BIG3", "").replace(" / ベンチプレスのみ", "");
+  const wellnessEntry = todayWellnessEntry(athlete);
+  const wellness = wellnessEvaluation(wellnessEntry);
+  const weekly = weeklyDataVerdict(weeklyDataSnapshot(athlete, cycle));
+  const meetDays = daysUntilMeet(athlete);
+  const meetLabel = meetDays === null ? "未設定" : meetDays === 0 ? "D-Day" : meetDays > 0 ? `D-${meetDays}` : `D+${Math.abs(meetDays)}`;
+  const meetText = meetDays === null ? "大会日を入れると準備カードが動きます" : meetCountdownText(athlete).message;
+  const goalLine = goalTotal
+    ? `TOTAL ${formatNumber(goalTotal)}kg / あと ${formatNumber(remaining)}kg`
+    : "目標TOTALを入力すると距離が見えます";
+  const percentLine = totalPercent === null ? "達成率 -" : `達成率 ${totalPercent}%`;
+
+  els.homeDashboard.innerHTML = `
+    <section class="home-hero-card">
+      <div>
+        <span>Platform Buddy</span>
+        <h2>今日やることを、すぐ決める。</h2>
+        <p>現在地、目標、体調、プランをカードで確認して、次の1セットへ進みましょう。</p>
+      </div>
+      <button class="home-guide-chip" type="button" data-view-target="plan">PLANへ</button>
+    </section>
+    <section class="home-card-grid">
+      <button class="home-card primary" type="button" data-view-target="plan">
+        <span>今日のプラン</span>
+        <strong>${escapeHtml(method)} / W${cycle.week}</strong>
+        <p>${escapeHtml(phase.name)}: ${escapeHtml(phaseGoalText(cycle, phase))}</p>
+      </button>
+      <button class="home-card" type="button" data-view-target="analysis">
+        <span>現在地</span>
+        <strong>TOTAL ${formatNumber(currentTotal)}kg</strong>
+        <p>SQ ${formatNumber(currentValues.squat)} / BP ${formatNumber(currentValues.bench)} / DL ${formatNumber(currentValues.deadlift)}</p>
+      </button>
+      <button class="home-card goal" type="button" data-view-target="plan">
+        <span>目標</span>
+        <strong>${escapeHtml(goalLine)}</strong>
+        <div class="home-progress"><i style="width:${Math.min(100, totalPercent || 0)}%"></i></div>
+        <p>${escapeHtml(percentLine)} / SQ ${formatNumber(goalValues.squat || 0)} BP ${formatNumber(goalValues.bench || 0)} DL ${formatNumber(goalValues.deadlift || 0)}</p>
+      </button>
+      <button class="home-card meet" type="button" data-view-target="knowledge">
+        <span>次の大会</span>
+        <strong>${escapeHtml(meetLabel)}</strong>
+        <p>${escapeHtml(meetText)}</p>
+      </button>
+      <button class="home-card wellness ${escapeHtml(wellness.status)}" type="button" data-wellness-floating>
+        <span>今日の体調</span>
+        <strong>${escapeHtml(wellness.label)}</strong>
+        <p>${wellnessEntry.completed ? `${escapeHtml(wellness.short)} / 詳細を見る` : "未入力 / タップしてチェック"}</p>
+      </button>
+      <button class="home-card buddy ${escapeHtml(weekly.status)}" type="button" data-view-target="analysis">
+        <span>Buddyコメント</span>
+        <strong>${escapeHtml(weekly.title)}</strong>
+        <p>${escapeHtml(weekly.message)}</p>
+      </button>
+    </section>
+    <section class="home-shortcut-grid" aria-label="主要機能">
+      <button type="button" data-view-target="plan"><span>PLAN</span><strong>PRサイクル</strong></button>
+      <button type="button" data-view-target="log"><span>LOG</span><strong>自由記録</strong></button>
+      <button type="button" data-view-target="analysis"><span>DATA</span><strong>進捗分析</strong></button>
+      <button type="button" data-view-target="knowledge"><span>MEET</span><strong>大会準備</strong></button>
+    </section>
+  `;
 }
 
 function renderMeetNotebook(athlete = currentAthlete()) {
@@ -5399,9 +5474,15 @@ function switchView(viewName) {
   document.querySelectorAll(".tab").forEach((button) => button.classList.toggle("active", button.dataset.view === viewName));
   document.querySelectorAll(".view").forEach((view) => view.classList.remove("active"));
   target.classList.add("active");
+  updateActiveViewClass(viewName);
   target.scrollIntoView({ behavior: "smooth", block: "start" });
   drawWeeklyDataChart(currentAthlete());
   drawChart();
+}
+
+function updateActiveViewClass(viewName = document.querySelector(".tab.active")?.dataset.view || "home") {
+  document.body.dataset.activeView = viewName;
+  document.body.classList.toggle("home-mode", viewName === "home");
 }
 
 document.querySelectorAll(".tab").forEach((tab) => {
