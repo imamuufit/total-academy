@@ -1639,9 +1639,9 @@ function renderWellnessUI() {
   if (!entry.completed) {
     els.wellnessFloating.innerHTML = `
       <div>
-        <span>今日の状態</span>
+        <span>体調チェック</span>
         <strong>未入力</strong>
-        <small>タップして体調チェック</small>
+        <small>入力</small>
       </div>
     `;
     return;
@@ -1649,6 +1649,7 @@ function renderWellnessUI() {
   const details = expanded
     ? `
       <div class="wellness-floating-detail">
+        <strong>${escapeHtml(evaluation.short)} / ${evaluation.score}点</strong>
         ${wellnessFields.map((field) => `<span>${escapeHtml(field.label)}：${escapeHtml(wellnessChoiceLabel(field.id, entry[field.id]))}</span>`).join("")}
         <p>${escapeHtml(evaluation.recommendation)}</p>
         <div>
@@ -1660,9 +1661,9 @@ function renderWellnessUI() {
     : "";
   els.wellnessFloating.innerHTML = `
     <div>
-      <span>今日のBuddy方針</span>
+      <span>今日の体調</span>
       <strong>${escapeHtml(evaluation.label)}</strong>
-      <small>${escapeHtml(evaluation.short)} / ${evaluation.score}点</small>
+      <small>詳細</small>
     </div>
     ${details}
   `;
