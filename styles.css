@@ -4535,4 +4535,130 @@ dialog::backdrop {
     color: #ff4d45;
     box-shadow: inset 0 -3px 0 #ef4444;
   }
+
+  .guide-mode-bar {
+    left: calc(50% + 5px);
+    right: 12px;
+    bottom: calc(78px + env(safe-area-inset-bottom));
+    z-index: 92;
+    width: auto;
+    min-height: 46px;
+    display: flex;
+    border-left-width: 0;
+    border-radius: 16px;
+    padding: 7px 8px;
+  }
+
+  .guide-mode-bar div {
+    min-width: 0;
+  }
+
+  .guide-mode-bar span {
+    color: #f8fafc;
+    font-size: 0.66rem;
+    line-height: 1.1;
+  }
+
+  .guide-mode-toggle {
+    min-width: 48px;
+    min-height: 30px;
+    border-color: rgba(239, 68, 68, 0.36);
+    background: rgba(239, 68, 68, 0.22);
+    color: #fff;
+    font-size: 0.66rem;
+  }
+
+  .guide-mode-toggle[aria-pressed="false"] {
+    border-color: rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.08);
+    color: #cbd5e1;
+  }
+
+  .wellness-floating {
+    left: 12px;
+    right: calc(50% + 5px);
+    bottom: calc(78px + env(safe-area-inset-bottom));
+    z-index: 92;
+    width: auto;
+    min-height: 46px;
+    border-left-width: 0;
+    border-radius: 16px;
+    padding: 7px 8px;
+  }
+
+  .wellness-floating div:first-child {
+    gap: 1px;
+  }
+
+  .wellness-floating span {
+    color: #aeb8c6;
+    font-size: 0.62rem;
+  }
+
+  .wellness-floating strong {
+    color: #f8fafc;
+    font-size: 0.82rem;
+  }
+
+  .wellness-floating small {
+    color: #ffb4ad;
+    font-size: 0.62rem;
+  }
+
+  .wellness-floating.expanded {
+    left: 12px;
+    right: 12px;
+    bottom: calc(132px + env(safe-area-inset-bottom));
+    width: auto;
+    max-height: 44vh;
+    overflow: auto;
+    border-radius: 18px;
+  }
+
+  .wellness-floating-detail {
+    border-top-color: rgba(255, 255, 255, 0.14);
+  }
+
+  .wellness-floating-detail p {
+    color: #dbe4ef;
+  }
+
+  .tabbar .tab::before {
+    display: block;
+    margin-bottom: 2px;
+    font-size: 1rem;
+    line-height: 1;
+  }
+
+  .tabbar .tab[data-view="home"]::before {
+    content: "⌂";
+  }
+
+  .tabbar .tab[data-view="plan"]::before {
+    content: "▣";
+  }
+
+  .tabbar .tab[data-view="log"]::before {
+    content: "▮";
+  }
+
+  .tabbar .tab[data-view="analysis"]::before {
+    content: "♛";
+  }
+
+  .tabbar .tab[data-view="knowledge"]::before {
+    content: "●";
+  }
+
+  .actual-box {
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.055);
+    padding: 10px;
+  }
+
+  .meet-attempt-row {
+    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.05);
+  }
 }
