@@ -5418,3 +5418,394 @@ textarea:focus {
     margin-top: 2px;
   }
 }
+
+/* v93: compact density pass and clearer text contrast */
+.home-hero-card::before {
+  content: none !important;
+}
+
+.brand-subtitle,
+.home-hero-card p,
+.screen-note,
+.collapse-summary,
+.panel p,
+.plan-card p,
+.dashboard-card p,
+.weekly-data-card p,
+.home-card p,
+.meet-shortcut small,
+.history-meta,
+.exercise-row p,
+.projection-card p,
+.knowledge-card p {
+  color: #c8d1de;
+}
+
+.muted,
+small,
+.onboarding-hint {
+  color: #b8c2cf;
+}
+
+label {
+  gap: 4px;
+  font-size: 0.76rem;
+  line-height: 1.25;
+}
+
+input,
+select,
+textarea {
+  min-height: 36px;
+  padding: 7px 9px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  line-height: 1.25;
+}
+
+textarea {
+  min-height: 72px;
+}
+
+.text-button,
+.primary-button,
+.collapse-toggle,
+.segment,
+.tab,
+.actual-set-add {
+  min-height: 34px;
+  padding: 7px 10px;
+  border-radius: 12px;
+  line-height: 1.15;
+}
+
+.section-title {
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.panel,
+.compact-panel,
+.log-form,
+.plan-card,
+.day-card,
+.data-panel,
+.weekly-data-panel,
+.academy-evaluation-panel,
+.cycle-setup-panel,
+.buddy-method-panel,
+.meet-note-panel,
+.meet-review-card,
+.quiz-panel,
+.set-detail-panel {
+  padding: 12px;
+}
+
+.view.active,
+.collapsible-content,
+.log-form,
+.home-dashboard,
+.home-card-grid {
+  gap: 10px;
+}
+
+.profile-grid,
+.input-grid,
+.form-row,
+.cycle-grid,
+.max-grid,
+.dashboard-input-grid,
+.cycle-setup-grid,
+.method-guide-grid,
+.facility-grid,
+.actual-grid,
+.calibration-grid,
+.meet-shortcut-grid {
+  gap: 8px;
+}
+
+.dashboard-profile-strip {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.dashboard-profile-strip article {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.055);
+  padding: 8px;
+}
+
+.dashboard-profile-strip span {
+  color: #ff5a52;
+  font-size: 0.64rem;
+  font-weight: 1000;
+}
+
+.dashboard-profile-strip strong {
+  overflow: hidden;
+  color: #f8fafc;
+  font-size: 0.82rem;
+  line-height: 1.24;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-athlete-dashboard .dashboard-input-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.home-athlete-dashboard .goal-total-input {
+  grid-column: span 2;
+}
+
+.home-athlete-dashboard .dashboard-input-grid label {
+  padding: 7px;
+}
+
+.home-athlete-dashboard .dashboard-input-grid span {
+  min-height: auto;
+  overflow: hidden;
+  font-size: 0.62rem;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-athlete-dashboard .dashboard-input-grid input {
+  min-height: 34px;
+  padding: 6px 8px;
+  font-size: 0.84rem;
+}
+
+.dashboard-card,
+.achievement-card,
+.weekly-data-card,
+.home-card,
+.quick-stats .stat-card,
+.metric-grid .stat-card {
+  min-height: auto;
+  padding: 9px;
+}
+
+.dashboard-card strong,
+.weekly-data-card strong,
+.quick-stats .stat-card strong,
+.metric-grid .stat-card strong {
+  font-size: 1.02rem;
+}
+
+.home-card strong {
+  font-size: 1.1rem;
+}
+
+.home-card .home-metric {
+  font-size: 1.55rem;
+}
+
+.home-shortcut-grid button {
+  min-height: 58px;
+  padding: 8px;
+}
+
+.set-row,
+.actual-set-row,
+.meet-attempt-row {
+  gap: 6px;
+}
+
+@media (min-width: 641px) {
+  .app-shell {
+    width: min(100%, 1040px);
+  }
+
+  .topbar {
+    padding: 14px;
+  }
+
+  .brand-subtitle {
+    font-size: 0.82rem;
+    line-height: 1.42;
+  }
+
+  .home-hero-card {
+    min-height: 206px;
+    padding: 20px;
+  }
+
+  .home-hero-card h2 {
+    font-size: clamp(1.85rem, 4vw, 2.7rem);
+  }
+
+  .home-card-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .dashboard-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .achievement-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .app-shell {
+    max-width: 430px;
+    padding-inline: 10px;
+  }
+
+  h1 {
+    font-size: 1.45rem;
+  }
+
+  h2 {
+    font-size: 1rem;
+  }
+
+  .panel,
+  .compact-panel,
+  .log-form,
+  .plan-card,
+  .day-card,
+  .data-panel,
+  .weekly-data-panel,
+  .academy-evaluation-panel,
+  .cycle-setup-panel,
+  .buddy-method-panel,
+  .meet-note-panel,
+  .meet-review-card,
+  .quiz-panel,
+  .set-detail-panel {
+    padding: 10px;
+  }
+
+  label {
+    font-size: 0.68rem;
+  }
+
+  input,
+  select,
+  textarea {
+    min-height: 34px;
+    padding: 6px 8px;
+    font-size: 0.82rem;
+  }
+
+  textarea {
+    min-height: 62px;
+  }
+
+  .text-button,
+  .primary-button,
+  .segment,
+  .actual-set-add {
+    min-height: 32px;
+    padding: 6px 8px;
+    font-size: 0.78rem;
+  }
+
+  .home-hero-card {
+    min-height: 218px;
+    padding: 17px;
+  }
+
+  .home-hero-card h2 {
+    margin-top: 0;
+    font-size: 1.58rem;
+  }
+
+  .home-hero-card p {
+    font-size: 0.72rem;
+    line-height: 1.45;
+  }
+
+  .home-athlete-dashboard .dashboard-input-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .home-athlete-dashboard .goal-total-input {
+    grid-column: 1 / -1;
+  }
+
+  .dashboard-profile-strip {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .dashboard-profile-strip article {
+    padding: 6px;
+  }
+
+  .dashboard-profile-strip span {
+    font-size: 0.58rem;
+  }
+
+  .dashboard-profile-strip strong {
+    font-size: 0.74rem;
+  }
+
+  .dashboard-card strong,
+  .weekly-data-card strong,
+  .quick-stats .stat-card strong,
+  .metric-grid .stat-card strong {
+    font-size: 0.94rem;
+  }
+
+  .dashboard-card p,
+  .achievement-card p,
+  .weekly-data-card p,
+  .screen-note,
+  .panel p,
+  .plan-card p {
+    font-size: 0.68rem;
+    line-height: 1.35;
+  }
+
+  .home-card {
+    grid-template-columns: 38px 1fr;
+    padding: 9px;
+  }
+
+  .home-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 11px;
+  }
+
+  .home-card strong {
+    font-size: 0.96rem;
+  }
+
+  .home-card .home-metric {
+    font-size: 1.34rem;
+  }
+
+  .home-card p {
+    font-size: 0.66rem;
+    -webkit-line-clamp: 2;
+  }
+
+  .home-shortcut-grid button {
+    min-height: 50px;
+    padding: 6px 4px;
+  }
+
+  .home-shortcut-grid strong {
+    font-size: 0.62rem;
+  }
+
+  .actual-grid,
+  .set-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .set-row > strong,
+  .actual-set-row > strong {
+    grid-column: 1 / -1;
+  }
+}

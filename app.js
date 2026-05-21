@@ -1928,6 +1928,11 @@ function dashboardGoalTotal(athlete = currentAthlete()) {
   return explicit || liftTotal;
 }
 
+function calculatedGoalTotal(athlete = currentAthlete()) {
+  athlete.goals = normalizeGoals(athlete.goals);
+  return mainLiftIds.reduce((sum, liftId) => sum + dashboardGoalValue(liftId, athlete), 0);
+}
+
 function achievementPercent(current, goal) {
   if (!goal) return null;
   return Math.max(0, Math.round((Number(current || 0) / Number(goal)) * 100));
@@ -1979,10 +1984,16 @@ function renderAthleteDashboard(athlete = currentAthlete(), cycle = normalizedCy
   const currentValues = Object.fromEntries(mainLiftIds.map((liftId) => [liftId, dashboardCurrentMax(liftId, cycle)]));
   const currentTotalValue = mainLiftIds.reduce((sum, liftId) => sum + currentValues[liftId], 0);
   const goalValues = Object.fromEntries(mainLiftIds.map((liftId) => [liftId, dashboardGoalValue(liftId, athlete)]));
-  const goalTotalValue = dashboardGoalTotal(athlete);
+  const autoGoalTotalValue = calculatedGoalTotal(athlete);
+  const goalTotalValue = Number(athlete.goals.total || 0) || autoGoalTotalValue;
   const remaining = goalTotalValue ? goalTotalValue - currentTotalValue : null;
   const methodLabel = programMethodInfo(cycle).label.replace(" / BIG3", "").replace(" / ベンチプレスのみ", "");
   const totalPercent = achievementPercent(currentTotalValue, goalTotalValue);
+  const sexLabel = athlete.sex === "female" ? "女性" : athlete.sex === "male" ? "男性" : "未設定";
+  const bodyweightLabel = athlete.bodyweight ? `${formatNumber(athlete.bodyweight)}kg` : "未設定";
+  const classLabel = weightClassMeta(athlete.sex, athlete.weightClass)[1] || "未設定";
+  const areaLabel = athlete.prefecture || "未設定";
+  const meetLabel = athlete.meetDate || "未設定";
   const goalLine = goalTotalValue
     ? remaining > 0
       ? `目標TOTALまであと +${formatNumber(remaining)}kg`
@@ -2027,8 +2038,15 @@ function renderAthleteDashboard(athlete = currentAthlete(), cycle = normalizedCy
       ${liftInputs}
       <label class="goal-total-input">
         <span>目標TOTAL</span>
-        <input data-goal-input="total" inputmode="decimal" type="number" min="0" step="2.5" value="${escapeHtml(athlete.goals.total || "")}" placeholder="BIG3合計を自動表示">
+        <input data-goal-input="total" inputmode="decimal" type="number" min="0" step="2.5" value="${escapeHtml(goalTotalValue || "")}" placeholder="BIG3合計を自動表示">
       </label>
+    </div>
+    <div class="dashboard-profile-strip">
+      <article><span>性別</span><strong>${escapeHtml(sexLabel)}</strong></article>
+      <article><span>体重</span><strong>${escapeHtml(bodyweightLabel)}</strong></article>
+      <article><span>階級</span><strong>${escapeHtml(classLabel)}</strong></article>
+      <article><span>エリア</span><strong>${escapeHtml(areaLabel)}</strong></article>
+      <article><span>大会</span><strong>${escapeHtml(meetLabel)}</strong></article>
     </div>
     <div class="dashboard-grid">
       <article class="dashboard-card">
@@ -5502,6 +5520,19 @@ function updateActiveViewClass(viewName = document.querySelector(".tab.active")?
   document.body.classList.toggle("home-mode", viewName === "home");
 }
 
+function updateDashboardGoalTotalPreview(sourceInput) {
+  if (!sourceInput || sourceInput.dataset.goalInput === "total") return;
+  const dashboard = sourceInput.closest(".athlete-dashboard");
+  if (!dashboard) return;
+  const totalInput = dashboard.querySelector('[data-goal-input="total"]');
+  if (!totalInput) return;
+  const total = mainLiftIds.reduce((sum, liftId) => {
+    const input = dashboard.querySelector(`[data-goal-input="${liftId}"]`);
+    return sum + Number(input?.value || 0);
+  }, 0);
+  totalInput.value = total ? String(total) : "";
+}
+
 document.querySelectorAll(".tab").forEach((tab) => {
   tab.addEventListener("click", () => {
     switchView(tab.dataset.view);
@@ -5896,9 +5927,18 @@ document.addEventListener("change", (event) => {
     const athlete = currentAthlete();
     athlete.goals = normalizeGoals(athlete.goals);
     athlete.goals[goalInput.dataset.goalInput] = goalInput.value;
+    if (mainLiftIds.includes(goalInput.dataset.goalInput)) {
+      const total = calculatedGoalTotal(athlete);
+      athlete.goals.total = total ? String(total) : "";
+    }
     saveState();
     render();
   }
+});
+
+document.addEventListener("input", (event) => {
+  const goalInput = event.target.closest?.("[data-goal-input]");
+  if (goalInput) updateDashboardGoalTotalPreview(goalInput);
 });
 
 document.querySelector("#addAthleteBtn").addEventListener("click", () => {
