@@ -1778,6 +1778,7 @@ function render() {
   renderWellnessUI();
   renderStartGuide();
   renderHomeDashboard(athlete, normalizedCycle());
+  placeAthleteDashboardInHome();
   els.currentAthleteName.textContent = athlete.name;
   els.deleteAthleteBtn.disabled = state.athletes.length <= 1;
   els.deleteAthleteBtn.title = state.athletes.length <= 1 ? "選手が1名のみのため削除できません" : `${athlete.name}を削除`;
@@ -1813,6 +1814,19 @@ function render() {
   renderQuiz();
   drawWeeklyDataChart(athlete);
   drawChart();
+}
+
+function placeAthleteDashboardInHome() {
+  if (!els.athleteDashboard || !els.homeDashboard) return;
+  const hero = els.homeDashboard.querySelector(".home-hero-card");
+  els.athleteDashboard.classList.add("home-athlete-dashboard");
+  if (hero) {
+    hero.insertAdjacentElement("afterend", els.athleteDashboard);
+    return;
+  }
+  if (els.athleteDashboard.parentElement !== els.homeDashboard) {
+    els.homeDashboard.prepend(els.athleteDashboard);
+  }
 }
 
 function renderOnboarding() {

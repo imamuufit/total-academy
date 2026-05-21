@@ -10,7 +10,7 @@
     <title>Platform Buddy</title>
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <link rel="stylesheet" href="styles.css?v=91">
+    <link rel="stylesheet" href="styles.css?v=92">
   </head>
   <body>
     <div class="app-shell">
@@ -97,8 +97,7 @@
 
           <div class="onboarding-step hidden" data-onboarding-step="daily">
             <p class="eyebrow">Today's Entry</p>
-            <h3>今日はどこへ進みますか？</h3>
-            <p>今日の1セットが、次のMAX更新と白判定につながります。必要な場所へすぐ進みましょう。</p>
+            <h3>まず今日の体調を確認しましょう</h3>
             <section class="wellness-check-card" id="dailyWellnessCard">
               <div class="wellness-check-head">
                 <span>今日のウェルネスチェック</span>
@@ -152,6 +151,10 @@
                 <button class="text-button compact" type="button" data-wellness-save>今日の状態を保存</button>
               </div>
             </section>
+            <div class="daily-entry-head">
+              <span>次の行動</span>
+              <strong>体調を確認したら、進む場所を選んでください</strong>
+            </div>
             <div class="daily-entry-grid">
               <button type="button" data-onboarding-action="daily-plan"><strong>今日のプランへ</strong><span>W1 Day1や現在週のメニューを進める</span></button>
               <button type="button" data-onboarding-action="daily-log"><strong>トレーニングを記録</strong><span>プラン外の練習や自由記録を残す</span></button>
@@ -952,6 +955,6 @@
       </form>
     </dialog>
 
-    <script src="app.js?v=91"></script>
+    <script src="app.js?v=92"></script>
   </body>
 </html>

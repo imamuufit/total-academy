@@ -5270,3 +5270,151 @@ textarea:focus {
     overflow-wrap: anywhere;
   }
 }
+
+/* v92: HOME flow, onboarding wellness placement, and dashboard contrast */
+.onboarding-active .wellness-floating,
+.onboarding-active .guide-mode-bar,
+.onboarding-active .tabbar {
+  display: none;
+}
+
+.daily-entry-head {
+  display: grid;
+  gap: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  padding-top: 4px;
+}
+
+.daily-entry-head span {
+  color: #ff5a52;
+  font-size: 0.72rem;
+  font-weight: 1000;
+  text-transform: uppercase;
+}
+
+.daily-entry-head strong {
+  color: #f8fafc;
+  font-size: 0.98rem;
+  line-height: 1.35;
+}
+
+.home-athlete-dashboard {
+  margin: -2px 0 2px;
+  border-left-width: 0;
+  border-radius: 20px;
+  background:
+    linear-gradient(145deg, rgba(18, 25, 32, 0.98), rgba(7, 11, 16, 0.98));
+}
+
+.home-athlete-dashboard .dashboard-head {
+  align-items: start;
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.home-athlete-dashboard .dashboard-head span {
+  color: #ff5a52;
+}
+
+.home-athlete-dashboard .dashboard-head strong {
+  color: #f8fafc;
+}
+
+.home-athlete-dashboard .dashboard-input-grid label {
+  border-color: rgba(255, 255, 255, 0.13);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.home-athlete-dashboard .dashboard-input-grid span {
+  color: #dbe4ef;
+}
+
+.home-athlete-dashboard .dashboard-input-grid input {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(248, 250, 252, 0.96);
+  color: #0f172a;
+  font-weight: 900;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.36);
+}
+
+.home-athlete-dashboard .dashboard-input-grid input::placeholder {
+  color: #64748b;
+}
+
+.home-athlete-dashboard .dashboard-card,
+.home-athlete-dashboard .achievement-card {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.home-athlete-dashboard .dashboard-card strong,
+.home-athlete-dashboard .achievement-card strong {
+  color: #f8fafc;
+}
+
+.home-athlete-dashboard .dashboard-card p,
+.home-athlete-dashboard .achievement-card p {
+  color: #c8d1de;
+}
+
+.home-athlete-dashboard .achievement-card span {
+  color: #ff5a52;
+}
+
+@media (max-width: 640px) {
+  .home-dashboard {
+    gap: 10px;
+  }
+
+  .home-athlete-dashboard {
+    padding: 12px;
+  }
+
+  .home-athlete-dashboard .dashboard-head {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+  }
+
+  .home-athlete-dashboard .dashboard-head .text-button {
+    min-width: 70px;
+  }
+
+  .home-athlete-dashboard .dashboard-input-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  .home-athlete-dashboard .goal-total-input {
+    grid-column: 1 / -1;
+  }
+
+  .home-athlete-dashboard .dashboard-input-grid label {
+    padding: 7px;
+  }
+
+  .home-athlete-dashboard .dashboard-input-grid span {
+    min-height: auto;
+    font-size: 0.62rem;
+    line-height: 1.25;
+  }
+
+  .home-athlete-dashboard .dashboard-input-grid input {
+    min-height: 36px;
+    padding: 7px 8px;
+    font-size: 0.88rem;
+  }
+
+  .home-athlete-dashboard .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .home-athlete-dashboard .achievement-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .daily-entry-head {
+    margin-top: 2px;
+  }
+}
