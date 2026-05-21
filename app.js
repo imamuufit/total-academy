@@ -2139,33 +2139,33 @@ function renderHomeDashboard(athlete = currentAthlete(), cycle = normalizedCycle
       <button class="home-guide-chip" type="button" data-view-target="plan">PLANへ</button>
     </section>
     <section class="home-card-grid">
-      <button class="home-card primary" type="button" data-view-target="plan">
+      <button class="home-card primary visual-card visual-plan" type="button" data-view-target="plan">
         <div class="home-card-top"><i class="home-icon plan" aria-hidden="true"></i><span>今日のプラン</span></div>
         <strong>${escapeHtml(method)} / W${cycle.week}</strong>
         <p>${escapeHtml(phase.name)}: ${escapeHtml(phaseGoalText(cycle, phase))}</p>
       </button>
-      <button class="home-card" type="button" data-view-target="analysis">
+      <button class="home-card current visual-card visual-current" type="button" data-view-target="analysis">
         <div class="home-card-top"><i class="home-icon location" aria-hidden="true"></i><span>現在地</span></div>
         <strong class="home-metric">TOTAL ${formatNumber(currentTotal)}kg</strong>
         <p>SQ ${formatNumber(currentValues.squat)} / BP ${formatNumber(currentValues.bench)} / DL ${formatNumber(currentValues.deadlift)}</p>
       </button>
-      <button class="home-card goal" type="button" data-view-target="plan">
+      <button class="home-card goal visual-card visual-goal" type="button" data-view-target="plan">
         <div class="home-card-top"><i class="home-icon target" aria-hidden="true"></i><span>目標</span></div>
         <strong>${escapeHtml(goalLine)}</strong>
         <div class="home-progress"><i style="width:${Math.min(100, totalPercent || 0)}%"></i></div>
         <p>${escapeHtml(percentLine)} / SQ ${formatNumber(goalValues.squat || 0)} BP ${formatNumber(goalValues.bench || 0)} DL ${formatNumber(goalValues.deadlift || 0)}</p>
       </button>
-      <button class="home-card meet" type="button" data-view-target="knowledge">
+      <button class="home-card meet visual-card visual-meet" type="button" data-view-target="knowledge">
         <div class="home-card-top"><i class="home-icon meet" aria-hidden="true"></i><span>次の大会</span></div>
         <strong class="home-metric">${escapeHtml(meetLabel)}</strong>
         <p>${escapeHtml(meetText)}</p>
       </button>
-      <button class="home-card wellness ${escapeHtml(wellness.status)}" type="button" data-wellness-floating>
+      <button class="home-card wellness ${escapeHtml(wellness.status)} visual-card visual-wellness" type="button" data-wellness-floating>
         <div class="home-card-top"><i class="home-icon wellness" aria-hidden="true"></i><span>今日の体調</span></div>
         <strong>${escapeHtml(wellness.label)}</strong>
         <p>${wellnessEntry.completed ? `${escapeHtml(wellness.short)} / 詳細を見る` : "未入力 / タップしてチェック"}</p>
       </button>
-      <button class="home-card buddy ${escapeHtml(weekly.status)}" type="button" data-view-target="analysis">
+      <button class="home-card buddy ${escapeHtml(weekly.status)} visual-card visual-buddy" type="button" data-view-target="analysis">
         <div class="home-card-top"><i class="home-icon buddy" aria-hidden="true"></i><span>Buddyコメント</span></div>
         <strong>${escapeHtml(weekly.title)}</strong>
         <p>${escapeHtml(weekly.message)}</p>
