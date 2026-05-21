@@ -1,130 +1,66 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Platform Buddy キャッシュ更新</title>
-  <style>
-    :root {
-      color-scheme: dark;
-      --bg: #06090d;
-      --panel: rgba(18, 22, 27, 0.94);
-      --text: #f5f7fa;
-      --muted: #aeb7c2;
-      --accent: #e83b3b;
-      --line: rgba(255, 255, 255, 0.14);
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      padding: 24px;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background:
-        radial-gradient(circle at top right, rgba(232, 59, 59, 0.18), transparent 34%),
-        linear-gradient(145deg, #05070a, #10151b 55%, #05070a);
-      color: var(--text);
-    }
-    main {
-      width: min(430px, 100%);
-      padding: 26px;
-      border: 1px solid var(--line);
-      border-radius: 24px;
-      background: var(--panel);
-      box-shadow: 0 22px 80px rgba(0, 0, 0, 0.45);
-    }
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 12px;
-      border-radius: 999px;
-      background: rgba(232, 59, 59, 0.14);
-      color: #ff8d8d;
-      font-size: 13px;
-      font-weight: 800;
-      letter-spacing: 0.06em;
-    }
-    h1 {
-      margin: 18px 0 10px;
-      font-size: clamp(26px, 8vw, 34px);
-      line-height: 1.16;
-    }
-    p {
-      margin: 0 0 14px;
-      color: var(--muted);
-      line-height: 1.75;
-      font-size: 15px;
-    }
-    .status {
-      margin: 18px 0;
-      padding: 14px;
-      border-radius: 16px;
-      border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.05);
-      color: var(--text);
-      font-weight: 700;
-      line-height: 1.55;
-    }
-    a, button {
-      width: 100%;
-      border: 0;
-      border-radius: 16px;
-      padding: 15px 18px;
-      font: inherit;
-      font-weight: 900;
-      text-align: center;
-      text-decoration: none;
-      cursor: pointer;
-    }
-    a {
-      display: block;
-      margin-top: 12px;
-      background: var(--accent);
-      color: white;
-    }
-    button {
-      margin-top: 10px;
-      background: rgba(255, 255, 255, 0.09);
-      color: var(--text);
-      border: 1px solid var(--line);
-    }
-  </style>
-</head>
-<body>
-  <main>
-    <span class="badge">CACHE RESET</span>
-    <h1>Platform Buddyを最新版に更新します</h1>
-    <p>大きなアイコンだけ表示されて止まる場合、古いPWAキャッシュが残っている可能性があります。</p>
-    <p>下のボタンでキャッシュを解除してから、最新版のアプリを開いてください。</p>
-    <div class="status" id="status">準備できています。</div>
-    <button type="button" id="resetButton">キャッシュを解除する</button>
-    <a href="./index.html?v=94" id="openApp">最新版を開く</a>
-  </main>
-  <script>
-    const statusBox = document.getElementById("status");
-    const resetButton = document.getElementById("resetButton");
+# Platform Buddy
 
-    async function resetCaches() {
-      statusBox.textContent = "古い保存ファイルを確認しています...";
-      try {
-        if ("serviceWorker" in navigator) {
-          const registrations = await navigator.serviceWorker.getRegistrations();
-          await Promise.all(registrations.map((registration) => registration.unregister()));
-        }
-        if ("caches" in window) {
-          const keys = await caches.keys();
-          await Promise.all(keys.map((key) => caches.delete(key)));
-        }
-        statusBox.textContent = "解除できました。最新版を開いてください。";
-      } catch (error) {
-        statusBox.textContent = "自動解除に失敗しました。ブラウザのサイトデータ削除も試してください。";
-      }
-    }
+Platform Buddyは、BIG3の現在地と目標を見える化し、PRサイクル、記録、分析、大会準備までつなげて管理できるパワーリフティング向けPWAです。
 
-    resetButton.addEventListener("click", resetCaches);
-  </script>
-</body>
-</html>
+## アプリの目的
+
+強くなりたい気持ちを、計画に変える。
+
+現在1RM、目標重量、日々の体調、トレーニング実績をもとに、今日やること、次のチェックポイント、MAX更新や大会挑戦までの流れを分かりやすく整理します。
+
+## 主な機能
+
+- HOME: 今日のプラン、現在地、目標、体調、Buddyコメントをカードで表示
+- PLAN: Buddyメソッド Lv1 / Lv2 / Rebuild 16、5/3/1、HPS、Smolov Jr.風テンプレート
+- LOG: 自由トレーニング記録、複数セット入力、メモ、履歴管理
+- DATA: e1RM、ボリューム、RPE、ウェルネス、週ごとの進捗確認
+- MEET: 大会準備チェックリスト、大会ノート、白判定クイズ、ルール確認導線
+- RPE自信度、RPEものさしセット、Buddy Alert、デロード候補表示
+- Excel出力、JSONバックアップ、PWAインストール対応
+
+## 最新UIの特徴
+
+- スマホアプリ風のダークテーマ
+- HOME / PLAN / LOG / DATA / MEET の下部固定ナビ
+- 「今日の体調」と「ガイドモード」を下部ナビ上に横並び表示
+- HOME、PLAN、MEETに背景画像を追加
+- LOG、DATA、大会準備、白判定クイズにも背景画像を追加
+- Buddyコメント用の4人チームキャラクターを、通常・応援・注意・PR・集中・大会の用途別に反映
+- アイコン素材を新しいダークUI向けアイコンシートに差し替え
+
+## アップロード時の注意
+
+GitHub Pagesへ更新するときは、ZIP内のファイルをすべて同じ階層へ上書きアップロードしてください。
+
+必要なもの:
+
+- index.html
+- styles.css
+- app.js
+- sw.js
+- manifest.webmanifest
+- README.md
+- icon.svg
+- apple-touch-icon.png
+- assets フォルダ内の画像
+- reset.html
+
+## 表示が古い・起動で止まる場合
+
+PWAは通常のブラウザキャッシュとは別に、サービスワーカーという仕組みで古いファイルを保持することがあります。
+
+最新版をアップロードしても大きなアイコン表示で止まる場合は、`reset.html` を一度開いてキャッシュを解除してください。
+
+例:
+
+`https://imamuufit.github.io/total-academy/reset.html`
+
+## データ保存について
+
+記録データはユーザーの端末内に保存されます。
+URL、端末、ブラウザ、リポジトリ名を変更する場合は、事前にアプリ内のデータ管理からバックアップを書き出してください。
+
+## 注意
+
+本アプリはJPA/IPF公式アプリではありません。
+ルール確認や大会当日の判断は、必ず最新の公式ルールブック、大会要項、当日の審判・大会運営の指示を優先してください。

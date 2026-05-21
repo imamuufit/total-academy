@@ -1,64 +1,24 @@
-# Platform Buddy
-
-Platform Buddyは、BIG3の現在地と目標を見える化し、PRサイクル、記録、分析、大会準備までつなげて管理できるパワーリフティング向けPWAです。
-
-## アプリの目的
-
-強くなりたい気持ちを、計画に変える。
-
-現在1RM、目標重量、日々の体調、トレーニング実績をもとに、今日やること、次のチェックポイント、MAX更新や大会挑戦までの流れを分かりやすく整理します。
-
-## 主な機能
-
-- HOME: 今日のプラン、現在地、目標、体調、Buddyコメントをカードで表示
-- PLAN: Buddyメソッド Lv1 / Lv2 / Rebuild 16、5/3/1、HPS、Smolov Jr.風テンプレート
-- LOG: 自由トレーニング記録、複数セット入力、メモ、履歴管理
-- DATA: e1RM、ボリューム、RPE、ウェルネス、週ごとの進捗確認
-- MEET: 大会準備チェックリスト、大会ノート、白判定クイズ、ルール確認導線
-- RPE自信度、RPEものさしセット、Buddy Alert、デロード候補表示
-- Excel出力、JSONバックアップ、PWAインストール対応
-
-## 最新UIの特徴
-
-- スマホアプリ風のダークテーマ
-- HOME / PLAN / LOG / DATA / MEET の下部固定ナビ
-- 「今日の体調」と「ガイドモード」を下部ナビ上に横並び表示
-- HOME、PLAN、MEETに背景画像を追加
-- Buddyコメント用キャラクターとアイコン素材を反映
-
-## アップロード時の注意
-
-GitHub Pagesへ更新するときは、ZIP内のファイルをすべて同じ階層へ上書きアップロードしてください。
-
-必要なもの:
-
-- index.html
-- styles.css
-- app.js
-- sw.js
-- manifest.webmanifest
-- README.md
-- icon.svg
-- apple-touch-icon.png
-- assets フォルダ内の画像
-- reset.html
-
-## 表示が古い・起動で止まる場合
-
-PWAは通常のブラウザキャッシュとは別に、サービスワーカーという仕組みで古いファイルを保持することがあります。
-
-最新版をアップロードしても大きなアイコン表示で止まる場合は、`reset.html` を一度開いてキャッシュを解除してください。
-
-例:
-
-`https://imamuufit.github.io/total-academy/reset.html`
-
-## データ保存について
-
-記録データはユーザーの端末内に保存されます。
-URL、端末、ブラウザ、リポジトリ名を変更する場合は、事前にアプリ内のデータ管理からバックアップを書き出してください。
-
-## 注意
-
-本アプリはJPA/IPF公式アプリではありません。
-ルール確認や大会当日の判断は、必ず最新の公式ルールブック、大会要項、当日の審判・大会運営の指示を優先してください。
+{
+  "name": "Platform Buddy",
+  "short_name": "Buddy",
+  "description": "BIG3の現在地と目標を見える化し、PRサイクル、記録、分析、大会準備までつなげて管理できるパワーリフティング向けPWAです。",
+  "start_url": "./index.html?v=95",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#06090d",
+  "theme_color": "#15171a",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
