@@ -11,23 +11,23 @@
   --coach: #2f6f73;
   --paper: #fbf7ef;
   --shadow: 0 14px 30px rgba(51, 42, 29, 0.08);
-  --asset-home: url("home-bg.png");
-  --asset-plan: url("plan-bg.png");
-  --asset-meet: url("meet-bg.png");
-  --asset-log: url("log-bg.png");
-  --asset-data: url("data-bg.png");
-  --asset-goal: url("goal-bg.png");
-  --asset-meet-prep: url("meet-prep-bg.png");
-  --asset-quiz: url("quiz-bg.png");
-  --asset-wellness: url("wellness-bg.png");
-  --asset-buddy: url("buddy-character.png");
-  --asset-buddy-normal: url("buddy-team-normal.png");
-  --asset-buddy-cheer: url("buddy-team-cheer.png");
-  --asset-buddy-caution: url("buddy-team-caution.png");
-  --asset-buddy-pr: url("buddy-team-pr.png");
-  --asset-buddy-focus: url("buddy-team-focus.png");
-  --asset-buddy-meet: url("buddy-team-meet.png");
-  --asset-icons: url("icon-sheet.png");
+  --asset-home: url("home-bg-lite.jpg");
+  --asset-plan: url("plan-bg-lite.jpg");
+  --asset-meet: url("meet-bg-lite.jpg");
+  --asset-log: url("log-bg-lite.jpg");
+  --asset-data: url("data-bg-lite.jpg");
+  --asset-goal: url("goal-bg-lite.jpg");
+  --asset-meet-prep: url("meet-prep-bg-lite.jpg");
+  --asset-quiz: url("quiz-bg-lite.jpg");
+  --asset-wellness: url("wellness-bg-lite.jpg");
+  --asset-buddy: url("buddy-character-lite.jpg");
+  --asset-buddy-normal: url("buddy-team-normal-lite.jpg");
+  --asset-buddy-cheer: url("buddy-team-cheer-lite.jpg");
+  --asset-buddy-caution: url("buddy-team-caution-lite.jpg");
+  --asset-buddy-pr: url("buddy-team-pr-lite.jpg");
+  --asset-buddy-focus: url("buddy-team-focus-lite.jpg");
+  --asset-buddy-meet: url("buddy-team-meet-lite.jpg");
+  --asset-icons: url("icon-sheet-lite.jpg");
 }
 
 * {
@@ -6206,5 +6206,493 @@ textarea {
     width: 92px;
     height: 92px;
     opacity: 0.12;
+  }
+}
+
+/* v97: image speed + global readability pass */
+:root {
+  --bg: #05070a;
+  --surface: rgba(12, 17, 23, 0.94);
+  --ink: #f8fafc;
+  --muted: #c7d0dc;
+  --line: rgba(255, 255, 255, 0.14);
+  --paper: rgba(12, 17, 23, 0.94);
+  --shadow: 0 18px 48px rgba(0, 0, 0, 0.34);
+  --glass: rgba(10, 15, 21, 0.86);
+  --glass-strong: rgba(8, 12, 18, 0.94);
+  --glass-soft: rgba(255, 255, 255, 0.07);
+  --readable: #f8fafc;
+  --readable-soft: #dbe4ef;
+}
+
+html {
+  background: #05070a;
+}
+
+body,
+body.home-mode {
+  color: var(--readable);
+  background:
+    radial-gradient(circle at 14% 0, rgba(239, 68, 68, 0.18), transparent 30%),
+    radial-gradient(circle at 88% 12%, rgba(124, 58, 237, 0.12), transparent 32%),
+    linear-gradient(180deg, #05070a 0, #0a0f15 44%, #05070a 100%);
+  background-attachment: fixed;
+}
+
+body::before,
+body.home-mode::before {
+  background:
+    linear-gradient(118deg, transparent 0 54%, rgba(255, 255, 255, 0.035) 54% 55%, transparent 55% 100%),
+    repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.022) 0 1px, transparent 1px 42px);
+}
+
+.topbar,
+.home-mode .topbar,
+.panel,
+.compact-panel,
+.athlete-panel,
+.welcome-panel,
+.start-guide,
+.association-guide,
+.daily-onboarding-card,
+.onboarding-card,
+.onboarding-step,
+.onboarding-value,
+.wellness-check-card,
+.wellness-result,
+.meet-prep-announcement,
+.dashboard-card,
+.dashboard-input-grid label,
+.home-card,
+.plan-card,
+.day-card,
+.actual-entry-card,
+.actual-set-row,
+.weekly-data-card,
+.program-method-guide,
+.method-guide-grid article,
+.buddy-method-panel,
+.cycle-note,
+.guide-note,
+.data-panel,
+.history-card,
+.history-day-card,
+.history-summary-card,
+.knowledge-card,
+.rule-card,
+.quiz-question-card,
+.quiz-result,
+.quiz-score-strip,
+.quiz-category-card,
+.meet-note-panel,
+.meet-review-card,
+.meet-prep-checklist,
+.projection-card,
+.white-nine-note,
+.rpe-coach-card,
+.rpe-feedback,
+.previous-rpe,
+.wellness-card,
+.daily-entry-panel,
+.summary-card {
+  border-color: var(--line);
+  background:
+    linear-gradient(145deg, rgba(15, 21, 29, 0.94), rgba(6, 10, 15, 0.9));
+  color: var(--readable);
+  box-shadow: var(--shadow);
+}
+
+.panel p,
+.compact-panel p,
+.onboarding-card p,
+.onboarding-value,
+.screen-note,
+.data-note,
+.cycle-method-note,
+.program-disclaimer,
+.cycle-note,
+.guide-note,
+.plan-card p,
+.day-card p,
+.dashboard-card p,
+.home-card p,
+.weekly-data-card p,
+.method-guide-head p,
+.method-guide-grid p,
+.history-meta,
+.history-summary-card p,
+.knowledge-card p,
+.rule-card p,
+.quiz-disclaimer,
+.quiz-guide,
+.quiz-source span,
+.meet-review-card p,
+.meet-prep-announcement p,
+.wellness-floating small,
+.wellness-floating-detail p,
+small,
+.muted {
+  color: var(--readable-soft) !important;
+}
+
+h1,
+h2,
+h3,
+h4,
+label,
+strong,
+.section-title h2,
+.section-title h3,
+.buddy-heading,
+.dashboard-head strong,
+.dashboard-card strong,
+.home-card strong,
+.plan-card h2,
+.weekly-data-card strong,
+.quiz-category-card strong,
+.quiz-question-title h3,
+.quiz-result h3 {
+  color: var(--readable) !important;
+}
+
+.eyebrow,
+.home-card span,
+.home-hero-card span,
+.dashboard-head span,
+.dashboard-card span,
+.method-guide-head span,
+.section-title span,
+.quiz-category-card span,
+.quiz-badge {
+  color: #ff7b73 !important;
+}
+
+input,
+select,
+textarea {
+  border-color: rgba(255, 255, 255, 0.18) !important;
+  background: rgba(5, 8, 12, 0.9) !important;
+  color: var(--readable) !important;
+  box-shadow: none;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+select option {
+  background: #0b1117;
+  color: var(--readable);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline-color: rgba(239, 68, 68, 0.42);
+  border-color: rgba(239, 68, 68, 0.76) !important;
+}
+
+button,
+.text-button,
+.collapse-toggle,
+.actual-set-add,
+.tab,
+.segment,
+.chip,
+.choice-pill,
+.secondary-button {
+  color: var(--readable) !important;
+}
+
+.text-button,
+.collapse-toggle,
+.actual-set-add,
+.secondary-button,
+.segment,
+.chip,
+.choice-pill {
+  border-color: rgba(255, 255, 255, 0.16) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.primary-button,
+.tab.active,
+.segment.active,
+.text-button.primary {
+  border-color: rgba(239, 68, 68, 0.74) !important;
+  background: linear-gradient(135deg, #ef4444, #b42318) !important;
+  color: #fff !important;
+}
+
+.guide-mode-bar,
+.wellness-floating {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(8, 12, 18, 0.94);
+  color: var(--readable);
+  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.38);
+}
+
+.guide-mode-bar span,
+.wellness-floating strong,
+.wellness-floating-detail p {
+  color: var(--readable) !important;
+}
+
+.guide-mode-toggle {
+  background: linear-gradient(135deg, #ef4444, #b42318);
+  color: #fff !important;
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.guide-mode-toggle[aria-pressed="false"] {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: var(--readable-soft) !important;
+}
+
+.tabbar {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(5, 8, 12, 0.94);
+  box-shadow: 0 -16px 38px rgba(0, 0, 0, 0.32);
+}
+
+.tabbar .tab {
+  color: #cbd5e1 !important;
+}
+
+.tabbar .tab.active {
+  color: #ff5a52 !important;
+}
+
+.home-hero-card {
+  background:
+    linear-gradient(90deg, rgba(5, 8, 12, 0.94), rgba(5, 8, 12, 0.68) 48%, rgba(5, 8, 12, 0.38)),
+    var(--asset-home) center / cover no-repeat,
+    #05070a;
+}
+
+.home-hero-card::after {
+  opacity: 0.24;
+}
+
+.home-card.visual-card {
+  border-color: rgba(255, 255, 255, 0.13);
+  background: linear-gradient(145deg, rgba(12, 18, 25, 0.92), rgba(6, 10, 15, 0.84));
+  color: var(--readable);
+}
+
+.home-card.visual-card::after {
+  opacity: 1;
+}
+
+.home-card.visual-plan::after {
+  background:
+    linear-gradient(90deg, rgba(5, 8, 12, 0.92), rgba(5, 8, 12, 0.62) 58%, rgba(5, 8, 12, 0.2)),
+    var(--asset-plan) 66% center / cover no-repeat;
+}
+
+.home-card.visual-current::after {
+  background:
+    linear-gradient(90deg, rgba(5, 8, 12, 0.92), rgba(5, 8, 12, 0.62) 58%, rgba(5, 8, 12, 0.18)),
+    var(--asset-data) center / cover no-repeat;
+}
+
+.home-card.visual-goal::after {
+  background:
+    linear-gradient(90deg, rgba(5, 8, 12, 0.92), rgba(5, 8, 12, 0.62) 58%, rgba(5, 8, 12, 0.18)),
+    var(--asset-goal) center / cover no-repeat;
+}
+
+.home-card.visual-meet::after,
+.home-card.meet.visual-meet::after {
+  background:
+    linear-gradient(90deg, rgba(5, 8, 12, 0.92), rgba(5, 8, 12, 0.58) 56%, rgba(5, 8, 12, 0.16)),
+    var(--asset-meet) center / cover no-repeat;
+}
+
+.home-card.visual-wellness::after {
+  background:
+    linear-gradient(90deg, rgba(5, 8, 12, 0.92), rgba(5, 8, 12, 0.6) 58%, rgba(5, 8, 12, 0.18)),
+    var(--asset-wellness) center / cover no-repeat;
+}
+
+.home-card.buddy.visual-buddy::after {
+  opacity: 0.34;
+  mix-blend-mode: normal;
+}
+
+.home-card.visual-goal,
+.home-card.visual-meet {
+  color: var(--readable);
+}
+
+.home-card.goal strong,
+.home-card.meet strong {
+  color: #f6c15f !important;
+}
+
+.home-progress {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+#planView::before,
+#logView::before,
+#analysisView::before,
+#knowledgeView::before {
+  border-color: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+
+#planView::before {
+  background:
+    linear-gradient(90deg, rgba(5, 8, 12, 0.86), rgba(5, 8, 12, 0.38)),
+    var(--asset-plan) center / cover no-repeat,
+    #06090d;
+}
+
+#logView::before {
+  background:
+    linear-gradient(90deg, rgba(5, 8, 12, 0.88), rgba(5, 8, 12, 0.44)),
+    var(--asset-log) center / cover no-repeat,
+    #06090d;
+}
+
+#analysisView::before {
+  background:
+    linear-gradient(90deg, rgba(5, 8, 12, 0.88), rgba(5, 8, 12, 0.42)),
+    var(--asset-data) center / cover no-repeat,
+    #06090d;
+}
+
+#knowledgeView::before {
+  background:
+    linear-gradient(90deg, rgba(5, 8, 12, 0.88), rgba(5, 8, 12, 0.34)),
+    var(--asset-meet) center / cover no-repeat,
+    #06090d;
+}
+
+.quiz-panel {
+  background:
+    linear-gradient(145deg, rgba(9, 13, 18, 0.9), rgba(7, 11, 16, 0.78)),
+    var(--asset-quiz) center / cover no-repeat;
+}
+
+.meet-prep-checklist {
+  background:
+    linear-gradient(145deg, rgba(9, 13, 18, 0.88), rgba(7, 11, 16, 0.72)),
+    var(--asset-meet-prep) center / cover no-repeat;
+}
+
+.daily-entry-panel::after,
+.wellness-card::after,
+.meet-review-card::after,
+.projection-card::after,
+.white-nine-note::after {
+  opacity: 0.24;
+}
+
+.success,
+.ok,
+.good,
+.positive {
+  color: #86efac;
+}
+
+.warning,
+.caution {
+  color: #fbbf24;
+}
+
+.danger,
+.alert,
+.error {
+  color: #fca5a5;
+}
+
+@media (max-width: 640px) {
+  body {
+    padding-bottom: calc(86px + env(safe-area-inset-bottom));
+  }
+
+  .guide-mode-bar,
+  .wellness-floating {
+    width: auto;
+    max-width: calc(50vw - 18px);
+    min-width: 132px;
+    padding: 7px 8px;
+    border-left-width: 4px;
+    border-radius: 14px;
+  }
+
+  .guide-mode-bar {
+    right: 8px;
+    bottom: calc(78px + env(safe-area-inset-bottom));
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 5px;
+  }
+
+  .wellness-floating {
+    left: 8px;
+    right: auto;
+    bottom: calc(78px + env(safe-area-inset-bottom));
+  }
+
+  .wellness-floating.expanded {
+    left: 8px;
+    right: 8px;
+    width: auto;
+    max-width: none;
+  }
+
+  .guide-mode-bar span,
+  .wellness-floating strong {
+    font-size: 0.78rem;
+    line-height: 1.12;
+  }
+
+  .guide-mode-bar small,
+  .wellness-floating small,
+  .wellness-floating span {
+    font-size: 0.68rem;
+    line-height: 1.15;
+  }
+
+  .guide-mode-toggle {
+    min-width: 0;
+    min-height: 30px;
+    padding: 0 8px;
+    font-size: 0.7rem;
+  }
+
+  .home-card.visual-card,
+  .panel,
+  .compact-panel,
+  .plan-card,
+  .day-card,
+  .dashboard-card,
+  .dashboard-input-grid label {
+    border-radius: 16px;
+  }
+
+  .home-hero-card {
+    min-height: 182px;
+    padding: 15px;
+    background-position: 62% center;
+  }
+
+  .home-hero-card h2 {
+    font-size: clamp(1.72rem, 9vw, 2.25rem);
+  }
+
+  .home-hero-card p {
+    font-size: 0.82rem;
+    line-height: 1.48;
+  }
+
+  input,
+  select,
+  textarea {
+    font-size: 16px;
   }
 }
