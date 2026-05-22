@@ -6696,3 +6696,215 @@ button,
     font-size: 16px;
   }
 }
+
+/* v98: remaining white cards removed from PLAN / ATHLETE / MEET */
+.athlete-chip,
+.association-guide a,
+.rule-links a,
+.start-card,
+.meet-shortcut,
+.meet-check-item,
+.meet-rule-note,
+.meet-attempt-lift,
+.meet-review-card,
+.meet-note-card,
+.meet-note-meta span,
+.meet-attempt-chip,
+.quiz-score-strip div,
+.quiz-category-card,
+.quiz-choice,
+.quiz-feedback,
+.quiz-disclaimer,
+.quiz-result,
+.plan-day .exercise-list,
+.exercise-row,
+.plan-prescription-block,
+.actual-box,
+.actual-set-row,
+.set-row,
+.rpe-principle,
+.data-status,
+.achievement-card,
+.recovery-reasons span {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  background:
+    linear-gradient(145deg, rgba(15, 21, 29, 0.92), rgba(6, 10, 15, 0.86)) !important;
+  color: #f8fafc !important;
+}
+
+.athlete-chip {
+  color: #dbe4ef !important;
+}
+
+.athlete-chip.active {
+  border-color: rgba(239, 68, 68, 0.72) !important;
+  background: linear-gradient(135deg, #ef4444, #b42318) !important;
+  color: #fff !important;
+}
+
+.association-guide a,
+.rule-links a {
+  border: 1px solid rgba(239, 68, 68, 0.34);
+  background: rgba(239, 68, 68, 0.16) !important;
+  color: #fff !important;
+}
+
+.association-guide a:focus-visible,
+.association-guide a:hover,
+.rule-links a:focus-visible,
+.rule-links a:hover {
+  background: linear-gradient(135deg, #ef4444, #b42318) !important;
+  color: #fff !important;
+}
+
+.meet-prep-announcement,
+.meet-prep-checklist,
+.meet-note-panel,
+.quiz-panel {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  background:
+    linear-gradient(145deg, rgba(9, 13, 18, 0.88), rgba(7, 11, 16, 0.7)),
+    var(--asset-meet) center / cover no-repeat !important;
+  color: #f8fafc !important;
+}
+
+.meet-prep-checklist {
+  background:
+    linear-gradient(145deg, rgba(9, 13, 18, 0.86), rgba(7, 11, 16, 0.66)),
+    var(--asset-meet-prep) center / cover no-repeat !important;
+}
+
+.quiz-panel {
+  background:
+    linear-gradient(145deg, rgba(9, 13, 18, 0.88), rgba(7, 11, 16, 0.72)),
+    var(--asset-quiz) center / cover no-repeat !important;
+}
+
+.meet-check-item span,
+.meet-rule-note,
+.meet-attempt-lift h4,
+.meet-review-card h4,
+.meet-review-card ul,
+.meet-note-card summary strong,
+.meet-note-card summary em,
+.meet-note-meta span,
+.meet-attempt-chip,
+.quiz-score-strip span,
+.quiz-score-strip strong,
+.quiz-category-card strong,
+.quiz-category-card small,
+.quiz-category-card em,
+.quiz-choice,
+.quiz-feedback,
+.quiz-disclaimer,
+.quiz-result,
+.quiz-result p,
+.plan-day .exercise-list,
+.exercise-row strong,
+.exercise-row span,
+.exercise-row p,
+.plan-prescription-block strong,
+.plan-prescription-block small,
+.plan-prescription-block em,
+.actual-title strong,
+.actual-title span,
+.actual-set-row strong,
+.set-row strong,
+.rpe-principle,
+.data-status span,
+.data-status strong,
+.achievement-card span,
+.achievement-card strong,
+.achievement-card p,
+.recovery-reasons span {
+  color: #f8fafc !important;
+}
+
+.meet-review-card p,
+.meet-note-detail p,
+.quiz-score-strip span,
+.quiz-category-card small,
+.quiz-category-card em,
+.quiz-disclaimer,
+.exercise-row p,
+.plan-prescription-block small,
+.plan-prescription-block em,
+.achievement-card p {
+  color: #dbe4ef !important;
+}
+
+.plan-prescription-block:nth-child(2) {
+  border-color: rgba(34, 197, 94, 0.28) !important;
+  border-left-color: #22c55e !important;
+  background:
+    linear-gradient(145deg, rgba(9, 26, 18, 0.92), rgba(6, 14, 10, 0.84)) !important;
+}
+
+.plan-prescription-block::after {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.meet-check-item input {
+  border-color: rgba(255, 255, 255, 0.42) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.meet-check-item input:checked {
+  border-color: #22c55e !important;
+  background: #22c55e !important;
+}
+
+.meet-attempt-chip.success {
+  border-color: rgba(34, 197, 94, 0.38) !important;
+  background: rgba(34, 197, 94, 0.16) !important;
+  color: #86efac !important;
+}
+
+.meet-attempt-chip.fail {
+  border-color: rgba(239, 68, 68, 0.42) !important;
+  background: rgba(239, 68, 68, 0.15) !important;
+  color: #fca5a5 !important;
+}
+
+.meet-attempt-chip.pass {
+  color: #cbd5e1 !important;
+}
+
+.quiz-choice.correct,
+.quiz-feedback.correct {
+  border-color: rgba(34, 197, 94, 0.5) !important;
+  background: rgba(34, 197, 94, 0.14) !important;
+}
+
+.quiz-choice.wrong,
+.quiz-feedback.wrong {
+  border-color: rgba(239, 68, 68, 0.5) !important;
+  background: rgba(239, 68, 68, 0.14) !important;
+}
+
+.meet-shortcut span,
+.start-card span,
+.quiz-category-card span,
+.quiz-badge {
+  background: rgba(239, 68, 68, 0.88) !important;
+  color: #fff !important;
+}
+
+.meet-shortcut small,
+.start-card small {
+  color: #dbe4ef !important;
+}
+
+@media (max-width: 640px) {
+  .meet-checklist-grid,
+  .meet-shortcut-grid {
+    gap: 8px;
+  }
+
+  .meet-check-item,
+  .meet-shortcut,
+  .association-guide a,
+  .athlete-chip {
+    min-height: 44px;
+  }
+}
