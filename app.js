@@ -3067,7 +3067,9 @@ function renderPlan() {
   const learningCard = weekLearningCard(cycle, phase);
   const checkCarryover = currentCheckCarryoverCard(cycle);
   const tenWeekBenchCare = tenWeekBenchCareCard(cycle);
-  els.planList.innerHTML = `${calibration}${learningCard}${checkCarryover}${tenWeekBenchCare}${insight}${weeklyTemplate(cycle).map((day, index) => {
+  const weekDays = weeklyTemplate(cycle);
+  const planCommand = planCommandCard(cycle, phase, weekDays);
+  els.planList.innerHTML = `${planCommand}${calibration}${learningCard}${checkCarryover}${tenWeekBenchCare}${insight}${weekDays.map((day, index) => {
     const mainItems = day.items.filter((item) => item.lift || item.kind === "accessory").slice(0, 3).map((item) => item.name).join(" / ");
     return `
       <details class="day-card plan-day" ${index === 0 ? "open" : ""}>
@@ -3085,6 +3087,62 @@ function renderPlan() {
       </details>
     `;
   }).join("")}`;
+}
+
+function planCommandCard(cycle, phase, weekDays = weeklyTemplate(cycle)) {
+  const athlete = currentAthlete();
+  const wellness = wellnessEvaluation(todayWellnessEntry(athlete));
+  const firstDay = weekDays[0] || { title: "Day 1", items: [] };
+  const mainItems = firstDay.items.filter((item) => item.lift || item.kind === "accessory").slice(0, 3);
+  const mainLine = mainItems.map((item) => item.name).join(" / ") || "今日のメニューを確認";
+  const progress = planWeekCompletion(cycle, weekDays);
+  const progressPct = progress.planned ? Math.min(100, Math.round((progress.completed / progress.planned) * 100)) : 0;
+  const method = programMethodInfo(cycle).label
+    .replace(" / BIG3", "")
+    .replace(" / ベンチプレスのみ", "");
+  const phaseName = phase?.name || "今週";
+  return `
+    <article class="plan-command-card wellness-${escapeHtml(wellness.status)}">
+      <div class="plan-command-status">
+        <span class="plan-command-face">${wellness.status === "good" ? "✓" : wellness.status === "unset" ? "?" : "!"}</span>
+        <div>
+          <p class="eyebrow">Today's Plan</p>
+          <h2>${escapeHtml(method)} / W${cycle.week} Day1</h2>
+          <p>${escapeHtml(phaseName)} / ${escapeHtml(mainLine)}</p>
+        </div>
+      </div>
+      <div class="plan-command-grid">
+        <div>
+          <span>今日の体調</span>
+          <strong>${escapeHtml(wellness.label)}</strong>
+          <small>${escapeHtml(wellness.short)}${wellness.score !== null ? ` / ${wellness.score}点` : ""}</small>
+        </div>
+        <div>
+          <span>今日の方針</span>
+          <strong>${escapeHtml(wellness.short)}</strong>
+          <small>${escapeHtml(wellness.recommendation)}</small>
+        </div>
+        <div>
+          <span>今週の進捗</span>
+          <strong>${progress.completed}/${progress.planned || weekDays.length}</strong>
+          <small>${progress.planned ? `${progressPct}% 完了` : "Dayを開いて確認"}</small>
+        </div>
+      </div>
+      <div class="plan-command-progress" aria-label="今週の進捗">
+        <span style="width:${progressPct}%"></span>
+      </div>
+    </article>
+  `;
+}
+
+function planWeekCompletion(cycle, weekDays = weeklyTemplate(cycle)) {
+  const feedback = currentAthlete().rpeFeedback || {};
+  const prefix = [cycle.programMethod, cycle.buddyLevel || "level1", cycle.planTarget, `w${cycle.week}`].join("|");
+  const completed = Object.keys(feedback).filter((key) => key.startsWith(prefix)).length;
+  const planned = weekDays.reduce((sum, day) => {
+    return sum + day.items.filter((item) => shouldShowActualInput(item)).length;
+  }, 0);
+  return { completed: Math.min(completed, planned), planned };
 }
 
 function rpeCalibrationCard(cycle) {
@@ -3968,7 +4026,7 @@ function exerciseLine(item, cycle, dayIndex = 0, itemIndex = 0) {
   if (item.kind === "method") {
     const note = guideEnabled() && item.note ? `<p class="guide-note">${escapeHtml(item.note)}</p>` : "";
     const actual = shouldShowActualInput(item) ? actualInputBlock(item, cycle, item.work, item.note, dayIndex, itemIndex) : "";
-    return `<div class="exercise-row"><strong>${escapeHtml(item.name)}</strong>${planPrescriptionMarkup(item.work)}${note}${actual}</div>`;
+    return `<div class="exercise-row method-row"><strong>${escapeHtml(item.name)}</strong>${planPrescriptionMarkup(item.work)}${note}${actual}</div>`;
   }
   if (item.kind === "accessory") {
     const badge = item.exerciseId && equipmentLabel(item.exerciseId)
@@ -3976,12 +4034,12 @@ function exerciseLine(item, cycle, dayIndex = 0, itemIndex = 0) {
       : "";
     const note = guideEnabled() && item.note ? `<p class="guide-note">${item.note}</p>` : "";
     const actual = shouldShowActualInput(item) ? actualInputBlock(item, cycle, item.work, item.note, dayIndex, itemIndex) : "";
-    return `<div class="exercise-row"><strong>${escapeHtml(item.name)}${badge}</strong><span>${item.work}</span>${note}${actual}</div>`;
+    return `<div class="exercise-row accessory-row"><strong>${escapeHtml(item.name)}${badge}</strong><span>${item.work}</span>${note}${actual}</div>`;
   }
   const max = Number(cycle.maxes[item.lift] || bestE1rm(item.lift) || 0);
   const prescription = prescriptionForWeek(item.lift, max, cycle.week, cycle.length, cycle.daysPerWeek, item.variant, cycle.priorityLift, cycle.buddyLevel);
   const detail = guideEnabled() && prescription.detail ? `<p class="guide-note">${prescription.detail}</p>` : "";
-  return `<div class="exercise-row"><strong>${item.name}</strong>${planPrescriptionMarkup(prescription.title)}${detail}${actualInputBlock(item, cycle, prescription.title, prescription.detail, dayIndex, itemIndex)}</div>`;
+  return `<div class="exercise-row main-row"><strong>${item.name}</strong>${planPrescriptionMarkup(prescription.title)}${detail}${actualInputBlock(item, cycle, prescription.title, prescription.detail, dayIndex, itemIndex)}</div>`;
 }
 
 function planPrescriptionMarkup(title = "") {
@@ -3990,7 +4048,7 @@ function planPrescriptionMarkup(title = "") {
   return `
     <div class="plan-prescription">
       ${blocks.map((block) => `
-        <div class="plan-prescription-block">
+        <div class="plan-prescription-block ${block.type}">
           <span>${escapeHtml(block.label)}</span>
           <strong>推奨重量：${escapeHtml(block.weight)}kg</strong>
           <small>調整範囲：${escapeHtml(block.range)}kg</small>
@@ -4011,6 +4069,7 @@ function parsePrescriptionBlocks(title = "") {
     const rpe = match[4];
     return {
       label: index === 0 ? "トップセット" : "バックオフセット",
+      type: index === 0 ? "topset" : "backoff",
       weight: formatNumber(weight),
       range: recommendationRange(weight),
       goal: `${reps}回${sets ? ` ×${sets}セット` : ""} @${rpe}`

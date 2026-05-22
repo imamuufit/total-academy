@@ -7680,3 +7680,252 @@ body::before {
     flex: 1 1 0;
   }
 }
+
+/* v101: PLAN command screen polish */
+.plan-command-card {
+  margin-bottom: 14px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 20px;
+  background:
+    linear-gradient(145deg, rgba(13, 22, 31, 0.94), rgba(5, 9, 14, 0.9)),
+    var(--asset-plan) right center / cover no-repeat;
+  color: #f8fafc;
+  box-shadow: 0 20px 46px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+
+.plan-command-status {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+}
+
+.plan-command-face {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background: linear-gradient(145deg, rgba(34, 197, 94, 0.8), rgba(21, 128, 61, 0.64));
+  color: #ffffff;
+  font-size: 1.45rem;
+  font-weight: 1000;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+
+.wellness-alert .plan-command-face,
+.wellness-fatigue .plan-command-face {
+  background: linear-gradient(145deg, rgba(239, 68, 68, 0.9), rgba(153, 27, 27, 0.72));
+}
+
+.wellness-caution .plan-command-face,
+.wellness-unset .plan-command-face {
+  background: linear-gradient(145deg, rgba(245, 158, 11, 0.9), rgba(146, 64, 14, 0.72));
+}
+
+.plan-command-card h2,
+.plan-command-card p,
+.plan-command-card span,
+.plan-command-card strong,
+.plan-command-card small {
+  color: #f8fafc !important;
+}
+
+.plan-command-card h2 {
+  margin: 2px 0 3px;
+  font-size: clamp(1.12rem, 2.7vw, 1.55rem);
+}
+
+.plan-command-card p {
+  margin: 0;
+  color: #cbd5e1 !important;
+}
+
+.plan-command-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 13px;
+}
+
+.plan-command-grid > div {
+  min-height: 94px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 16px;
+  background: rgba(8, 13, 19, 0.72);
+}
+
+.plan-command-grid span {
+  display: block;
+  color: #ff8a80 !important;
+  font-size: 0.74rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.plan-command-grid strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 1.08rem;
+}
+
+.plan-command-grid small {
+  display: block;
+  margin-top: 5px;
+  color: #dbe4ef !important;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.plan-command-progress {
+  height: 8px;
+  margin-top: 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  overflow: hidden;
+}
+
+.plan-command-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #ef4444, #22c55e);
+}
+
+.plan-day {
+  background: linear-gradient(145deg, rgba(13, 20, 28, 0.96), rgba(5, 9, 14, 0.92)) !important;
+}
+
+.plan-day[open] {
+  border-color: rgba(239, 68, 68, 0.36) !important;
+  box-shadow: 0 22px 48px rgba(0, 0, 0, 0.34);
+}
+
+.plan-day .day-summary {
+  align-items: center;
+}
+
+.plan-day .day-summary h2 {
+  color: #ffffff !important;
+  font-size: clamp(1.05rem, 2.4vw, 1.45rem);
+}
+
+.plan-day .day-summary p {
+  color: #cbd5e1 !important;
+}
+
+.exercise-row {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  background: rgba(4, 8, 12, 0.44);
+}
+
+.exercise-row > strong {
+  color: #ffffff !important;
+}
+
+.exercise-row > span {
+  color: #e5edf7 !important;
+}
+
+.exercise-row.main-row {
+  border-left: 4px solid rgba(239, 68, 68, 0.82);
+}
+
+.exercise-row.accessory-row {
+  border-left: 4px solid rgba(139, 92, 246, 0.78);
+}
+
+.exercise-row.method-row {
+  border-left: 4px solid rgba(34, 197, 94, 0.78);
+}
+
+.plan-prescription {
+  gap: 10px;
+}
+
+.plan-prescription-block {
+  min-height: 112px;
+  border-radius: 16px !important;
+  background: linear-gradient(145deg, rgba(16, 24, 34, 0.98), rgba(5, 8, 12, 0.94)) !important;
+  border-color: rgba(255, 255, 255, 0.16) !important;
+  color: #f8fafc !important;
+}
+
+.plan-prescription-block.topset {
+  border-left: 5px solid #ef4444 !important;
+}
+
+.plan-prescription-block.backoff {
+  border-left: 5px solid #22c55e !important;
+}
+
+.plan-prescription-block span {
+  color: #ff8a80 !important;
+}
+
+.plan-prescription-block.backoff span {
+  color: #86efac !important;
+}
+
+.plan-prescription-block strong {
+  color: #ffffff !important;
+  font-size: 1.02rem;
+}
+
+.plan-prescription-block small,
+.plan-prescription-block em {
+  color: #dbe4ef !important;
+  font-weight: 800;
+}
+
+.plan-prescription > .guide-note {
+  color: #dbe4ef !important;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+@media (max-width: 720px) {
+  .plan-command-card {
+    padding: 13px;
+    border-radius: 17px;
+  }
+
+  .plan-command-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .plan-command-grid > div {
+    min-height: auto;
+    padding: 10px 11px;
+  }
+
+  .plan-command-face {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+  }
+
+  .plan-command-card h2 {
+    font-size: 1.08rem;
+  }
+
+  .plan-command-card p,
+  .plan-command-grid small {
+    font-size: 0.82rem;
+  }
+
+  .plan-prescription {
+    grid-template-columns: 1fr;
+  }
+
+  .plan-prescription-block {
+    min-height: auto;
+  }
+
+  .plan-day .exercise-list {
+    gap: 10px;
+  }
+}
