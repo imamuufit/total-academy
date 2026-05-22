@@ -7929,3 +7929,147 @@ body::before {
     gap: 10px;
   }
 }
+
+/* v102: LOG command screen polish */
+.log-command-panel {
+  margin-bottom: 14px;
+}
+
+.log-command-card {
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 22px;
+  background:
+    linear-gradient(145deg, rgba(10, 17, 24, 0.86), rgba(5, 9, 14, 0.92)),
+    var(--asset-log) right center / cover no-repeat;
+  color: #f8fafc;
+  box-shadow: 0 22px 50px rgba(0, 0, 0, 0.34);
+}
+
+.log-command-card h2,
+.log-command-card p,
+.log-command-card span,
+.log-command-card strong,
+.log-command-card small {
+  color: #f8fafc !important;
+}
+
+.log-command-card h2 {
+  margin: 2px 0 4px;
+  font-size: clamp(1.45rem, 3vw, 2.1rem);
+  letter-spacing: 0;
+}
+
+.log-command-card p {
+  margin: 0;
+  color: #dbe4ef !important;
+}
+
+.log-command-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.log-command-grid article,
+.log-latest-card {
+  padding: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 17px;
+  background: rgba(7, 12, 18, 0.74);
+  text-align: left;
+}
+
+.log-command-grid span,
+.log-latest-card span {
+  display: block;
+  color: #ff8a80 !important;
+  font-size: 0.74rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.log-command-grid strong,
+.log-latest-card strong {
+  display: block;
+  margin-top: 5px;
+  font-size: 1.18rem;
+}
+
+.log-command-grid small,
+.log-latest-card small {
+  display: block;
+  margin-top: 6px;
+  color: #cbd5e1 !important;
+  font-weight: 750;
+  line-height: 1.4;
+}
+
+.log-latest-card {
+  width: 100%;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+.log-latest-card:hover {
+  border-color: rgba(239, 68, 68, 0.42);
+}
+
+.log-form {
+  background:
+    linear-gradient(145deg, rgba(14, 22, 30, 0.95), rgba(5, 9, 14, 0.92)) !important;
+}
+
+.log-form .screen-note {
+  max-width: 720px;
+}
+
+.log-form .form-row {
+  gap: 10px;
+}
+
+.log-form label,
+.set-detail-panel,
+.alternative-panel {
+  background: rgba(5, 9, 14, 0.54) !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+}
+
+.log-form input,
+.log-form select,
+.log-form textarea {
+  color: #f8fafc !important;
+  background: rgba(3, 7, 11, 0.84) !important;
+}
+
+.set-detail-head h3,
+.set-detail-head p {
+  color: #f8fafc !important;
+}
+
+@media (max-width: 720px) {
+  .log-command-card {
+    padding: 14px;
+    border-radius: 18px;
+  }
+
+  .log-command-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .log-command-grid article,
+  .log-latest-card {
+    padding: 11px;
+  }
+
+  .log-command-card h2 {
+    font-size: 1.35rem;
+  }
+
+  .log-command-grid strong,
+  .log-latest-card strong {
+    font-size: 1.05rem;
+  }
+}

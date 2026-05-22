@@ -1198,6 +1198,7 @@ const els = {
   setRows: document.querySelector("#setRows"),
   fillSetRowsBtn: document.querySelector("#fillSetRowsBtn"),
   noteInput: document.querySelector("#noteInput"),
+  logCommandPanel: document.querySelector("#logCommandPanel"),
   quickStats: document.querySelector("#quickStats"),
   metricGrid: document.querySelector("#metricGrid"),
   weeklyDataSummary: document.querySelector("#weeklyDataSummary"),
@@ -1803,6 +1804,7 @@ function render() {
   renderCollapseState(athlete, normalizedCycle());
   renderAthletes();
   renderStats();
+  renderLogCommand(athlete, normalizedCycle());
   renderMetrics();
   renderWeeklyDataSummary(athlete, normalizedCycle());
   renderAcademyEvaluation();
@@ -2609,6 +2611,53 @@ function renderStats() {
     const value = best ? `${e1rm(best.weight, best.reps)}kg` : "-";
     return `<article class="stat-card"><span>${exerciseMeta(exerciseId).badge} e1RM</span><strong>${value}</strong></article>`;
   }).join("");
+}
+
+function renderLogCommand(athlete = currentAthlete(), cycle = normalizedCycle()) {
+  if (!els.logCommandPanel) return;
+  const logs = sortedLogs(athlete);
+  const todayLogs = logs.filter((log) => log.date === today());
+  const last7 = logs.filter((log) => daysAgo(log.date) <= 7);
+  const trainingDays = new Set(last7.map((log) => log.date)).size;
+  const weekTarget = Number(cycle.daysPerWeek || 0);
+  const progressPct = weekTarget ? Math.min(100, Math.round((trainingDays / weekTarget) * 100)) : 0;
+  const wellness = wellnessEvaluation(todayWellnessEntry(athlete));
+  const latest = logs[0];
+  const latestText = latest
+    ? `${escapeHtml(latest.exerciseName || exerciseMeta(latest.exerciseId).name)} ${formatNumber(latest.weight)}kg x ${formatNumber(latest.reps)}`
+    : "まだ記録がありません";
+  els.logCommandPanel.innerHTML = `
+    <article class="log-command-card wellness-${escapeHtml(wellness.status)}">
+      <div>
+        <p class="eyebrow">LOG</p>
+        <h2>記録は、成長の証。</h2>
+        <p>今日の積み重ねが、次の強さをつくります。</p>
+      </div>
+      <div class="log-command-grid">
+        <article>
+          <span>今週のトレーニング</span>
+          <strong>${trainingDays}/${weekTarget || "-"}回</strong>
+          <div class="home-progress"><i style="width:${progressPct}%"></i></div>
+          <small>${weekTarget ? `残り ${Math.max(0, weekTarget - trainingDays)}回で目標達成` : "プラン頻度を設定すると進捗が出ます"}</small>
+        </article>
+        <article>
+          <span>今日の記録</span>
+          <strong>${todayLogs.length}件</strong>
+          <small>${todayLogs.length ? "この下から追加入力できます" : "まず1種目だけでも残しましょう"}</small>
+        </article>
+        <article>
+          <span>今日の体調</span>
+          <strong>${escapeHtml(wellness.label)}</strong>
+          <small>${escapeHtml(wellness.short)}${wellness.score !== null ? ` / ${wellness.score}点` : ""}</small>
+        </article>
+      </div>
+      <button class="log-latest-card" type="button" data-view-target="history">
+        <span>最近の記録</span>
+        <strong>${latestText}</strong>
+        <small>履歴を見る</small>
+      </button>
+    </article>
+  `;
 }
 
 function renderMetrics() {
