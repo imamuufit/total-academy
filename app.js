@@ -1994,11 +1994,31 @@ function renderAthleteDashboard(athlete = currentAthlete(), cycle = normalizedCy
   const classLabel = weightClassMeta(athlete.sex, athlete.weightClass)[1] || "未設定";
   const areaLabel = athlete.prefecture || "未設定";
   const meetLabel = athlete.meetDate || "未設定";
+  const meetDays = daysUntilMeet(athlete);
+  const meetDdayLabel = meetDays === null ? "未設定" : meetDays === 0 ? "D-Day" : meetDays > 0 ? `D-${meetDays}` : `D+${Math.abs(meetDays)}`;
   const goalLine = goalTotalValue
     ? remaining > 0
       ? `目標TOTALまであと +${formatNumber(remaining)}kg`
       : "目標TOTALに到達済み、または更新圏内です"
     : "目標BIG3を入力すると距離が見えます";
+  const sexOptions = [
+    ["male", "男性"],
+    ["female", "女性"],
+    ["", "未設定"]
+  ].map(([value, label]) => `<option value="${value}" ${athlete.sex === value ? "selected" : ""}>${label}</option>`).join("");
+  const classOptions = (weightClasses[athlete.sex || "male"] || weightClasses.male).map(([id, label]) => (
+    `<option value="${escapeHtml(id)}" ${athlete.weightClass === id ? "selected" : ""}>${escapeHtml(label)}</option>`
+  )).join("");
+  const prefectureOptions = [
+    `<option value="" ${athlete.prefecture ? "" : "selected"}>未設定</option>`,
+    ...prefectures.map((prefecture) => `<option value="${escapeHtml(prefecture)}" ${athlete.prefecture === prefecture ? "selected" : ""}>${escapeHtml(prefecture)}</option>`)
+  ].join("");
+  const deleteDisabled = state.athletes.length <= 1 ? "disabled" : "";
+  const athleteSwitchButtons = state.athletes.map((item) => `
+    <button class="athlete-chip dashboard-athlete-chip ${item.id === state.currentAthleteId ? "active" : ""}" type="button" data-dashboard-athlete="${escapeHtml(item.id)}">
+      <strong>${escapeHtml(item.name)}</strong>
+    </button>
+  `).join("");
   const liftInputs = mainLiftIds.map((liftId) => `
     <label>
       <span>現在 ${mainLiftNames[liftId]} 1RM</span>
@@ -2030,15 +2050,50 @@ function renderAthleteDashboard(athlete = currentAthlete(), cycle = normalizedCy
     <div class="dashboard-head">
       <div>
         <span>ATHLETE DASHBOARD</span>
-        <strong>現在1RM・目標・達成率</strong>
+        <strong>現在地・目標・競技情報</strong>
       </div>
-      <button class="text-button compact" type="button" data-view-target="plan">PLANへ</button>
+      <div class="dashboard-actions">
+        <button class="text-button compact" type="button" data-athlete-add>選手追加</button>
+        <button class="text-button compact danger" type="button" data-athlete-delete ${deleteDisabled}>選手削除</button>
+        <button class="text-button compact" type="button" data-view-target="plan">PLANへ</button>
+      </div>
+    </div>
+    <div class="dashboard-athlete-switcher" aria-label="選手切り替え">
+      ${athleteSwitchButtons}
+    </div>
+    <div class="dashboard-status-row">
+      <article><span>現在TOTAL</span><strong>${formatNumber(currentTotalValue)}kg</strong><small>SQ ${formatNumber(currentValues.squat)} / BP ${formatNumber(currentValues.bench)} / DL ${formatNumber(currentValues.deadlift)}</small></article>
+      <article><span>目標TOTAL</span><strong>${goalTotalValue ? `${formatNumber(goalTotalValue)}kg` : "未設定"}</strong><small>${goalLine}</small></article>
+      <article><span>達成率</span><strong>${totalPercent === null ? "-" : `${totalPercent}%`}</strong><small>${remaining === null ? "目標を入れると表示" : remaining > 0 ? `あと ${formatNumber(remaining)}kg` : "更新圏内"}</small></article>
+      <article><span>次の大会</span><strong>${escapeHtml(meetDdayLabel)}</strong><small>${escapeHtml(meetLabel)}</small></article>
     </div>
     <div class="dashboard-input-grid">
       ${liftInputs}
       <label class="goal-total-input">
         <span>目標TOTAL</span>
         <input data-goal-input="total" inputmode="decimal" type="number" min="0" step="2.5" value="${escapeHtml(goalTotalValue || "")}" placeholder="BIG3合計を自動表示">
+      </label>
+    </div>
+    <div class="dashboard-profile-editor" aria-label="競技プロフィール入力">
+      <label>
+        <span>性別</span>
+        <select data-profile-input="sex">${sexOptions}</select>
+      </label>
+      <label>
+        <span>体重</span>
+        <input data-profile-input="bodyweight" inputmode="decimal" type="number" min="0" step="0.1" value="${escapeHtml(athlete.bodyweight || "")}" placeholder="kg">
+      </label>
+      <label>
+        <span>体重階級</span>
+        <select data-profile-input="weightClass">${classOptions}</select>
+      </label>
+      <label>
+        <span>都道府県</span>
+        <select data-profile-input="prefecture">${prefectureOptions}</select>
+      </label>
+      <label>
+        <span>試合予定</span>
+        <input data-profile-input="meetDate" type="date" value="${escapeHtml(athlete.meetDate || "")}">
       </label>
     </div>
     <div class="dashboard-profile-strip">
@@ -2048,6 +2103,13 @@ function renderAthleteDashboard(athlete = currentAthlete(), cycle = normalizedCy
       <article><span>エリア</span><strong>${escapeHtml(areaLabel)}</strong></article>
       <article><span>大会</span><strong>${escapeHtml(meetLabel)}</strong></article>
     </div>
+    <section class="dashboard-association-guide">
+      <div>
+        <span>所属エリア: ${escapeHtml(areaLabel)}</span>
+        <p>大会情報はJPA加盟都道府県協会リンクから、${escapeHtml(athlete.prefecture ? `${athlete.prefecture}協会` : "所属エリアの協会")}を確認してください。</p>
+      </div>
+      <a href="https://www.jpa-powerlifting.or.jp/overview.php" target="_blank" rel="noopener">JPA加盟都道府県協会リンクを見る</a>
+    </section>
     <div class="dashboard-grid">
       <article class="dashboard-card">
         <span>現在地</span>
@@ -2125,20 +2187,27 @@ function renderHomeDashboard(athlete = currentAthlete(), cycle = normalizedCycle
     ? `TOTAL ${formatNumber(goalTotal)}kg / あと ${formatNumber(remaining)}kg`
     : "目標TOTALを入力すると距離が見えます";
   const percentLine = totalPercent === null ? "達成率 -" : `達成率 ${totalPercent}%`;
+  const strategyTitle = wellnessEntry.completed ? `今日の体調: ${wellness.label}` : "今日の体調を確認しましょう";
+  const strategyLead = wellnessEntry.completed
+    ? `Buddy方針: ${wellness.short}`
+    : "ウェルネスチェックを入れると、今日の重量レンジの選び方が出ます。";
+  const strategyDetail = wellnessEntry.completed
+    ? wellness.recommendation
+    : "プランを始める前に、睡眠・食事・疲労・痛み・集中を軽く確認しましょう。";
 
   els.homeDashboard.innerHTML = `
     <section class="home-hero-card">
       <div>
         <span>Platform Buddy</span>
         <h2>強くなりたい気持ちを、計画に変える。</h2>
-        <p>現在地、目標、今日の体調、次の行動をカードで確認して、MAX更新へ進みましょう。</p>
+        <p>Platform Buddyは、BIG3を楽しむあなたを、計画的に強くなるリフターへ導く相棒です。</p>
       </div>
       <div class="home-hero-visual" aria-hidden="true">
         <i></i><b></b><i></i>
       </div>
       <button class="home-guide-chip" type="button" data-view-target="plan">PLANへ</button>
     </section>
-    <section class="home-card-grid">
+    <section class="home-card-grid home-command-grid">
       <button class="home-card primary visual-card visual-plan" type="button" data-view-target="plan">
         <div class="home-card-top"><i class="home-icon plan" aria-hidden="true"></i><span>今日のプラン</span></div>
         <strong>${escapeHtml(method)} / W${cycle.week}</strong>
@@ -2160,22 +2229,27 @@ function renderHomeDashboard(athlete = currentAthlete(), cycle = normalizedCycle
         <strong class="home-metric">${escapeHtml(meetLabel)}</strong>
         <p>${escapeHtml(meetText)}</p>
       </button>
-      <button class="home-card wellness ${escapeHtml(wellness.status)} visual-card visual-wellness" type="button" data-wellness-floating>
-        <div class="home-card-top"><i class="home-icon wellness" aria-hidden="true"></i><span>今日の体調</span></div>
-        <strong>${escapeHtml(wellness.label)}</strong>
-        <p>${wellnessEntry.completed ? `${escapeHtml(wellness.short)} / 詳細を見る` : "未入力 / タップしてチェック"}</p>
-      </button>
-      <button class="home-card buddy ${escapeHtml(weekly.status)} visual-card visual-buddy" type="button" data-view-target="analysis">
-        <div class="home-card-top"><i class="home-icon buddy" aria-hidden="true"></i><span>Buddyコメント</span></div>
+    </section>
+    <section class="home-strategy-card ${escapeHtml(wellness.status)}" data-wellness-floating role="button" tabindex="0">
+      <div class="home-card-top"><i class="home-icon wellness" aria-hidden="true"></i><span>今日の作戦</span></div>
+      <div>
+        <strong>${escapeHtml(strategyTitle)}</strong>
+        <p>${escapeHtml(strategyLead)}</p>
+        <small>${escapeHtml(strategyDetail)}</small>
+      </div>
+    </section>
+    <section class="home-buddy-summary ${escapeHtml(weekly.status)}" data-view-target="analysis" role="button" tabindex="0">
+      <div>
+        <span>Buddyコメント</span>
         <strong>${escapeHtml(weekly.title)}</strong>
         <p>${escapeHtml(weekly.message)}</p>
-      </button>
+      </div>
     </section>
-    <section class="home-shortcut-grid" aria-label="主要機能">
-      <button type="button" data-view-target="plan"><span>PLAN</span><strong>PRサイクル</strong></button>
-      <button type="button" data-view-target="log"><span>LOG</span><strong>自由記録</strong></button>
-      <button type="button" data-view-target="analysis"><span>DATA</span><strong>進捗分析</strong></button>
-      <button type="button" data-view-target="knowledge"><span>MEET</span><strong>大会準備</strong></button>
+    <section class="home-shortcut-grid home-action-grid" aria-label="次の行動">
+      <button type="button" data-view-target="plan"><span>PLAN</span><strong>今日のプランへ</strong></button>
+      <button type="button" data-view-target="log"><span>LOG</span><strong>トレーニングを記録</strong></button>
+      <button type="button" data-view-target="analysis"><span>DATA</span><strong>分析を見る</strong></button>
+      <button type="button" data-view-target="knowledge"><span>MEET</span><strong>大会準備へ</strong></button>
     </section>
   `;
 }
@@ -5646,6 +5720,22 @@ document.addEventListener("click", (event) => {
     render();
     return;
   }
+  const dashboardAthlete = event.target.closest("[data-dashboard-athlete]");
+  if (dashboardAthlete) {
+    state.currentAthleteId = dashboardAthlete.dataset.dashboardAthlete;
+    saveState();
+    render();
+    return;
+  }
+  if (event.target.closest("[data-athlete-add]")) {
+    els.athleteNameInput.value = "";
+    els.athleteDialog.showModal();
+    return;
+  }
+  if (event.target.closest("[data-athlete-delete]")) {
+    deleteCurrentAthlete();
+    return;
+  }
   const viewTarget = event.target.closest("[data-view-target]");
   if (viewTarget) {
     switchView(viewTarget.dataset.viewTarget);
@@ -5911,6 +6001,27 @@ els.meetDateInput.addEventListener("change", () => {
 });
 
 document.addEventListener("change", (event) => {
+  const profileInput = event.target.closest?.("[data-profile-input]");
+  if (profileInput) {
+    const athlete = currentAthlete();
+    const field = profileInput.dataset.profileInput;
+    if (field === "sex") {
+      athlete.sex = profileInput.value;
+      athlete.weightClass = inferWeightClass(athlete.sex || "male", athlete.bodyweight);
+    } else if (field === "bodyweight") {
+      athlete.bodyweight = profileInput.value;
+      athlete.weightClass = inferWeightClass(athlete.sex || "male", athlete.bodyweight);
+    } else if (field === "weightClass") {
+      athlete.weightClass = profileInput.value;
+    } else if (field === "prefecture") {
+      athlete.prefecture = profileInput.value;
+    } else if (field === "meetDate") {
+      athlete.meetDate = profileInput.value;
+    }
+    saveState();
+    render();
+    return;
+  }
   const currentMaxInput = event.target.closest?.("[data-current-max-input]");
   if (currentMaxInput) {
     const liftId = currentMaxInput.dataset.currentMaxInput;
