@@ -6908,3 +6908,349 @@ button,
     min-height: 44px;
   }
 }
+
+/* v99: PLAN readability and compact input sizing */
+.cycle-setup-panel {
+  gap: 12px;
+  padding: 14px 16px !important;
+}
+
+.cycle-setup-panel .section-title {
+  align-items: center;
+}
+
+.cycle-setup-grid {
+  gap: 10px;
+}
+
+.cycle-setup-grid article,
+.cycle-advanced-details,
+.method-guide-grid article,
+.program-method-guide,
+.rpe-scale span,
+.rpe-principle,
+.rpe-confidence,
+.collapse-summary,
+.association-guide a,
+.athlete-chip {
+  border-color: rgba(255, 255, 255, 0.16) !important;
+  background:
+    linear-gradient(145deg, rgba(15, 21, 29, 0.95), rgba(6, 10, 15, 0.88)) !important;
+  color: #f8fafc !important;
+}
+
+.cycle-setup-grid article {
+  min-height: 104px;
+  padding: 13px 15px !important;
+  border-radius: 13px !important;
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.28);
+}
+
+.cycle-setup-grid span,
+.method-guide-head span,
+.method-guide-grid span {
+  color: #ff8a80 !important;
+}
+
+.cycle-setup-grid strong,
+.method-guide-grid strong,
+.program-method-guide strong,
+.rpe-scale strong,
+.rpe-principle strong,
+.rpe-confidence span,
+.association-guide a,
+.athlete-chip {
+  color: #f8fafc !important;
+}
+
+.cycle-setup-grid p,
+.method-guide-grid p,
+.program-method-guide p,
+.rpe-coach-card p,
+.rpe-principle,
+.rpe-confidence-note,
+.association-guide p,
+.athlete-chip small {
+  color: #dbe4ef !important;
+}
+
+.cycle-advanced-details {
+  margin-top: 8px;
+  padding: 8px 10px !important;
+  border-style: solid !important;
+  border-radius: 12px !important;
+}
+
+.cycle-advanced-details summary,
+.collapse-summary {
+  min-height: 40px;
+  border-radius: 10px;
+  color: #f8fafc !important;
+}
+
+.cycle-advanced-details summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rpe-scale {
+  gap: 8px;
+}
+
+.rpe-scale span {
+  min-height: 56px;
+  padding: 9px 10px !important;
+  border-radius: 12px !important;
+  line-height: 1.35;
+}
+
+.rpe-scale strong {
+  color: #f8fafc !important;
+}
+
+.actual-box {
+  gap: 7px;
+}
+
+.actual-grid,
+.actual-set-row {
+  gap: 7px;
+}
+
+.actual-set-row {
+  grid-template-columns: 36px repeat(3, minmax(0, 1fr)) 42px;
+}
+
+.actual-set-row strong {
+  align-self: center;
+  color: #dbe4ef !important;
+  font-size: 0.78rem;
+}
+
+.rpe-confidence {
+  grid-template-columns: minmax(90px, 0.22fr) minmax(170px, 1fr);
+  gap: 7px;
+  padding: 7px 9px !important;
+  border-radius: 12px !important;
+  color: #f8fafc !important;
+}
+
+.rpe-confidence select {
+  min-height: 34px !important;
+  padding: 6px 10px !important;
+}
+
+input,
+select,
+textarea,
+.actual-grid input,
+.actual-grid select,
+.actual-set-row input,
+.actual-set-row select,
+.input-grid input,
+.input-grid select,
+.input-grid textarea,
+.profile-grid input,
+.profile-grid select,
+.profile-grid textarea,
+.cycle-grid input,
+.cycle-grid select,
+.max-grid input,
+.max-grid select,
+.dashboard-input-grid input,
+.dashboard-input-grid select {
+  min-height: 34px;
+  padding: 6px 10px;
+  line-height: 1.2;
+}
+
+.input-grid,
+.profile-grid,
+.cycle-grid,
+.max-grid,
+.dashboard-input-grid {
+  gap: 8px;
+  align-items: end;
+}
+
+.input-grid label,
+.profile-grid label,
+.cycle-grid label,
+.max-grid label,
+.dashboard-input-grid label {
+  gap: 4px;
+  min-height: auto !important;
+  padding: 8px 9px !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  background: rgba(10, 15, 22, 0.78) !important;
+  color: #f8fafc !important;
+}
+
+.input-grid label span,
+.profile-grid label span,
+.cycle-grid label span,
+.max-grid label span,
+.dashboard-input-grid label span,
+.input-grid small,
+.profile-grid small,
+.cycle-grid small,
+.max-grid small,
+.dashboard-input-grid small {
+  color: #dbe4ef !important;
+}
+
+.section-title,
+.panel,
+.compact-panel,
+.home-card,
+.dashboard-card,
+.plan-card,
+.day-card {
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.actual-actions button,
+.primary-action,
+.secondary-action,
+.danger-action {
+  min-height: 38px;
+  padding: 8px 12px;
+}
+
+.weekly-verdict,
+.weekly-data-card,
+.academy-evaluation-card,
+.program-disclaimer,
+.projection-card,
+.recovery-alert-card,
+.rpe-feedback {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  background:
+    linear-gradient(145deg, rgba(15, 21, 29, 0.94), rgba(6, 10, 15, 0.86)) !important;
+  color: #f8fafc !important;
+}
+
+.weekly-verdict span,
+.weekly-verdict strong,
+.weekly-verdict p,
+.weekly-data-card span,
+.weekly-data-card strong,
+.weekly-data-card p,
+.academy-evaluation-card span,
+.academy-evaluation-card strong,
+.academy-evaluation-card p,
+.program-disclaimer,
+.projection-card p,
+.recovery-alert-card,
+.rpe-feedback {
+  color: #f8fafc !important;
+}
+
+.weekly-verdict p,
+.weekly-data-card p,
+.academy-evaluation-card p,
+.projection-card p {
+  color: #dbe4ef !important;
+}
+
+@media (min-width: 900px) {
+  .input-grid,
+  .profile-grid,
+  .cycle-grid,
+  .max-grid,
+  .dashboard-input-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .actual-set-list {
+    gap: 6px;
+  }
+}
+
+@media (max-width: 760px) {
+  .cycle-setup-panel {
+    padding: 12px !important;
+  }
+
+  .cycle-setup-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .cycle-setup-grid article {
+    min-height: auto;
+    padding: 10px 12px !important;
+  }
+
+  .rpe-scale {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .rpe-scale span {
+    min-height: 48px;
+    padding: 8px !important;
+  }
+
+  .actual-set-row {
+    grid-template-columns: 30px repeat(3, minmax(0, 1fr)) 36px;
+    gap: 5px;
+  }
+
+  .actual-set-row strong {
+    font-size: 0.72rem;
+  }
+
+  .rpe-confidence {
+    grid-template-columns: 1fr;
+    gap: 5px;
+    padding: 7px 8px !important;
+  }
+
+  .rpe-confidence select {
+    width: 100%;
+  }
+
+  .actual-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .actual-actions button {
+    width: 100%;
+  }
+
+  .input-grid,
+  .profile-grid,
+  .cycle-grid,
+  .max-grid,
+  .dashboard-input-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+  }
+}
+
+@media (max-width: 430px) {
+  .actual-set-row {
+    grid-template-columns: 26px repeat(3, minmax(0, 1fr)) 34px;
+  }
+
+  .actual-set-row input,
+  .actual-set-row select {
+    padding-left: 7px;
+    padding-right: 7px;
+  }
+
+  .input-grid label,
+  .profile-grid label,
+  .cycle-grid label,
+  .max-grid label,
+  .dashboard-input-grid label {
+    padding: 7px 8px !important;
+  }
+
+  .cycle-setup-panel .section-title {
+    grid-template-columns: 1fr;
+  }
+}
