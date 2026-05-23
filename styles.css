@@ -20,13 +20,13 @@
   --asset-meet-prep: url("meet-prep-bg-lite.jpg");
   --asset-quiz: url("quiz-bg-lite.jpg");
   --asset-wellness: url("wellness-bg-lite.jpg");
-  --asset-buddy: url("buddy-character-lite.jpg");
-  --asset-buddy-normal: url("buddy-team-normal-lite.jpg");
-  --asset-buddy-cheer: url("buddy-team-cheer-lite.jpg");
-  --asset-buddy-caution: url("buddy-team-caution-lite.jpg");
-  --asset-buddy-pr: url("buddy-team-pr-lite.jpg");
-  --asset-buddy-focus: url("buddy-team-focus-lite.jpg");
-  --asset-buddy-meet: url("buddy-team-meet-lite.jpg");
+  --asset-buddy: url("buddy-character-lite.webp");
+  --asset-buddy-normal: url("buddy-team-normal-lite.webp");
+  --asset-buddy-cheer: url("buddy-team-cheer-lite.webp");
+  --asset-buddy-caution: url("buddy-team-caution-lite.webp");
+  --asset-buddy-pr: url("buddy-team-pr-lite.webp");
+  --asset-buddy-focus: url("buddy-team-focus-lite.webp");
+  --asset-buddy-meet: url("buddy-team-meet-lite.webp");
   --asset-icons: url("icon-sheet-lite.jpg");
 }
 
