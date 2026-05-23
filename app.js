@@ -155,6 +155,11 @@ const meetPrepChecklistItems = [
   ["openers", "オープナー候補"],
   ["notebook", "大会ノート準備"]
 ];
+const meetPrepChecklistGroups = [
+  { title: "大会情報", ids: ["guideline", "weighin", "rules"] },
+  { title: "ギア・服装", ids: ["singlet", "belt", "wristwraps", "kneesleeves", "socks", "shoes"] },
+  { title: "試技準備", ids: ["openers", "notebook"] }
+];
 
 const wellnessFields = [
   {
@@ -1183,6 +1188,7 @@ const els = {
   goalDeadliftInput: document.querySelector("#goalDeadliftInput"),
   goalTotalInput: document.querySelector("#goalTotalInput"),
   meetPrepAnnouncement: document.querySelector("#meetPrepAnnouncement"),
+  meetCommandPanel: document.querySelector("#meetCommandPanel"),
   wellnessFloating: document.querySelector("#wellnessFloating"),
   dailyWellnessResult: document.querySelector("#dailyWellnessResult"),
   meetPrepChecklist: document.querySelector("#meetPrepChecklist"),
@@ -1798,6 +1804,7 @@ function render() {
   renderAssociationGuide(athlete);
   renderAthleteDashboard(athlete, normalizedCycle());
   renderMeetPrepAnnouncement(athlete);
+  renderMeetCommand(athlete);
   renderMeetPrepChecklist(athlete);
   renderCycleInputs();
   renderCycleSetupCard(athlete, normalizedCycle());
@@ -1957,6 +1964,101 @@ function meetCountdownText(athlete = currentAthlete()) {
   if (days >= 1) return { label: `D-${days}`, message: "忘れ物、移動、検量、試技順を最終確認しましょう。" };
   if (days === 0) return { label: "D-Day", message: "今日は大会当日。第一試技は白を取りに行きましょう。" };
   return { label: `D+${Math.abs(days)}`, message: "大会ノートに結果と次回課題を残しましょう。" };
+}
+
+function meetPreparationFocus(days) {
+  if (days === null) {
+    return {
+      label: "大会日未設定",
+      title: "大会日を入れると準備が動きます",
+      body: "大会日を入力すると、D-day表示と今日見るべき準備が分かりやすくなります。"
+    };
+  }
+  if (days > 30) {
+    return {
+      label: "D-60〜D-31",
+      title: "要項と全体像を確認",
+      body: "大会要項、出場区分、ルール、プラン全体の流れを早めに確認しましょう。"
+    };
+  }
+  if (days >= 15) {
+    return {
+      label: "D-30〜D-15",
+      title: "ギアと検量を固める",
+      body: "大会要項、検量時間、コスチューム、ベルト、リストラップなどを確認する時期です。"
+    };
+  }
+  if (days >= 7) {
+    return {
+      label: "D-14〜D-7",
+      title: "オープナーと疲労管理",
+      body: "オープナー候補、疲労管理、移動、持ち物を確認して、本番に向けて迷いを減らしましょう。"
+    };
+  }
+  if (days >= 1) {
+    return {
+      label: "D-6〜D-1",
+      title: "忘れ物と当日動線の最終確認",
+      body: "移動、食事、検量、試技順、持ち物を最終確認。第一試技は白を取りにいきましょう。"
+    };
+  }
+  if (days === 0) {
+    return {
+      label: "D-Day",
+      title: "今日は大会当日",
+      body: "第一試技は白を取りにいきましょう。成功試技を積み上げることも競技力です。"
+    };
+  }
+  return {
+    label: `D+${Math.abs(days)}`,
+    title: "大会ノートで次につなげる",
+    body: "試技結果、赤判定の理由、当日の気づきを残して、次のサイクルへつなげましょう。"
+  };
+}
+
+function renderMeetCommand(athlete = currentAthlete()) {
+  if (!els.meetCommandPanel) return;
+  const days = daysUntilMeet(athlete);
+  const countdown = meetCountdownText(athlete);
+  const focus = meetPreparationFocus(days);
+  const dateText = athlete.meetDate ? athlete.meetDate.replaceAll("-", ".") : "大会日未設定";
+  const ddayClass = days === null ? "unset" : days < 0 ? "done" : days <= 14 ? "urgent" : "";
+  const ddayTitle = days === null ? "大会日がまだ設定されていません" : "次の大会まで";
+  const ddayLead = days === null
+    ? "大会日を入力すると、D-dayカウントダウンと準備リストが使いやすくなります。"
+    : days < 0
+      ? `大会から${Math.abs(days)}日経過`
+      : days === 0
+        ? "大会当日"
+        : `大会まで残り${days}日`;
+  els.meetCommandPanel.innerHTML = `
+    <section class="meet-hero-card">
+      <div class="meet-hero-copy">
+        <span>MEET</span>
+        <h2>本番で白を取るために、準備を整えよう。</h2>
+        <p>やるべきことを一つずつ、確実に仕上げていこう。</p>
+      </div>
+    </section>
+    <section class="meet-command-grid">
+      <article class="meet-dday-card ${ddayClass}">
+        <span>${escapeHtml(ddayTitle)}</span>
+        <strong>${escapeHtml(countdown.label)}</strong>
+        <p>${escapeHtml(ddayLead)}</p>
+        <small>${escapeHtml(dateText)}</small>
+      </article>
+      <article class="meet-today-card">
+        <span>${escapeHtml(focus.label)}</span>
+        <strong>${escapeHtml(focus.title)}</strong>
+        <p>${escapeHtml(focus.body)}</p>
+        <a href="#meetPrepChecklist">チェックリストへ</a>
+      </article>
+    </section>
+    <div class="meet-command-actions">
+      <a href="#meetPrepChecklist"><span>準備</span><strong>チェックリスト</strong></a>
+      <button type="button" data-meet-action="quiz"><span>白判定</span><strong>クイズ</strong></button>
+      <a href="#meetNoteTitle"><span>記録</span><strong>大会ノート</strong></a>
+    </div>
+  `;
 }
 
 function nextCycleMilestone(cycle = normalizedCycle()) {
@@ -2161,11 +2263,22 @@ function renderMeetPrepChecklist(athlete = currentAthlete()) {
   const grid = els.meetPrepChecklist.querySelector(".meet-checklist-grid");
   if (!grid) return;
   athlete.meetChecklist = athlete.meetChecklist && typeof athlete.meetChecklist === "object" ? athlete.meetChecklist : {};
-  grid.innerHTML = meetPrepChecklistItems.map(([id, label]) => `
-    <label class="meet-check-item">
-      <input type="checkbox" data-meet-check="${escapeHtml(id)}" ${athlete.meetChecklist[id] ? "checked" : ""}>
-      <span>${escapeHtml(label)}</span>
-    </label>
+  const itemMap = new Map(meetPrepChecklistItems);
+  grid.innerHTML = meetPrepChecklistGroups.map((group) => `
+    <section class="meet-check-group">
+      <h4>${escapeHtml(group.title)}</h4>
+      <div>
+        ${group.ids.map((id) => {
+          const label = itemMap.get(id) || id;
+          return `
+            <label class="meet-check-item">
+              <input type="checkbox" data-meet-check="${escapeHtml(id)}" ${athlete.meetChecklist[id] ? "checked" : ""}>
+              <span>${escapeHtml(label)}</span>
+            </label>
+          `;
+        }).join("")}
+      </div>
+    </section>
   `).join("");
 }
 

@@ -12,7 +12,7 @@
     <link rel="preload" as="image" href="home-bg-lite.jpg">
     <link rel="preload" as="image" href="icon-sheet-lite.jpg">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <link rel="stylesheet" href="styles.css?v=102">
+    <link rel="stylesheet" href="styles.css?v=103">
   </head>
   <body>
     <div class="app-shell">
@@ -544,31 +544,15 @@
         </section>
 
         <section class="view" id="knowledgeView">
-          <section class="panel">
+          <section class="meet-command-panel" id="meetCommandPanel" aria-label="MEET大会準備サマリー"></section>
+          <section class="panel meet-main-panel">
             <div class="section-title">
               <div>
-                <p class="eyebrow">Meet Prep</p>
-                <h2>大会準備</h2>
+                <p class="eyebrow">Meet Tools</p>
+                <h2>大会準備ツール</h2>
               </div>
             </div>
-            <p class="screen-note">大会に出る人だけでなく、白判定の基準で練習を見直す場所です。ルール、持ち物、試技の振り返りをここで確認します。</p>
-            <div class="meet-shortcut-grid">
-              <a class="meet-shortcut" href="https://www.powerlifting.sport/rules/codes/info/technical-rules" target="_blank" rel="noopener">
-                <span>RULE</span>
-                <strong>IPF公式ルール</strong>
-                <small>大会前は必ず最新情報を確認。</small>
-              </a>
-              <a class="meet-shortcut" href="https://www.jpa-powerlifting.or.jp/rules-members.php" target="_blank" rel="noopener">
-                <span>JPA</span>
-                <strong>JPAルールブック</strong>
-                <small>国内大会の要項・通達も確認。</small>
-              </a>
-              <button class="meet-shortcut" type="button" data-meet-action="quiz">
-                <span>3択</span>
-                <strong>白判定クイズ</strong>
-                <small>赤判定を減らす基本を復習。</small>
-              </button>
-            </div>
+            <p class="screen-note meet-screen-note">準備、試技戦略、白判定クイズ、大会ノートへ迷わず進むための大会専用エリアです。</p>
             <section class="meet-prep-checklist" id="meetPrepChecklist" aria-labelledby="meetPrepChecklistTitle">
               <div class="section-title">
                 <div>
@@ -576,9 +560,26 @@
                   <h3 id="meetPrepChecklistTitle">大会準備チェックリスト</h3>
                 </div>
               </div>
-              <p class="meet-rule-note">本アプリはJPA/IPF公式アプリではありません。ルール確認は必ず最新の公式ルールブック、大会要項、当日の審判・大会運営の指示を優先してください。</p>
+              <p class="meet-rule-note">完了した項目からチェックして、大会当日の不安をひとつずつ減らしていきましょう。</p>
               <div class="meet-checklist-grid"></div>
             </section>
+            <div class="meet-shortcut-grid meet-action-grid">
+              <article class="meet-shortcut meet-strategy-card">
+                <span>1st/2nd/3rd</span>
+                <strong>試技戦略</strong>
+                <small>第一は確実に白、第二でトータル、第三で挑戦。成功試技を積み上げる準備をします。</small>
+              </article>
+              <button class="meet-shortcut quiz-shortcut-card" type="button" data-meet-action="quiz">
+                <span>白判定</span>
+                <strong>白判定クイズ</strong>
+                <small>ジャッジの視点を鍛えて、本番の自信に変えましょう。</small>
+              </button>
+              <a class="meet-shortcut meet-note-shortcut" href="#meetNoteTitle">
+                <span>NOTE</span>
+                <strong>大会ノート</strong>
+                <small>試技結果、赤判定の理由、気づきを残して次の大会につなげます。</small>
+              </a>
+            </div>
             <section class="meet-note-panel" aria-labelledby="meetNoteTitle">
               <div class="section-title">
                 <div>
@@ -658,10 +659,10 @@
               <article class="knowledge-card official-rules-card">
                 <span>公式情報</span>
                 <h3>公式ルール</h3>
-                <p>試合に出る前は、IPF技術規則とJPAルールブック・通達の最新版を確認しましょう。アプリ内の説明は学習補助であり、正式判断は公式ルールが基準です。</p>
+                <p>本アプリは、パワーリフティングの学習・記録補助を目的とした個人開発アプリです。JPA、IPF、各都道府県協会の公式アプリではなく、公認・監修・提携を受けたものではありません。ルール情報、クイズ、解説は学習補助であり、最終判断は最新の公式ルールブック、大会要項、当日の審判・大会運営の指示を優先してください。</p>
                 <div class="rule-links">
-                  <a href="https://www.powerlifting.sport/rules/codes/info/technical-rules" target="_blank" rel="noopener">IPF公式ルールを見る</a>
-                  <a href="https://www.jpa-powerlifting.or.jp/rules-members.php" target="_blank" rel="noopener">JPAルールブックを見る</a>
+                  <a href="https://www.powerlifting.sport/rules/codes/info/technical-rules" target="_blank" rel="noopener">IPF技術規則ページを見る</a>
+                  <a href="https://www.jpa-powerlifting.or.jp/rules-members.php" target="_blank" rel="noopener">JPAルール関連ページを見る</a>
                 </div>
               </article>
               <article class="knowledge-card">
@@ -958,6 +959,6 @@
       </form>
     </dialog>
 
-    <script src="app.js?v=102"></script>
+    <script src="app.js?v=103"></script>
   </body>
 </html>
