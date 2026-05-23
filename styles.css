@@ -7656,6 +7656,232 @@ body::before {
   }
 }
 
+/* v105: HOME action area as a compact mission flow */
+.home-strategy-card {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  min-height: 116px;
+  background:
+    linear-gradient(145deg, rgba(9, 18, 25, 0.94), rgba(5, 10, 15, 0.9)),
+    var(--asset-wellness) 82% center / cover no-repeat !important;
+}
+
+.home-strategy-content {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.home-strategy-content strong {
+  font-size: clamp(1.08rem, 2.4vw, 1.35rem);
+}
+
+.home-strategy-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.home-strategy-pills span {
+  min-height: 28px;
+  padding: 6px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #e9f2ff !important;
+  font-size: 0.76rem;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.home-strategy-card.good .home-strategy-pills span:first-child,
+.home-strategy-card.normal .home-strategy-pills span:first-child {
+  border-color: rgba(134, 239, 172, 0.34);
+  background: rgba(34, 197, 94, 0.14);
+  color: #86efac !important;
+}
+
+.home-strategy-card.caution .home-strategy-pills span:first-child,
+.home-strategy-card.fatigue .home-strategy-pills span:first-child {
+  border-color: rgba(251, 191, 36, 0.34);
+  background: rgba(251, 191, 36, 0.12);
+  color: #fcd34d !important;
+}
+
+.home-strategy-card.alert .home-strategy-pills span:first-child {
+  border-color: rgba(248, 113, 113, 0.4);
+  background: rgba(239, 68, 68, 0.16);
+  color: #fca5a5 !important;
+}
+
+.home-strategy-card .home-strategy-content p {
+  max-width: 760px;
+  margin: 0;
+  color: #dbe4ef !important;
+  font-size: 0.88rem;
+  font-weight: 850;
+  line-height: 1.45;
+}
+
+.home-buddy-summary {
+  min-height: 124px;
+  align-items: center;
+  border-color: rgba(134, 239, 172, 0.2);
+  background:
+    linear-gradient(90deg, rgba(8, 18, 14, 0.94), rgba(7, 12, 18, 0.86) 62%, rgba(7, 12, 18, 0.68)),
+    var(--asset-buddy-normal) right bottom / 160px auto no-repeat !important;
+}
+
+.home-buddy-summary strong {
+  display: block;
+  margin-top: 4px;
+  font-size: clamp(1.1rem, 2.4vw, 1.45rem);
+}
+
+.home-buddy-summary p {
+  max-width: 720px;
+  margin-top: 6px;
+}
+
+.home-action-panel {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 20px;
+  background: linear-gradient(145deg, rgba(12, 18, 25, 0.88), rgba(5, 10, 15, 0.82));
+}
+
+.home-action-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.home-action-head span {
+  color: #ff8a80;
+  font-size: 0.72rem;
+  font-weight: 950;
+  letter-spacing: 0.04em;
+}
+
+.home-action-head strong {
+  color: #fff;
+  font-size: 1.05rem;
+}
+
+.home-action-grid {
+  margin-top: 0;
+}
+
+.home-action-grid button {
+  position: relative;
+  overflow: hidden;
+  min-height: 96px;
+  border-radius: 18px;
+}
+
+.home-action-grid button::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 5px;
+  background: #ef4444;
+}
+
+.home-action-grid .home-action-log::before {
+  background: #60a5fa;
+}
+
+.home-action-grid .home-action-data::before {
+  background: #a78bfa;
+}
+
+.home-action-grid .home-action-meet::before {
+  background: #f6c15f;
+}
+
+.home-action-grid button > * {
+  position: relative;
+  z-index: 1;
+}
+
+.home-action-grid small {
+  color: #c8d1de;
+  font-size: 0.72rem;
+  font-weight: 850;
+}
+
+@media (max-width: 640px) {
+  .home-strategy-card {
+    grid-template-columns: 40px minmax(0, 1fr);
+    min-height: auto;
+    gap: 10px;
+  }
+
+  .home-strategy-card .home-card-top {
+    display: contents;
+  }
+
+  .home-strategy-card .home-icon {
+    grid-row: 1 / span 3;
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+  }
+
+  .home-strategy-card .home-card-top span {
+    display: none;
+  }
+
+  .home-strategy-content strong,
+  .home-strategy-pills,
+  .home-strategy-card .home-strategy-content p {
+    grid-column: 2;
+  }
+
+  .home-strategy-card .home-strategy-content p {
+    font-size: 0.78rem;
+  }
+
+  .home-buddy-summary {
+    min-height: 112px;
+    padding-right: 98px;
+    background-size: 104px auto !important;
+  }
+
+  .home-action-panel {
+    padding: 12px;
+    border-radius: 17px;
+  }
+
+  .home-action-head {
+    display: grid;
+    gap: 3px;
+  }
+
+  .home-action-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .home-action-grid button {
+    min-height: 78px;
+    padding: 11px 10px;
+    text-align: left;
+  }
+
+  .home-action-grid strong {
+    font-size: 0.88rem !important;
+  }
+
+  .home-action-grid small {
+    font-size: 0.66rem;
+  }
+}
+
 @media (max-width: 430px) {
   .home-command-grid .home-card {
     min-height: 126px;

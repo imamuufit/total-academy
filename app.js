@@ -2302,13 +2302,7 @@ function renderHomeDashboard(athlete = currentAthlete(), cycle = normalizedCycle
   const goalMain = goalTotal ? `目標TOTAL ${formatNumber(goalTotal)}kg` : "目標TOTAL 未設定";
   const goalGap = goalTotal ? (remaining > 0 ? `あと ${formatNumber(remaining)}kg` : "達成圏内") : "目標を入力";
   const percentLine = totalPercent === null ? "達成率 -" : `達成率 ${totalPercent}%`;
-  const strategyTitle = wellnessEntry.completed ? `今日の体調: ${wellness.label}` : "今日の体調を確認しましょう";
-  const strategyLead = wellnessEntry.completed
-    ? `Buddy方針: ${wellness.short}`
-    : "ウェルネスチェックを入れると、今日の重量レンジの選び方が出ます。";
-  const strategyDetail = wellnessEntry.completed
-    ? wellness.recommendation
-    : "プランを始める前に、睡眠・食事・疲労・痛み・集中を軽く確認しましょう。";
+  const strategy = homeStrategySummary(wellness, wellnessEntry.completed);
 
   els.homeDashboard.innerHTML = `
     <section class="home-hero-card">
@@ -2362,10 +2356,13 @@ function renderHomeDashboard(athlete = currentAthlete(), cycle = normalizedCycle
     </section>
     <section class="home-strategy-card ${escapeHtml(wellness.status)}" data-wellness-floating role="button" tabindex="0">
       <div class="home-card-top"><i class="home-icon wellness" aria-hidden="true"></i><span>今日の作戦</span></div>
-      <div>
-        <strong>${escapeHtml(strategyTitle)}</strong>
-        <p>${escapeHtml(strategyLead)}</p>
-        <small>${escapeHtml(strategyDetail)}</small>
+      <div class="home-strategy-content">
+        <strong>${escapeHtml(strategy.title)}</strong>
+        <div class="home-strategy-pills">
+          <span>${escapeHtml(strategy.condition)}</span>
+          <span>${escapeHtml(strategy.range)}</span>
+        </div>
+        <p>${escapeHtml(strategy.action)}</p>
       </div>
     </section>
     <section class="home-buddy-summary ${escapeHtml(weekly.status)}" data-view-target="analysis" role="button" tabindex="0">
@@ -2375,13 +2372,43 @@ function renderHomeDashboard(athlete = currentAthlete(), cycle = normalizedCycle
         <p>${escapeHtml(weekly.message)}</p>
       </div>
     </section>
-    <section class="home-shortcut-grid home-action-grid" aria-label="次の行動">
-      <button type="button" data-view-target="plan"><span>PLAN</span><strong>今日のプランへ</strong></button>
-      <button type="button" data-view-target="log"><span>LOG</span><strong>トレーニングを記録</strong></button>
-      <button type="button" data-view-target="analysis"><span>DATA</span><strong>分析を見る</strong></button>
-      <button type="button" data-view-target="knowledge"><span>MEET</span><strong>大会準備へ</strong></button>
+    <section class="home-action-panel" aria-label="次の行動">
+      <div class="home-action-head">
+        <span>次の行動</span>
+        <strong>迷ったらここから</strong>
+      </div>
+      <div class="home-shortcut-grid home-action-grid">
+        <button class="home-action-plan" type="button" data-view-target="plan"><span>PLAN</span><strong>今日のプランへ</strong><small>メニュー確認</small></button>
+        <button class="home-action-log" type="button" data-view-target="log"><span>LOG</span><strong>記録する</strong><small>自由トレもここ</small></button>
+        <button class="home-action-data" type="button" data-view-target="analysis"><span>DATA</span><strong>分析を見る</strong><small>進捗と体調</small></button>
+        <button class="home-action-meet" type="button" data-view-target="knowledge"><span>MEET</span><strong>大会準備へ</strong><small>ルールとノート</small></button>
+      </div>
     </section>
   `;
+}
+
+function homeStrategySummary(wellness, completed) {
+  if (!completed) {
+    return {
+      title: "体調チェックから開始",
+      condition: "未入力",
+      range: "レンジ未判定",
+      action: "睡眠・食事・疲労・痛み・集中を確認しましょう。"
+    };
+  }
+  const actions = {
+    alert: "高重量なし。休養・代替・フォーム確認を優先。",
+    fatigue: "下限以下も候補。バックオフは1セット減らす候補。",
+    caution: "下限寄りから開始。予定RPEを最優先。",
+    normal: "中央寄りから開始。軽ければ少し上限寄りへ。",
+    good: "中央〜上限寄りも候補。フォーム再現性は崩さない。"
+  };
+  return {
+    title: "今日の体調と重量方針",
+    condition: wellness.label,
+    range: wellness.short,
+    action: actions[wellness.status] || wellness.recommendation
+  };
 }
 
 function homePlanSummary(cycle = normalizedCycle(), phase = cyclePhase(cycle.week, cycle.length, cycle.programMethod)) {
