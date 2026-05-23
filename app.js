@@ -1153,6 +1153,7 @@ const defaultState = {
 };
 
 let state = loadState();
+let homeDashboardOpenCard = "";
 
 const els = {
   athleteStrip: document.querySelector("#athleteStrip"),
@@ -1828,6 +1829,8 @@ function render() {
 function placeAthleteDashboardInHome() {
   if (!els.athleteDashboard || !els.homeDashboard) return;
   const hero = els.homeDashboard.querySelector(".home-hero-card");
+  const athletePanel = document.querySelector(".athlete-panel");
+  if (athletePanel) athletePanel.classList.add("athlete-panel-shell-hidden");
   els.athleteDashboard.classList.add("home-athlete-dashboard");
   if (hero) {
     hero.insertAdjacentElement("afterend", els.athleteDashboard);
@@ -2084,6 +2087,16 @@ function nextCycleMilestone(cycle = normalizedCycle()) {
 
 function renderAthleteDashboard(athlete = currentAthlete(), cycle = normalizedCycle()) {
   if (!els.athleteDashboard) return;
+  els.athleteDashboard.innerHTML = `
+    <div class="dashboard-head dashboard-head-compact">
+      <div>
+        <span>ATHLETE DASHBOARD</span>
+        <strong>現在地・目標・競技情報</strong>
+        <small>${escapeHtml(athlete.name || "自分")} / ${escapeHtml(athlete.prefecture || "エリア未設定")} / ${escapeHtml(athlete.meetDate || "大会未設定")}</small>
+      </div>
+    </div>
+  `;
+  return;
   athlete.goals = normalizeGoals(athlete.goals);
   const currentValues = Object.fromEntries(mainLiftIds.map((liftId) => [liftId, dashboardCurrentMax(liftId, cycle)]));
   const currentTotalValue = mainLiftIds.reduce((sum, liftId) => sum + currentValues[liftId], 0);
@@ -2303,12 +2316,27 @@ function renderHomeDashboard(athlete = currentAthlete(), cycle = normalizedCycle
   const goalGap = goalTotal ? (remaining > 0 ? `あと ${formatNumber(remaining)}kg` : "達成圏内") : "目標を入力";
   const percentLine = totalPercent === null ? "達成率 -" : `達成率 ${totalPercent}%`;
   const strategy = homeStrategySummary(wellness, wellnessEntry.completed);
+  const detail = homeDashboardDetailMarkup(homeDashboardOpenCard, {
+    athlete,
+    cycle,
+    currentValues,
+    currentTotal,
+    goalValues,
+    goalTotal,
+    remaining,
+    totalPercent,
+    method,
+    phase,
+    homePlan,
+    meetLabel,
+    meetPriority
+  });
 
   els.homeDashboard.innerHTML = `
     <section class="home-hero-card">
       <div>
         <span>Platform Buddy</span>
-        <h2>強くなりたい気持ちを、計画に変える。</h2>
+        <h2>「強くなりたい」を<br>計画に変える。</h2>
         <p>Platform Buddyは、BIG3を楽しむあなたを、計画的に強くなるリフターへ導く相棒です。</p>
       </div>
       <div class="home-hero-visual" aria-hidden="true">
@@ -2317,7 +2345,7 @@ function renderHomeDashboard(athlete = currentAthlete(), cycle = normalizedCycle
       <button class="home-guide-chip" type="button" data-view-target="plan">PLANへ</button>
     </section>
     <section class="home-card-grid home-command-grid">
-      <button class="home-card primary visual-card visual-plan" type="button" data-view-target="plan">
+      <button class="home-card primary visual-card visual-plan ${homeDashboardOpenCard === "plan" ? "active" : ""}" type="button" data-home-card="plan" aria-expanded="${homeDashboardOpenCard === "plan"}">
         <div class="home-card-top"><i class="home-icon plan" aria-hidden="true"></i><span>今日のプラン</span></div>
         <strong>${escapeHtml(method)} / W${cycle.week}</strong>
         <em class="home-phase-pill">${escapeHtml(phase.name)}</em>
@@ -2325,8 +2353,9 @@ function renderHomeDashboard(athlete = currentAthlete(), cycle = normalizedCycle
           <b>狙い</b><span>${escapeHtml(homePlan.aim)}</span>
           <b>成功</b><span>${escapeHtml(homePlan.success)}</span>
         </div>
+        <i class="home-card-caret" aria-hidden="true">${homeDashboardOpenCard === "plan" ? "⌃" : "⌄"}</i>
       </button>
-      <button class="home-card current visual-card visual-current" type="button" data-view-target="analysis">
+      <button class="home-card current visual-card visual-current ${homeDashboardOpenCard === "current" ? "active" : ""}" type="button" data-home-card="current" aria-expanded="${homeDashboardOpenCard === "current"}">
         <div class="home-card-top"><i class="home-icon location" aria-hidden="true"></i><span>現在地</span></div>
         <strong class="home-total-number"><span>TOTAL</span>${formatNumber(currentTotal)}<small>kg</small></strong>
         <div class="home-lift-pills">
@@ -2334,8 +2363,9 @@ function renderHomeDashboard(athlete = currentAthlete(), cycle = normalizedCycle
           <span>BP <b>${formatNumber(currentValues.bench)}</b></span>
           <span>DL <b>${formatNumber(currentValues.deadlift)}</b></span>
         </div>
+        <i class="home-card-caret" aria-hidden="true">${homeDashboardOpenCard === "current" ? "⌃" : "⌄"}</i>
       </button>
-      <button class="home-card goal visual-card visual-goal" type="button" data-view-target="plan">
+      <button class="home-card goal visual-card visual-goal ${homeDashboardOpenCard === "goal" ? "active" : ""}" type="button" data-home-card="goal" aria-expanded="${homeDashboardOpenCard === "goal"}">
         <div class="home-card-top"><i class="home-icon target" aria-hidden="true"></i><span>目標</span></div>
         <strong>${escapeHtml(goalMain)}</strong>
         <p class="home-goal-gap">${escapeHtml(goalGap)}</p>
@@ -2346,14 +2376,17 @@ function renderHomeDashboard(athlete = currentAthlete(), cycle = normalizedCycle
           <span>BP <b>${formatNumber(goalValues.bench || 0)}</b></span>
           <span>DL <b>${formatNumber(goalValues.deadlift || 0)}</b></span>
         </div>
+        <i class="home-card-caret" aria-hidden="true">${homeDashboardOpenCard === "goal" ? "⌃" : "⌄"}</i>
       </button>
-      <button class="home-card meet visual-card visual-meet" type="button" data-view-target="knowledge">
+      <button class="home-card meet visual-card visual-meet ${homeDashboardOpenCard === "meet" ? "active" : ""}" type="button" data-home-card="meet" aria-expanded="${homeDashboardOpenCard === "meet"}">
         <div class="home-card-top"><i class="home-icon meet" aria-hidden="true"></i><span>次の大会</span></div>
         <strong class="home-metric">${escapeHtml(meetLabel)}</strong>
         <p>今週の優先</p>
         <small class="home-card-note">${escapeHtml(meetPriority)}</small>
+        <i class="home-card-caret" aria-hidden="true">${homeDashboardOpenCard === "meet" ? "⌃" : "⌄"}</i>
       </button>
     </section>
+    ${detail}
     <section class="home-strategy-card ${escapeHtml(wellness.status)}" data-wellness-floating role="button" tabindex="0">
       <div class="home-card-top"><i class="home-icon wellness" aria-hidden="true"></i><span>今日の作戦</span></div>
       <div class="home-strategy-content">
@@ -2383,6 +2416,132 @@ function renderHomeDashboard(athlete = currentAthlete(), cycle = normalizedCycle
         <button class="home-action-data" type="button" data-view-target="analysis"><span>DATA</span><strong>分析を見る</strong><small>進捗と体調</small></button>
         <button class="home-action-meet" type="button" data-view-target="knowledge"><span>MEET</span><strong>大会準備へ</strong><small>ルールとノート</small></button>
       </div>
+    </section>
+  `;
+}
+
+function homeDashboardDetailMarkup(openCard, context) {
+  if (!openCard) return "";
+  const { athlete, cycle, currentValues, currentTotal, goalValues, goalTotal, remaining, totalPercent, method, phase, homePlan, meetLabel, meetPriority } = context;
+  const currentInputs = mainLiftIds.map((liftId) => `
+    <label>
+      <span>現在 ${mainLiftNames[liftId]} 1RM</span>
+      <input data-current-max-input="${liftId}" inputmode="decimal" type="number" min="0" step="2.5" value="${escapeHtml(cycle.maxes[liftId] || "")}" placeholder="kg">
+    </label>
+  `).join("");
+  const goalInputs = mainLiftIds.map((liftId) => `
+    <label>
+      <span>目標 ${mainLiftNames[liftId]}</span>
+      <input data-goal-input="${liftId}" inputmode="decimal" type="number" min="0" step="2.5" value="${escapeHtml(athlete.goals?.[liftId] || "")}" placeholder="kg">
+    </label>
+  `).join("");
+  const sexOptions = [
+    ["male", "男性"],
+    ["female", "女性"],
+    ["", "未設定"]
+  ].map(([value, label]) => `<option value="${value}" ${athlete.sex === value ? "selected" : ""}>${label}</option>`).join("");
+  const classOptions = (weightClasses[athlete.sex || "male"] || weightClasses.male).map(([id, label]) => (
+    `<option value="${escapeHtml(id)}" ${athlete.weightClass === id ? "selected" : ""}>${escapeHtml(label)}</option>`
+  )).join("");
+  const prefectureOptions = [
+    `<option value="" ${athlete.prefecture ? "" : "selected"}>未設定</option>`,
+    ...prefectures.map((prefecture) => `<option value="${escapeHtml(prefecture)}" ${athlete.prefecture === prefecture ? "selected" : ""}>${escapeHtml(prefecture)}</option>`)
+  ].join("");
+  const area = athlete.prefecture || "未設定";
+  const target = athlete.prefecture ? `${athlete.prefecture}協会` : "所属エリアの協会";
+  const goalGap = goalTotal
+    ? remaining > 0
+      ? `目標TOTALまであと ${formatNumber(remaining)}kg`
+      : "目標TOTALに到達済み、または更新圏内です"
+    : "目標BIG3を入力すると距離が見えます";
+  const goalPercent = totalPercent === null ? "達成率 -" : `達成率 ${totalPercent}%`;
+
+  const panels = {
+    plan: `
+      <div class="home-detail-head">
+        <span>今日のプラン</span>
+        <strong>${escapeHtml(method)} / W${cycle.week} / ${escapeHtml(phase.name)}</strong>
+        <p>狙い: ${escapeHtml(homePlan.aim)} / 成功: ${escapeHtml(homePlan.success)}</p>
+      </div>
+      <div class="home-detail-stats">
+        <article><span>進行中プラン</span><strong>${escapeHtml(method)}</strong></article>
+        <article><span>現在の週</span><strong>W${cycle.week}</strong></article>
+        <article><span>次の節目</span><strong>${escapeHtml(nextCycleMilestone(cycle))}</strong></article>
+      </div>
+      <div class="home-detail-actions">
+        <button class="primary-button inline" type="button" data-view-target="plan">PLANへ進む</button>
+      </div>
+    `,
+    current: `
+      <div class="home-detail-head">
+        <span>現在地</span>
+        <strong>現在TOTAL ${formatNumber(currentTotal)}kg</strong>
+        <p>SQ / BP / DL を入力すると、現在TOTALが自動でまとまります。</p>
+      </div>
+      <div class="home-detail-grid">
+        ${currentInputs}
+        <article class="home-detail-total"><span>現在TOTAL</span><strong>${formatNumber(currentTotal)}kg</strong></article>
+      </div>
+    `,
+    goal: `
+      <div class="home-detail-head">
+        <span>目標</span>
+        <strong>${goalTotal ? `目標TOTAL ${formatNumber(goalTotal)}kg` : "目標TOTAL 未設定"}</strong>
+        <p>${escapeHtml(goalGap)} / ${escapeHtml(goalPercent)}</p>
+      </div>
+      <div class="home-detail-grid">
+        ${goalInputs}
+        <label class="home-detail-total-input">
+          <span>目標TOTAL</span>
+          <input data-goal-input="total" inputmode="decimal" type="number" min="0" step="2.5" value="${escapeHtml(goalTotal || "")}" placeholder="BIG3合計を自動表示">
+        </label>
+      </div>
+      <div class="home-detail-stats compact">
+        <article><span>SQ</span><strong>${formatNumber(goalValues.squat || 0)}kg</strong></article>
+        <article><span>BP</span><strong>${formatNumber(goalValues.bench || 0)}kg</strong></article>
+        <article><span>DL</span><strong>${formatNumber(goalValues.deadlift || 0)}kg</strong></article>
+      </div>
+    `,
+    meet: `
+      <div class="home-detail-head">
+        <span>次の大会</span>
+        <strong>${escapeHtml(meetLabel)}</strong>
+        <p>${escapeHtml(meetPriority)}</p>
+      </div>
+      <div class="home-detail-grid profile">
+        <label>
+          <span>試合予定日</span>
+          <input data-profile-input="meetDate" type="date" value="${escapeHtml(athlete.meetDate || "")}">
+        </label>
+        <label>
+          <span>性別</span>
+          <select data-profile-input="sex">${sexOptions}</select>
+        </label>
+        <label>
+          <span>体重</span>
+          <input data-profile-input="bodyweight" inputmode="decimal" type="number" min="0" step="0.1" value="${escapeHtml(athlete.bodyweight || "")}" placeholder="kg">
+        </label>
+        <label>
+          <span>体重階級</span>
+          <select data-profile-input="weightClass">${classOptions}</select>
+        </label>
+        <label>
+          <span>都道府県</span>
+          <select data-profile-input="prefecture">${prefectureOptions}</select>
+        </label>
+      </div>
+      <section class="home-association-mini">
+        <div>
+          <span>所属エリア: ${escapeHtml(area)}</span>
+          <p>大会情報はJPA加盟都道府県協会リンクから、${escapeHtml(target)}を確認してください。</p>
+        </div>
+        <a href="https://www.jpa-powerlifting.or.jp/overview.php" target="_blank" rel="noopener">協会リンクを見る</a>
+      </section>
+    `
+  };
+  return `
+    <section class="home-card-detail-panel ${escapeHtml(openCard)}">
+      ${panels[openCard] || ""}
     </section>
   `;
 }
@@ -5881,7 +6040,7 @@ function updateActiveViewClass(viewName = document.querySelector(".tab.active")?
 
 function updateDashboardGoalTotalPreview(sourceInput) {
   if (!sourceInput || sourceInput.dataset.goalInput === "total") return;
-  const dashboard = sourceInput.closest(".athlete-dashboard");
+  const dashboard = sourceInput.closest(".athlete-dashboard, .home-card-detail-panel");
   if (!dashboard) return;
   const totalInput = dashboard.querySelector('[data-goal-input="total"]');
   if (!totalInput) return;
@@ -5918,6 +6077,14 @@ document.addEventListener("click", (event) => {
   const accordionHeader = event.target.closest(".accordion-header");
   if (accordionHeader && !event.target.closest("button, a, input, select, textarea, label")) {
     toggleCollapsed(accordionHeader.dataset.collapseKey);
+    return;
+  }
+  const homeCard = event.target.closest("[data-home-card]");
+  if (homeCard) {
+    const key = homeCard.dataset.homeCard;
+    homeDashboardOpenCard = homeDashboardOpenCard === key ? "" : key;
+    renderHomeDashboard(currentAthlete(), normalizedCycle());
+    placeAthleteDashboardInHome();
     return;
   }
   const wellnessOption = event.target.closest("[data-wellness-option]");
