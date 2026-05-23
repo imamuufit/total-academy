@@ -8410,3 +8410,222 @@ body::before {
     padding: 10px;
   }
 }
+
+/* v104: HOME command cards as readable dashboard cards */
+.home-command-grid .home-card.visual-card {
+  justify-content: space-between;
+  min-height: 176px;
+  gap: 10px;
+  padding: 16px !important;
+  border-color: rgba(255, 255, 255, 0.16);
+  border-radius: 20px;
+}
+
+.home-command-grid .home-card.visual-card::after {
+  opacity: 1;
+}
+
+.home-command-grid .home-card.visual-plan::after {
+  background:
+    linear-gradient(90deg, rgba(3, 7, 11, 0.88), rgba(3, 7, 11, 0.74) 50%, rgba(3, 7, 11, 0.42)),
+    var(--asset-plan) 74% center / 135% auto no-repeat;
+}
+
+.home-command-grid .home-card.visual-current::after {
+  background:
+    radial-gradient(circle at 86% 22%, rgba(139, 92, 246, 0.24), transparent 30%),
+    linear-gradient(135deg, rgba(4, 8, 13, 0.96), rgba(11, 8, 20, 0.9)),
+    var(--asset-data) 72% center / cover no-repeat;
+}
+
+.home-command-grid .home-card.visual-goal::after {
+  background:
+    linear-gradient(90deg, rgba(3, 7, 11, 0.86), rgba(3, 7, 11, 0.7) 54%, rgba(3, 7, 11, 0.38)),
+    var(--asset-goal) 68% center / 135% auto no-repeat;
+}
+
+.home-command-grid .home-card.visual-meet::after,
+.home-command-grid .home-card.meet.visual-meet::after {
+  background:
+    linear-gradient(90deg, rgba(3, 7, 11, 0.84), rgba(3, 7, 11, 0.66) 52%, rgba(3, 7, 11, 0.32)),
+    var(--asset-meet) 62% center / cover no-repeat;
+}
+
+.home-command-grid .home-card.visual-card strong {
+  color: #fff !important;
+  line-height: 1.12;
+}
+
+.home-phase-pill {
+  width: fit-content;
+  padding: 4px 9px;
+  border: 1px solid rgba(134, 239, 172, 0.28);
+  border-radius: 999px;
+  background: rgba(34, 197, 94, 0.12);
+  color: #86efac;
+  font-size: 0.72rem;
+  font-style: normal;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.home-mini-lines {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 5px 8px;
+  margin-top: 2px;
+  font-size: 0.8rem;
+  line-height: 1.28;
+}
+
+.home-mini-lines b {
+  color: #ff8a80;
+  font-size: 0.74rem;
+}
+
+.home-mini-lines span {
+  color: #eef5ff !important;
+  font-weight: 850;
+}
+
+.home-total-number {
+  display: grid;
+  gap: 1px;
+  color: #fff !important;
+  font-size: clamp(2rem, 4.6vw, 3rem) !important;
+  letter-spacing: -0.03em;
+}
+
+.home-total-number span {
+  color: #a78bfa !important;
+  font-size: 0.74rem;
+  letter-spacing: 0;
+}
+
+.home-total-number small {
+  margin-left: 4px;
+  color: #dbe4ef;
+  font-size: 0.78rem;
+  letter-spacing: 0;
+}
+
+.home-lift-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.home-lift-pills span {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  min-height: 28px;
+  padding: 5px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  color: #dbe4ef !important;
+  font-size: 0.72rem;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.home-lift-pills b {
+  color: #fff;
+  font-size: 0.9rem;
+}
+
+.home-lift-pills-compact span {
+  min-height: 24px;
+  padding: 4px 7px;
+}
+
+.home-goal-gap {
+  margin: 0;
+  color: #fff !important;
+  font-size: clamp(1.2rem, 2.8vw, 1.7rem) !important;
+  font-weight: 950 !important;
+  line-height: 1.1 !important;
+}
+
+.home-card-note {
+  color: #e7edf6 !important;
+  font-size: 0.78rem;
+  font-weight: 900;
+  line-height: 1.32;
+}
+
+.home-command-grid .home-card.visual-goal .home-progress {
+  height: 7px;
+  background: rgba(255, 255, 255, 0.17);
+}
+
+.home-command-grid .home-card.visual-meet .home-metric {
+  color: #f6c15f !important;
+  font-size: clamp(2rem, 5vw, 3.25rem);
+  line-height: 0.95;
+}
+
+.home-command-grid .home-card.visual-meet p {
+  margin: 0;
+  color: #f8fafc !important;
+  font-size: 0.82rem;
+  font-weight: 950;
+}
+
+@media (max-width: 860px) {
+  .home-command-grid .home-card.visual-card {
+    min-height: 154px;
+  }
+}
+
+@media (max-width: 640px) {
+  .home-command-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px;
+  }
+
+  .home-command-grid .home-card.visual-card {
+    display: flex !important;
+    flex-direction: column;
+    min-height: 132px;
+    gap: 8px;
+    padding: 13px !important;
+  }
+
+  .home-command-grid .home-card.visual-card .home-card-top {
+    display: flex !important;
+  }
+
+  .home-command-grid .home-card.visual-card .home-card-top span {
+    display: inline !important;
+  }
+
+  .home-command-grid .home-card.visual-card .home-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+  }
+
+  .home-command-grid .home-card.visual-card strong {
+    overflow: visible;
+    white-space: normal;
+    font-size: 1.04rem;
+  }
+
+  .home-total-number {
+    font-size: 2.25rem !important;
+  }
+
+  .home-mini-lines,
+  .home-card-note,
+  .home-command-grid .home-card.visual-meet p {
+    font-size: 0.76rem;
+  }
+
+  .home-command-grid .home-card.visual-plan::after,
+  .home-command-grid .home-card.visual-goal::after {
+    background-size: cover;
+    background-position: 70% center;
+  }
+}

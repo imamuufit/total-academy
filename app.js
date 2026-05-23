@@ -2292,15 +2292,15 @@ function renderHomeDashboard(athlete = currentAthlete(), cycle = normalizedCycle
   const totalPercent = achievementPercent(currentTotal, goalTotal);
   const phase = cyclePhase(cycle.week, cycle.length, cycle.programMethod);
   const method = programMethodInfo(cycle).label.replace(" / BIG3", "").replace(" / ベンチプレスのみ", "");
+  const homePlan = homePlanSummary(cycle, phase);
   const wellnessEntry = todayWellnessEntry(athlete);
   const wellness = wellnessEvaluation(wellnessEntry);
   const weekly = weeklyDataVerdict(weeklyDataSnapshot(athlete, cycle));
   const meetDays = daysUntilMeet(athlete);
   const meetLabel = meetDays === null ? "未設定" : meetDays === 0 ? "D-Day" : meetDays > 0 ? `D-${meetDays}` : `D+${Math.abs(meetDays)}`;
-  const meetText = meetDays === null ? "大会日を入れると準備カードが動きます" : meetCountdownText(athlete).message;
-  const goalLine = goalTotal
-    ? `TOTAL ${formatNumber(goalTotal)}kg / あと ${formatNumber(remaining)}kg`
-    : "目標TOTALを入力すると距離が見えます";
+  const meetPriority = meetPriorityText(meetDays);
+  const goalMain = goalTotal ? `目標TOTAL ${formatNumber(goalTotal)}kg` : "目標TOTAL 未設定";
+  const goalGap = goalTotal ? (remaining > 0 ? `あと ${formatNumber(remaining)}kg` : "達成圏内") : "目標を入力";
   const percentLine = totalPercent === null ? "達成率 -" : `達成率 ${totalPercent}%`;
   const strategyTitle = wellnessEntry.completed ? `今日の体調: ${wellness.label}` : "今日の体調を確認しましょう";
   const strategyLead = wellnessEntry.completed
@@ -2326,23 +2326,38 @@ function renderHomeDashboard(athlete = currentAthlete(), cycle = normalizedCycle
       <button class="home-card primary visual-card visual-plan" type="button" data-view-target="plan">
         <div class="home-card-top"><i class="home-icon plan" aria-hidden="true"></i><span>今日のプラン</span></div>
         <strong>${escapeHtml(method)} / W${cycle.week}</strong>
-        <p>${escapeHtml(phase.name)}: ${escapeHtml(phaseGoalText(cycle, phase))}</p>
+        <em class="home-phase-pill">${escapeHtml(phase.name)}</em>
+        <div class="home-mini-lines">
+          <b>狙い</b><span>${escapeHtml(homePlan.aim)}</span>
+          <b>成功</b><span>${escapeHtml(homePlan.success)}</span>
+        </div>
       </button>
       <button class="home-card current visual-card visual-current" type="button" data-view-target="analysis">
         <div class="home-card-top"><i class="home-icon location" aria-hidden="true"></i><span>現在地</span></div>
-        <strong class="home-metric">TOTAL ${formatNumber(currentTotal)}kg</strong>
-        <p>SQ ${formatNumber(currentValues.squat)} / BP ${formatNumber(currentValues.bench)} / DL ${formatNumber(currentValues.deadlift)}</p>
+        <strong class="home-total-number"><span>TOTAL</span>${formatNumber(currentTotal)}<small>kg</small></strong>
+        <div class="home-lift-pills">
+          <span>SQ <b>${formatNumber(currentValues.squat)}</b></span>
+          <span>BP <b>${formatNumber(currentValues.bench)}</b></span>
+          <span>DL <b>${formatNumber(currentValues.deadlift)}</b></span>
+        </div>
       </button>
       <button class="home-card goal visual-card visual-goal" type="button" data-view-target="plan">
         <div class="home-card-top"><i class="home-icon target" aria-hidden="true"></i><span>目標</span></div>
-        <strong>${escapeHtml(goalLine)}</strong>
+        <strong>${escapeHtml(goalMain)}</strong>
+        <p class="home-goal-gap">${escapeHtml(goalGap)}</p>
         <div class="home-progress"><i style="width:${Math.min(100, totalPercent || 0)}%"></i></div>
-        <p>${escapeHtml(percentLine)} / SQ ${formatNumber(goalValues.squat || 0)} BP ${formatNumber(goalValues.bench || 0)} DL ${formatNumber(goalValues.deadlift || 0)}</p>
+        <small class="home-card-note">${escapeHtml(percentLine)}</small>
+        <div class="home-lift-pills home-lift-pills-compact">
+          <span>SQ <b>${formatNumber(goalValues.squat || 0)}</b></span>
+          <span>BP <b>${formatNumber(goalValues.bench || 0)}</b></span>
+          <span>DL <b>${formatNumber(goalValues.deadlift || 0)}</b></span>
+        </div>
       </button>
       <button class="home-card meet visual-card visual-meet" type="button" data-view-target="knowledge">
         <div class="home-card-top"><i class="home-icon meet" aria-hidden="true"></i><span>次の大会</span></div>
         <strong class="home-metric">${escapeHtml(meetLabel)}</strong>
-        <p>${escapeHtml(meetText)}</p>
+        <p>今週の優先</p>
+        <small class="home-card-note">${escapeHtml(meetPriority)}</small>
       </button>
     </section>
     <section class="home-strategy-card ${escapeHtml(wellness.status)}" data-wellness-floating role="button" tabindex="0">
@@ -2367,6 +2382,28 @@ function renderHomeDashboard(athlete = currentAthlete(), cycle = normalizedCycle
       <button type="button" data-view-target="knowledge"><span>MEET</span><strong>大会準備へ</strong></button>
     </section>
   `;
+}
+
+function homePlanSummary(cycle = normalizedCycle(), phase = cyclePhase(cycle.week, cycle.length, cycle.programMethod)) {
+  const name = phase?.name || "";
+  if (name.includes("蓄積")) return { aim: "軽さの再現", success: "余裕を残して完了" };
+  if (name.includes("ブリッジ")) return { aim: "現在地チェックへ整える", success: "疲労を残さず完了" };
+  if (name.includes("現在地")) return { aim: "今の実力を確認", success: "@8で止める" };
+  if (name.includes("強化")) return { aim: "競技重量に慣れる", success: "フォームを崩さず完了" };
+  if (name.includes("ピーキング")) return { aim: "強さを発揮する準備", success: "軽く鋭く終える" };
+  if (name.includes("MAX") || name.includes("PR") || cycle.week === cycle.length) return { aim: "白判定の試技運び", success: "第一を確実に" };
+  if (cycle.recoveryMode || name.includes("デロード") || name.includes("休養")) return { aim: "疲労を抜く", success: "上限を超えない" };
+  return { aim: "予定RPEを守る", success: "次の週へつなげる" };
+}
+
+function meetPriorityText(days) {
+  if (days === null) return "大会日を設定";
+  if (days > 30) return "要項確認 / ルール確認 / 全体設計";
+  if (days >= 15) return "ギア確認 / 検量確認 / 要項確認";
+  if (days >= 7) return "疲労管理 / 持ち物確認 / 本番準備";
+  if (days >= 1) return "忘れ物確認 / 移動 / 検量";
+  if (days === 0) return "第一試技で白を取る";
+  return "大会ノート / 次回課題";
 }
 
 function renderMeetNotebook(athlete = currentAthlete()) {
