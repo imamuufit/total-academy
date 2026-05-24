@@ -1844,6 +1844,7 @@ function placeAthleteDashboardInHome() {
 function renderOnboarding() {
   if (!els.onboardingScreen) return;
   state.onboarding = { ...defaultState.onboarding, ...(state.onboarding || {}) };
+  document.body.classList.toggle("onboarding-complete", Boolean(state.onboarding.done));
   const daily = shouldShowDailyEntry();
   const show = !state.onboarding.done || daily;
   els.onboardingScreen.classList.toggle("hidden", !show);

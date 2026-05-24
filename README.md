@@ -2,6 +2,16 @@
 
 Platform Buddyは、BIG3の現在地と目標を見える化し、PRサイクル、記録、分析、大会準備までつなげて管理できるパワーリフティング向けPWAです。
 
+## v109の更新内容
+
+このv109では、HOME上部の旧紹介ブロックと新ヒーローの二重表示を整理し、2回目以降ユーザー向けにHOMEヒーローをコンパクト化しました。
+
+- HOME表示時は旧topbar内の長文説明、LOG/PLAN/DATA/MEETタグ、Log/Excelボタンを非表示
+- オンボーディング完了後は、画像付きヒーローを短めに表示して今日のプランへ早く到達できるように調整
+- Service WorkerのCORE_ASSETSに `home-bg-lite.jpg`、`icon-sheet-lite.jpg`、`buddy-team-normal-lite.webp`、`buddy-character-lite.webp` を追加
+- 一部のBuddy画像エイリアスは、旧UI参照との互換性を保つため同じ柴犬Buddy画像を共有していることをCSSコメントに明記
+- PWAキャッシュを `platform-buddy-v109` に更新
+
 ## v108の更新内容
 
 このv108では、旧キャラクター画像が残って表示される環境に対応するため、旧ファイル名の画像も新しい柴犬Buddyへ置き換えました。

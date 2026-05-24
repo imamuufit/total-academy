@@ -20,6 +20,8 @@
   --asset-meet-prep: url("meet-prep-bg-lite.jpg");
   --asset-quiz: url("quiz-bg-lite.jpg");
   --asset-wellness: url("wellness-bg-lite.jpg");
+  /* v109 note: some buddy image aliases intentionally share the same Shiba Buddy asset.
+     This keeps older UI references compatible while replacing the old team images. */
   --asset-buddy: url("buddy-character-lite.webp");
   --asset-buddy-normal: url("buddy-team-normal-lite.webp");
   --asset-buddy-cheer: url("buddy-team-cheer-lite.webp");
@@ -1269,11 +1271,7 @@ textarea {
 }
 
 .home-mode .topbar {
-  border-top-color: rgba(180, 35, 24, 0.9);
-  background:
-    linear-gradient(135deg, rgba(21, 23, 26, 0.98), rgba(9, 12, 16, 0.96)),
-    var(--ink);
-  box-shadow: 0 22px 44px rgba(9, 12, 16, 0.24);
+  display: none !important;
 }
 
 .home-dashboard {
@@ -5856,6 +5854,25 @@ textarea {
 
 .home-hero-card p {
   max-width: 600px;
+}
+
+.home-mode.onboarding-complete .home-hero-card {
+  min-height: 142px;
+  padding: clamp(16px, 2.4vw, 22px);
+}
+
+.home-mode.onboarding-complete .home-hero-card h2 {
+  margin: 4px 0 6px;
+  font-size: clamp(1.65rem, 4vw, 2.45rem);
+}
+
+.home-mode.onboarding-complete .home-hero-card p {
+  max-width: 520px;
+  font-size: 0.88rem;
+}
+
+.home-mode.onboarding-complete .home-hero-visual {
+  opacity: 0.42;
 }
 
 .home-card-grid {

@@ -1,15 +1,19 @@
-const CACHE_NAME = "platform-buddy-v108";
+const CACHE_NAME = "platform-buddy-v109";
 const CORE_ASSETS = [
   "./",
   "index.html",
-  "index.html?v=108",
+  "index.html?v=109",
   "styles.css",
-  "styles.css?v=108",
+  "styles.css?v=109",
   "app.js",
-  "app.js?v=108",
+  "app.js?v=109",
   "manifest.webmanifest",
   "icon.svg",
-  "apple-touch-icon.png"
+  "apple-touch-icon.png",
+  "home-bg-lite.jpg",
+  "icon-sheet-lite.jpg",
+  "buddy-team-normal-lite.webp",
+  "buddy-character-lite.webp"
 ];
 
 self.addEventListener("install", (event) => {
