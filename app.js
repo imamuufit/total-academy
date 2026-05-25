@@ -1113,7 +1113,7 @@ const defaultState = {
   wellnessExpanded: false,
   startAction: "plan",
   onboarding: { done: false, step: "intro", goal: "big3", dailyLastShown: "" },
-  collapsed: { welcome: true, profile: true, buddyMethod: true, cycle: false, facilities: true, meetNote: true, quiz: false },
+  collapsed: { welcome: true, profile: true, cycle: false, facilities: true, meetNote: true, quiz: false },
   quiz: {
     view: "top",
     category: "",
@@ -1696,20 +1696,37 @@ function saveWellnessFromButtons() {
     values[field.id] = active?.dataset.wellnessValue || values[field.id];
   });
   saveTodayWellness(values);
+  closeDailyEntry();
 }
 
 function openDailyWellness() {
-  state.wellnessExpanded = false;
-  state.onboarding = { ...defaultState.onboarding, ...(state.onboarding || {}), done: true, dailyLastShown: "" };
-  saveState();
-  render();
+  if (!els.onboardingScreen) return;
+  state.onboarding = { ...defaultState.onboarding, ...(state.onboarding || {}), done: true };
+  els.onboardingScreen.querySelectorAll("[data-onboarding-step]").forEach((panel) => {
+    panel.classList.toggle("hidden", panel.dataset.onboardingStep !== "daily");
+  });
+  els.onboardingScreen.classList.remove("hidden");
+  document.body.classList.add("onboarding-active");
 }
 
 function renderCollapseState(athlete = currentAthlete(), cycle = normalizedCycle()) {
+  const hadBuddyMethodPreference = Object.prototype.hasOwnProperty.call(state.collapsed || {}, "buddyMethod");
   state.collapsed = { ...defaultState.collapsed, ...(state.collapsed || {}) };
   applyCollapse("profile", els.profilePanelContent, els.profileCollapseBtn, "プロフィール");
   applyCollapse("welcome", els.welcomePanelContent, els.welcomeCollapseBtn, "はじめてガイド");
-  applyCollapse("buddyMethod", els.buddyMethodPanelContent, els.buddyMethodCollapseBtn, "Buddyメソッドとは？");
+  const forceOpenBuddyMethod = cycle.experienceLevel === "beginner" && !hadBuddyMethodPreference;
+  if (forceOpenBuddyMethod) {
+    els.buddyMethodPanelContent?.classList.remove("collapsed");
+    if (els.buddyMethodCollapseBtn) {
+      els.buddyMethodCollapseBtn.textContent = "⌃";
+      els.buddyMethodCollapseBtn.dataset.collapseKey = "buddyMethod";
+      els.buddyMethodCollapseBtn.setAttribute("aria-expanded", "true");
+      els.buddyMethodCollapseBtn.setAttribute("aria-label", "Buddyメソッドとは？を閉じる");
+    }
+  } else {
+    if (!hadBuddyMethodPreference && cycle.experienceLevel !== "beginner") state.collapsed.buddyMethod = true;
+    applyCollapse("buddyMethod", els.buddyMethodPanelContent, els.buddyMethodCollapseBtn, "Buddyメソッドとは？");
+  }
   applyCollapse("cycle", els.cyclePanelContent, els.cycleCollapseBtn, "PRサイクル設計");
   applyCollapse("facilities", els.facilityGrid, els.facilityCollapseBtn, "設備依存種目");
   applyCollapse("meetNote", els.meetNotePanelContent, els.meetNoteCollapseBtn, "大会ノート");
@@ -1860,7 +1877,7 @@ function renderOnboarding() {
 }
 
 function shouldShowDailyEntry() {
-  return Boolean(state.onboarding?.done && state.onboarding.dailyLastShown !== today());
+  return false;
 }
 
 function closeDailyEntry(viewName = "") {
