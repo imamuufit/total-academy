@@ -3491,12 +3491,166 @@ function renderPlan() {
           </div>
           <span class="history-open">▾</span>
         </summary>
-        <div class="exercise-list">
-          ${day.items.map((item, itemIndex) => exerciseLine(item, cycle, index, itemIndex)).join("")}
+        <div class="session-program">
+          ${renderDaySessionTable(day, cycle, index)}
+          <details class="day-actual-details">
+            <summary>この日の実績を入力</summary>
+            <div class="day-rpe-note">RPEは記録と動画確認を通して育てる感覚です。</div>
+            <div class="day-actual-list">
+              ${day.items.map((item, itemIndex) => renderDayActualBlock(item, cycle, index, itemIndex)).join("")}
+            </div>
+          </details>
+          <details class="day-notes-details">
+            <summary>補足を見る</summary>
+            ${renderDayNotes(day, cycle)}
+          </details>
         </div>
       </details>
     `;
   }).join("")}`;
+}
+
+function renderDaySessionTable(day, cycle, dayIndex) {
+  const rows = day.items.flatMap((item, itemIndex) => sessionRowsForItem(item, cycle, dayIndex, itemIndex));
+  if (!rows.length) return `<p class="muted">この日のメニューを確認してください。</p>`;
+  return `
+    <div class="session-sheet-wrap">
+      <table class="session-sheet" aria-label="${escapeHtml(day.title)}のメニュー">
+        <thead>
+          <tr>
+            <th>種目</th>
+            <th>区分</th>
+            <th>重量</th>
+            <th>回数</th>
+            <th>set</th>
+            <th>RPE</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map((row) => `
+            <tr class="${escapeHtml(row.type || "")}">
+              <td class="session-exercise">${escapeHtml(row.name)}</td>
+              <td>${escapeHtml(row.label)}</td>
+              <td class="session-weight">${escapeHtml(row.weight || "—")}</td>
+              <td>${escapeHtml(row.reps || "—")}</td>
+              <td>${escapeHtml(row.sets || "—")}</td>
+              <td>${escapeHtml(row.rpe || "—")}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function sessionRowsForItem(item, cycle, dayIndex, itemIndex) {
+  if (item.kind === "accessory") {
+    return [{
+      name: item.name,
+      label: "補助",
+      type: "accessory",
+      weight: "",
+      reps: extractRepsFromWork(item.work),
+      sets: extractSetsFromWork(item.work),
+      rpe: extractRpeFromWork(item.work),
+      sourceItem: item,
+      itemIndex
+    }];
+  }
+
+  if (item.kind === "method") {
+    const blocks = parsePrescriptionBlocks(item.work);
+    if (!blocks.length) {
+      return [{
+        name: item.name,
+        label: "確認",
+        type: "method",
+        weight: "",
+        reps: item.work || "",
+        sets: "",
+        rpe: "",
+        sourceItem: item,
+        itemIndex
+      }];
+    }
+    return blocks.map((block) => ({
+      name: item.name,
+      label: block.type === "topset" ? "Top" : "Back",
+      type: block.type,
+      weight: `${block.weight}kg`,
+      reps: block.reps,
+      sets: block.sets || "1",
+      rpe: block.rpe,
+      sourceItem: item,
+      itemIndex
+    }));
+  }
+
+  const max = Number(cycle.maxes[item.lift] || bestE1rm(item.lift) || 0);
+  const prescription = prescriptionForWeek(
+    item.lift,
+    max,
+    cycle.week,
+    cycle.length,
+    cycle.daysPerWeek,
+    item.variant,
+    cycle.priorityLift,
+    cycle.buddyLevel
+  );
+  const blocks = parsePrescriptionBlocks(prescription.title);
+  return blocks.map((block) => ({
+    name: item.name,
+    label: block.type === "topset" ? "Top" : "Back",
+    type: block.type,
+    weight: `${block.weight}kg`,
+    reps: block.reps,
+    sets: block.sets || "1",
+    rpe: block.rpe,
+    sourceItem: item,
+    itemIndex,
+    planText: prescription.title,
+    detail: prescription.detail
+  }));
+}
+
+function renderDayActualBlock(item, cycle, dayIndex, itemIndex) {
+  if (!shouldShowActualInput(item)) return "";
+  if (item.kind === "method") return actualInputBlock(item, cycle, item.work, item.note, dayIndex, itemIndex);
+  if (item.kind === "accessory") return actualInputBlock(item, cycle, item.work, item.note, dayIndex, itemIndex);
+  const max = Number(cycle.maxes[item.lift] || bestE1rm(item.lift) || 0);
+  const prescription = prescriptionForWeek(item.lift, max, cycle.week, cycle.length, cycle.daysPerWeek, item.variant, cycle.priorityLift, cycle.buddyLevel);
+  return actualInputBlock(item, cycle, prescription.title, prescription.detail, dayIndex, itemIndex);
+}
+
+function renderDayNotes(day, cycle) {
+  const notes = [];
+  day.items.forEach((item) => {
+    if (item.note) notes.push(`<li><strong>${escapeHtml(item.name)}</strong>：${escapeHtml(item.note)}</li>`);
+    if (item.lift) {
+      const max = Number(cycle.maxes[item.lift] || bestE1rm(item.lift) || 0);
+      const prescription = prescriptionForWeek(item.lift, max, cycle.week, cycle.length, cycle.daysPerWeek, item.variant, cycle.priorityLift, cycle.buddyLevel);
+      if (prescription.detail) notes.push(`<li><strong>${escapeHtml(item.name)}</strong>：${escapeHtml(prescription.detail)}</li>`);
+    }
+  });
+  if (!notes.length) return `<p class="muted">補足はありません。</p>`;
+  return `<ul class="day-notes-list">${notes.join("")}</ul>`;
+}
+
+function extractRepsFromWork(work = "") {
+  const text = String(work);
+  const match = text.match(/(?:x|×)\s*([\d+]+)/i) || text.match(/([\d+]+)\s*回/);
+  return match ? match[1] : "";
+}
+
+function extractSetsFromWork(work = "") {
+  const text = String(work);
+  const match = text.match(/([\d+]+)\s*(?:セット|set)/i) || text.match(/(?:x|×)\s*[\d+]+\s*(?:x|×)\s*([\d+]+)/i);
+  return match ? match[1] : "";
+}
+
+function extractRpeFromWork(work = "") {
+  const match = String(work).match(/@?\s*RPE\s*([\d.]+(?:\s*[〜~-]\s*[\d.]+)?)/i) || String(work).match(/@([\d.]+(?:\s*[〜~-]\s*[\d.]+)?)/);
+  return match ? `@RPE${match[1].replace(/\s+/g, "")}` : "";
 }
 
 function renderPlanContext() {
@@ -4612,7 +4766,6 @@ function actualInputBlock(item, cycle, planText, detail, dayIndex, itemIndex) {
           <option value="learning"${confidence === "learning" ? " selected" : ""}>感覚練習中</option>
         </select>
       </label>
-      ${guideEnabled() ? `<p class="rpe-confidence-note">RPEは信じ込むものではなく育てる感覚です。迷う日は動画、フォーム再現性、バー速度も合わせて判断しましょう。</p>` : ""}
       <div class="actual-actions">
         <button class="text-button compact actual-add-set" type="button">セット追加</button>
         <button class="text-button compact actual-save" type="button">記録</button>

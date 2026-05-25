@@ -9366,3 +9366,92 @@ body::before {
     display: none;
   }
 }
+
+/* v112.04: day session sheet */
+.session-sheet-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(15, 23, 42, 0.72);
+}
+
+.session-sheet {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 620px;
+  font-size: 0.86rem;
+}
+
+.session-sheet th,
+.session-sheet td {
+  padding: 9px 10px;
+  text-align: left;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  white-space: nowrap;
+}
+
+.session-sheet thead th {
+  border-top: 0;
+  color: rgba(248, 250, 252, 0.55);
+  font-size: 0.72rem;
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.session-sheet .session-exercise {
+  font-weight: 900;
+  color: #f8fafc;
+}
+
+.session-sheet tr.topset td {
+  background: rgba(180, 35, 24, 0.06);
+}
+
+.session-sheet tr.backoff td {
+  background: rgba(21, 127, 59, 0.05);
+}
+
+.session-sheet tr.accessory td {
+  background: rgba(255, 255, 255, 0.025);
+  color: rgba(248, 250, 252, 0.82);
+}
+
+.day-actual-details,
+.day-notes-details {
+  margin-top: 10px;
+  border-radius: 14px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.day-actual-details summary,
+.day-notes-details summary {
+  cursor: pointer;
+  font-size: 0.86rem;
+  font-weight: 900;
+  color: rgba(248, 250, 252, 0.86);
+}
+
+.day-rpe-note {
+  margin: 8px 0 10px;
+  font-size: 0.78rem;
+  color: rgba(248, 250, 252, 0.58);
+  line-height: 1.5;
+}
+
+.day-actual-list {
+  display: grid;
+  gap: 10px;
+}
+
+.day-notes-list {
+  margin: 10px 0 0;
+  padding-left: 1.1em;
+  display: grid;
+  gap: 8px;
+  color: rgba(248, 250, 252, 0.68);
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
