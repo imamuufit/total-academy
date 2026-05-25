@@ -3493,13 +3493,6 @@ function renderPlan() {
         </summary>
         <div class="session-program">
           ${renderDaySessionTable(day, cycle, index)}
-          <details class="day-actual-details">
-            <summary>この日の実績を入力</summary>
-            <div class="day-rpe-note">RPEは記録と動画確認を通して育てる感覚です。</div>
-            <div class="day-actual-list">
-              ${day.items.map((item, itemIndex) => renderDayActualBlock(item, cycle, index, itemIndex)).join("")}
-            </div>
-          </details>
           <details class="day-notes-details">
             <summary>補足を見る</summary>
             ${renderDayNotes(day, cycle)}
@@ -3514,14 +3507,15 @@ function renderDaySessionTable(day, cycle, dayIndex) {
   const rows = day.items.flatMap((item, itemIndex) => sessionRowsForItem(item, cycle, dayIndex, itemIndex));
   if (!rows.length) return `<p class="muted">この日のメニューを確認してください。</p>`;
   return `
+    <div class="sheet-scroll-hint">横にスワイプして全項目を見る →</div>
     <div class="session-sheet-wrap">
       <table class="session-sheet" aria-label="${escapeHtml(day.title)}のメニュー">
         <thead>
           <tr>
             <th>種目</th>
             <th>区分</th>
-            <th>重量</th>
-            <th>回数</th>
+            <th>kg</th>
+            <th>回</th>
             <th>set</th>
             <th>RPE</th>
           </tr>

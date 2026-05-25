@@ -9455,3 +9455,74 @@ body::before {
   font-size: 0.82rem;
   line-height: 1.55;
 }
+
+/* v112.05: mobile scroll polish for session sheet */
+.session-sheet-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
+  overscroll-behavior-x: contain;
+  scrollbar-gutter: stable;
+  padding-bottom: 4px;
+}
+
+.session-sheet {
+  min-width: 680px;
+  width: max-content;
+}
+
+.sheet-scroll-hint {
+  display: none;
+}
+
+.session-sheet th,
+.session-sheet td {
+  padding: 8px 9px;
+}
+
+.session-sheet .session-exercise {
+  min-width: 150px;
+}
+
+.session-weight {
+  font-weight: 900;
+  color: #f8fafc;
+}
+
+.session-sheet tr.accessory td {
+  color: rgba(248, 250, 252, 0.72);
+}
+
+@media (max-width: 640px) {
+  .session-sheet-wrap {
+    margin-inline: -2px;
+  }
+
+  .session-sheet {
+    min-width: 700px;
+  }
+
+  .sheet-scroll-hint {
+    display: block;
+    margin: 0 0 6px;
+    color: rgba(248, 250, 252, 0.58);
+    font-size: 0.76rem;
+    font-weight: 800;
+    text-align: right;
+  }
+
+  .session-sheet th:first-child,
+  .session-sheet td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    background: rgba(15, 23, 42, 0.96);
+    box-shadow: 8px 0 12px rgba(0, 0, 0, 0.22);
+  }
+
+  .session-sheet thead th:first-child {
+    z-index: 3;
+  }
+}
