@@ -6033,7 +6033,7 @@ function applyOnboardingPlan() {
   athlete.weightClass = inferWeightClass(athlete.sex || "male", athlete.bodyweight);
   athlete.rpeExperience = els.onboardingRpeExperience?.value || "learning";
   state.startAction = goal === "meet" ? "meet" : "plan";
-  state.collapsed = { ...defaultState.collapsed, ...(state.collapsed || {}), cycle: false, buddyMethod: true, welcome: true };
+  state.collapsed = { ...defaultState.collapsed, ...(state.collapsed || {}), cycle: false, welcome: true };
   state.onboarding.step = "complete";
   saveState();
   render();

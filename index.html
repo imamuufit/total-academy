@@ -12,7 +12,7 @@
     <link rel="preload" as="image" href="home-bg-lite.jpg">
     <link rel="preload" as="image" href="icon-sheet-lite.jpg">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <link rel="stylesheet" href="styles.css?v=110">
+    <link rel="stylesheet" href="styles.css?v=111">
   </head>
   <body>
     <div class="app-shell">
@@ -343,6 +343,17 @@
         </section>
 
         <section class="view" id="analysisView">
+          <section class="panel">
+            <div class="section-title">
+              <div>
+                <p class="eyebrow">Trend</p>
+                <h2>種目別 e1RM</h2>
+              </div>
+              <select id="chartLiftSelect" aria-label="グラフ種目"></select>
+            </div>
+            <canvas id="trendChart" width="720" height="360" aria-label="推定1RMグラフ"></canvas>
+          </section>
+
           <section class="panel weekly-data-panel">
             <div class="section-title">
               <div>
@@ -364,17 +375,6 @@
             </div>
             <p class="screen-note">自分は強くなっているのか、目標へ近づいているのかを確認する画面です。e1RM、記録傾向、Buddyコメントから次の練習判断を見直します。</p>
             <div class="academy-evaluation-list" id="academyEvaluation"></div>
-          </section>
-
-          <section class="panel">
-            <div class="section-title">
-              <div>
-                <p class="eyebrow">Trend</p>
-                <h2>種目別 e1RM</h2>
-              </div>
-              <select id="chartLiftSelect" aria-label="グラフ種目"></select>
-            </div>
-            <canvas id="trendChart" width="720" height="360" aria-label="推定1RMグラフ"></canvas>
           </section>
 
           <section class="metric-grid" id="metricGrid"></section>
@@ -959,6 +959,6 @@
       </form>
     </dialog>
 
-    <script src="app.js?v=110"></script>
+    <script src="app.js?v=111"></script>
   </body>
 </html>
