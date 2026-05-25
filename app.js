@@ -1,4 +1,4 @@
-const STORAGE_KEY = "platform-pr-v3";
+﻿const STORAGE_KEY = "platform-pr-v3";
 const OLD_STORAGE_KEYS = ["platform-pr-v2", "platform-pr-v1"];
 
 const exerciseCatalog = {
@@ -4498,30 +4498,57 @@ function exerciseLine(item, cycle, dayIndex = 0, itemIndex = 0) {
     const badge = item.exerciseId && equipmentLabel(item.exerciseId)
       ? `<em class="equipment-tag">${equipmentLabel(item.exerciseId)}</em>`
       : "";
-    const note = guideEnabled() && item.note ? `<p class="guide-note">${item.note}</p>` : "";
+    const note = guideEnabled() && item.note ? `<p class="guide-note">${escapeHtml(item.note)}</p>` : "";
     const actual = shouldShowActualInput(item) ? actualInputBlock(item, cycle, item.work, item.note, dayIndex, itemIndex) : "";
-    return `<div class="exercise-row accessory-row"><strong>${escapeHtml(item.name)}${badge}</strong><span>${item.work}</span>${note}${actual}</div>`;
+    return `<div class="exercise-row accessory-row"><strong>${escapeHtml(item.name)}${badge}</strong><span>${escapeHtml(item.work)}</span>${note}${actual}</div>`;
   }
   const max = Number(cycle.maxes[item.lift] || bestE1rm(item.lift) || 0);
   const prescription = prescriptionForWeek(item.lift, max, cycle.week, cycle.length, cycle.daysPerWeek, item.variant, cycle.priorityLift, cycle.buddyLevel);
-  const detail = guideEnabled() && prescription.detail ? `<p class="guide-note">${prescription.detail}</p>` : "";
-  return `<div class="exercise-row main-row"><strong>${item.name}</strong>${planPrescriptionMarkup(prescription.title)}${detail}${actualInputBlock(item, cycle, prescription.title, prescription.detail, dayIndex, itemIndex)}</div>`;
+  const phase = cyclePhase(cycle.week, cycle.length, cycle.programMethod);
+  const detailMarkup = guideEnabled() && prescription.detail
+    ? `<details class="set-detail-note">
+        <summary>${escapeHtml(rpeCoachHeadline(phase, cycle))}</summary>
+        <p>${escapeHtml(prescription.detail)}</p>
+      </details>`
+    : "";
+  return `
+    <div class="exercise-row main-row">
+      <div class="exercise-row-header">
+        <strong>${escapeHtml(item.name)}</strong>
+        ${detailMarkup}
+      </div>
+      ${planPrescriptionMarkup(prescription.title)}
+      ${actualInputBlock(item, cycle, prescription.title, prescription.detail, dayIndex, itemIndex)}
+    </div>
+  `;
 }
 
 function planPrescriptionMarkup(title = "") {
   const blocks = parsePrescriptionBlocks(title);
   if (!blocks.length) return `<span>${escapeHtml(title)}</span>`;
   return `
-    <div class="plan-prescription">
-      ${blocks.map((block) => `
-        <div class="plan-prescription-block ${block.type}">
-          <span>${escapeHtml(block.label)}</span>
-          <strong>推奨重量：${escapeHtml(block.weight)}kg</strong>
-          <small>調整範囲：${escapeHtml(block.range)}kg</small>
-          <em>目標：${escapeHtml(block.goal)}</em>
-        </div>
-      `).join("")}
-    </div>
+    <table class="plan-set-table" aria-label="セット予定">
+      <thead>
+        <tr>
+          <th></th>
+          <th>重量</th>
+          <th>回数</th>
+          <th>セット</th>
+          <th>RPE目標</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${blocks.map((block) => `
+          <tr class="plan-set-row ${escapeHtml(block.type)}">
+            <td class="set-label">${block.type === "topset" ? "Top" : "Back"}</td>
+            <td class="set-weight"><strong>${escapeHtml(block.weight)}<small>kg</small></strong></td>
+            <td class="set-reps">${escapeHtml(block.reps)}</td>
+            <td class="set-sets">${block.sets ? `×${escapeHtml(block.sets)}` : "—"}</td>
+            <td class="set-rpe">${escapeHtml(block.rpe)}</td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
   `;
 }
 
@@ -4537,6 +4564,9 @@ function parsePrescriptionBlocks(title = "") {
       type: index === 0 ? "topset" : "backoff",
       weight: formatNumber(weight),
       range: recommendationRange(weight),
+      reps: reps,
+      sets: sets || "",
+      rpe: `@RPE${rpe}`,
       goal: `${reps}回${sets ? ` ×${sets}セット` : ""} @${rpe}`
     };
   });

@@ -9242,3 +9242,127 @@ body::before {
 .rpe-coach-details[open] .rpe-coach-summary {
   margin-bottom: 10px;
 }
+
+/* v112.03: spreadsheet-style set table */
+.plan-set-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  margin: 8px 0 4px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.plan-set-table thead tr {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.plan-set-table th {
+  padding: 6px 10px;
+  text-align: left;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: rgba(248, 250, 252, 0.45);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.plan-set-table td {
+  padding: 8px 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  color: #f8fafc;
+  vertical-align: middle;
+}
+
+.plan-set-row.topset td {
+  background: rgba(180, 35, 24, 0.06);
+}
+
+.plan-set-row.backoff td {
+  background: rgba(21, 127, 59, 0.05);
+}
+
+.set-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: rgba(248, 250, 252, 0.5);
+  white-space: nowrap;
+}
+
+.plan-set-row.topset .set-label {
+  color: var(--accent, #ff5a52);
+}
+
+.plan-set-row.backoff .set-label {
+  color: var(--green, #15723b);
+}
+
+.set-weight strong {
+  font-size: 1.05rem;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+}
+
+.set-weight small {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: rgba(248, 250, 252, 0.5);
+  margin-left: 1px;
+}
+
+.set-reps,
+.set-sets {
+  color: rgba(248, 250, 252, 0.85);
+  font-weight: 700;
+}
+
+.set-rpe {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: rgba(248, 250, 252, 0.6);
+  white-space: nowrap;
+}
+
+.exercise-row-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.set-detail-note {
+  font-size: 0.78rem;
+}
+
+.set-detail-note summary {
+  cursor: pointer;
+  color: rgba(248, 250, 252, 0.45);
+  font-size: 0.75rem;
+  user-select: none;
+  list-style: none;
+}
+
+.set-detail-note summary::-webkit-details-marker {
+  display: none;
+}
+
+.set-detail-note[open] summary {
+  color: rgba(248, 250, 252, 0.7);
+  margin-bottom: 4px;
+}
+
+.set-detail-note p {
+  margin: 0;
+  color: rgba(248, 250, 252, 0.55);
+  line-height: 1.5;
+}
+
+@media (max-width: 380px) {
+  .plan-set-table th:nth-child(3),
+  .plan-set-table td:nth-child(3) {
+    display: none;
+  }
+}
