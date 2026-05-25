@@ -9207,3 +9207,38 @@ body::before {
     grid-template-columns: repeat(1, minmax(0, 1fr));
   }
 }
+
+/* v112.02: rpe-coach accordion */
+.rpe-coach-details {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  margin-bottom: 10px;
+}
+
+.rpe-coach-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.rpe-coach-summary::-webkit-details-marker {
+  display: none;
+}
+
+.rpe-coach-summary .eyebrow {
+  font-size: 0.72rem;
+}
+
+.rpe-coach-summary strong {
+  font-size: 0.88rem;
+  color: #f8fafc;
+}
+
+.rpe-coach-details[open] .rpe-coach-summary {
+  margin-bottom: 10px;
+}

@@ -3561,7 +3561,7 @@ function planCommandCard(cycle, phase, weekDays = weeklyTemplate(cycle)) {
         <div>
           <span>今日の体調</span>
           <strong>${escapeHtml(wellness.label)}</strong>
-          <small>${escapeHtml(wellness.short)}${wellness.score !== null ? ` / ${wellness.score}点` : ""}</small>
+          <small>${wellness.score !== null ? `${wellness.score}点` : "未入力"}</small>
         </div>
         <div>
           <span>今日の方針</span>
@@ -3695,19 +3695,27 @@ function renderRpeCoach(cycle, phase) {
     ? "蓄積期はMAX更新を狙う週ではありません。フォーム再現性・練習量・RPE感覚を作り、現在地チェックで確かめるための期間です。予定RPEより重いなら -2.5〜5kg、軽すぎる時だけ +2.5〜5kgで調整してください。"
     : "表示重量は提案です。予定RPEを超えそうなら重量を下げ、余裕がありすぎる時だけ小さく上げます。RIRはフォーム再現性を含めた余力として使います。";
   els.rpeCoachCard.innerHTML = `
-    <div>
-      <p class="eyebrow">RPE Coach</p>
-      <h3>RPEは育てる感覚、RIRは競技フォーム込みの余力</h3>
-    </div>
-    <p>${guide}</p>
-    <p class="rpe-principle">RPEは最初から正確に当てる数字ではなく、自分の身体感覚を観察して育てるものです。RIRは「競技フォームを保ったまま、あと何回できそうか」で見ます。深さ、止め、ロックアウト、バー軌道が崩れる余力は、RIRに多く数えません。</p>
-    <div class="rpe-scale">
-      <span><strong>RPE 6</strong> RIR 4目安</span>
-      <span><strong>RPE 7</strong> RIR 3目安</span>
-      <span><strong>RPE 8</strong> RIR 2目安</span>
-      <span><strong>RPE 9</strong> RIR 1目安</span>
-    </div>
+    <details class="rpe-coach-details">
+      <summary class="rpe-coach-summary">
+        <span class="eyebrow">RPE Coach</span>
+        <strong>${escapeHtml(rpeCoachHeadline(phase, cycle))}</strong>
+      </summary>
+      <p>${guide}</p>
+      <p class="rpe-principle">RPEは最初から正確に当てる数字ではなく、自分の身体感覚を観察して育てるものです。RIRは「競技フォームを保ったまま、あと何回できそうか」で見ます。深さ、止め、ロックアウト、バー軌道が崩れる余力は、RIRに多く数えません。</p>
+      <div class="rpe-scale">
+        <span><strong>RPE 6</strong> RIR 4目安</span>
+        <span><strong>RPE 7</strong> RIR 3目安</span>
+        <span><strong>RPE 8</strong> RIR 2目安</span>
+        <span><strong>RPE 9</strong> RIR 1目安</span>
+      </div>
+    </details>
   `;
+}
+
+function rpeCoachHeadline(phase, cycle) {
+  if (cycle.buddyLevel === "level2") return "Lv2：RPEと%1RM併用";
+  if ((phase.name || "").includes("蓄積") || (phase.name || "").includes("ブリッジ")) return "蓄積期：MAX更新週ではない";
+  return "予定RPEを守ることを最優先に";
 }
 
 function phasePurpose(phase, cycle = normalizedCycle()) {
@@ -3785,14 +3793,19 @@ function weekLearningCard(cycle, phase) {
   const accumulationNote = isPlatform && ((phase.name || "").includes("蓄積") || (phase.name || "").includes("ブリッジ"))
     ? `<p class="guide-note">この時期はMAX更新を狙う週ではありません。フォーム再現性・練習量・RPE感覚を作り、後半で重さを発揮するための土台を整えます。</p>`
     : "";
+  const purpose = phasePurpose(phase, cycle);
+  const fullGoal = phaseGoalText(cycle, phase);
   return `
     <article class="plan-card week-learning-card">
       <span class="recommended-badge">短期目標</span>
-      <h2>この週で目指すこと</h2>
-      <p>${escapeHtml(phaseGoalText(cycle, phase))}</p>
-      <p class="guide-note"><strong>${escapeHtml(phase.name)}</strong> の目的: ${escapeHtml(phasePurpose(phase, cycle))}</p>
-      ${accumulationNote}
-      ${whiteNine}
+      <h2>${escapeHtml(phase.name)}</h2>
+      <p>${escapeHtml(purpose)}</p>
+      <details>
+        <summary>詳しく見る</summary>
+        <p>${escapeHtml(fullGoal)}</p>
+        ${accumulationNote}
+        ${whiteNine}
+      </details>
     </article>
   `;
 }
@@ -3826,6 +3839,7 @@ function currentCheckCarryoverCard(cycle) {
 }
 
 function rebuild16CarryoverCard(cycle) {
+  if (!guideEnabled()) return "";
   if (cycle.week >= 7 && cycle.week <= 10) {
     return `
       <article class="plan-card week-learning-card">
@@ -4101,6 +4115,12 @@ function recommendedProgramLabel(athlete = currentAthlete(), cycle = normalizedC
 
 function renderCycleSetupCard(athlete = currentAthlete(), cycle = normalizedCycle()) {
   if (!els.cycleSetupPanel) return;
+  if (Number(cycle.week) >= 2) {
+    els.cycleSetupPanel.innerHTML = "";
+    els.cycleSetupPanel.classList.add("hidden");
+    return;
+  }
+  els.cycleSetupPanel.classList.remove("hidden");
   const liftIds = activePlanLiftIds(cycle);
   const maxReady = liftIds.filter((liftId) => Number(cycle.maxes[liftId] || bestE1rm(liftId) || 0));
   const currentTotalValue = liftIds.reduce((sum, liftId) => sum + Number(cycle.maxes[liftId] || bestE1rm(liftId) || 0), 0);
@@ -4501,7 +4521,6 @@ function planPrescriptionMarkup(title = "") {
           <em>目標：${escapeHtml(block.goal)}</em>
         </div>
       `).join("")}
-      ${guideEnabled() ? `<p class="guide-note">その日の調子に合わせて範囲内で重量を選びます。軽く感じる日は上限寄り、重く感じる日は下限寄り。最優先は予定RPEを守ることです。</p>` : ""}
     </div>
   `;
 }
