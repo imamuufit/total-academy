@@ -12,7 +12,7 @@
     <link rel="preload" as="image" href="home-bg-lite.jpg">
     <link rel="preload" as="image" href="icon-sheet-lite.jpg">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <link rel="stylesheet" href="styles.css?v=111">
+    <link rel="stylesheet" href="styles.css?v=112">
   </head>
   <body>
     <div class="app-shell">
@@ -381,6 +381,39 @@
         </section>
 
         <section class="view" id="planView">
+          <section class="panel">
+            <div class="section-title">
+              <div>
+                <p class="eyebrow">This Week</p>
+                <h2 id="cyclePhaseTitle">今週の目的</h2>
+              </div>
+              <div class="week-actions">
+                <button class="text-button" id="prevWeekBtn" type="button">前週へ</button>
+                <button class="text-button" id="nextWeekBtn" type="button">次週へ</button>
+              </div>
+            </div>
+            <p class="cycle-note" id="cyclePhaseNote"></p>
+            <section class="rpe-coach-card" id="rpeCoachCard"></section>
+            <div class="plan-list" id="planList"></div>
+          </section>
+
+          <section class="panel plan-context-panel" id="planContextPanel">
+            <div class="section-title">
+              <div>
+                <p class="eyebrow">This Week</p>
+                <h2 id="planContextTitle">今週の文脈</h2>
+              </div>
+              <button class="collapse-toggle" id="planContextCollapseBtn"
+                type="button"
+                aria-label="今週の文脈を開く"
+                aria-expanded="false">⌄</button>
+            </div>
+            <p class="collapse-summary" id="planContextSummary"></p>
+            <div class="collapsible-content collapsed" id="planContextContent">
+              <div class="plan-context-grid" id="planContextGrid"></div>
+            </div>
+          </section>
+
           <section class="panel buddy-method-panel hidden">
             <div class="section-title">
               <div>
@@ -524,22 +557,6 @@
               </section>
               <div class="projection-grid" id="projectionGrid"></div>
             </div>
-          </section>
-
-          <section class="panel">
-            <div class="section-title">
-              <div>
-                <p class="eyebrow">This Week</p>
-                <h2 id="cyclePhaseTitle">今週の目的</h2>
-              </div>
-              <div class="week-actions">
-                <button class="text-button" id="prevWeekBtn" type="button">前週へ</button>
-                <button class="text-button" id="nextWeekBtn" type="button">次週へ</button>
-              </div>
-            </div>
-            <p class="cycle-note" id="cyclePhaseNote"></p>
-            <section class="rpe-coach-card" id="rpeCoachCard"></section>
-            <div class="plan-list" id="planList"></div>
           </section>
         </section>
 
@@ -959,6 +976,6 @@
       </form>
     </dialog>
 
-    <script src="app.js?v=111"></script>
+    <script src="app.js?v=112"></script>
   </body>
 </html>

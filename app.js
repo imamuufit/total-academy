@@ -1731,6 +1731,12 @@ function renderCollapseState(athlete = currentAthlete(), cycle = normalizedCycle
   applyCollapse("facilities", els.facilityGrid, els.facilityCollapseBtn, "設備依存種目");
   applyCollapse("meetNote", els.meetNotePanelContent, els.meetNoteCollapseBtn, "大会ノート");
   applyCollapse("quiz", els.quizPanelContent, els.quizCollapseBtn, "白判定クイズ");
+  applyCollapse(
+    "planContext",
+    document.querySelector("#planContextContent"),
+    document.querySelector("#planContextCollapseBtn"),
+    "今週の文脈"
+  );
   renderCollapseSummaries(athlete, cycle);
 }
 
@@ -1837,6 +1843,7 @@ function render() {
   renderDataStatus();
   renderHistory();
   renderPlan();
+  renderPlanContext();
   renderMeetNotebook(athlete);
   renderQuiz();
   drawWeeklyDataChart(athlete);
@@ -3490,6 +3497,42 @@ function renderPlan() {
       </details>
     `;
   }).join("")}`;
+}
+
+function renderPlanContext() {
+  const cycle = normalizedCycle();
+  const phase = cyclePhase(cycle.week, cycle.length, cycle.programMethod);
+  const milestone = nextCycleMilestone(cycle);
+  const purpose = phasePurpose(phase, cycle);
+
+  const contextTitle = document.querySelector("#planContextTitle");
+  const contextSummary = document.querySelector("#planContextSummary");
+  const contextGrid = document.querySelector("#planContextGrid");
+
+  if (!contextTitle || !contextGrid) return;
+
+  contextTitle.textContent = `今週の文脈 / W${cycle.week} / ${cycle.length}週中`;
+  if (contextSummary) {
+    contextSummary.textContent = `${phase.name} / 次の節目: ${milestone}`;
+  }
+
+  contextGrid.innerHTML = `
+    <article>
+      <span>現在週</span>
+      <strong>W${cycle.week} / ${cycle.length}週</strong>
+      <p>${escapeHtml(phase.name)}</p>
+    </article>
+    <article>
+      <span>今週のテーマ</span>
+      <strong>${escapeHtml(phase.name)}</strong>
+      <p>${escapeHtml(purpose || phase.note || "")}</p>
+    </article>
+    <article>
+      <span>次の節目</span>
+      <strong>${escapeHtml(milestone)}</strong>
+      <p>このまま進めましょう。</p>
+    </article>
+  `;
 }
 
 function planCommandCard(cycle, phase, weekDays = weeklyTemplate(cycle)) {
