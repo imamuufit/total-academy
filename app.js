@@ -1,4 +1,4 @@
-﻿const STORAGE_KEY = "platform-pr-v3";
+const STORAGE_KEY = "platform-pr-v3";
 const OLD_STORAGE_KEYS = ["platform-pr-v2", "platform-pr-v1"];
 
 const exerciseCatalog = {
@@ -3506,6 +3506,7 @@ function renderPlan() {
 function renderDaySessionTable(day, cycle, dayIndex) {
   const rows = day.items.flatMap((item, itemIndex) => sessionRowsForItem(item, cycle, dayIndex, itemIndex));
   if (!rows.length) return `<p class="muted">この日のメニューを確認してください。</p>`;
+  const inputRows = rows.filter((row) => shouldShowActualInput(row.sourceItem));
   return `
     <div class="sheet-scroll-hint">横にスワイプして全項目を見る →</div>
     <div class="session-sheet-wrap">
@@ -3534,6 +3535,7 @@ function renderDaySessionTable(day, cycle, dayIndex) {
         </tbody>
       </table>
     </div>
+    ${renderSessionActualSection(inputRows, cycle, dayIndex)}
   `;
 }
 
@@ -3548,7 +3550,10 @@ function sessionRowsForItem(item, cycle, dayIndex, itemIndex) {
       sets: extractSetsFromWork(item.work),
       rpe: extractRpeFromWork(item.work),
       sourceItem: item,
-      itemIndex
+      itemIndex,
+      rowIndex: 0,
+      planText: item.work || "",
+      detail: item.note || ""
     }];
   }
 
@@ -3564,10 +3569,13 @@ function sessionRowsForItem(item, cycle, dayIndex, itemIndex) {
         sets: "",
         rpe: "",
         sourceItem: item,
-        itemIndex
+        itemIndex,
+        rowIndex: 0,
+        planText: item.work || "",
+        detail: item.note || ""
       }];
     }
-    return blocks.map((block) => ({
+    return blocks.map((block, rowIndex) => ({
       name: item.name,
       label: block.type === "topset" ? "Top" : "Back",
       type: block.type,
@@ -3576,7 +3584,10 @@ function sessionRowsForItem(item, cycle, dayIndex, itemIndex) {
       sets: block.sets || "1",
       rpe: block.rpe,
       sourceItem: item,
-      itemIndex
+      itemIndex,
+      rowIndex,
+      planText: item.work || "",
+      detail: item.note || ""
     }));
   }
 
@@ -3592,7 +3603,7 @@ function sessionRowsForItem(item, cycle, dayIndex, itemIndex) {
     cycle.buddyLevel
   );
   const blocks = parsePrescriptionBlocks(prescription.title);
-  return blocks.map((block) => ({
+  return blocks.map((block, rowIndex) => ({
     name: item.name,
     label: block.type === "topset" ? "Top" : "Back",
     type: block.type,
@@ -3602,9 +3613,79 @@ function sessionRowsForItem(item, cycle, dayIndex, itemIndex) {
     rpe: block.rpe,
     sourceItem: item,
     itemIndex,
+    rowIndex,
     planText: prescription.title,
     detail: prescription.detail
   }));
+}
+
+function renderSessionActualSection(rows, cycle, dayIndex) {
+  if (!rows.length) return "";
+  const blocks = rows.map((row) => {
+    const item = row.sourceItem;
+    const rowIndex = Number(row.rowIndex || 0);
+    const keyIndex = Number(row.itemIndex || 0) * 10 + rowIndex;
+    const exerciseName = row.label ? `${row.name} ${row.label}` : row.name;
+    const key = planFeedbackKey(cycle, dayIndex, keyIndex, item.lift || item.exerciseId || "custom", exerciseName);
+    const saved = currentAthlete().rpeFeedback?.[key];
+    const confidence = saved?.rpeConfidence || "learning";
+    const prescribedSets = Math.max(1, Math.min(8, Number(row.sets) || 1));
+    const plannedWeight = String(row.weight || "").replace("kg", "");
+    const savedRows = saved?.setDetails?.length
+      ? saved.setDetails
+      : Array.from({ length: prescribedSets }, (_, index) => ({
+          weight: index === 0 ? (saved?.weight ?? plannedWeight ?? "") : "",
+          reps: index === 0 ? (saved?.reps ?? row.reps ?? "") : "",
+          rpe: index === 0 ? (saved?.rpe ?? "") : ""
+        }));
+    const previous = previousFeedbackMarkup(cycle, item);
+    const feedback = saved ? feedbackMarkup(saved) : "";
+    const plannedRpe = plannedRpeFromSessionRow(row.rpe);
+    return `
+      <div class="session-actual-block actual-box"
+           data-plan-key="${escapeHtml(key)}"
+           data-lift="${escapeHtml(item.lift || item.exerciseId || "custom")}"
+           data-source="plan"
+           data-exercise="${escapeHtml(exerciseName)}"
+           data-planned-rpe="${escapeHtml(plannedRpe)}"
+           data-plan-text="${escapeHtml(row.planText || row.reps || "")}">
+        <div class="session-actual-header">
+          <strong>${escapeHtml(row.name)}</strong>
+          <span class="session-actual-label">${escapeHtml(row.label)}</span>
+          ${row.rpe ? `<span class="session-actual-rpe">予定 ${escapeHtml(row.rpe)}</span>` : ""}
+        </div>
+        ${previous}
+        <div class="session-actual-rows actual-set-list">
+          ${savedRows.map((savedRow, index) => actualSetRowMarkup(savedRow, index)).join("")}
+        </div>
+        <div class="session-actual-footer">
+          <label class="rpe-confidence">
+            <span>RPE自信度</span>
+            <select class="actual-rpe-confidence">
+              <option value="solid"${confidence === "solid" ? " selected" : ""}>自信あり</option>
+              <option value="unsure"${confidence === "unsure" ? " selected" : ""}>少し迷う</option>
+              <option value="learning"${confidence === "learning" ? " selected" : ""}>感覚練習中</option>
+            </select>
+          </label>
+          <button class="text-button compact actual-add-set" type="button">＋セット</button>
+          <button class="primary-button inline actual-save" type="button">記録</button>
+        </div>
+        ${feedback}
+      </div>
+    `;
+  }).join("");
+
+  return `
+    <div class="session-actual-section">
+      <p class="session-actual-title">実績入力</p>
+      ${blocks}
+    </div>
+  `;
+}
+
+function plannedRpeFromSessionRow(rpe = "") {
+  const match = String(rpe).match(/[\d.]+/);
+  return match ? match[0] : "";
 }
 
 function renderDayActualBlock(item, cycle, dayIndex, itemIndex) {
