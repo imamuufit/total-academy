@@ -10130,3 +10130,337 @@ body::before {
     gap: 5px;
   }
 }
+
+
+/* v112.12: brighter steel/slate theme pass
+   Goal: keep the Iron Shelter mood, but reduce the X-like black weight.
+   Scope: visual-only. No layout or data behavior changes. */
+:root {
+  --bg: #142033;
+  --surface: rgba(45, 59, 82, 0.96);
+  --paper: rgba(38, 52, 74, 0.96);
+  --ink: #f8fafc;
+  --muted: #d5deea;
+  --line: rgba(226, 232, 240, 0.22);
+  --accent: #ef4444;
+  --accent-dark: #dc2626;
+  --blue: #60a5fa;
+  --green: #34d399;
+  --coach: #38bdf8;
+  --glass: rgba(35, 49, 71, 0.88);
+  --glass-strong: rgba(47, 61, 84, 0.94);
+  --glass-soft: rgba(255, 255, 255, 0.105);
+  --readable: #f8fafc;
+  --readable-soft: #e2e8f0;
+  --shadow: 0 18px 44px rgba(2, 8, 23, 0.24);
+}
+
+html {
+  background: #142033 !important;
+}
+
+body,
+body.home-mode {
+  color: var(--readable) !important;
+  background:
+    radial-gradient(circle at 14% 0, rgba(239, 68, 68, 0.16), transparent 31%),
+    radial-gradient(circle at 88% 10%, rgba(96, 165, 250, 0.16), transparent 34%),
+    linear-gradient(180deg, #1e293b 0%, #182235 42%, #142033 100%) !important;
+  background-attachment: fixed !important;
+}
+
+body::before,
+body.home-mode::before {
+  opacity: 0.56 !important;
+  background:
+    linear-gradient(118deg, transparent 0 54%, rgba(255, 255, 255, 0.045) 54% 55%, transparent 55% 100%),
+    repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 31px) !important;
+}
+
+/* Global surfaces: lift cards from black to readable steel */
+.topbar,
+.panel,
+.compact-panel,
+.plan-card,
+.day-card,
+.data-panel,
+.academy-evaluation-panel,
+.weekly-data-panel,
+.cycle-setup-panel,
+.buddy-method-panel,
+.rpe-coach-card,
+.plan-context-panel,
+.home-card,
+.home-shortcut-grid button,
+.quiz-panel,
+.meet-prep-checklist,
+.meet-prep-announcement,
+.wellness-modal,
+.modal-card,
+.sheet-modal,
+.history-card,
+.import-card,
+.goal-card,
+.log-card {
+  background:
+    linear-gradient(145deg, rgba(47, 61, 84, 0.96), rgba(34, 49, 71, 0.94)) !important;
+  border-color: rgba(226, 232, 240, 0.20) !important;
+  color: var(--readable) !important;
+  box-shadow: 0 18px 42px rgba(2, 8, 23, 0.24) !important;
+}
+
+.panel::before,
+.plan-card::before,
+.day-card::before,
+.home-card::before {
+  opacity: 0.42 !important;
+}
+
+/* Navigation and smaller controls */
+.tabbar,
+.mobile-action-bar,
+.floating-status,
+.guide-toggle-card {
+  background: rgba(20, 32, 51, 0.90) !important;
+  border-color: rgba(226, 232, 240, 0.16) !important;
+  backdrop-filter: blur(14px);
+}
+
+.tab,
+.nav-button,
+.chip,
+.badge,
+.pill,
+.recommended-badge {
+  background: rgba(226, 232, 240, 0.12) !important;
+  border-color: rgba(226, 232, 240, 0.18) !important;
+  color: #dbeafe !important;
+}
+
+.tab.active,
+.nav-button.active {
+  background: rgba(239, 68, 68, 0.90) !important;
+  color: #fff !important;
+}
+
+/* Typography: keep contrast high without pure-white glare */
+h1,
+h2,
+h3,
+strong,
+.section-title,
+.day-card summary,
+.accordion-header {
+  color: #f8fafc !important;
+}
+
+p,
+li,
+small,
+.muted,
+.guide-note,
+.section-note,
+.plan-note,
+.exercise-rpe-hint,
+.accessory-plan-label {
+  color: rgba(226, 232, 240, 0.78) !important;
+}
+
+.eyebrow,
+.brand-subtitle,
+.card-caption,
+.helper-text {
+  color: rgba(203, 213, 225, 0.84) !important;
+}
+
+/* Form controls outside the PLAN sheet */
+input:not(.actual-weight):not(.actual-reps):not(.actual-rpe),
+select,
+textarea {
+  background: rgba(248, 250, 252, 0.10) !important;
+  border-color: rgba(226, 232, 240, 0.22) !important;
+  color: #f8fafc !important;
+}
+
+input:not(.actual-weight):not(.actual-reps):not(.actual-rpe)::placeholder,
+textarea::placeholder {
+  color: rgba(203, 213, 225, 0.58) !important;
+}
+
+select option {
+  background: #1e293b !important;
+  color: #f8fafc !important;
+}
+
+/* PLAN editable sheet: brighter but still industrial */
+.editable-session-sheet {
+  background: rgba(49, 63, 88, 0.94) !important;
+  border-color: rgba(226, 232, 240, 0.22) !important;
+  box-shadow: 0 18px 40px rgba(2, 8, 23, 0.22) !important;
+}
+
+.editable-exercise-sheet {
+  background: transparent !important;
+}
+
+.editable-exercise-head {
+  background: rgba(226, 232, 240, 0.075) !important;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.10) !important;
+}
+
+.editable-exercise-head strong {
+  color: #f8fafc !important;
+}
+
+.editable-set-header-row {
+  background: rgba(15, 23, 42, 0.18) !important;
+}
+
+.editable-set-header-row span {
+  color: rgba(226, 232, 240, 0.76) !important;
+}
+
+.editable-set-row {
+  border-top-color: rgba(226, 232, 240, 0.12) !important;
+}
+
+.editable-set-row:nth-child(even) {
+  background: rgba(226, 232, 240, 0.045) !important;
+}
+
+.editable-set-row:nth-child(odd) {
+  background: rgba(15, 23, 42, 0.055) !important;
+}
+
+.set-meta strong {
+  color: #f8fafc !important;
+}
+
+.set-meta small {
+  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.24);
+}
+
+/* Input cells stay bright because this is the user's main action area */
+.actual-weight,
+.actual-reps,
+.actual-rpe {
+  background: #f8fafc !important;
+  color: #111827 !important;
+  border-color: rgba(255, 255, 255, 0.38) !important;
+  box-shadow:
+    inset 0 1px 2px rgba(15, 23, 42, 0.15),
+    0 1px 0 rgba(255, 255, 255, 0.12) !important;
+}
+
+.actual-weight::placeholder,
+.actual-reps::placeholder,
+.actual-rpe::placeholder {
+  color: rgba(17, 24, 39, 0.42) !important;
+}
+
+.actual-weight:focus,
+.actual-reps:focus,
+.actual-rpe:focus {
+  background: #fff7ed !important;
+  outline: 2px solid rgba(248, 113, 113, 0.82) !important;
+  border-color: rgba(248, 113, 113, 0.96) !important;
+}
+
+/* Section headers and Day cards */
+.day-card {
+  border-color: rgba(248, 113, 113, 0.28) !important;
+}
+
+.day-card > summary,
+.day-card .accordion-header {
+  background: rgba(15, 23, 42, 0.04) !important;
+}
+
+.day-card h2,
+.day-card h3,
+.plan-card h2 {
+  text-decoration-color: rgba(248, 113, 113, 0.42) !important;
+}
+
+/* Keep hero/image cards readable, but reduce black overlay weight */
+.home-hero-card,
+#planView::before,
+#logView::before,
+#analysisView::before,
+#knowledgeView::before {
+  background-blend-mode: normal !important;
+  border-color: rgba(226, 232, 240, 0.18) !important;
+}
+
+#planView::before {
+  background:
+    linear-gradient(90deg, rgba(30, 41, 59, 0.82), rgba(30, 41, 59, 0.40)),
+    var(--asset-plan) center / cover no-repeat,
+    #1e293b !important;
+}
+
+#logView::before {
+  background:
+    linear-gradient(90deg, rgba(30, 41, 59, 0.84), rgba(30, 41, 59, 0.46)),
+    var(--asset-log) center / cover no-repeat,
+    #1e293b !important;
+}
+
+#analysisView::before {
+  background:
+    linear-gradient(90deg, rgba(30, 41, 59, 0.84), rgba(30, 41, 59, 0.44)),
+    var(--asset-data) center / cover no-repeat,
+    #1e293b !important;
+}
+
+#knowledgeView::before {
+  background:
+    linear-gradient(90deg, rgba(30, 41, 59, 0.84), rgba(30, 41, 59, 0.40)),
+    var(--asset-meet) center / cover no-repeat,
+    #1e293b !important;
+}
+
+/* Buttons */
+.primary-button,
+button.primary,
+.actual-save {
+  background: linear-gradient(180deg, #ef4444, #dc2626) !important;
+  color: #fff !important;
+  border-color: rgba(255, 255, 255, 0.16) !important;
+}
+
+.text-button,
+.secondary-button,
+.actual-add-set {
+  background: rgba(226, 232, 240, 0.12) !important;
+  color: #f8fafc !important;
+  border-color: rgba(226, 232, 240, 0.18) !important;
+}
+
+.actual-remove-set {
+  background: rgba(248, 113, 113, 0.22) !important;
+  color: #fecaca !important;
+  border-color: rgba(248, 113, 113, 0.42) !important;
+}
+
+/* Mobile: slightly brighter cards, no heavy black blocks */
+@media (max-width: 640px) {
+  body,
+  body.home-mode {
+    background:
+      radial-gradient(circle at 18% 0, rgba(239, 68, 68, 0.16), transparent 34%),
+      linear-gradient(180deg, #1e293b 0%, #182235 38%, #142033 100%) !important;
+  }
+
+  .panel,
+  .compact-panel,
+  .plan-card,
+  .day-card,
+  .editable-session-sheet {
+    background: rgba(45, 59, 82, 0.96) !important;
+  }
+
+  .editable-exercise-head {
+    background: rgba(226, 232, 240, 0.085) !important;
+  }
+}
