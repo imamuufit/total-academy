@@ -10081,3 +10081,51 @@ body::before {
     gap: 7px;
   }
 }
+
+/* v112.11: slate/steel color lift + accessory display */
+
+.editable-exercise-sheet {
+  background: rgba(30, 41, 59, 0.78);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.editable-exercise-head {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.editable-set-head {
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.editable-set-row:nth-child(even) {
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.accessory-plan-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: rgba(248, 250, 252, 0.7);
+  white-space: nowrap;
+}
+
+.set-kind-accessory {
+  color: var(--green, #34d399) !important;
+}
+
+.accessory-row {
+  grid-template-columns: 60px 1fr 1fr 1fr 34px;
+}
+
+@media (max-width: 640px) {
+  .editable-exercise-sheet {
+    background: rgba(28, 38, 54, 0.82);
+  }
+
+  .accessory-row {
+    grid-template-columns: 54px 1fr 1fr 1fr 30px;
+    gap: 5px;
+  }
+}

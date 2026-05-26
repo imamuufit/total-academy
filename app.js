@@ -3662,15 +3662,17 @@ function renderEditableExerciseSheet(item, cycle, dayIndex, itemIndex) {
 
 function prescribedSetRows(item, cycle) {
   if (item.kind === "accessory" || item.kind === "method") {
-    const reps = extractRepsFromWork(item.work);
+    const acc = parseAccessoryWork(item.work);
     return [{
-      kind: item.kind === "accessory" ? "補助" : "確認",
+      kind:          item.kind === "accessory" ? "補助" : "確認",
       plannedWeight: "",
-      plannedReps: reps,
-      plannedRpe: "",
-      weight: "",
-      reps,
-      rpe: ""
+      plannedReps:   acc.reps,
+      plannedSets:   acc.sets,
+      plannedRpe:    acc.rpe ? acc.rpe.replace(/@?RPE/g, "").trim() : "",
+      plannedLabel:  acc.label,
+      weight:        "",
+      reps:          "",
+      rpe:           ""
     }];
   }
   const blocks = parsePrescriptionBlocks(planTextForActualItem(item, cycle));
@@ -3740,15 +3742,32 @@ function renderDayNotes(day, cycle) {
 }
 
 function extractRepsFromWork(work = "") {
-  const text = String(work);
-  const match = text.match(/(?:x|×)\s*([\d+]+)/i) || text.match(/([\d+]+)\s*回/);
-  return match ? match[1] : "";
+  const text = String(work || "").replace(/×/g, "x");
+  const repsMatch =
+    text.match(/(\d+(?:[〜~\-]\d+)?\+?)\s*回/) ||
+    text.match(/^(\d+(?:[〜~\-]\d+)?\+?)\s*x/i);
+  return repsMatch ? repsMatch[1] : "";
 }
 
 function extractSetsFromWork(work = "") {
-  const text = String(work);
-  const match = text.match(/([\d+]+)\s*(?:セット|set)/i) || text.match(/(?:x|×)\s*[\d+]+\s*(?:x|×)\s*([\d+]+)/i);
-  return match ? match[1] : "";
+  const text = String(work || "").replace(/×/g, "x");
+  const setMatch =
+    text.match(/(\d+)\s*(?:set|セット)/i) ||
+    text.match(/回\s*x\s*(\d+)/i) ||
+    text.match(/x\s*(\d+)\s*$/i);
+  return setMatch ? setMatch[1] : "";
+}
+
+function parseAccessoryWork(work = "") {
+  const reps = extractRepsFromWork(work);
+  const sets = extractSetsFromWork(work);
+  const rpe  = extractRpeFromWork(work);
+  const label = [
+    reps ? `${reps}回` : "",
+    sets ? `${sets}set` : "",
+    rpe  ? rpe.replace("@RPE", "@") : ""
+  ].filter(Boolean).join(" × ");
+  return { reps, sets, rpe, label };
 }
 
 function extractRpeFromWork(work = "") {
@@ -4883,21 +4902,49 @@ function actualSetRowMarkup(row = {}, index = 0) {
 }
 
 function editableActualSetRowMarkup(row = {}, index = 0) {
-  const plannedKg = String(row.plannedWeight ?? row.weight ?? "");
-  const plannedReps = String(row.plannedReps ?? row.reps ?? "");
+  const plannedKg   = String(row.plannedWeight ?? row.weight ?? "");
+  const plannedReps = String(row.plannedReps   ?? row.reps   ?? "");
   const plannedRpeRaw = String(row.plannedRpe ?? "").replace(/@/g, "").replace(/RPE/g, "").trim();
-  const kind = row.kind || row.label || "";
-  const kindLower = String(kind).toLowerCase();
-  const kindClass = kindLower.includes("top")
+  const kind        = row.kind || row.label || "";
+  const kindLower   = String(kind).toLowerCase();
+  const isAccessory = kind === "補助" || kind === "確認";
+  const kindClass   = kindLower.includes("top")
     ? "set-kind-top"
     : kindLower.includes("back")
       ? "set-kind-back"
-      : String(kind).includes("補助")
+      : isAccessory
         ? "set-kind-accessory"
         : "set-kind-default";
-  const actualKg = String(row.weight ?? plannedKg ?? "");
-  const actualReps = String(row.reps ?? plannedReps ?? "");
-  const actualRpe = String(row.rpe ?? "");
+  const actualKg   = String(row.weight ?? "");
+  const actualReps = String(row.reps   ?? "");
+  const actualRpe  = String(row.rpe    ?? "");
+
+  if (isAccessory) {
+    // 補助種目：重量なし・処方ラベル表示・回数とRPEのみ入力
+    const label = row.plannedLabel || [
+      plannedReps ? `${plannedReps}回` : "",
+      row.plannedSets ? `${row.plannedSets}set` : ""
+    ].filter(Boolean).join(" × ");
+    return `
+      <div class="editable-set-row actual-set-row accessory-row">
+        <div class="set-meta">
+          <strong>S${index + 1}</strong>
+          <small class="${kindClass}">${escapeHtml(kind)}</small>
+        </div>
+        <span class="accessory-plan-label">
+          ${escapeHtml(label || "—")}
+        </span>
+        <input type="hidden" class="actual-weight" value="">
+        <input class="actual-reps" aria-label="実回数" inputmode="numeric" type="number" min="1" step="1"
+          placeholder="${escapeHtml(plannedReps || "回")}" value="${escapeHtml(actualReps)}">
+        <input class="actual-rpe" aria-label="実RPE" inputmode="decimal" type="number" min="5" max="10" step="0.5"
+          placeholder="${escapeHtml(plannedRpeRaw || "RPE")}" value="${escapeHtml(actualRpe)}">
+        <button class="delete-entry actual-remove-set" type="button" aria-label="セットを削除">×</button>
+      </div>
+    `;
+  }
+
+  // メイン種目：従来通り
   return `
     <div class="editable-set-row actual-set-row">
       <div class="set-meta">
