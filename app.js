@@ -3603,19 +3603,27 @@ function renderEditableExerciseSheet(item, cycle, dayIndex, itemIndex) {
   const prescribedRows = prescribedSetRows(item, cycle);
   const savedRows = Array.isArray(saved?.setDetails) ? saved.setDetails : [];
   const rowCount = Math.max(prescribedRows.length, savedRows.length);
+  const isAccessoryItem = item.kind === "accessory" || item.kind === "method";
   const inputRows = Array.from({ length: rowCount }, (_, index) => {
     const planned = prescribedRows[index] || {};
     const savedRow = savedRows[index] || {};
     return {
       ...planned,
       ...savedRow,
-      kind: planned.kind || savedRow.kind || "",
+      // planned values always win over saved (display only)
+      kind:          planned.kind          || savedRow.kind          || "",
       plannedWeight: planned.plannedWeight ?? savedRow.plannedWeight ?? planned.weight ?? "",
-      plannedReps: planned.plannedReps ?? savedRow.plannedReps ?? planned.reps ?? "",
-      plannedRpe: planned.plannedRpe ?? savedRow.plannedRpe ?? "",
-      weight: savedRow.weight ?? planned.weight ?? planned.plannedWeight ?? "",
-      reps: savedRow.reps ?? planned.reps ?? planned.plannedReps ?? "",
-      rpe: savedRow.rpe ?? ""
+      plannedReps:   planned.plannedReps   ?? savedRow.plannedReps   ?? planned.reps   ?? "",
+      plannedRpe:    planned.plannedRpe    ?? savedRow.plannedRpe    ?? "",
+      // preserve planned label/sets for accessory display
+      plannedLabel:  planned.plannedLabel  || "",
+      plannedSets:   planned.plannedSets   || "",
+      // actual values: saved wins, but for accessories don't inherit old reps as "3"
+      weight: savedRow.weight ?? planned.plannedWeight ?? "",
+      reps:   isAccessoryItem
+                ? (savedRow.reps && savedRow.reps !== planned.plannedSets ? savedRow.reps : "")
+                : (savedRow.reps ?? ""),
+      rpe:    savedRow.rpe ?? ""
     };
   });
   const planSummary = prescriptionSummaryLabel(item, cycle);

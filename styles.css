@@ -10084,9 +10084,10 @@ body::before {
 
 /* v112.11: slate/steel color lift + accessory display */
 
-.editable-exercise-sheet {
-  background: rgba(30, 41, 59, 0.78);
-  border-color: rgba(255, 255, 255, 0.1);
+/* outer wrapper: lighter steel-navy tone */
+.editable-session-sheet {
+  background: rgba(30, 41, 59, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .editable-exercise-head {
