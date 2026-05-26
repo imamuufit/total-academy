@@ -3506,7 +3506,6 @@ function renderPlan() {
 function renderDaySessionTable(day, cycle, dayIndex) {
   const rows = day.items.flatMap((item, itemIndex) => sessionRowsForItem(item, cycle, dayIndex, itemIndex));
   if (!rows.length) return `<p class="muted">この日のメニューを確認してください。</p>`;
-  const inputRows = rows.filter((row) => shouldShowActualInput(row.sourceItem));
   return `
     <div class="sheet-scroll-hint">横にスワイプして全項目を見る →</div>
     <div class="session-sheet-wrap">
@@ -3535,7 +3534,7 @@ function renderDaySessionTable(day, cycle, dayIndex) {
         </tbody>
       </table>
     </div>
-    ${renderSessionActualSection(inputRows, cycle, dayIndex)}
+    ${renderSessionActualSection(day.items, cycle, dayIndex)}
   `;
 }
 
@@ -3619,46 +3618,41 @@ function sessionRowsForItem(item, cycle, dayIndex, itemIndex) {
   }));
 }
 
-function renderSessionActualSection(rows, cycle, dayIndex) {
-  if (!rows.length) return "";
-  const blocks = rows.map((row) => {
-    const item = row.sourceItem;
-    const rowIndex = Number(row.rowIndex || 0);
-    const keyIndex = Number(row.itemIndex || 0) * 10 + rowIndex;
-    const exerciseName = row.label ? `${row.name} ${row.label}` : row.name;
-    const key = planFeedbackKey(cycle, dayIndex, keyIndex, item.lift || item.exerciseId || "custom", exerciseName);
+function renderSessionActualSection(dayItems, cycle, dayIndex) {
+  if (!dayItems || !dayItems.length) return "";
+  const blocks = dayItems
+    .filter((item) => shouldShowActualInput(item))
+    .map((item, itemIndex) => {
+    const key = planFeedbackKey(cycle, dayIndex, itemIndex, item.lift || item.exerciseId || "custom", item.name);
     const saved = currentAthlete().rpeFeedback?.[key];
     const confidence = saved?.rpeConfidence || "learning";
-    const prescribedSets = Math.max(1, Math.min(8, Number(row.sets) || 1));
-    const plannedWeight = String(row.weight || "").replace("kg", "");
-    const savedRows = saved?.setDetails?.length
+    const prescribedRows = prescribedSetRows(item, cycle);
+    const inputRows = saved?.setDetails?.length
       ? saved.setDetails
-      : Array.from({ length: prescribedSets }, (_, index) => ({
-          weight: index === 0 ? (saved?.weight ?? plannedWeight ?? "") : "",
-          reps: index === 0 ? (saved?.reps ?? row.reps ?? "") : "",
-          rpe: index === 0 ? (saved?.rpe ?? "") : ""
-        }));
+      : prescribedRows;
+    const planSummary = prescriptionSummaryLabel(item, cycle);
     const previous = previousFeedbackMarkup(cycle, item);
     const feedback = saved ? feedbackMarkup(saved) : "";
-    const plannedRpe = plannedRpeFromSessionRow(row.rpe);
+    const plannedRpe = prescribedRows.length ? (prescribedRows[0].plannedRpe || "") : "";
+    const planText = planTextForActualItem(item, cycle);
     return `
       <div class="session-actual-block actual-box"
            data-plan-key="${escapeHtml(key)}"
            data-lift="${escapeHtml(item.lift || item.exerciseId || "custom")}"
            data-source="plan"
-           data-exercise="${escapeHtml(exerciseName)}"
+           data-exercise="${escapeHtml(item.name)}"
            data-planned-rpe="${escapeHtml(plannedRpe)}"
-           data-plan-text="${escapeHtml(row.planText || row.reps || "")}">
+           data-plan-text="${escapeHtml(planText)}">
         <div class="session-actual-header">
-          <strong>${escapeHtml(row.name)}</strong>
-          <span class="session-actual-label">${escapeHtml(row.label)}</span>
-          ${row.rpe ? `<span class="session-actual-rpe">予定 ${escapeHtml(row.rpe)}</span>` : ""}
+          <strong>${escapeHtml(item.name)}</strong>
+          ${planSummary ? `<span class="session-actual-rpe">${escapeHtml(planSummary)}</span>` : ""}
         </div>
         ${previous}
         <div class="session-actual-rows actual-set-list">
-          ${savedRows.map((savedRow, index) => actualSetRowMarkup(savedRow, index)).join("")}
+          ${inputRows.map((row, index) => actualSetRowMarkup(row, index)).join("")}
         </div>
         <div class="session-actual-footer">
+          <button class="text-button compact actual-add-set" type="button">＋セット</button>
           <label class="rpe-confidence">
             <span>RPE自信度</span>
             <select class="actual-rpe-confidence">
@@ -3667,7 +3661,6 @@ function renderSessionActualSection(rows, cycle, dayIndex) {
               <option value="learning"${confidence === "learning" ? " selected" : ""}>感覚練習中</option>
             </select>
           </label>
-          <button class="text-button compact actual-add-set" type="button">＋セット</button>
           <button class="primary-button inline actual-save" type="button">記録</button>
         </div>
         ${feedback}
@@ -3683,9 +3676,47 @@ function renderSessionActualSection(rows, cycle, dayIndex) {
   `;
 }
 
-function plannedRpeFromSessionRow(rpe = "") {
-  const match = String(rpe).match(/[\d.]+/);
-  return match ? match[0] : "";
+function prescribedSetRows(item, cycle) {
+  if (item.kind === "accessory" || item.kind === "method") {
+    return [{ weight: "", reps: extractRepsFromWork(item.work), rpe: "", plannedRpe: "" }];
+  }
+  const blocks = parsePrescriptionBlocks(planTextForActualItem(item, cycle));
+  const rows = [];
+  blocks.forEach((block) => {
+    const setCount = Math.max(1, Math.min(8, Number(block.sets) || 1));
+    const rpeNum = String(block.rpe || "").replace("@RPE", "");
+    for (let index = 0; index < setCount; index += 1) {
+      rows.push({
+        weight: block.weight,
+        reps: block.reps,
+        rpe: "",
+        plannedRpe: rpeNum
+      });
+    }
+  });
+  return rows.length ? rows : [{ weight: "", reps: "", rpe: "", plannedRpe: "" }];
+}
+
+function prescriptionSummaryLabel(item, cycle) {
+  if (item.kind === "accessory" || item.kind === "method") return "";
+  const blocks = parsePrescriptionBlocks(planTextForActualItem(item, cycle));
+  const labels = blocks.map((block) => block.rpe).filter(Boolean);
+  return labels.length ? `予定 ${labels.join(" / ")}` : "";
+}
+
+function planTextForActualItem(item, cycle) {
+  if (item.kind === "method" || item.kind === "accessory") return item.work || "";
+  const max = Number(cycle.maxes[item.lift] || bestE1rm(item.lift) || 0);
+  return prescriptionForWeek(
+    item.lift,
+    max,
+    cycle.week,
+    cycle.length,
+    cycle.daysPerWeek,
+    item.variant,
+    cycle.priorityLift,
+    cycle.buddyLevel
+  ).title;
 }
 
 function renderDayActualBlock(item, cycle, dayIndex, itemIndex) {
