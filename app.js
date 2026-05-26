@@ -3504,37 +3504,15 @@ function renderPlan() {
 }
 
 function renderDaySessionTable(day, cycle, dayIndex) {
-  const rows = day.items.flatMap((item, itemIndex) => sessionRowsForItem(item, cycle, dayIndex, itemIndex));
-  if (!rows.length) return `<p class="muted">この日のメニューを確認してください。</p>`;
+  const blocks = day.items
+    .filter((item) => shouldShowActualInput(item) || item.lift || item.kind === "accessory" || item.kind === "method")
+    .map((item, itemIndex) => renderEditableExerciseSheet(item, cycle, dayIndex, itemIndex))
+    .join("");
+  if (!blocks.trim()) return `<p class="muted">この日のメニューを確認してください。</p>`;
   return `
-    <div class="sheet-scroll-hint">横にスワイプして全項目を見る →</div>
-    <div class="session-sheet-wrap">
-      <table class="session-sheet" aria-label="${escapeHtml(day.title)}のメニュー">
-        <thead>
-          <tr>
-            <th>種目</th>
-            <th>区分</th>
-            <th>kg</th>
-            <th>回</th>
-            <th>set</th>
-            <th>RPE</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${rows.map((row) => `
-            <tr class="${escapeHtml(row.type || "")}">
-              <td class="session-exercise">${escapeHtml(row.name)}</td>
-              <td>${escapeHtml(row.label)}</td>
-              <td class="session-weight">${escapeHtml(row.weight || "—")}</td>
-              <td>${escapeHtml(row.reps || "—")}</td>
-              <td>${escapeHtml(row.sets || "—")}</td>
-              <td>${escapeHtml(row.rpe || "—")}</td>
-            </tr>
-          `).join("")}
-        </tbody>
-      </table>
+    <div class="editable-session-sheet">
+      ${blocks}
     </div>
-    ${renderSessionActualSection(day.items, cycle, dayIndex)}
   `;
 }
 
@@ -3618,83 +3596,103 @@ function sessionRowsForItem(item, cycle, dayIndex, itemIndex) {
   }));
 }
 
-function renderSessionActualSection(dayItems, cycle, dayIndex) {
-  if (!dayItems || !dayItems.length) return "";
-  const blocks = dayItems
-    .filter((item) => shouldShowActualInput(item))
-    .map((item, itemIndex) => {
-    const key = planFeedbackKey(cycle, dayIndex, itemIndex, item.lift || item.exerciseId || "custom", item.name);
-    const saved = currentAthlete().rpeFeedback?.[key];
-    const confidence = saved?.rpeConfidence || "learning";
-    const prescribedRows = prescribedSetRows(item, cycle);
-    const inputRows = saved?.setDetails?.length
-      ? saved.setDetails
-      : prescribedRows;
-    const planSummary = prescriptionSummaryLabel(item, cycle);
-    const previous = previousFeedbackMarkup(cycle, item);
-    const feedback = saved ? feedbackMarkup(saved) : "";
-    const plannedRpe = prescribedRows.length ? (prescribedRows[0].plannedRpe || "") : "";
-    const planText = planTextForActualItem(item, cycle);
-    return `
-      <div class="session-actual-block actual-box"
-           data-plan-key="${escapeHtml(key)}"
-           data-lift="${escapeHtml(item.lift || item.exerciseId || "custom")}"
-           data-source="plan"
-           data-exercise="${escapeHtml(item.name)}"
-           data-planned-rpe="${escapeHtml(plannedRpe)}"
-           data-plan-text="${escapeHtml(planText)}">
-        <div class="session-actual-header">
-          <strong>${escapeHtml(item.name)}</strong>
-          ${planSummary ? `<span class="session-actual-rpe">${escapeHtml(planSummary)}</span>` : ""}
-        </div>
-        ${previous}
-        <div class="session-actual-rows actual-set-list">
-          ${inputRows.map((row, index) => actualSetRowMarkup(row, index)).join("")}
-        </div>
-        <div class="session-actual-footer">
-          <button class="text-button compact actual-add-set" type="button">＋セット</button>
-          <label class="rpe-confidence">
-            <span>RPE自信度</span>
-            <select class="actual-rpe-confidence">
-              <option value="solid"${confidence === "solid" ? " selected" : ""}>自信あり</option>
-              <option value="unsure"${confidence === "unsure" ? " selected" : ""}>少し迷う</option>
-              <option value="learning"${confidence === "learning" ? " selected" : ""}>感覚練習中</option>
-            </select>
-          </label>
-          <button class="primary-button inline actual-save" type="button">記録</button>
-        </div>
-        ${feedback}
-      </div>
-    `;
-  }).join("");
-
+function renderEditableExerciseSheet(item, cycle, dayIndex, itemIndex) {
+  const key = planFeedbackKey(cycle, dayIndex, itemIndex, item.lift || item.exerciseId || "custom", item.name);
+  const saved = currentAthlete().rpeFeedback?.[key];
+  const confidence = saved?.rpeConfidence || "learning";
+  const prescribedRows = prescribedSetRows(item, cycle);
+  const inputRows = saved?.setDetails?.length
+    ? saved.setDetails.map((row, index) => ({
+      ...(prescribedRows[index] || {}),
+      ...row,
+      plannedWeight: prescribedRows[index]?.plannedWeight ?? row.plannedWeight ?? row.weight ?? "",
+      plannedReps: prescribedRows[index]?.plannedReps ?? row.plannedReps ?? row.reps ?? "",
+      plannedRpe: prescribedRows[index]?.plannedRpe ?? row.plannedRpe ?? ""
+    }))
+    : prescribedRows;
+  const planSummary = prescriptionSummaryLabel(item, cycle);
+  const previous = previousFeedbackMarkup(cycle, item);
+  const feedback = saved ? feedbackMarkup(saved) : "";
+  const plannedRpe = prescribedRows.length ? (prescribedRows[0].plannedRpe || "") : "";
+  const planText = planTextForActualItem(item, cycle);
   return `
-    <div class="session-actual-section">
-      <p class="session-actual-title">実績入力</p>
-      ${blocks}
-    </div>
+    <section class="editable-exercise-sheet actual-box"
+      data-plan-key="${escapeHtml(key)}"
+      data-lift="${escapeHtml(item.lift || item.exerciseId || "custom")}"
+      data-source="plan"
+      data-exercise="${escapeHtml(item.name)}"
+      data-planned-rpe="${escapeHtml(plannedRpe)}"
+      data-plan-text="${escapeHtml(planText)}">
+      <div class="editable-exercise-head">
+        <div>
+          <strong>${escapeHtml(item.name)}</strong>
+          ${planSummary ? `<span>${escapeHtml(planSummary)}</span>` : ""}
+        </div>
+      </div>
+      ${previous}
+      <div class="editable-set-sheet actual-set-list">
+        <div class="editable-set-row editable-set-head">
+          <span>set</span>
+          <span>区分</span>
+          <span>予定kg</span>
+          <span>予定回</span>
+          <span>予定RPE</span>
+          <span>実kg</span>
+          <span>実回</span>
+          <span>実RPE</span>
+          <span></span>
+        </div>
+        ${inputRows.map((row, index) => editableActualSetRowMarkup(row, index)).join("")}
+      </div>
+      <div class="editable-exercise-footer">
+        <label class="rpe-confidence">
+          <span>RPE自信度</span>
+          <select class="actual-rpe-confidence">
+            <option value="solid"${confidence === "solid" ? " selected" : ""}>自信あり</option>
+            <option value="unsure"${confidence === "unsure" ? " selected" : ""}>少し迷う</option>
+            <option value="learning"${confidence === "learning" ? " selected" : ""}>感覚練習中</option>
+          </select>
+        </label>
+        <button class="text-button compact actual-add-set" type="button">＋セット</button>
+        <button class="primary-button inline actual-save" type="button">記録</button>
+      </div>
+      ${feedback}
+    </section>
   `;
 }
 
 function prescribedSetRows(item, cycle) {
   if (item.kind === "accessory" || item.kind === "method") {
-    return [{ weight: "", reps: extractRepsFromWork(item.work), rpe: "", plannedRpe: "" }];
+    const reps = extractRepsFromWork(item.work);
+    return [{
+      kind: item.kind === "accessory" ? "補助" : "確認",
+      plannedWeight: "",
+      plannedReps: reps,
+      plannedRpe: "",
+      weight: "",
+      reps,
+      rpe: ""
+    }];
   }
   const blocks = parsePrescriptionBlocks(planTextForActualItem(item, cycle));
   const rows = [];
   blocks.forEach((block) => {
     const setCount = Math.max(1, Math.min(8, Number(block.sets) || 1));
     const rpeNum = String(block.rpe || "").replace("@RPE", "");
+    const kind = block.type === "topset" ? "Top" : "Back";
     for (let index = 0; index < setCount; index += 1) {
       rows.push({
+        kind,
+        plannedWeight: block.weight,
+        plannedReps: block.reps,
+        plannedRpe: rpeNum,
         weight: block.weight,
         reps: block.reps,
         rpe: "",
-        plannedRpe: rpeNum
       });
     }
   });
-  return rows.length ? rows : [{ weight: "", reps: "", rpe: "", plannedRpe: "" }];
+  return rows.length ? rows : [{ kind: "", plannedWeight: "", plannedReps: "", plannedRpe: "", weight: "", reps: "", rpe: "" }];
 }
 
 function prescriptionSummaryLabel(item, cycle) {
@@ -4882,12 +4880,30 @@ function actualInputBlock(item, cycle, planText, detail, dayIndex, itemIndex) {
 }
 
 function actualSetRowMarkup(row = {}, index = 0) {
+  return editableActualSetRowMarkup(row, index);
+}
+
+function editableActualSetRowMarkup(row = {}, index = 0) {
+  const plannedKg = row.plannedWeight ?? row.weight ?? "";
+  const plannedReps = row.plannedReps ?? row.reps ?? "";
+  const plannedRpe = row.plannedRpe ? `@${row.plannedRpe}` : "";
+  const kind = row.kind || row.label || "";
   return `
-    <div class="actual-set-row">
+    <div class="editable-set-row actual-set-row">
       <strong>S${index + 1}</strong>
-      <label>kg<input class="actual-weight" inputmode="decimal" type="number" min="0" step="0.5" value="${escapeHtml(row.weight ?? "")}"></label>
-      <label>回数<input class="actual-reps" inputmode="numeric" type="number" min="1" step="1" value="${escapeHtml(row.reps ?? "")}"></label>
-      <label>RPE<input class="actual-rpe" inputmode="decimal" type="number" min="5" max="10" step="0.5" value="${escapeHtml(row.rpe ?? "")}"></label>
+      <span class="set-kind">${escapeHtml(kind || "—")}</span>
+      <span class="planned-cell">${escapeHtml(plannedKg || "—")}</span>
+      <span class="planned-cell">${escapeHtml(plannedReps || "—")}</span>
+      <span class="planned-cell">${escapeHtml(plannedRpe || "—")}</span>
+      <label class="actual-cell">
+        <input class="actual-weight" inputmode="decimal" type="number" min="0" step="0.5" value="${escapeHtml(row.weight ?? plannedKg ?? "")}">
+      </label>
+      <label class="actual-cell">
+        <input class="actual-reps" inputmode="numeric" type="number" min="1" step="1" value="${escapeHtml(row.reps ?? plannedReps ?? "")}">
+      </label>
+      <label class="actual-cell">
+        <input class="actual-rpe" inputmode="decimal" type="number" min="5" max="10" step="0.5" value="${escapeHtml(row.rpe ?? "")}">
+      </label>
       <button class="delete-entry actual-remove-set" type="button" aria-label="セットを削除">×</button>
     </div>
   `;

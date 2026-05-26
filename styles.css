@@ -9600,3 +9600,130 @@ body::before {
   flex: 1;
   min-width: 160px;
 }
+
+/* v112.08: editable session sheet */
+.editable-session-sheet {
+  display: grid;
+  gap: 14px;
+}
+
+.editable-exercise-sheet {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  background: rgba(15, 23, 42, 0.72);
+  overflow: hidden;
+}
+
+.editable-exercise-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 12px 8px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.editable-exercise-head strong {
+  display: block;
+  font-size: 0.98rem;
+  color: #f8fafc;
+}
+
+.editable-exercise-head span {
+  display: block;
+  margin-top: 2px;
+  color: rgba(248, 250, 252, 0.58);
+  font-size: 0.76rem;
+}
+
+.editable-set-sheet {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.editable-set-row {
+  display: grid;
+  grid-template-columns: 44px 64px 70px 64px 78px 76px 70px 76px 44px;
+  gap: 8px;
+  align-items: center;
+  min-width: 680px;
+  padding: 8px 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.editable-set-head {
+  color: rgba(248, 250, 252, 0.55);
+  font-size: 0.72rem;
+  font-weight: 900;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.editable-set-row strong {
+  color: #f8fafc;
+}
+
+.set-kind {
+  font-weight: 800;
+  color: rgba(248, 250, 252, 0.82);
+}
+
+.planned-cell {
+  color: rgba(248, 250, 252, 0.62);
+  font-size: 0.82rem;
+}
+
+.actual-cell input {
+  width: 100%;
+  min-height: 38px;
+  border-radius: 10px;
+  padding: 6px 8px;
+  font-size: 0.92rem;
+}
+
+.editable-exercise-footer {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 12px 12px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+@media (max-width: 640px) {
+  .editable-exercise-sheet {
+    border-radius: 14px;
+  }
+
+  .editable-exercise-head {
+    padding: 11px 10px 7px;
+  }
+
+  .editable-set-sheet::before {
+    content: "横にスワイプして入力 →";
+    display: block;
+    padding: 6px 10px;
+    color: rgba(248, 250, 252, 0.52);
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-align: right;
+  }
+
+  .editable-set-row {
+    min-width: 700px;
+  }
+
+  .editable-set-row > :first-child {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    background: rgba(15, 23, 42, 0.96);
+  }
+
+  .editable-exercise-footer {
+    grid-template-columns: 1fr;
+  }
+
+  .editable-exercise-footer .actual-save,
+  .editable-exercise-footer .actual-add-set {
+    width: 100%;
+  }
+}
