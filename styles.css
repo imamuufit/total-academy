@@ -10082,19 +10082,18 @@ body::before {
   }
 }
 
-/* v112.11: slate/steel color lift + accessory display */
-
-/* outer wrapper: lighter steel-navy tone */
-.editable-session-sheet {
-  background: rgba(30, 41, 59, 0.82);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+/* v112.11: plan sheet color lift and accessory parsing display */
+.editable-exercise-sheet {
+  background: rgba(30, 41, 59, 0.78);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 .editable-exercise-head {
   background: rgba(255, 255, 255, 0.05);
 }
 
-.editable-set-head {
+.editable-set-head,
+.editable-set-header-row {
   background: rgba(255, 255, 255, 0.055);
 }
 
@@ -10102,18 +10101,31 @@ body::before {
   background: rgba(255, 255, 255, 0.025);
 }
 
+.plan-day-card,
+.day-details,
+details.plan-day {
+  background: rgba(30, 41, 59, 0.6);
+}
+
 .accessory-plan-label {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 4px;
   font-size: 0.8rem;
   font-weight: 800;
-  color: rgba(248, 250, 252, 0.7);
-  white-space: nowrap;
+  color: rgba(248, 250, 252, 0.62);
+  min-width: 0;
 }
 
-.set-kind-accessory {
-  color: var(--green, #34d399) !important;
+.accessory-plan-label small {
+  font-size: 0.72rem;
+  color: rgba(248, 250, 252, 0.42);
+  font-weight: 700;
+}
+
+.accessory-kind {
+  background: rgba(74, 222, 128, 0.95) !important;
+  color: #052e16 !important;
 }
 
 .accessory-row {
@@ -10128,276 +10140,5 @@ body::before {
   .accessory-row {
     grid-template-columns: 54px 1fr 1fr 1fr 30px;
     gap: 5px;
-  }
-}
-
-
-/* v112.12: global slate visibility lift
-   Purpose: reduce the heavy X-like black dark mode and improve readability.
-   This block intentionally comes last and overrides earlier dark blocks. */
-:root {
-  --bg: #111827;
-  --surface: #1f2937;
-  --ink: #f8fafc;
-  --muted: #cbd5e1;
-  --line: rgba(226, 232, 240, 0.22);
-  --accent: #ef4444;
-  --accent-dark: #b91c1c;
-  --green: #22c55e;
-  --blue: #60a5fa;
-  --paper: #243044;
-  --shadow: 0 18px 44px rgba(2, 6, 23, 0.22);
-}
-
-html {
-  background: #111827;
-}
-
-body {
-  color: #f8fafc;
-  background:
-    radial-gradient(circle at 14% 0%, rgba(239, 68, 68, 0.14), transparent 28%),
-    radial-gradient(circle at 88% 7%, rgba(96, 165, 250, 0.12), transparent 26%),
-    linear-gradient(180deg, #1e293b 0%, #111827 46%, #0f172a 100%) !important;
-  background-attachment: fixed;
-}
-
-body::before {
-  background:
-    linear-gradient(118deg, transparent 0 58%, rgba(255, 255, 255, 0.045) 58% 59%, transparent 59% 100%),
-    radial-gradient(circle at 84% 96px, rgba(255, 255, 255, 0.055) 0 62px, transparent 64px) !important;
-}
-
-body.home-mode {
-  background:
-    radial-gradient(circle at 18% 0%, rgba(239, 68, 68, 0.18), transparent 30%),
-    radial-gradient(circle at 82% 8%, rgba(96, 165, 250, 0.14), transparent 30%),
-    linear-gradient(180deg, #1e293b 0%, #111827 38%, #0f172a 100%) !important;
-  background-attachment: fixed;
-}
-
-.topbar {
-  background: linear-gradient(135deg, #334155, #1e293b) !important;
-  border-color: rgba(239, 68, 68, 0.72) !important;
-  color: #f8fafc !important;
-}
-
-.panel,
-.compact-panel,
-.plan-card,
-.day-card,
-.data-panel,
-.academy-evaluation-panel,
-.weekly-data-panel,
-.cycle-setup-panel,
-.buddy-method-panel,
-.facility-panel,
-.history-item,
-.history-day,
-.quiz-panel,
-.meet-note-panel,
-.meet-attempt-lift,
-.meet-review-card,
-.meet-note-card,
-.dashboard-card,
-.weekly-data-card,
-.weekly-verdict,
-.projection-card,
-.equipment-card,
-.alternative-panel,
-.set-detail-panel,
-.quick-stats .stat-card,
-.metric-grid .stat-card,
-.knowledge-card,
-.quiz-result,
-.association-guide,
-.method-note,
-.cycle-setup-card {
-  background:
-    linear-gradient(145deg, rgba(51, 65, 85, 0.94), rgba(30, 41, 59, 0.94)) !important;
-  border-color: rgba(226, 232, 240, 0.16) !important;
-  color: #f8fafc !important;
-  box-shadow: 0 18px 40px rgba(2, 6, 23, 0.22) !important;
-}
-
-.panel p,
-.plan-card p,
-.day-card p,
-.muted,
-.guide-note,
-.day-notes-list,
-.method-note,
-.exercise-rpe-hint,
-.plan-command-card small,
-.plan-context-grid p,
-.buddy-method-body p,
-.cycle-setup-card p,
-.week-learning-card p,
-.weekly-data-card p {
-  color: #cbd5e1 !important;
-}
-
-.section-title h2,
-.section-title h3,
-.plan-card h2,
-.day-card h2,
-.dashboard-head strong,
-.dashboard-card strong,
-.weekly-data-card strong,
-.quick-stats strong,
-.metric-grid strong,
-.knowledge-card strong,
-.quiz-result strong,
-.editable-exercise-head strong {
-  color: #f8fafc !important;
-}
-
-.collapse-toggle,
-.text-button,
-.secondary-button,
-button.secondary,
-button.ghost,
-.tab-button,
-.nav-button {
-  background: rgba(226, 232, 240, 0.1) !important;
-  border-color: rgba(226, 232, 240, 0.18) !important;
-  color: #e2e8f0 !important;
-}
-
-.primary-button,
-.primary-action,
-.actual-save,
-button.primary {
-  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
-  color: #fff7ed !important;
-  border-color: rgba(254, 202, 202, 0.18) !important;
-}
-
-/* PLAN input sheet: brighter surface but still iron/slate */
-.editable-session-sheet {
-  background: linear-gradient(180deg, rgba(51, 65, 85, 0.94), rgba(30, 41, 59, 0.94)) !important;
-  border-color: rgba(226, 232, 240, 0.18) !important;
-}
-
-.editable-exercise-sheet {
-  background: transparent !important;
-}
-
-.editable-exercise-sheet + .editable-exercise-sheet {
-  border-top-color: rgba(226, 232, 240, 0.14) !important;
-}
-
-.editable-exercise-head {
-  background: rgba(226, 232, 240, 0.07) !important;
-}
-
-.editable-set-header-row {
-  background: rgba(226, 232, 240, 0.08) !important;
-}
-
-.editable-set-header-row span {
-  color: rgba(226, 232, 240, 0.8) !important;
-}
-
-.editable-set-row {
-  border-top-color: rgba(226, 232, 240, 0.12) !important;
-}
-
-.editable-set-row:nth-child(even) {
-  background: rgba(226, 232, 240, 0.035) !important;
-}
-
-.set-meta strong {
-  color: #f8fafc !important;
-}
-
-.set-meta small,
-.set-kind-default {
-  background: rgba(226, 232, 240, 0.82) !important;
-  color: #0f172a !important;
-}
-
-.set-kind-top {
-  background: #fb7185 !important;
-  color: #3f0713 !important;
-}
-
-.set-kind-back {
-  background: #4ade80 !important;
-  color: #052e16 !important;
-}
-
-.set-kind-accessory {
-  background: #facc15 !important;
-  color: #422006 !important;
-}
-
-.accessory-plan-label {
-  color: #e2e8f0 !important;
-  background: rgba(250, 204, 21, 0.12) !important;
-  border: 1px solid rgba(250, 204, 21, 0.24) !important;
-  border-radius: 10px;
-  padding: 6px 8px;
-}
-
-.actual-weight,
-.actual-reps,
-.actual-rpe {
-  background: #f8fafc !important;
-  color: #111827 !important;
-  border-color: rgba(15, 23, 42, 0.18) !important;
-  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.14), 0 0 0 1px rgba(255,255,255,0.1) !important;
-}
-
-.actual-weight::placeholder,
-.actual-reps::placeholder,
-.actual-rpe::placeholder {
-  color: rgba(17, 24, 39, 0.42) !important;
-}
-
-.actual-remove-set {
-  background: rgba(248, 113, 113, 0.22) !important;
-  color: #fecaca !important;
-  border-color: rgba(248, 113, 113, 0.38) !important;
-}
-
-.rpe-feedback,
-.previous-rpe,
-.feedback-card {
-  background: rgba(15, 23, 42, 0.34) !important;
-  border-color: rgba(226, 232, 240, 0.12) !important;
-  color: #e2e8f0 !important;
-}
-
-input,
-select,
-textarea {
-  background-color: #f8fafc;
-  color: #111827;
-}
-
-input::placeholder,
-textarea::placeholder {
-  color: rgba(17, 24, 39, 0.42);
-}
-
-@media (max-width: 640px) {
-  .app-shell {
-    background: transparent !important;
-  }
-
-  .panel,
-  .day-card,
-  .plan-card {
-    border-color: rgba(226, 232, 240, 0.16) !important;
-  }
-
-  .editable-session-sheet {
-    background: linear-gradient(180deg, rgba(51, 65, 85, 0.96), rgba(30, 41, 59, 0.96)) !important;
-  }
-
-  .accessory-plan-label {
-    padding: 5px 7px;
-    font-size: 0.76rem;
   }
 }

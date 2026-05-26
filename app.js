@@ -3603,27 +3603,19 @@ function renderEditableExerciseSheet(item, cycle, dayIndex, itemIndex) {
   const prescribedRows = prescribedSetRows(item, cycle);
   const savedRows = Array.isArray(saved?.setDetails) ? saved.setDetails : [];
   const rowCount = Math.max(prescribedRows.length, savedRows.length);
-  const isAccessoryItem = item.kind === "accessory" || item.kind === "method";
   const inputRows = Array.from({ length: rowCount }, (_, index) => {
     const planned = prescribedRows[index] || {};
     const savedRow = savedRows[index] || {};
     return {
       ...planned,
       ...savedRow,
-      // planned values always win over saved (display only)
-      kind:          planned.kind          || savedRow.kind          || "",
+      kind: planned.kind || savedRow.kind || "",
       plannedWeight: planned.plannedWeight ?? savedRow.plannedWeight ?? planned.weight ?? "",
-      plannedReps:   planned.plannedReps   ?? savedRow.plannedReps   ?? planned.reps   ?? "",
-      plannedRpe:    planned.plannedRpe    ?? savedRow.plannedRpe    ?? "",
-      // preserve planned label/sets for accessory display
-      plannedLabel:  planned.plannedLabel  || "",
-      plannedSets:   planned.plannedSets   || "",
-      // actual values: saved wins, but for accessories don't inherit old reps as "3"
-      weight: savedRow.weight ?? planned.plannedWeight ?? "",
-      reps:   isAccessoryItem
-                ? (savedRow.reps && savedRow.reps !== planned.plannedSets ? savedRow.reps : "")
-                : (savedRow.reps ?? ""),
-      rpe:    savedRow.rpe ?? ""
+      plannedReps: planned.plannedReps ?? savedRow.plannedReps ?? planned.reps ?? "",
+      plannedRpe: planned.plannedRpe ?? savedRow.plannedRpe ?? "",
+      weight: savedRow.weight ?? planned.weight ?? planned.plannedWeight ?? "",
+      reps: savedRow.reps ?? planned.reps ?? planned.plannedReps ?? "",
+      rpe: savedRow.rpe ?? ""
     };
   });
   const planSummary = prescriptionSummaryLabel(item, cycle);
@@ -3672,15 +3664,15 @@ function prescribedSetRows(item, cycle) {
   if (item.kind === "accessory" || item.kind === "method") {
     const acc = parseAccessoryWork(item.work);
     return [{
-      kind:          item.kind === "accessory" ? "補助" : "確認",
+      kind: item.kind === "accessory" ? "補助" : "確認",
       plannedWeight: "",
-      plannedReps:   acc.reps,
-      plannedSets:   acc.sets,
-      plannedRpe:    acc.rpe ? acc.rpe.replace(/@?RPE/g, "").trim() : "",
-      plannedLabel:  acc.label,
-      weight:        "",
-      reps:          "",
-      rpe:           ""
+      plannedReps: acc.reps,
+      plannedSets: acc.sets,
+      plannedRpe: acc.rpe ? acc.rpe.replace(/@?RPE/g, "").trim() : "",
+      plannedLabel: acc.label,
+      weight: "",
+      reps: "",
+      rpe: ""
     }];
   }
   const blocks = parsePrescriptionBlocks(planTextForActualItem(item, cycle));
@@ -3766,21 +3758,21 @@ function extractSetsFromWork(work = "") {
   return setMatch ? setMatch[1] : "";
 }
 
-function parseAccessoryWork(work = "") {
-  const reps = extractRepsFromWork(work);
-  const sets = extractSetsFromWork(work);
-  const rpe  = extractRpeFromWork(work);
-  const label = [
-    reps ? `${reps}回` : "",
-    sets ? `${sets}set` : "",
-    rpe  ? rpe.replace("@RPE", "@") : ""
-  ].filter(Boolean).join(" × ");
-  return { reps, sets, rpe, label };
-}
-
 function extractRpeFromWork(work = "") {
   const match = String(work).match(/@?\s*RPE\s*([\d.]+(?:\s*[〜~-]\s*[\d.]+)?)/i) || String(work).match(/@([\d.]+(?:\s*[〜~-]\s*[\d.]+)?)/);
   return match ? `@RPE${match[1].replace(/\s+/g, "")}` : "";
+}
+
+function parseAccessoryWork(work = "") {
+  const reps = extractRepsFromWork(work);
+  const sets = extractSetsFromWork(work);
+  const rpe = extractRpeFromWork(work);
+  const label = [
+    reps ? `${reps}回` : "",
+    sets ? `${sets}set` : "",
+    rpe ? rpe.replace("@RPE", "@") : ""
+  ].filter(Boolean).join(" × ");
+  return { reps, sets, rpe, label };
 }
 
 function renderPlanContext() {
@@ -4910,49 +4902,44 @@ function actualSetRowMarkup(row = {}, index = 0) {
 }
 
 function editableActualSetRowMarkup(row = {}, index = 0) {
-  const plannedKg   = String(row.plannedWeight ?? row.weight ?? "");
-  const plannedReps = String(row.plannedReps   ?? row.reps   ?? "");
+  const plannedKg = String(row.plannedWeight ?? row.weight ?? "");
+  const plannedReps = String(row.plannedReps ?? row.reps ?? "");
   const plannedRpeRaw = String(row.plannedRpe ?? "").replace(/@/g, "").replace(/RPE/g, "").trim();
-  const kind        = row.kind || row.label || "";
-  const kindLower   = String(kind).toLowerCase();
+  const kind = row.kind || row.label || "";
+  const kindLower = String(kind).toLowerCase();
   const isAccessory = kind === "補助" || kind === "確認";
-  const kindClass   = kindLower.includes("top")
+  const kindClass = kindLower.includes("top")
     ? "set-kind-top"
     : kindLower.includes("back")
       ? "set-kind-back"
       : isAccessory
         ? "set-kind-accessory"
         : "set-kind-default";
-  const actualKg   = String(row.weight ?? "");
-  const actualReps = String(row.reps   ?? "");
-  const actualRpe  = String(row.rpe    ?? "");
-
+  const actualKg = String(row.weight ?? (isAccessory ? "" : plannedKg) ?? "");
+  const actualReps = String(row.reps ?? plannedReps ?? "");
+  const actualRpe = String(row.rpe ?? "");
   if (isAccessory) {
-    // 補助種目：重量なし・処方ラベル表示・回数とRPEのみ入力
-    const label = row.plannedLabel || [
-      plannedReps ? `${plannedReps}回` : "",
-      row.plannedSets ? `${row.plannedSets}set` : ""
-    ].filter(Boolean).join(" × ");
+    const accessoryLabel = row.plannedLabel || (plannedReps ? `${plannedReps}回` : "—");
+    const accessorySets = !row.plannedLabel && row.plannedSets ? `<small>×${escapeHtml(row.plannedSets)}set</small>` : "";
     return `
-      <div class="editable-set-row actual-set-row accessory-row">
-        <div class="set-meta">
-          <strong>S${index + 1}</strong>
-          <small class="${kindClass}">${escapeHtml(kind)}</small>
-        </div>
-        <span class="accessory-plan-label">
-          ${escapeHtml(label || "—")}
-        </span>
-        <input type="hidden" class="actual-weight" value="">
-        <input class="actual-reps" aria-label="実回数" inputmode="numeric" type="number" min="1" step="1"
-          placeholder="${escapeHtml(plannedReps || "回")}" value="${escapeHtml(actualReps)}">
-        <input class="actual-rpe" aria-label="実RPE" inputmode="decimal" type="number" min="5" max="10" step="0.5"
-          placeholder="${escapeHtml(plannedRpeRaw || "RPE")}" value="${escapeHtml(actualRpe)}">
-        <button class="delete-entry actual-remove-set" type="button" aria-label="セットを削除">×</button>
+    <div class="editable-set-row actual-set-row accessory-row">
+      <div class="set-meta">
+        <strong>S${index + 1}</strong>
+        <small class="${kindClass} accessory-kind">${escapeHtml(kind)}</small>
       </div>
-    `;
+      <span class="accessory-plan-label">
+        ${escapeHtml(accessoryLabel)}
+        ${accessorySets}
+      </span>
+      <input type="hidden" class="actual-weight" value="${escapeHtml(actualKg)}">
+      <input class="actual-reps" aria-label="実回数" inputmode="numeric" type="number" min="1" step="1"
+        placeholder="${escapeHtml(plannedReps || "回")}" value="${escapeHtml(actualReps)}">
+      <input class="actual-rpe" aria-label="実RPE" inputmode="decimal" type="number" min="5" max="10" step="0.5"
+        placeholder="${escapeHtml(plannedRpeRaw || "RPE")}" value="${escapeHtml(actualRpe)}">
+      <button class="delete-entry actual-remove-set" type="button" aria-label="セットを削除">×</button>
+    </div>
+  `;
   }
-
-  // メイン種目：従来通り
   return `
     <div class="editable-set-row actual-set-row">
       <div class="set-meta">
