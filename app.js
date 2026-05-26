@@ -3637,6 +3637,13 @@ function renderEditableExerciseSheet(item, cycle, dayIndex, itemIndex) {
         </div>
       </div>
       <div class="editable-set-sheet actual-set-list">
+        <div class="editable-set-header-row">
+          <span>set</span>
+          <span>kg</span>
+          <span>回</span>
+          <span>RPE</span>
+          <span></span>
+        </div>
         ${inputRows.map((row, index) => editableActualSetRowMarkup(row, index)).join("")}
       </div>
       <div class="editable-exercise-footer">
@@ -4878,9 +4885,16 @@ function actualSetRowMarkup(row = {}, index = 0) {
 function editableActualSetRowMarkup(row = {}, index = 0) {
   const plannedKg = String(row.plannedWeight ?? row.weight ?? "");
   const plannedReps = String(row.plannedReps ?? row.reps ?? "");
-  const rpeText = String(row.plannedRpe ?? "").replace(/@/g, "").replace(/RPE/g, "").trim();
-  const plannedRpe = rpeText ? `@${rpeText}` : "";
+  const plannedRpeRaw = String(row.plannedRpe ?? "").replace(/@/g, "").replace(/RPE/g, "").trim();
   const kind = row.kind || row.label || "";
+  const kindLower = String(kind).toLowerCase();
+  const kindClass = kindLower.includes("top")
+    ? "set-kind-top"
+    : kindLower.includes("back")
+      ? "set-kind-back"
+      : String(kind).includes("補助")
+        ? "set-kind-accessory"
+        : "set-kind-default";
   const actualKg = String(row.weight ?? plannedKg ?? "");
   const actualReps = String(row.reps ?? plannedReps ?? "");
   const actualRpe = String(row.rpe ?? "");
@@ -4888,23 +4902,14 @@ function editableActualSetRowMarkup(row = {}, index = 0) {
     <div class="editable-set-row actual-set-row">
       <div class="set-meta">
         <strong>S${index + 1}</strong>
-        ${kind ? `<small>${escapeHtml(kind)}</small>` : ""}
+        ${kind ? `<small class="${kindClass}">${escapeHtml(kind)}</small>` : ""}
       </div>
-      <div class="planned-summary">予定 ${escapeHtml(plannedKg || "—")}kg × ${escapeHtml(plannedReps || "—")} ${escapeHtml(plannedRpe)}</div>
-      <div class="actual-inputs">
-        <label>
-          <span>kg</span>
-          <input class="actual-weight" inputmode="decimal" type="number" min="0" step="0.5" value="${escapeHtml(actualKg)}">
-        </label>
-        <label>
-          <span>回</span>
-          <input class="actual-reps" inputmode="numeric" type="number" min="1" step="1" value="${escapeHtml(actualReps)}">
-        </label>
-        <label>
-          <span>RPE</span>
-          <input class="actual-rpe" inputmode="decimal" type="number" min="5" max="10" step="0.5" value="${escapeHtml(actualRpe)}">
-        </label>
-      </div>
+      <input class="actual-weight" aria-label="実重量" inputmode="decimal" type="number" min="0" step="0.5"
+        placeholder="${escapeHtml(plannedKg)}" value="${escapeHtml(actualKg)}">
+      <input class="actual-reps" aria-label="実回数" inputmode="numeric" type="number" min="1" step="1"
+        placeholder="${escapeHtml(plannedReps)}" value="${escapeHtml(actualReps)}">
+      <input class="actual-rpe" aria-label="実RPE" inputmode="decimal" type="number" min="5" max="10" step="0.5"
+        placeholder="${escapeHtml(plannedRpeRaw || "RPE")}" value="${escapeHtml(actualRpe)}">
       <button class="delete-entry actual-remove-set" type="button" aria-label="セットを削除">×</button>
     </div>
   `;
