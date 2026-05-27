@@ -5052,6 +5052,34 @@ function actualSetRowMarkup(row = {}, index = 0) {
   return editableActualSetRowMarkup(row, index);
 }
 
+function planFeedbackKey(cycle, dayIndex, itemIndex, lift, name) {
+  return [
+    cycle.programMethod,
+    cycle.buddyLevel || "level1",
+    cycle.planTarget,
+    `w${cycle.week}`,
+    `d${dayIndex + 1}`,
+    itemIndex + 1,
+    lift || "custom",
+    name
+  ].join("|");
+}
+
+function rpeConfidenceLabel(value) {
+  if (value === "solid") return "RPE自信あり";
+  if (value === "unsure") return "RPE少し迷う";
+  return "RPE感覚練習中";
+}
+
+function feedbackMarkup(feedback) {
+  if (!feedback) return "";
+  if (!guideEnabled() && ["ok", "light"].includes(feedback.status)) return "";
+  const confidence = feedback.rpeConfidence
+    ? `<span>${escapeHtml(rpeConfidenceLabel(feedback.rpeConfidence))}</span>`
+    : "";
+  return `<p class="rpe-feedback ${escapeHtml(feedback.status || "ok")}">${confidence}${escapeHtml(feedback.message || "記録しました。")}</p>`;
+}
+
 function editableActualSetRowMarkup(row = {}, index = 0) {
   const kind = row.kind || row.label || "";
   const setLabel = row.displayLabel || `S${index + 1}`;
