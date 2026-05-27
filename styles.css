@@ -10214,11 +10214,11 @@ body {
   }
 }
 
-/* v112.14: brighter plan surface + method row recovery */
+/* v112.14.2: restore darker slate surface while keeping method row recovery */
 body {
   background:
-    radial-gradient(circle at top left, rgba(239, 68, 68, 0.12), transparent 28%),
-    linear-gradient(180deg, #223047 0%, #1e293b 42%, #172033 100%) !important;
+    radial-gradient(circle at top left, rgba(239, 68, 68, 0.1), transparent 30%),
+    linear-gradient(180deg, #162033 0%, #111827 46%, #0f172a 100%) !important;
   color: #f8fafc;
 }
 
@@ -10228,30 +10228,30 @@ body {
 .buddy-method-panel,
 .current-check-card,
 .short-goal-card {
-  background: rgba(45, 59, 82, 0.94) !important;
-  border-color: rgba(255, 255, 255, 0.16) !important;
+  background: rgba(36, 48, 68, 0.92) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
 }
 
 .editable-session-sheet {
-  background: rgba(42, 56, 78, 0.96) !important;
-  border-color: rgba(255, 255, 255, 0.18) !important;
+  background: rgba(30, 41, 59, 0.9) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
 }
 
 .editable-exercise-sheet {
-  background: rgba(48, 63, 86, 0.94) !important;
+  background: rgba(38, 50, 71, 0.9) !important;
 }
 
 .editable-exercise-head,
 .editable-set-header-row {
-  background: rgba(255, 255, 255, 0.08) !important;
+  background: rgba(255, 255, 255, 0.055) !important;
 }
 
 .editable-set-row:nth-child(odd) {
-  background: rgba(255, 255, 255, 0.038) !important;
+  background: rgba(255, 255, 255, 0.015) !important;
 }
 
 .editable-set-row:nth-child(even) {
-  background: rgba(255, 255, 255, 0.06) !important;
+  background: rgba(255, 255, 255, 0.035) !important;
 }
 
 .muted,
@@ -10261,7 +10261,7 @@ body {
 .accessory-summary,
 .accessory-plan-label,
 .planned-method-label {
-  color: #dbeafe !important;
+  color: #cbd5e1 !important;
 }
 
 .planned-method-label {
@@ -10275,7 +10275,7 @@ body {
 .method-check-note {
   margin: 0 10px 8px;
   font-size: 0.78rem;
-  color: #dbeafe;
+  color: #cbd5e1;
   line-height: 1.45;
 }
 
@@ -10304,11 +10304,11 @@ body {
 }
 
 .attempt-row {
-  background: rgba(251, 191, 36, 0.08) !important;
+  background: rgba(251, 191, 36, 0.045) !important;
 }
 
 .check-row {
-  background: rgba(96, 165, 250, 0.07) !important;
+  background: rgba(96, 165, 250, 0.04) !important;
 }
 
 .check-row,
