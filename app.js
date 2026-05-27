@@ -3663,17 +3663,25 @@ function renderEditableExerciseSheet(item, cycle, dayIndex, itemIndex) {
 function prescribedSetRows(item, cycle) {
   if (item.kind === "accessory" || item.kind === "method") {
     const acc = parseAccessoryWork(item.work);
-    return [{
+    const setCount = Math.max(1, Math.min(8, Number(acc.sets) || 1));
+    const targetReps = accessoryTargetReps(acc.reps);
+    const plannedRpe = acc.rpe ? acc.rpe.replace(/@?RPE/g, "").trim() : "";
+    const plannedLabel = [
+      targetReps ? `${targetReps}回` : "",
+      acc.sets ? `${acc.sets}set` : "",
+      acc.rpe ? acc.rpe.replace("@RPE", "@") : ""
+    ].filter(Boolean).join(" × ");
+    return Array.from({ length: setCount }, () => ({
       kind: item.kind === "accessory" ? "補助" : "確認",
       plannedWeight: "",
-      plannedReps: acc.reps,
+      plannedReps: targetReps,
       plannedSets: acc.sets,
-      plannedRpe: acc.rpe ? acc.rpe.replace(/@?RPE/g, "").trim() : "",
-      plannedLabel: acc.label,
+      plannedRpe,
+      plannedLabel,
       weight: "",
-      reps: "",
+      reps: targetReps,
       rpe: ""
-    }];
+    }));
   }
   const blocks = parsePrescriptionBlocks(planTextForActualItem(item, cycle));
   const rows = [];
@@ -3773,6 +3781,17 @@ function parseAccessoryWork(work = "") {
     rpe ? rpe.replace("@RPE", "@") : ""
   ].filter(Boolean).join(" × ");
   return { reps, sets, rpe, label };
+}
+
+function accessoryTargetReps(reps = "") {
+  const text = String(reps || "").trim();
+  const range = text.match(/^(\d+)\s*[〜~-]\s*\d+/);
+  if (range) return range[1];
+  const plus = text.match(/^(\d+)\+/);
+  if (plus) return plus[1];
+  const single = text.match(/^(\d+)/);
+  if (single) return single[1];
+  return "";
 }
 
 function renderPlanContext() {
@@ -4915,12 +4934,12 @@ function editableActualSetRowMarkup(row = {}, index = 0) {
       : isAccessory
         ? "set-kind-accessory"
         : "set-kind-default";
-  const actualKg = String(row.weight ?? (isAccessory ? "" : plannedKg) ?? "");
+  const rawActualKg = String(row.weight ?? (isAccessory ? "" : plannedKg) ?? "");
+  const actualKg = isAccessory && rawActualKg && !/^\d+(?:\.\d+)?$/.test(rawActualKg.trim()) ? "" : rawActualKg;
   const actualReps = String(row.reps ?? plannedReps ?? "");
   const actualRpe = String(row.rpe ?? "");
   if (isAccessory) {
     const accessoryLabel = row.plannedLabel || (plannedReps ? `${plannedReps}回` : "—");
-    const accessorySets = !row.plannedLabel && row.plannedSets ? `<small>×${escapeHtml(row.plannedSets)}set</small>` : "";
     return `
     <div class="editable-set-row actual-set-row accessory-row">
       <div class="set-meta">
@@ -4929,9 +4948,9 @@ function editableActualSetRowMarkup(row = {}, index = 0) {
       </div>
       <span class="accessory-plan-label">
         ${escapeHtml(accessoryLabel)}
-        ${accessorySets}
       </span>
-      <input type="hidden" class="actual-weight" value="${escapeHtml(actualKg)}">
+      <input class="actual-weight" aria-label="実重量" inputmode="decimal" type="number" min="0" step="0.5"
+        placeholder="kg" value="${escapeHtml(actualKg)}">
       <input class="actual-reps" aria-label="実回数" inputmode="numeric" type="number" min="1" step="1"
         placeholder="${escapeHtml(plannedReps || "回")}" value="${escapeHtml(actualReps)}">
       <input class="actual-rpe" aria-label="実RPE" inputmode="decimal" type="number" min="5" max="10" step="0.5"

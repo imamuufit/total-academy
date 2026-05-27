@@ -10142,3 +10142,74 @@ details.plan-day {
     gap: 5px;
   }
 }
+
+/* v112.13: brighter slate / steel color tuning and accessory input rows */
+body {
+  background:
+    radial-gradient(circle at top left, rgba(239, 68, 68, 0.12), transparent 30%),
+    linear-gradient(180deg, #162033 0%, #111827 46%, #0f172a 100%);
+  color: #f8fafc;
+}
+
+.panel,
+.plan-card,
+.day-card,
+.plan-context-panel,
+.buddy-method-panel,
+.editable-session-sheet {
+  background: rgba(36, 48, 68, 0.92);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.editable-exercise-sheet {
+  background: rgba(38, 50, 71, 0.9);
+}
+
+.editable-exercise-head,
+.editable-set-header-row {
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.editable-set-row:nth-child(even) {
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.editable-set-row:nth-child(odd) {
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.muted,
+.guide-note,
+.exercise-rpe-hint,
+.planned-summary,
+.accessory-summary {
+  color: #cbd5e1;
+}
+
+.actual-weight,
+.actual-reps,
+.actual-rpe {
+  background: #f8fafc;
+  color: #111827;
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.actual-weight::placeholder,
+.actual-reps::placeholder,
+.actual-rpe::placeholder {
+  color: rgba(17, 24, 39, 0.38);
+}
+
+.accessory-row {
+  grid-template-columns: 58px minmax(96px, 1.25fr) minmax(58px, 0.9fr) minmax(48px, 0.75fr) minmax(58px, 0.9fr) 30px;
+}
+
+.accessory-row .accessory-plan-label {
+  color: #e2e8f0;
+}
+
+@media (max-width: 640px) {
+  .accessory-row {
+    grid-template-columns: 48px minmax(76px, 1.2fr) minmax(50px, 0.85fr) minmax(42px, 0.7fr) minmax(50px, 0.85fr) 28px;
+  }
+}
