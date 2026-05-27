@@ -10327,3 +10327,120 @@ body {
     font-size: 0.68rem;
   }
 }
+
+/* v112.15: mobile overflow fix for method rows */
+.editable-set-row,
+.editable-set-header-row {
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.editable-set-sheet {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.set-meta,
+.planned-method-label,
+.actual-weight,
+.actual-reps,
+.actual-rpe {
+  min-width: 0;
+}
+
+.method-row {
+  display: block !important;
+  padding: 8px 10px !important;
+}
+
+.method-row-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  margin-bottom: 6px;
+}
+
+.method-row-head .set-meta {
+  flex: 0 0 auto;
+}
+
+.method-row-head .planned-method-label {
+  flex: 1 1 auto;
+  margin-left: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.35;
+  text-align: right;
+}
+
+.method-input-grid {
+  display: grid;
+  grid-template-columns: minmax(72px, 1fr) minmax(48px, 0.7fr) minmax(58px, 0.8fr) 28px;
+  gap: 6px;
+  align-items: center;
+  min-width: 0;
+}
+
+.method-input-grid .actual-weight,
+.method-input-grid .actual-reps,
+.method-input-grid .actual-rpe {
+  width: 100%;
+  min-width: 0;
+}
+
+.method-input-grid .actual-remove-set {
+  width: 26px;
+  min-height: 26px;
+}
+
+@media (max-width: 640px) {
+  .method-set-sheet .editable-set-header-row {
+    display: none;
+  }
+
+  .method-row {
+    padding: 8px !important;
+  }
+
+  .method-row-head {
+    align-items: flex-start;
+  }
+
+  .method-row-head .planned-method-label {
+    font-size: 0.68rem;
+    text-align: left;
+  }
+
+  .method-input-grid {
+    grid-template-columns: minmax(70px, 1fr) minmax(44px, 0.65fr) minmax(54px, 0.75fr) 26px;
+    gap: 5px;
+  }
+
+  .method-input-grid .actual-weight,
+  .method-input-grid .actual-reps,
+  .method-input-grid .actual-rpe {
+    min-height: 34px;
+    font-size: 0.88rem;
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+
+  .editable-set-row:not(.method-row):not(.accessory-row),
+  .editable-set-header-row {
+    grid-template-columns: 46px minmax(62px, 1fr) minmax(42px, 0.62fr) minmax(52px, 0.72fr) 26px;
+    gap: 5px;
+  }
+
+  .actual-remove-set {
+    width: 24px;
+    min-height: 24px;
+  }
+
+  .editable-set-sheet {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}

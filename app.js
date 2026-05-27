@@ -3633,7 +3633,7 @@ function renderEditableExerciseSheet(item, cycle, dayIndex, itemIndex) {
     ? `<p class="method-check-note">3〜5回@8で現在地を確認。5回やり切るより、RPE8で止めることが目的です。</p>`
     : "";
   return `
-    <section class="editable-exercise-sheet actual-box"
+    <section class="editable-exercise-sheet actual-box ${item.kind === "method" ? "method-exercise-sheet" : ""} ${item.kind === "method" && /第一|第二|第三/.test(item.work || "") ? "meet-attempt-sheet" : ""}"
       data-plan-key="${escapeHtml(key)}"
       data-lift="${escapeHtml(item.lift || item.exerciseId || "custom")}"
       data-source="plan"
@@ -3647,7 +3647,7 @@ function renderEditableExerciseSheet(item, cycle, dayIndex, itemIndex) {
         </div>
       </div>
       ${checkNote}
-      <div class="editable-set-sheet actual-set-list">
+      <div class="editable-set-sheet actual-set-list ${item.kind === "method" ? "method-set-sheet" : ""}">
         <div class="editable-set-header-row">
           <span>set</span>
           <span>kg</span>
@@ -4974,7 +4974,7 @@ function parsePrescriptionBlocks(title = "") {
         sets: "",
         rpe: `@RPE${rpeLabel}`,
         rpeLabel,
-        goal: `${name} ${weightLabel} @${rpeLabel}`
+        goal: `${weightLabel} @${rpeLabel}`
       };
     });
   }
@@ -5083,8 +5083,8 @@ function feedbackMarkup(feedback) {
 function editableActualSetRowMarkup(row = {}, index = 0) {
   const kind = row.kind || row.label || "";
   const setLabel = row.displayLabel || `S${index + 1}`;
-  const isAttempt = /第一試技|第二試技|第三試技/.test(setLabel);
-  const isCheck = /確認セット/.test(setLabel);
+  const isAttempt = /第一試技|第二試技|第三試技/.test(setLabel) || String(kind).includes("試技");
+  const isCheck = /確認セット/.test(setLabel) || String(kind).includes("確認");
   const isAccessory = String(kind).includes("補助");
   const plannedKg = isAttempt || isAccessory ? "" : String(row.plannedWeight ?? row.weight ?? "");
   const plannedWeightHint = String(row.plannedWeightLabel ?? (row.plannedWeight ? `${row.plannedWeight}kg` : ""));
@@ -5107,14 +5107,31 @@ function editableActualSetRowMarkup(row = {}, index = 0) {
           : isAccessory
             ? "set-kind-accessory"
             : "set-kind-default";
-  const rowClass = isAttempt ? " attempt-row" : isCheck ? " check-row" : isAccessory ? " accessory-row" : "";
   const plannedLabel = row.plannedLabel || [
     plannedWeightHint,
     plannedRepsLabel ? `${plannedRepsLabel}回` : "",
     plannedRpeRaw ? `@${plannedRpeRaw}` : ""
   ].filter(Boolean).join(" / ");
-  const showPlanLabel = isAttempt || isCheck || isAccessory;
   const placeholderKg = isAttempt ? (row.weightLow || "kg") : (plannedKg || "kg");
+
+  if (isAttempt || isCheck) {
+    return methodActualSetRowMarkup({
+      setLabel,
+      kind,
+      kindClass,
+      plannedLabel,
+      placeholderKg,
+      actualKg,
+      actualReps,
+      actualRpe,
+      plannedRepsLabel,
+      plannedRpeRaw,
+      isAttempt
+    });
+  }
+
+  const rowClass = isAccessory ? " accessory-row" : "";
+  const showPlanLabel = isAccessory;
   return `
     <div class="editable-set-row actual-set-row${rowClass}">
       <div class="set-meta">
@@ -5129,6 +5146,42 @@ function editableActualSetRowMarkup(row = {}, index = 0) {
       <input class="actual-rpe" aria-label="実RPE" inputmode="decimal" type="number" min="5" max="10" step="0.5"
         placeholder="${escapeHtml(plannedRpeRaw || "RPE")}" value="${escapeHtml(actualRpe)}">
       <button class="delete-entry actual-remove-set" type="button" aria-label="セットを削除">×</button>
+    </div>
+  `;
+}
+
+function methodActualSetRowMarkup({
+  setLabel,
+  kind,
+  kindClass,
+  plannedLabel,
+  placeholderKg,
+  actualKg,
+  actualReps,
+  actualRpe,
+  plannedRepsLabel,
+  plannedRpeRaw,
+  isAttempt
+}) {
+  const rowClass = isAttempt ? "attempt-row method-row" : "check-row method-row";
+  return `
+    <div class="editable-set-row actual-set-row ${rowClass}">
+      <div class="method-row-head">
+        <div class="set-meta">
+          <strong>${escapeHtml(setLabel)}</strong>
+          ${kind ? `<small class="${kindClass}">${escapeHtml(kind)}</small>` : ""}
+        </div>
+        ${plannedLabel ? `<span class="planned-method-label">提案 ${escapeHtml(plannedLabel)}</span>` : ""}
+      </div>
+      <div class="method-input-grid">
+        <input class="actual-weight" aria-label="実重量" inputmode="decimal" type="number" min="0" step="0.5"
+          placeholder="${escapeHtml(placeholderKg || "kg")}" value="${escapeHtml(actualKg)}">
+        <input class="actual-reps" aria-label="実回数" inputmode="numeric" type="number" min="1" step="1"
+          placeholder="${escapeHtml(plannedRepsLabel || "回")}" value="${escapeHtml(actualReps)}">
+        <input class="actual-rpe" aria-label="実RPE" inputmode="decimal" type="number" min="5" max="10" step="0.5"
+          placeholder="${escapeHtml(plannedRpeRaw || "RPE")}" value="${escapeHtml(actualRpe)}">
+        <button class="delete-entry actual-remove-set" type="button" aria-label="セットを削除">×</button>
+      </div>
     </div>
   `;
 }
