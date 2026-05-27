@@ -3610,9 +3610,16 @@ function renderEditableExerciseSheet(item, cycle, dayIndex, itemIndex) {
       ...planned,
       ...savedRow,
       kind: planned.kind || savedRow.kind || "",
+      displayLabel: planned.displayLabel || savedRow.displayLabel || "",
       plannedWeight: planned.plannedWeight ?? savedRow.plannedWeight ?? planned.weight ?? "",
+      plannedWeightLabel: planned.plannedWeightLabel ?? savedRow.plannedWeightLabel ?? "",
+      weightLow: planned.weightLow ?? savedRow.weightLow ?? "",
+      weightHigh: planned.weightHigh ?? savedRow.weightHigh ?? "",
       plannedReps: planned.plannedReps ?? savedRow.plannedReps ?? planned.reps ?? "",
+      plannedRepsLabel: planned.plannedRepsLabel ?? savedRow.plannedRepsLabel ?? "",
       plannedRpe: planned.plannedRpe ?? savedRow.plannedRpe ?? "",
+      plannedRpeLabel: planned.plannedRpeLabel ?? savedRow.plannedRpeLabel ?? "",
+      plannedLabel: planned.plannedLabel ?? savedRow.plannedLabel ?? "",
       weight: savedRow.weight ?? planned.weight ?? planned.plannedWeight ?? "",
       reps: savedRow.reps ?? planned.reps ?? planned.plannedReps ?? "",
       rpe: savedRow.rpe ?? ""
@@ -3622,6 +3629,9 @@ function renderEditableExerciseSheet(item, cycle, dayIndex, itemIndex) {
   const feedback = saved ? feedbackMarkup(saved) : "";
   const plannedRpe = prescribedRows.length ? (prescribedRows[0].plannedRpe || "") : "";
   const planText = planTextForActualItem(item, cycle);
+  const checkNote = item.kind === "method" && isCurrentCheckItem(item)
+    ? `<p class="method-check-note">3〜5回@8で現在地を確認。5回やり切るより、RPE8で止めることが目的です。</p>`
+    : "";
   return `
     <section class="editable-exercise-sheet actual-box"
       data-plan-key="${escapeHtml(key)}"
@@ -3636,6 +3646,7 @@ function renderEditableExerciseSheet(item, cycle, dayIndex, itemIndex) {
           ${planSummary ? `<span class="exercise-rpe-hint">${escapeHtml(planSummary)}</span>` : ""}
         </div>
       </div>
+      ${checkNote}
       <div class="editable-set-sheet actual-set-list">
         <div class="editable-set-header-row">
           <span>set</span>
@@ -3660,34 +3671,129 @@ function renderEditableExerciseSheet(item, cycle, dayIndex, itemIndex) {
   `;
 }
 
-function prescribedSetRows(item, cycle) {
-  if (item.kind === "accessory" || item.kind === "method") {
-    const acc = parseAccessoryWork(item.work);
-    const setCount = Math.max(1, Math.min(8, Number(acc.sets) || 1));
-    const targetReps = accessoryTargetReps(acc.reps);
-    const plannedRpe = acc.rpe ? acc.rpe.replace(/@?RPE/g, "").trim() : "";
-    const plannedLabel = [
-      targetReps ? `${targetReps}回` : "",
-      acc.sets ? `${acc.sets}set` : "",
-      acc.rpe ? acc.rpe.replace("@RPE", "@") : ""
-    ].filter(Boolean).join(" × ");
-    return Array.from({ length: setCount }, () => ({
-      kind: item.kind === "accessory" ? "補助" : "確認",
+function normalizeRangeText(value = "") {
+  return String(value || "")
+    .replace(/～/g, "〜")
+    .replace(/~/g, "〜")
+    .replace(/-/g, "〜")
+    .trim();
+}
+
+function cleanRpeValue(value = "") {
+  return String(value || "")
+    .replace(/@/g, "")
+    .replace(/RPE/gi, "")
+    .trim();
+}
+
+function plannedRpeNumberFromLabel(label = "") {
+  const text = cleanRpeValue(label);
+  const range = text.match(/^([\d.]+)\s*[〜~\-]\s*([\d.]+)/);
+  if (range) return range[2];
+  const single = text.match(/^([\d.]+)/);
+  return single ? single[1] : "";
+}
+
+function isCurrentCheckItem(item = {}) {
+  const text = `${item.name || ""} ${item.title || ""} ${item.work || ""}`;
+  return /現在地|確認|チェック/.test(text) && !/第一|第二|第三/.test(text);
+}
+
+function prescribedAccessoryRows(item) {
+  const acc = parseAccessoryWork(item.work);
+  const setCount = Math.max(1, Math.min(8, Number(acc.sets) || 1));
+  const targetReps = accessoryTargetReps(acc.reps);
+  const plannedRpe = acc.rpe ? cleanRpeValue(acc.rpe) : "";
+  const plannedLabel = [
+    targetReps ? `${targetReps}回` : "",
+    acc.sets ? `${acc.sets}set` : "",
+    acc.rpe ? acc.rpe.replace("@RPE", "@") : ""
+  ].filter(Boolean).join(" × ");
+  return Array.from({ length: setCount }, () => ({
+    kind: "補助",
+    plannedWeight: "",
+    plannedReps: targetReps,
+    plannedSets: acc.sets,
+    plannedRpe,
+    plannedLabel,
+    weight: "",
+    reps: targetReps,
+    rpe: ""
+  }));
+}
+
+function prescribedMethodRows(item, cycle) {
+  const blocks = parsePrescriptionBlocks(item.work || "");
+  if (!blocks.length) {
+    return [{
+      kind: "確認",
+      displayLabel: "確認セット",
       plannedWeight: "",
-      plannedReps: targetReps,
-      plannedSets: acc.sets,
-      plannedRpe,
-      plannedLabel,
+      plannedWeightLabel: "",
+      plannedReps: "",
+      plannedRepsLabel: "",
+      plannedRpe: "",
+      plannedRpeLabel: "",
+      plannedLabel: item.work || "",
       weight: "",
-      reps: targetReps,
+      reps: "",
+      rpe: ""
+    }];
+  }
+  return blocks.flatMap((block) => {
+    const isAttempt = block.type === "attempt";
+    const setCount = Math.max(1, Math.min(8, Number(block.sets) || 1));
+    const plannedRpe = plannedRpeNumberFromLabel(block.rpeLabel || block.rpe);
+    if (isAttempt) {
+      return [{
+        kind: "試技",
+        displayLabel: block.displayLabel || block.label,
+        plannedWeight: "",
+        plannedWeightLabel: block.weightLabel || "",
+        weightLow: block.weightLow || "",
+        weightHigh: block.weightHigh || "",
+        plannedReps: "1",
+        plannedRepsLabel: "1",
+        plannedRpe,
+        plannedRpeLabel: block.rpeLabel || "",
+        plannedLabel: block.goal || "",
+        weight: "",
+        reps: "1",
+        rpe: ""
+      }];
+    }
+    return Array.from({ length: setCount }, (_, index) => ({
+      kind: "確認",
+      displayLabel: isCurrentCheckItem(item) ? "確認セット" : (block.label || `S${index + 1}`),
+      plannedWeight: block.weight,
+      plannedWeightLabel: block.weight ? `${block.weight}kg` : "",
+      plannedReps: "",
+      plannedRepsLabel: block.reps || "",
+      plannedSets: block.sets || "",
+      plannedRpe,
+      plannedRpeLabel: block.rpeLabel || "",
+      plannedLabel: [block.weight ? `${block.weight}kg` : "", block.goal || ""].filter(Boolean).join(" / "),
+      weight: block.weight,
+      reps: "",
       rpe: ""
     }));
+  });
+}
+
+function prescribedSetRows(item, cycle) {
+  if (item.kind === "method") {
+    return prescribedMethodRows(item, cycle);
   }
+
+  if (item.kind === "accessory") {
+    return prescribedAccessoryRows(item);
+  }
+
   const blocks = parsePrescriptionBlocks(planTextForActualItem(item, cycle));
   const rows = [];
   blocks.forEach((block) => {
     const setCount = Math.max(1, Math.min(8, Number(block.sets) || 1));
-    const rpeNum = String(block.rpe || "").replace(/@/g, "").replace(/RPE/g, "").trim();
+    const rpeNum = cleanRpeValue(block.rpeLabel || block.rpe);
     const kind = block.type === "topset" ? "Top" : "Back";
     for (let index = 0; index < setCount; index += 1) {
       rows.push({
@@ -3705,7 +3811,6 @@ function prescribedSetRows(item, cycle) {
 }
 
 function prescriptionSummaryLabel(item, cycle) {
-  if (item.kind === "accessory" || item.kind === "method") return "";
   const blocks = parsePrescriptionBlocks(planTextForActualItem(item, cycle));
   const labels = blocks.map((block) => block.rpe).filter(Boolean);
   return labels.length ? `予定 ${labels.join(" / ")}` : "";
@@ -4848,21 +4953,48 @@ function planPrescriptionMarkup(title = "") {
 }
 
 function parsePrescriptionBlocks(title = "") {
-  const matches = [...String(title).matchAll(/([\d.]+)kg\s*x\s*([\d+]+)(?:\s*x\s*([\d+]+))?\s*@([^\s/]+)/g)];
+  const text = String(title || "").replace(/×/g, "x");
+  const attemptMatches = [...text.matchAll(/(第一|第二|第三)\s*([\d.]+)(?:\s*[〜~\-]\s*([\d.]+))?\s*kg\s*@?\s*(?:RPE)?\s*([\d.]+(?:[〜~\-][\d.]+)?)/g)];
+  if (attemptMatches.length) {
+    return attemptMatches.map((match) => {
+      const name = match[1];
+      const low = match[2];
+      const high = match[3] || "";
+      const rpeLabel = normalizeRangeText(match[4]);
+      const weightLabel = high ? `${low}〜${high}kg` : `${low}kg`;
+      return {
+        label: `${name}試技`,
+        displayLabel: `${name}試技`,
+        type: "attempt",
+        weight: high ? "" : formatNumber(Number(low)),
+        weightLow: low,
+        weightHigh: high,
+        weightLabel,
+        reps: "1",
+        sets: "",
+        rpe: `@RPE${rpeLabel}`,
+        rpeLabel,
+        goal: `${name} ${weightLabel} @${rpeLabel}`
+      };
+    });
+  }
+
+  const matches = [...text.matchAll(/([\d.]+)\s*kg\s*x\s*(\d+(?:[〜~\-]\d+)?)\s*(?:x\s*(\d+))?(?:\s*@?\s*(?:RPE)?\s*([\d.]+(?:[〜~\-][\d.]+)?))?/g)];
   return matches.map((match, index) => {
     const weight = Number(match[1]);
-    const reps = match[2];
-    const sets = match[3];
-    const rpe = match[4];
+    const reps = normalizeRangeText(match[2]);
+    const sets = match[3] || "";
+    const rpeLabel = normalizeRangeText(match[4] || "");
     return {
       label: index === 0 ? "トップセット" : "バックオフセット",
       type: index === 0 ? "topset" : "backoff",
       weight: formatNumber(weight),
       range: recommendationRange(weight),
-      reps: reps,
-      sets: sets || "",
-      rpe: `@RPE${rpe}`,
-      goal: `${reps}回${sets ? ` ×${sets}セット` : ""} @${rpe}`
+      reps,
+      sets,
+      rpe: rpeLabel ? `@RPE${rpeLabel}` : "",
+      rpeLabel,
+      goal: `${reps}回${sets ? ` × ${sets}set` : ""}${rpeLabel ? ` @${rpeLabel}` : ""}`
     };
   });
 }
@@ -4921,84 +5053,56 @@ function actualSetRowMarkup(row = {}, index = 0) {
 }
 
 function editableActualSetRowMarkup(row = {}, index = 0) {
-  const plannedKg = String(row.plannedWeight ?? row.weight ?? "");
-  const plannedReps = String(row.plannedReps ?? row.reps ?? "");
-  const plannedRpeRaw = String(row.plannedRpe ?? "").replace(/@/g, "").replace(/RPE/g, "").trim();
   const kind = row.kind || row.label || "";
-  const kindLower = String(kind).toLowerCase();
-  const isAccessory = kind === "補助" || kind === "確認";
-  const kindClass = kindLower.includes("top")
-    ? "set-kind-top"
-    : kindLower.includes("back")
-      ? "set-kind-back"
-      : isAccessory
-        ? "set-kind-accessory"
-        : "set-kind-default";
-  const rawActualKg = String(row.weight ?? (isAccessory ? "" : plannedKg) ?? "");
+  const setLabel = row.displayLabel || `S${index + 1}`;
+  const isAttempt = /第一試技|第二試技|第三試技/.test(setLabel);
+  const isCheck = /確認セット/.test(setLabel);
+  const isAccessory = String(kind).includes("補助");
+  const plannedKg = isAttempt || isAccessory ? "" : String(row.plannedWeight ?? row.weight ?? "");
+  const plannedWeightHint = String(row.plannedWeightLabel ?? (row.plannedWeight ? `${row.plannedWeight}kg` : ""));
+  const plannedReps = String(row.plannedReps ?? row.reps ?? "");
+  const plannedRepsLabel = String(row.plannedRepsLabel ?? plannedReps);
+  const plannedRpeRaw = cleanRpeValue(row.plannedRpeLabel || row.plannedRpe || "");
+  const rawActualKg = String(row.weight ?? (isAccessory || isAttempt ? "" : plannedKg) ?? "");
   const actualKg = isAccessory && rawActualKg && !/^\d+(?:\.\d+)?$/.test(rawActualKg.trim()) ? "" : rawActualKg;
-  const actualReps = String(row.reps ?? plannedReps ?? "");
+  const actualReps = String(row.reps ?? (isAttempt ? "1" : plannedReps) ?? "");
   const actualRpe = String(row.rpe ?? "");
-  if (isAccessory) {
-    const accessoryLabel = row.plannedLabel || (plannedReps ? `${plannedReps}回` : "—");
-    return `
-    <div class="editable-set-row actual-set-row accessory-row">
-      <div class="set-meta">
-        <strong>S${index + 1}</strong>
-        <small class="${kindClass} accessory-kind">${escapeHtml(kind)}</small>
-      </div>
-      <span class="accessory-plan-label">
-        ${escapeHtml(accessoryLabel)}
-      </span>
-      <input class="actual-weight" aria-label="実重量" inputmode="decimal" type="number" min="0" step="0.5"
-        placeholder="kg" value="${escapeHtml(actualKg)}">
-      <input class="actual-reps" aria-label="実回数" inputmode="numeric" type="number" min="1" step="1"
-        placeholder="${escapeHtml(plannedReps || "回")}" value="${escapeHtml(actualReps)}">
-      <input class="actual-rpe" aria-label="実RPE" inputmode="decimal" type="number" min="5" max="10" step="0.5"
-        placeholder="${escapeHtml(plannedRpeRaw || "RPE")}" value="${escapeHtml(actualRpe)}">
-      <button class="delete-entry actual-remove-set" type="button" aria-label="セットを削除">×</button>
-    </div>
-  `;
-  }
+  const kindLower = String(kind).toLowerCase();
+  const kindClass = isAttempt
+    ? "set-kind-attempt"
+    : isCheck
+      ? "set-kind-check"
+      : kindLower.includes("top")
+        ? "set-kind-top"
+        : kindLower.includes("back")
+          ? "set-kind-back"
+          : isAccessory
+            ? "set-kind-accessory"
+            : "set-kind-default";
+  const rowClass = isAttempt ? " attempt-row" : isCheck ? " check-row" : isAccessory ? " accessory-row" : "";
+  const plannedLabel = row.plannedLabel || [
+    plannedWeightHint,
+    plannedRepsLabel ? `${plannedRepsLabel}回` : "",
+    plannedRpeRaw ? `@${plannedRpeRaw}` : ""
+  ].filter(Boolean).join(" / ");
+  const showPlanLabel = isAttempt || isCheck || isAccessory;
+  const placeholderKg = isAttempt ? (row.weightLow || "kg") : (plannedKg || "kg");
   return `
-    <div class="editable-set-row actual-set-row">
+    <div class="editable-set-row actual-set-row${rowClass}">
       <div class="set-meta">
-        <strong>S${index + 1}</strong>
+        <strong>${escapeHtml(setLabel)}</strong>
         ${kind ? `<small class="${kindClass}">${escapeHtml(kind)}</small>` : ""}
       </div>
+      ${showPlanLabel ? `<span class="planned-method-label">提案 ${escapeHtml(plannedLabel || "—")}</span>` : ""}
       <input class="actual-weight" aria-label="実重量" inputmode="decimal" type="number" min="0" step="0.5"
-        placeholder="${escapeHtml(plannedKg)}" value="${escapeHtml(actualKg)}">
+        placeholder="${escapeHtml(placeholderKg)}" value="${escapeHtml(actualKg)}">
       <input class="actual-reps" aria-label="実回数" inputmode="numeric" type="number" min="1" step="1"
-        placeholder="${escapeHtml(plannedReps)}" value="${escapeHtml(actualReps)}">
+        placeholder="${escapeHtml(plannedRepsLabel || "回")}" value="${escapeHtml(actualReps)}">
       <input class="actual-rpe" aria-label="実RPE" inputmode="decimal" type="number" min="5" max="10" step="0.5"
         placeholder="${escapeHtml(plannedRpeRaw || "RPE")}" value="${escapeHtml(actualRpe)}">
       <button class="delete-entry actual-remove-set" type="button" aria-label="セットを削除">×</button>
     </div>
   `;
-}
-
-function plannedTopSet(planText, detail = "") {
-  const combined = `${planText} ${detail}`;
-  const weight = Number((planText.match(/([\d.]+)kg/) || [])[1] || "");
-  const repsText = (planText.match(/kg\s*x\s*([\d+]+)/) || [])[1] || "";
-  const reps = Number(String(repsText).replace("+", "")) || "";
-  const rpe = Number((combined.match(/@([\d.]+)/) || combined.match(/RPE\s*([\d.]+)/i) || [])[1] || "");
-  return { weight: weight || "", reps, rpe: rpe || "" };
-}
-
-function planFeedbackKey(cycle, dayIndex, itemIndex, lift, name) {
-  return [cycle.programMethod, cycle.buddyLevel || "level1", cycle.planTarget, `w${cycle.week}`, `d${dayIndex + 1}`, itemIndex + 1, lift || "custom", name].join("|");
-}
-
-function feedbackMarkup(feedback) {
-  if (!guideEnabled() && ["ok", "light"].includes(feedback.status)) return "";
-  const confidence = feedback.rpeConfidence ? `<span>${escapeHtml(rpeConfidenceLabel(feedback.rpeConfidence))}</span>` : "";
-  return `<p class="rpe-feedback ${feedback.status}">${confidence}${escapeHtml(feedback.message)}</p>`;
-}
-
-function rpeConfidenceLabel(value) {
-  if (value === "solid") return "RPE自信あり";
-  if (value === "unsure") return "RPE少し迷う";
-  return "RPE感覚練習中";
 }
 
 function previousFeedbackMarkup(cycle, item) {
@@ -5557,21 +5661,26 @@ function finalMeetTemplate(cycle) {
   ];
 }
 
+function attemptRangeLabel(max, lowPercent, highPercent) {
+  if (!max) return "";
+  const low = formatNumber(roundToIncrement(max * lowPercent, 2.5));
+  const high = formatNumber(roundToIncrement(max * highPercent, 2.5));
+  return `${low}〜${high}`;
+}
+
 function finalAttemptItem(lift, cycle) {
   const max = Number(cycle.maxes[lift] || bestE1rm(lift) || 0);
-  const range = max ? projectedPrRange(lift, max, cycle.length, cycle.daysPerWeek, cycle.priorityLift) : { low: "-", high: "-" };
-  const attemptPercents = {
-    beginner: [0.88, 0.94],
-    intermediate: [0.9, 0.96],
-    advanced: [0.92, 0.98]
-  }[cycle.experienceLevel] || [0.9, 0.96];
-  const first = max ? roundToIncrement(max * attemptPercents[0], 2.5) : "-";
-  const second = max ? roundToIncrement(max * attemptPercents[1], 2.5) : "-";
+  const first = attemptRangeLabel(max, 0.88, 0.92);
+  const second = attemptRangeLabel(max, 0.94, 0.97);
+  const third = attemptRangeLabel(max, 0.98, 1.03);
+  const work = max
+    ? `第一 ${first}kg @7〜8 / 第二 ${second}kg @8〜9 / 第三 ${third}kg @9〜10`
+    : "第一 0kg @7〜8 / 第二 0kg @8〜9 / 第三 0kg @9〜10";
   return methodItem(
     lift,
     exerciseMeta(lift).name,
-    `第一 ${first}kg @7〜8 / 第二 ${second}kg @8〜9 / 第三 ${range.low}〜${range.high}kg @9〜10`,
-    "SQ→BP→DLの順で実施。第一は確実に成功している重量、第二はトータルを作る重量。第二が@8以下なら第三は上の候補、@9以上なら小幅PRまたは成功優先を選ぶ。"
+    work,
+    "第一は確実に白を取る重量、第二はトータルを作る重量、第三はPRまたは挑戦重量として考えます。"
   );
 }
 
@@ -7504,3 +7613,5 @@ renderExerciseControls();
 els.dateInput.value = today();
 renderSetRows();
 render();
+
+

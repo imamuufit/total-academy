@@ -10213,3 +10213,117 @@ body {
     grid-template-columns: 48px minmax(76px, 1.2fr) minmax(50px, 0.85fr) minmax(42px, 0.7fr) minmax(50px, 0.85fr) 28px;
   }
 }
+
+/* v112.14: brighter plan surface + method row recovery */
+body {
+  background:
+    radial-gradient(circle at top left, rgba(239, 68, 68, 0.12), transparent 28%),
+    linear-gradient(180deg, #223047 0%, #1e293b 42%, #172033 100%) !important;
+  color: #f8fafc;
+}
+
+.plan-card,
+.day-card,
+.plan-context-panel,
+.buddy-method-panel,
+.current-check-card,
+.short-goal-card {
+  background: rgba(45, 59, 82, 0.94) !important;
+  border-color: rgba(255, 255, 255, 0.16) !important;
+}
+
+.editable-session-sheet {
+  background: rgba(42, 56, 78, 0.96) !important;
+  border-color: rgba(255, 255, 255, 0.18) !important;
+}
+
+.editable-exercise-sheet {
+  background: rgba(48, 63, 86, 0.94) !important;
+}
+
+.editable-exercise-head,
+.editable-set-header-row {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.editable-set-row:nth-child(odd) {
+  background: rgba(255, 255, 255, 0.038) !important;
+}
+
+.editable-set-row:nth-child(even) {
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+
+.muted,
+.guide-note,
+.exercise-rpe-hint,
+.planned-summary,
+.accessory-summary,
+.accessory-plan-label,
+.planned-method-label {
+  color: #dbeafe !important;
+}
+
+.planned-method-label {
+  display: inline-block;
+  margin-left: 0;
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.method-check-note {
+  margin: 0 10px 8px;
+  font-size: 0.78rem;
+  color: #dbeafe;
+  line-height: 1.45;
+}
+
+.actual-weight,
+.actual-reps,
+.actual-rpe {
+  background: #f8fafc !important;
+  color: #111827 !important;
+  border-color: rgba(255, 255, 255, 0.35) !important;
+}
+
+.actual-weight::placeholder,
+.actual-reps::placeholder,
+.actual-rpe::placeholder {
+  color: rgba(17, 24, 39, 0.42) !important;
+}
+
+.set-kind-check {
+  background: rgba(96, 165, 250, 0.95) !important;
+  color: #0f172a !important;
+}
+
+.set-kind-attempt {
+  background: rgba(251, 191, 36, 0.95) !important;
+  color: #1f2937 !important;
+}
+
+.attempt-row {
+  background: rgba(251, 191, 36, 0.08) !important;
+}
+
+.check-row {
+  background: rgba(96, 165, 250, 0.07) !important;
+}
+
+.check-row,
+.attempt-row {
+  grid-template-columns: 72px minmax(132px, 1.8fr) minmax(58px, 0.9fr) minmax(48px, 0.75fr) minmax(58px, 0.9fr) 30px;
+}
+
+@media (max-width: 640px) {
+  .check-row,
+  .attempt-row {
+    grid-template-columns: 58px minmax(94px, 1.4fr) minmax(50px, 0.85fr) minmax(42px, 0.7fr) minmax(50px, 0.85fr) 28px;
+    gap: 5px;
+  }
+
+  .planned-method-label {
+    font-size: 0.68rem;
+  }
+}
