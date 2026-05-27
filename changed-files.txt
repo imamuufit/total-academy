@@ -1,0 +1,35 @@
+Platform Buddy v112.16 changed files
+
+変更ファイル:
+- app.js
+- styles.css
+- index.html
+- sw.js
+- manifest.webmanifest
+
+追加ファイル:
+- changed-files.txt
+- DIFF
+
+削除が必要なファイル:
+- なし
+
+画像変更の有無:
+- なし
+
+GitHub上で上書きする場所:
+- リポジトリ直下にそのまま上書きしてください。
+- assets フォルダは使用しません。
+
+PWAバージョン更新内容:
+- index.html: styles.css?v=112.16 / app.js?v=112.16
+- sw.js: platform-buddy-v112.16
+- sw.js CORE_ASSETS: index.html?v=112.16 / styles.css?v=112.16 / app.js?v=112.16
+- manifest.webmanifest: start_url ./index.html?v=112.16
+
+GitHub反映後に確認する画面:
+- PLAN画面の最終週 / 大会想定MAXチェック
+- PLAN下部のBIG3予測PR
+- 大会想定日の第一試技 / 第二試技 / 第三試技
+- DLなどで予測PRレンジと第三試技レンジが大きく矛盾しないこと
+- PLAN入力欄の背景が真っ白すぎず、数字が読めること

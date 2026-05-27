@@ -1,0 +1,46 @@
+Platform Buddy v112.16 DIFF summary
+
+app.js
+- finalAttemptItem() を更新。
+- 旧仕様:
+  - 第一試技: 現在1RMの88〜92%
+  - 第二試技: 現在1RMの94〜97%
+  - 第三試技: 現在1RMの98〜103%
+- 新仕様:
+  - projectedPrRange() を使って予測PRレンジを取得。
+  - 第三試技は予測PRレンジそのものを基準に表示。
+  - 第一試技は max*90〜94% と予測PR下限*88〜92% の安全側。
+  - 第二試技は予測PR下限の94〜98%。
+  - 第三試技は予測PR下限〜上限。
+- 0kg時のフォールバックは維持。
+- 保存データ構造、planFeedbackKey、actual-save、LOG/DATA/MEET には触れていません。
+
+styles.css
+- v112.16: calmer input cells を追加。
+- PLAN入力欄の背景を #f8fafc から #e2e8f0 へ調整。
+- 入力文字色 #111827 は維持。
+- 入力欄の枠線を rgba(148, 163, 184, 0.75) へ調整。
+- placeholder の可読性は維持。
+- body背景やPLAN全体配色は変更していません。
+
+index.html
+- styles.css と app.js のクエリを ?v=112.16 に更新。
+
+sw.js
+- CACHE_NAME を platform-buddy-v112.16 に更新。
+- CORE_ASSETS の index.html/styles.css/app.js を ?v=112.16 に更新。
+
+manifest.webmanifest
+- start_url を ./index.html?v=112.16 に更新。
+
+ZIP内容
+- 変更ファイルのみ:
+  - app.js
+  - styles.css
+  - index.html
+  - sw.js
+  - manifest.webmanifest
+  - changed-files.txt
+  - DIFF
+- 画像ファイルは含めていません。
+- 親フォルダは含めていません。

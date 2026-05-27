@@ -10444,3 +10444,18 @@ body {
     -webkit-overflow-scrolling: touch;
   }
 }
+
+/* v112.16: calmer input cells */
+.actual-weight,
+.actual-reps,
+.actual-rpe {
+  background: #e2e8f0 !important;
+  color: #111827 !important;
+  border-color: rgba(148, 163, 184, 0.75) !important;
+}
+
+.actual-weight::placeholder,
+.actual-reps::placeholder,
+.actual-rpe::placeholder {
+  color: rgba(17, 24, 39, 0.42) !important;
+}
