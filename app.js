@@ -5750,18 +5750,42 @@ function attemptRangeLabel(max, lowPercent, highPercent) {
 }
 
 function finalAttemptItem(lift, cycle) {
+  const athlete = currentAthlete();
   const max = Number(cycle.maxes[lift] || bestE1rm(lift) || 0);
-  const first = attemptRangeLabel(max, 0.88, 0.92);
-  const second = attemptRangeLabel(max, 0.94, 0.97);
-  const third = attemptRangeLabel(max, 0.98, 1.03);
-  const work = max
-    ? `第一 ${first}kg @7〜8 / 第二 ${second}kg @8〜9 / 第三 ${third}kg @9〜10`
-    : "第一 0kg @7〜8 / 第二 0kg @8〜9 / 第三 0kg @9〜10";
+  if (!max) {
+    return methodItem(
+      lift,
+      exerciseMeta(lift).name,
+      "第一 0kg @7〜8 / 第二 0kg @8〜9 / 第三 0kg @9〜10",
+      "第一は確実に白を取る重量、第二はトータルを作る重量、第三はPRまたは挑戦重量として考えます。"
+    );
+  }
+
+  const projected = projectedPrRange(
+    lift,
+    max,
+    cycle.length,
+    cycle.daysPerWeek,
+    cycle.priorityLift,
+    athlete
+  );
+  const prLow = Number(projected.low || max);
+  const prHigh = Number(projected.high || prLow);
+  const rangeLabel = (low, high) => {
+    const roundedLow = roundToIncrement(low, 2.5);
+    const roundedHigh = Math.max(roundedLow, roundToIncrement(high, 2.5));
+    return `${formatNumber(roundedLow)}〜${formatNumber(roundedHigh)}`;
+  };
+
+  const first = rangeLabel(Math.min(max * 0.9, prLow * 0.88), Math.min(max * 0.94, prLow * 0.92));
+  const second = rangeLabel(prLow * 0.94, prLow * 0.98);
+  const third = rangeLabel(prLow, prHigh);
+  const work = `第一 ${first}kg @7〜8 / 第二 ${second}kg @8〜9 / 第三 ${third}kg @9〜10`;
   return methodItem(
     lift,
     exerciseMeta(lift).name,
     work,
-    "第一は確実に白を取る重量、第二はトータルを作る重量、第三はPRまたは挑戦重量として考えます。"
+    "第一は確実に白を取る重量、第二はトータルを作る重量、第三は予測PRレンジを参考に挑戦重量を選びます。"
   );
 }
 
