@@ -1,46 +1,564 @@
-Platform Buddy v112.16 DIFF summary
-
-app.js
-- finalAttemptItem() を更新。
-- 旧仕様:
-  - 第一試技: 現在1RMの88〜92%
-  - 第二試技: 現在1RMの94〜97%
-  - 第三試技: 現在1RMの98〜103%
-- 新仕様:
-  - projectedPrRange() を使って予測PRレンジを取得。
-  - 第三試技は予測PRレンジそのものを基準に表示。
-  - 第一試技は max*90〜94% と予測PR下限*88〜92% の安全側。
-  - 第二試技は予測PR下限の94〜98%。
-  - 第三試技は予測PR下限〜上限。
-- 0kg時のフォールバックは維持。
-- 保存データ構造、planFeedbackKey、actual-save、LOG/DATA/MEET には触れていません。
-
-styles.css
-- v112.16: calmer input cells を追加。
-- PLAN入力欄の背景を #f8fafc から #e2e8f0 へ調整。
-- 入力文字色 #111827 は維持。
-- 入力欄の枠線を rgba(148, 163, 184, 0.75) へ調整。
-- placeholder の可読性は維持。
-- body背景やPLAN全体配色は変更していません。
-
-index.html
-- styles.css と app.js のクエリを ?v=112.16 に更新。
-
-sw.js
-- CACHE_NAME を platform-buddy-v112.16 に更新。
-- CORE_ASSETS の index.html/styles.css/app.js を ?v=112.16 に更新。
-
-manifest.webmanifest
-- start_url を ./index.html?v=112.16 に更新。
-
-ZIP内容
-- 変更ファイルのみ:
-  - app.js
-  - styles.css
-  - index.html
-  - sw.js
-  - manifest.webmanifest
-  - changed-files.txt
-  - DIFF
-- 画像ファイルは含めていません。
-- 親フォルダは含めていません。
+--- a/index.html
++++ b/index.html
+@@ -12,7 +12,7 @@
+     <link rel="preload" as="image" href="home-bg-lite.jpg">
+     <link rel="preload" as="image" href="icon-sheet-lite.jpg">
+     <link rel="apple-touch-icon" href="apple-touch-icon.png">
+-    <link rel="stylesheet" href="styles.css?v=112.14.1">
++    <link rel="stylesheet" href="styles.css?v=114">
+   </head>
+   <body>
+     <div class="app-shell">
+@@ -976,8 +976,7 @@
+       </form>
+     </dialog>
+ 
+-    <script src="app.js?v=112.14.1"></script>
++    <script src="app.js?v=114"></script>
+   </body>
+ </html>
+ 
+-
+--- a/styles.css
++++ b/styles.css
+@@ -10293,6 +10293,279 @@
+   color: rgba(17, 24, 39, 0.42) !important;
+ }
+ 
++/* v114: HOME mobile dashboard redesign */
++@media (max-width: 640px) {
++  body[data-active-view="home"] .home-dashboard {
++    gap: 11px;
++  }
++
++  body[data-active-view="home"] .home-hero-card {
++    min-height: 142px;
++    border-radius: 20px;
++  }
++
++  body[data-active-view="home"] .home-hero-card h2 {
++    font-size: clamp(1.5rem, 7vw, 2rem);
++    line-height: 1.08;
++    word-break: keep-all;
++    line-break: strict;
++  }
++
++  body[data-active-view="home"] .home-hero-card p {
++    max-width: 88%;
++    font-size: 0.8rem;
++    line-height: 1.45;
++  }
++
++  body[data-active-view="home"] .home-command-grid {
++    display: grid;
++    grid-template-columns: 1fr !important;
++    gap: 10px;
++  }
++
++  body[data-active-view="home"] .home-current-card {
++    order: 1;
++  }
++
++  body[data-active-view="home"] .home-goal-card {
++    order: 2;
++  }
++
++  body[data-active-view="home"] .home-plan-card {
++    order: 3;
++  }
++
++  body[data-active-view="home"] .home-meet-card {
++    order: 4;
++  }
++
++  body[data-active-view="home"] .home-check-card {
++    order: 5;
++  }
++
++  body[data-active-view="home"] .home-buddy-comment-card {
++    order: 6;
++  }
++
++  body[data-active-view="home"] .home-action-card {
++    order: 7;
++  }
++
++  body[data-active-view="home"] .home-command-grid .home-card.visual-card {
++    display: flex !important;
++    flex-direction: column;
++    justify-content: space-between;
++    gap: 9px;
++    border-radius: 20px;
++    padding: 18px !important;
++  }
++
++  body[data-active-view="home"] .home-command-grid .home-card.visual-card::after {
++    opacity: 0.95;
++  }
++
++  body[data-active-view="home"] .home-command-grid .home-card.visual-current::after,
++  body[data-active-view="home"] .home-command-grid .home-card.visual-goal::after,
++  body[data-active-view="home"] .home-command-grid .home-card.visual-meet::after {
++    background-size: cover;
++    background-position: 74% center;
++  }
++
++  body[data-active-view="home"] .home-card-top {
++    align-items: center;
++    gap: 9px;
++  }
++
++  body[data-active-view="home"] .home-card-top span,
++  body[data-active-view="home"] .home-card p,
++  body[data-active-view="home"] .home-card-note,
++  body[data-active-view="home"] .home-strategy-content strong,
++  body[data-active-view="home"] .home-strategy-content p,
++  body[data-active-view="home"] .home-buddy-summary strong,
++  body[data-active-view="home"] .home-buddy-summary p,
++  body[data-active-view="home"] .home-action-head strong,
++  body[data-active-view="home"] .home-shortcut-grid strong {
++    word-break: keep-all;
++    line-break: strict;
++  }
++
++  body[data-active-view="home"] .home-command-grid .home-card.visual-card .home-icon {
++    width: 34px;
++    height: 34px;
++    border-radius: 12px;
++  }
++
++  body[data-active-view="home"] .home-current-card {
++    min-height: 210px !important;
++    padding: 20px 18px !important;
++  }
++
++  body[data-active-view="home"] .home-total-number {
++    display: flex;
++    align-items: baseline;
++    justify-content: center;
++    gap: 4px;
++    text-align: center;
++    letter-spacing: -0.04em;
++    line-height: 0.9;
++  }
++
++  body[data-active-view="home"] .home-total-number span {
++    position: absolute;
++    left: 18px;
++    top: 60px;
++    color: #a78bfa !important;
++    font-size: 0.7rem;
++    letter-spacing: 0.05em;
++  }
++
++  body[data-active-view="home"] .home-total-number b {
++    color: #fff;
++    font-size: clamp(4.2rem, 18vw, 6.2rem);
++    font-weight: 1000;
++    line-height: 0.9;
++  }
++
++  body[data-active-view="home"] .home-total-number .unit {
++    color: #dbe4ef;
++    font-size: 1rem;
++    opacity: 0.9;
++    letter-spacing: 0;
++  }
++
++  body[data-active-view="home"] .home-lift-pills,
++  body[data-active-view="home"] .lift-chip-row,
++  body[data-active-view="home"] .total-chip-row {
++    justify-content: center;
++    gap: 8px;
++    flex-wrap: wrap;
++  }
++
++  body[data-active-view="home"] .home-lift-pills span {
++    min-height: 26px;
++    padding: 5px 10px;
++    font-size: 0.78rem;
++  }
++
++  body[data-active-view="home"] .home-lift-pills b {
++    font-size: 0.9rem;
++  }
++
++  body[data-active-view="home"] .home-goal-card {
++    min-height: 220px !important;
++    padding: 20px 18px !important;
++  }
++
++  body[data-active-view="home"] .home-goal-target {
++    font-size: 0.9rem !important;
++    line-height: 1.2;
++    opacity: 0.94;
++  }
++
++  body[data-active-view="home"] .home-goal-gap,
++  body[data-active-view="home"] .remaining-value {
++    margin: 2px 0 0;
++    color: #fff !important;
++    text-align: center;
++    font-size: clamp(3.2rem, 14vw, 5rem) !important;
++    font-weight: 1000 !important;
++    line-height: 1 !important;
++    letter-spacing: -0.04em;
++  }
++
++  body[data-active-view="home"] .home-goal-card .home-progress,
++  body[data-active-view="home"] .home-goal-card .progress-bar {
++    height: 8px !important;
++    margin: 10px 0 0;
++  }
++
++  body[data-active-view="home"] .achievement-rate {
++    text-align: center;
++    font-size: 0.95rem;
++  }
++
++  body[data-active-view="home"] .home-plan-card {
++    min-height: 176px !important;
++  }
++
++  body[data-active-view="home"] .home-plan-card strong {
++    font-size: clamp(1.35rem, 7vw, 1.85rem) !important;
++    line-height: 1.1;
++  }
++
++  body[data-active-view="home"] .home-mini-lines {
++    gap: 4px 8px;
++    font-size: 0.82rem;
++  }
++
++  body[data-active-view="home"] .home-meet-card {
++    min-height: 200px !important;
++    padding: 20px 18px !important;
++  }
++
++  body[data-active-view="home"] .home-meet-card .days-left,
++  body[data-active-view="home"] .home-meet-card .main-value {
++    align-self: center;
++    color: #f6c15f !important;
++    font-size: clamp(4rem, 17vw, 5.8rem) !important;
++    font-weight: 1000;
++    line-height: 0.9;
++    letter-spacing: -0.04em;
++  }
++
++  body[data-active-view="home"] .home-meet-card p {
++    margin: 0;
++    font-size: 0.82rem;
++  }
++
++  body[data-active-view="home"] .home-meet-card .meet-priority {
++    margin-top: 0;
++    font-size: 1rem;
++    line-height: 1.35;
++    word-break: keep-all;
++  }
++
++  body[data-active-view="home"] .home-strategy-card,
++  body[data-active-view="home"] .home-buddy-summary {
++    min-height: auto;
++    border-radius: 18px;
++  }
++
++  body[data-active-view="home"] .home-strategy-card {
++    grid-template-columns: 38px minmax(0, 1fr);
++    gap: 10px;
++    padding: 13px 90px 13px 13px !important;
++  }
++
++  body[data-active-view="home"] .home-strategy-card::after,
++  body[data-active-view="home"] .home-buddy-summary::after {
++    right: 6px;
++    bottom: -6px;
++    width: 82px;
++    height: 82px;
++  }
++
++  body[data-active-view="home"] .home-strategy-content strong,
++  body[data-active-view="home"] .home-buddy-summary strong {
++    font-size: clamp(1.12rem, 5.4vw, 1.45rem);
++    line-height: 1.16;
++  }
++
++  body[data-active-view="home"] .home-strategy-content p,
++  body[data-active-view="home"] .home-buddy-summary p {
++    font-size: 0.8rem;
++    line-height: 1.42;
++  }
++
++  body[data-active-view="home"] .home-buddy-summary {
++    padding: 14px 92px 14px 14px !important;
++  }
++
++  body[data-active-view="home"] .home-action-card {
++    margin-bottom: 112px;
++  }
++}
++
+ .set-kind-check {
+   background: rgba(96, 165, 250, 0.95) !important;
+   color: #0f172a !important;
+--- a/app.js
++++ b/app.js
+@@ -2334,11 +2334,12 @@
+   const wellnessEntry = todayWellnessEntry(athlete);
+   const wellness = wellnessEvaluation(wellnessEntry);
+   const weekly = weeklyDataVerdict(weeklyDataSnapshot(athlete, cycle));
++  const homeBuddy = homeBuddySummaryCopy(weekly);
+   const meetDays = daysUntilMeet(athlete);
+   const meetLabel = meetDays === null ? "未設定" : meetDays === 0 ? "D-Day" : meetDays > 0 ? `D-${meetDays}` : `D+${Math.abs(meetDays)}`;
+   const meetPriority = meetPriorityText(meetDays);
+   const goalMain = goalTotal ? `目標TOTAL ${formatNumber(goalTotal)}kg` : "目標TOTAL 未設定";
+-  const goalGap = goalTotal ? (remaining > 0 ? `あと ${formatNumber(remaining)}kg` : "達成圏内") : "目標を入力";
++  const goalGap = goalTotal ? (remaining > 0 ? `あと${formatNumber(remaining)}kg` : "達成圏内") : "目標を入力";
+   const percentLine = totalPercent === null ? "達成率 -" : `達成率 ${totalPercent}%`;
+   const strategy = homeStrategySummary(wellness, wellnessEntry.completed);
+   const detail = homeDashboardDetailMarkup(homeDashboardOpenCard, {
+@@ -2370,7 +2371,30 @@
+       <button class="home-guide-chip" type="button" data-view-target="plan">PLANへ</button>
+     </section>
+     <section class="home-card-grid home-command-grid">
+-      <button class="home-card primary visual-card visual-plan ${homeDashboardOpenCard === "plan" ? "active" : ""}" type="button" data-home-card="plan" aria-expanded="${homeDashboardOpenCard === "plan"}">
++      <button class="home-card current visual-card visual-current home-current-card ${homeDashboardOpenCard === "current" ? "active" : ""}" type="button" data-home-card="current" aria-expanded="${homeDashboardOpenCard === "current"}">
++        <div class="home-card-top"><i class="home-icon location" aria-hidden="true"></i><span>現在地</span></div>
++        <strong class="home-total-number total-value main-value"><span>TOTAL</span><b>${formatNumber(currentTotal)}</b><small class="unit">kg</small></strong>
++        <div class="home-lift-pills lift-chip-row">
++          <span>SQ <b>${formatNumber(currentValues.squat)}</b></span>
++          <span>BP <b>${formatNumber(currentValues.bench)}</b></span>
++          <span>DL <b>${formatNumber(currentValues.deadlift)}</b></span>
++        </div>
++        <i class="home-card-caret" aria-hidden="true">${homeDashboardOpenCard === "current" ? "⌃" : "⌄"}</i>
++      </button>
++      <button class="home-card goal visual-card visual-goal home-goal-card ${homeDashboardOpenCard === "goal" ? "active" : ""}" type="button" data-home-card="goal" aria-expanded="${homeDashboardOpenCard === "goal"}">
++        <div class="home-card-top"><i class="home-icon target" aria-hidden="true"></i><span>目標</span></div>
++        <strong class="home-goal-target">${escapeHtml(goalMain)}</strong>
++        <p class="home-goal-gap remaining-value main-value">${escapeHtml(goalGap)}</p>
++        <div class="home-progress progress-bar"><i style="width:${Math.min(100, totalPercent || 0)}%"></i></div>
++        <small class="home-card-note achievement-rate">${escapeHtml(percentLine)}</small>
++        <div class="home-lift-pills home-lift-pills-compact total-chip-row">
++          <span>SQ <b>${formatNumber(goalValues.squat || 0)}</b></span>
++          <span>BP <b>${formatNumber(goalValues.bench || 0)}</b></span>
++          <span>DL <b>${formatNumber(goalValues.deadlift || 0)}</b></span>
++        </div>
++        <i class="home-card-caret" aria-hidden="true">${homeDashboardOpenCard === "goal" ? "⌃" : "⌄"}</i>
++      </button>
++      <button class="home-card primary visual-card visual-plan home-plan-card ${homeDashboardOpenCard === "plan" ? "active" : ""}" type="button" data-home-card="plan" aria-expanded="${homeDashboardOpenCard === "plan"}">
+         <div class="home-card-top"><i class="home-icon plan" aria-hidden="true"></i><span>今日のプラン</span></div>
+         <strong>${escapeHtml(method)} / W${cycle.week}</strong>
+         <em class="home-phase-pill">${escapeHtml(phase.name)}</em>
+@@ -2380,39 +2404,16 @@
+         </div>
+         <i class="home-card-caret" aria-hidden="true">${homeDashboardOpenCard === "plan" ? "⌃" : "⌄"}</i>
+       </button>
+-      <button class="home-card current visual-card visual-current ${homeDashboardOpenCard === "current" ? "active" : ""}" type="button" data-home-card="current" aria-expanded="${homeDashboardOpenCard === "current"}">
+-        <div class="home-card-top"><i class="home-icon location" aria-hidden="true"></i><span>現在地</span></div>
+-        <strong class="home-total-number"><span>TOTAL</span>${formatNumber(currentTotal)}<small>kg</small></strong>
+-        <div class="home-lift-pills">
+-          <span>SQ <b>${formatNumber(currentValues.squat)}</b></span>
+-          <span>BP <b>${formatNumber(currentValues.bench)}</b></span>
+-          <span>DL <b>${formatNumber(currentValues.deadlift)}</b></span>
+-        </div>
+-        <i class="home-card-caret" aria-hidden="true">${homeDashboardOpenCard === "current" ? "⌃" : "⌄"}</i>
+-      </button>
+-      <button class="home-card goal visual-card visual-goal ${homeDashboardOpenCard === "goal" ? "active" : ""}" type="button" data-home-card="goal" aria-expanded="${homeDashboardOpenCard === "goal"}">
+-        <div class="home-card-top"><i class="home-icon target" aria-hidden="true"></i><span>目標</span></div>
+-        <strong>${escapeHtml(goalMain)}</strong>
+-        <p class="home-goal-gap">${escapeHtml(goalGap)}</p>
+-        <div class="home-progress"><i style="width:${Math.min(100, totalPercent || 0)}%"></i></div>
+-        <small class="home-card-note">${escapeHtml(percentLine)}</small>
+-        <div class="home-lift-pills home-lift-pills-compact">
+-          <span>SQ <b>${formatNumber(goalValues.squat || 0)}</b></span>
+-          <span>BP <b>${formatNumber(goalValues.bench || 0)}</b></span>
+-          <span>DL <b>${formatNumber(goalValues.deadlift || 0)}</b></span>
+-        </div>
+-        <i class="home-card-caret" aria-hidden="true">${homeDashboardOpenCard === "goal" ? "⌃" : "⌄"}</i>
+-      </button>
+-      <button class="home-card meet visual-card visual-meet ${homeDashboardOpenCard === "meet" ? "active" : ""}" type="button" data-home-card="meet" aria-expanded="${homeDashboardOpenCard === "meet"}">
++      <button class="home-card meet visual-card visual-meet home-meet-card ${homeDashboardOpenCard === "meet" ? "active" : ""}" type="button" data-home-card="meet" aria-expanded="${homeDashboardOpenCard === "meet"}">
+         <div class="home-card-top"><i class="home-icon meet" aria-hidden="true"></i><span>次の大会</span></div>
+-        <strong class="home-metric">${escapeHtml(meetLabel)}</strong>
+-        <p>今週の優先</p>
+-        <small class="home-card-note">${escapeHtml(meetPriority)}</small>
++        <strong class="home-metric days-left main-value">${escapeHtml(meetLabel)}</strong>
++        <p>今日は</p>
++        <small class="home-card-note meet-priority">${escapeHtml(meetPriority)}</small>
+         <i class="home-card-caret" aria-hidden="true">${homeDashboardOpenCard === "meet" ? "⌃" : "⌄"}</i>
+       </button>
+     </section>
+     ${detail}
+-    <section class="home-strategy-card ${escapeHtml(wellness.status)}" data-wellness-floating role="button" tabindex="0">
++    <section class="home-strategy-card home-check-card ${escapeHtml(wellness.status)}" data-wellness-floating role="button" tabindex="0">
+       <div class="home-card-top"><i class="home-icon wellness" aria-hidden="true"></i><span>今日の作戦</span></div>
+       <div class="home-strategy-content">
+         <strong>${escapeHtml(strategy.title)}</strong>
+@@ -2423,23 +2424,23 @@
+         <p>${escapeHtml(strategy.action)}</p>
+       </div>
+     </section>
+-    <section class="home-buddy-summary ${escapeHtml(weekly.status)}" data-view-target="analysis" role="button" tabindex="0">
++    <section class="home-buddy-summary home-buddy-comment-card ${escapeHtml(weekly.status)}" data-view-target="analysis" role="button" tabindex="0">
+       <div>
+-        <span>Buddyコメント</span>
+-        <strong>${escapeHtml(weekly.title)}</strong>
+-        <p>${escapeHtml(weekly.message)}</p>
++        <span>Buddyの一言</span>
++        <strong>${escapeHtml(homeBuddy.title)}</strong>
++        <p>${escapeHtml(homeBuddy.message)}</p>
+       </div>
+     </section>
+-    <section class="home-action-panel" aria-label="次の行動">
++    <section class="home-action-panel home-action-card" aria-label="次の行動">
+       <div class="home-action-head">
+         <span>次の行動</span>
+-        <strong>迷ったらここから</strong>
++        <strong>ここから始めよう</strong>
+       </div>
+       <div class="home-shortcut-grid home-action-grid">
+-        <button class="home-action-plan" type="button" data-view-target="plan"><span>PLAN</span><strong>今日のプランへ</strong><small>メニュー確認</small></button>
++        <button class="home-action-plan" type="button" data-view-target="plan"><span>PLAN</span><strong>プランを見る</strong><small>メニュー確認</small></button>
+         <button class="home-action-log" type="button" data-view-target="log"><span>LOG</span><strong>記録する</strong><small>自由トレもここ</small></button>
+-        <button class="home-action-data" type="button" data-view-target="analysis"><span>DATA</span><strong>分析を見る</strong><small>進捗と体調</small></button>
+-        <button class="home-action-meet" type="button" data-view-target="knowledge"><span>MEET</span><strong>大会準備へ</strong><small>ルールとノート</small></button>
++        <button class="home-action-data" type="button" data-view-target="analysis"><span>DATA</span><strong>進み具合を見る</strong><small>進捗と体調</small></button>
++        <button class="home-action-meet" type="button" data-view-target="knowledge"><span>MEET</span><strong>大会準備</strong><small>ルールとノート</small></button>
+       </div>
+     </section>
+   `;
+@@ -2574,47 +2575,69 @@
+ function homeStrategySummary(wellness, completed) {
+   if (!completed) {
+     return {
+-      title: "体調チェックから開始",
++      title: "まずは体調チェック",
+       condition: "未入力",
+       range: "レンジ未判定",
+-      action: "睡眠・食事・疲労・痛み・集中を確認しましょう。"
++      action: "今日の状態を見よう。"
+     };
+   }
+   const actions = {
+-    alert: "高重量なし。休養・代替・フォーム確認を優先。",
+-    fatigue: "下限以下も候補。バックオフは1セット減らす候補。",
+-    caution: "下限寄りから開始。予定RPEを最優先。",
+-    normal: "中央寄りから開始。軽ければ少し上限寄りへ。",
+-    good: "中央〜上限寄りも候補。フォーム再現性は崩さない。"
++    alert: "今日は守る日。軽く整えよう。",
++    fatigue: "重さより回復。下限寄りでOK。",
++    caution: "少し慎重に。RPEを守ろう。",
++    normal: "いつも通り。丁寧に積もう。",
++    good: "動きは良さそう。焦らず攻めよう。"
+   };
+   return {
+-    title: "今日の体調と重量方針",
++    title: "今日の体調",
+     condition: wellness.label,
+     range: wellness.short,
+     action: actions[wellness.status] || wellness.recommendation
+   };
+ }
+ 
++function homeBuddySummaryCopy(weekly) {
++  const copies = {
++    danger: {
++      title: "少し調整しよう",
++      message: "今日は少し重そう。来週は下限寄りでOK。無理せず積もう。"
++    },
++    warn: {
++      title: "少し慎重にいこう",
++      message: "疲れが見えます。今日はフォーム優先で整えよう。"
++    },
++    info: {
++      title: weekly.title === "余力あり" ? "余力あり" : "まず記録を集めよう",
++      message: weekly.title === "余力あり" ? "軽く動けています。次も丁寧に積もう。" : "体調と実績が入るほど、次の判断がしやすくなります。"
++    },
++    ok: {
++      title: "順調",
++      message: "いい流れです。予定RPEを守って、次へつなげよう。"
++    }
++  };
++  return copies[weekly.status] || { title: weekly.title, message: weekly.message };
++}
++
+ function homePlanSummary(cycle = normalizedCycle(), phase = cyclePhase(cycle.week, cycle.length, cycle.programMethod)) {
+   const name = phase?.name || "";
+-  if (name.includes("蓄積")) return { aim: "軽さの再現", success: "余裕を残して完了" };
+-  if (name.includes("ブリッジ")) return { aim: "現在地チェックへ整える", success: "疲労を残さず完了" };
+-  if (name.includes("現在地")) return { aim: "今の実力を確認", success: "@8で止める" };
+-  if (name.includes("強化")) return { aim: "競技重量に慣れる", success: "フォームを崩さず完了" };
+-  if (name.includes("ピーキング")) return { aim: "強さを発揮する準備", success: "軽く鋭く終える" };
+-  if (name.includes("MAX") || name.includes("PR") || cycle.week === cycle.length) return { aim: "白判定の試技運び", success: "第一を確実に" };
++  if (name.includes("蓄積")) return { aim: "軽く動かす", success: "余裕を残す" };
++  if (name.includes("ブリッジ")) return { aim: "整える", success: "疲労を残さない" };
++  if (name.includes("現在地")) return { aim: "今を確認", success: "@8で止める" };
++  if (name.includes("強化")) return { aim: "重さに慣れる", success: "フォームを守る" };
++  if (name.includes("ピーキング")) return { aim: "鋭く動く", success: "軽く終える" };
++  if (name.includes("MAX") || name.includes("PR") || cycle.week === cycle.length) return { aim: "白判定を取る", success: "第一を確実に" };
+   if (cycle.recoveryMode || name.includes("デロード") || name.includes("休養")) return { aim: "疲労を抜く", success: "上限を超えない" };
+-  return { aim: "予定RPEを守る", success: "次の週へつなげる" };
++  return { aim: "RPEを守る", success: "次へつなげる" };
+ }
+ 
+ function meetPriorityText(days) {
+   if (days === null) return "大会日を設定";
+-  if (days > 30) return "要項確認 / ルール確認 / 全体設計";
+-  if (days >= 15) return "ギア確認 / 検量確認 / 要項確認";
+-  if (days >= 7) return "疲労管理 / 持ち物確認 / 本番準備";
+-  if (days >= 1) return "忘れ物確認 / 移動 / 検量";
++  if (days > 30) return "要項とルールを確認";
++  if (days >= 15) return "ギアと検量を確認";
++  if (days >= 7) return "疲労と持ち物を確認";
++  if (days >= 1) return "忘れ物・移動・検量";
+   if (days === 0) return "第一試技で白を取る";
+-  return "大会ノート / 次回課題";
++  return "大会ノートで次へ";
+ }
+ 
+ function renderMeetNotebook(athlete = currentAthlete()) {
+@@ -7631,4 +7654,3 @@
+ renderSetRows();
+ render();
+ 
+-
+--- a/sw.js
++++ b/sw.js
+@@ -1,12 +1,12 @@
+-const CACHE_NAME = "platform-buddy-v112.14.1";
++const CACHE_NAME = "platform-buddy-v114";
+ const CORE_ASSETS = [
+   "./",
+   "index.html",
+-  "index.html?v=112.14.1",
++  "index.html?v=114",
+   "styles.css",
+-  "styles.css?v=112.14.1",
++  "styles.css?v=114",
+   "app.js",
+-  "app.js?v=112.14.1",
++  "app.js?v=114",
+   "manifest.webmanifest",
+   "icon.svg",
+   "apple-touch-icon.png",
+@@ -47,4 +47,3 @@
+   event.respondWith(fetch(event.request).catch(() => caches.match(event.request)));
+ });
+ 
+-
+--- a/manifest.webmanifest
++++ b/manifest.webmanifest
+@@ -2,7 +2,7 @@
+   "name": "Platform Buddy",
+   "short_name": "Buddy",
+   "description": "BIG3の現在地と目標を見える化し、PRサイクル、記録、分析、大会準備までつなげて管理できるパワーリフティング向けPWAです。",
+-  "start_url": "./index.html?v=112.14.1",
++  "start_url": "./index.html?v=114",
+   "scope": "./",
+   "display": "standalone",
+   "background_color": "#06090d",
+@@ -23,4 +23,3 @@
+   ]
+ }
+ 
+-

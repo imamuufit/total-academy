@@ -1,12 +1,12 @@
-const CACHE_NAME = "platform-buddy-v113";
+const CACHE_NAME = "platform-buddy-v114";
 const CORE_ASSETS = [
   "./",
   "index.html",
-  "index.html?v=113",
+  "index.html?v=114",
   "styles.css",
-  "styles.css?v=113",
+  "styles.css?v=114",
   "app.js",
-  "app.js?v=113",
+  "app.js?v=114",
   "manifest.webmanifest",
   "icon.svg",
   "apple-touch-icon.png",
@@ -46,5 +46,4 @@ self.addEventListener("fetch", (event) => {
   }
   event.respondWith(fetch(event.request).catch(() => caches.match(event.request)));
 });
-
 

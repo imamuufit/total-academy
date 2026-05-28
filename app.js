@@ -2334,11 +2334,12 @@ function renderHomeDashboard(athlete = currentAthlete(), cycle = normalizedCycle
   const wellnessEntry = todayWellnessEntry(athlete);
   const wellness = wellnessEvaluation(wellnessEntry);
   const weekly = weeklyDataVerdict(weeklyDataSnapshot(athlete, cycle));
+  const homeBuddy = homeBuddySummaryCopy(weekly);
   const meetDays = daysUntilMeet(athlete);
   const meetLabel = meetDays === null ? "未設定" : meetDays === 0 ? "D-Day" : meetDays > 0 ? `D-${meetDays}` : `D+${Math.abs(meetDays)}`;
   const meetPriority = meetPriorityText(meetDays);
   const goalMain = goalTotal ? `目標TOTAL ${formatNumber(goalTotal)}kg` : "目標TOTAL 未設定";
-  const goalGap = goalTotal ? (remaining > 0 ? `あと ${formatNumber(remaining)}kg` : "達成圏内") : "目標を入力";
+  const goalGap = goalTotal ? (remaining > 0 ? `あと${formatNumber(remaining)}kg` : "達成圏内") : "目標を入力";
   const percentLine = totalPercent === null ? "達成率 -" : `達成率 ${totalPercent}%`;
   const strategy = homeStrategySummary(wellness, wellnessEntry.completed);
   const detail = homeDashboardDetailMarkup(homeDashboardOpenCard, {
@@ -2370,7 +2371,30 @@ function renderHomeDashboard(athlete = currentAthlete(), cycle = normalizedCycle
       <button class="home-guide-chip" type="button" data-view-target="plan">PLANへ</button>
     </section>
     <section class="home-card-grid home-command-grid">
-      <button class="home-card primary visual-card visual-plan ${homeDashboardOpenCard === "plan" ? "active" : ""}" type="button" data-home-card="plan" aria-expanded="${homeDashboardOpenCard === "plan"}">
+      <button class="home-card current visual-card visual-current home-current-card ${homeDashboardOpenCard === "current" ? "active" : ""}" type="button" data-home-card="current" aria-expanded="${homeDashboardOpenCard === "current"}">
+        <div class="home-card-top"><i class="home-icon location" aria-hidden="true"></i><span>現在地</span></div>
+        <strong class="home-total-number total-value main-value"><span>TOTAL</span><b>${formatNumber(currentTotal)}</b><small class="unit">kg</small></strong>
+        <div class="home-lift-pills lift-chip-row">
+          <span>SQ <b>${formatNumber(currentValues.squat)}</b></span>
+          <span>BP <b>${formatNumber(currentValues.bench)}</b></span>
+          <span>DL <b>${formatNumber(currentValues.deadlift)}</b></span>
+        </div>
+        <i class="home-card-caret" aria-hidden="true">${homeDashboardOpenCard === "current" ? "⌃" : "⌄"}</i>
+      </button>
+      <button class="home-card goal visual-card visual-goal home-goal-card ${homeDashboardOpenCard === "goal" ? "active" : ""}" type="button" data-home-card="goal" aria-expanded="${homeDashboardOpenCard === "goal"}">
+        <div class="home-card-top"><i class="home-icon target" aria-hidden="true"></i><span>目標</span></div>
+        <strong class="home-goal-target">${escapeHtml(goalMain)}</strong>
+        <p class="home-goal-gap remaining-value main-value">${escapeHtml(goalGap)}</p>
+        <div class="home-progress progress-bar"><i style="width:${Math.min(100, totalPercent || 0)}%"></i></div>
+        <small class="home-card-note achievement-rate">${escapeHtml(percentLine)}</small>
+        <div class="home-lift-pills home-lift-pills-compact total-chip-row">
+          <span>SQ <b>${formatNumber(goalValues.squat || 0)}</b></span>
+          <span>BP <b>${formatNumber(goalValues.bench || 0)}</b></span>
+          <span>DL <b>${formatNumber(goalValues.deadlift || 0)}</b></span>
+        </div>
+        <i class="home-card-caret" aria-hidden="true">${homeDashboardOpenCard === "goal" ? "⌃" : "⌄"}</i>
+      </button>
+      <button class="home-card primary visual-card visual-plan home-plan-card ${homeDashboardOpenCard === "plan" ? "active" : ""}" type="button" data-home-card="plan" aria-expanded="${homeDashboardOpenCard === "plan"}">
         <div class="home-card-top"><i class="home-icon plan" aria-hidden="true"></i><span>今日のプラン</span></div>
         <strong>${escapeHtml(method)} / W${cycle.week}</strong>
         <em class="home-phase-pill">${escapeHtml(phase.name)}</em>
@@ -2380,39 +2404,16 @@ function renderHomeDashboard(athlete = currentAthlete(), cycle = normalizedCycle
         </div>
         <i class="home-card-caret" aria-hidden="true">${homeDashboardOpenCard === "plan" ? "⌃" : "⌄"}</i>
       </button>
-      <button class="home-card current visual-card visual-current ${homeDashboardOpenCard === "current" ? "active" : ""}" type="button" data-home-card="current" aria-expanded="${homeDashboardOpenCard === "current"}">
-        <div class="home-card-top"><i class="home-icon location" aria-hidden="true"></i><span>現在地</span></div>
-        <strong class="home-total-number"><span>TOTAL</span>${formatNumber(currentTotal)}<small>kg</small></strong>
-        <div class="home-lift-pills">
-          <span>SQ <b>${formatNumber(currentValues.squat)}</b></span>
-          <span>BP <b>${formatNumber(currentValues.bench)}</b></span>
-          <span>DL <b>${formatNumber(currentValues.deadlift)}</b></span>
-        </div>
-        <i class="home-card-caret" aria-hidden="true">${homeDashboardOpenCard === "current" ? "⌃" : "⌄"}</i>
-      </button>
-      <button class="home-card goal visual-card visual-goal ${homeDashboardOpenCard === "goal" ? "active" : ""}" type="button" data-home-card="goal" aria-expanded="${homeDashboardOpenCard === "goal"}">
-        <div class="home-card-top"><i class="home-icon target" aria-hidden="true"></i><span>目標</span></div>
-        <strong>${escapeHtml(goalMain)}</strong>
-        <p class="home-goal-gap">${escapeHtml(goalGap)}</p>
-        <div class="home-progress"><i style="width:${Math.min(100, totalPercent || 0)}%"></i></div>
-        <small class="home-card-note">${escapeHtml(percentLine)}</small>
-        <div class="home-lift-pills home-lift-pills-compact">
-          <span>SQ <b>${formatNumber(goalValues.squat || 0)}</b></span>
-          <span>BP <b>${formatNumber(goalValues.bench || 0)}</b></span>
-          <span>DL <b>${formatNumber(goalValues.deadlift || 0)}</b></span>
-        </div>
-        <i class="home-card-caret" aria-hidden="true">${homeDashboardOpenCard === "goal" ? "⌃" : "⌄"}</i>
-      </button>
-      <button class="home-card meet visual-card visual-meet ${homeDashboardOpenCard === "meet" ? "active" : ""}" type="button" data-home-card="meet" aria-expanded="${homeDashboardOpenCard === "meet"}">
+      <button class="home-card meet visual-card visual-meet home-meet-card ${homeDashboardOpenCard === "meet" ? "active" : ""}" type="button" data-home-card="meet" aria-expanded="${homeDashboardOpenCard === "meet"}">
         <div class="home-card-top"><i class="home-icon meet" aria-hidden="true"></i><span>次の大会</span></div>
-        <strong class="home-metric">${escapeHtml(meetLabel)}</strong>
-        <p>今週の優先</p>
-        <small class="home-card-note">${escapeHtml(meetPriority)}</small>
+        <strong class="home-metric days-left main-value">${escapeHtml(meetLabel)}</strong>
+        <p>今日は</p>
+        <small class="home-card-note meet-priority">${escapeHtml(meetPriority)}</small>
         <i class="home-card-caret" aria-hidden="true">${homeDashboardOpenCard === "meet" ? "⌃" : "⌄"}</i>
       </button>
     </section>
     ${detail}
-    <section class="home-strategy-card ${escapeHtml(wellness.status)}" data-wellness-floating role="button" tabindex="0">
+    <section class="home-strategy-card home-check-card ${escapeHtml(wellness.status)}" data-wellness-floating role="button" tabindex="0">
       <div class="home-card-top"><i class="home-icon wellness" aria-hidden="true"></i><span>今日の作戦</span></div>
       <div class="home-strategy-content">
         <strong>${escapeHtml(strategy.title)}</strong>
@@ -2423,23 +2424,23 @@ function renderHomeDashboard(athlete = currentAthlete(), cycle = normalizedCycle
         <p>${escapeHtml(strategy.action)}</p>
       </div>
     </section>
-    <section class="home-buddy-summary ${escapeHtml(weekly.status)}" data-view-target="analysis" role="button" tabindex="0">
+    <section class="home-buddy-summary home-buddy-comment-card ${escapeHtml(weekly.status)}" data-view-target="analysis" role="button" tabindex="0">
       <div>
-        <span>Buddyコメント</span>
-        <strong>${escapeHtml(weekly.title)}</strong>
-        <p>${escapeHtml(weekly.message)}</p>
+        <span>Buddyの一言</span>
+        <strong>${escapeHtml(homeBuddy.title)}</strong>
+        <p>${escapeHtml(homeBuddy.message)}</p>
       </div>
     </section>
-    <section class="home-action-panel" aria-label="次の行動">
+    <section class="home-action-panel home-action-card" aria-label="次の行動">
       <div class="home-action-head">
         <span>次の行動</span>
-        <strong>迷ったらここから</strong>
+        <strong>ここから始めよう</strong>
       </div>
       <div class="home-shortcut-grid home-action-grid">
-        <button class="home-action-plan" type="button" data-view-target="plan"><span>PLAN</span><strong>今日のプランへ</strong><small>メニュー確認</small></button>
+        <button class="home-action-plan" type="button" data-view-target="plan"><span>PLAN</span><strong>プランを見る</strong><small>メニュー確認</small></button>
         <button class="home-action-log" type="button" data-view-target="log"><span>LOG</span><strong>記録する</strong><small>自由トレもここ</small></button>
-        <button class="home-action-data" type="button" data-view-target="analysis"><span>DATA</span><strong>分析を見る</strong><small>進捗と体調</small></button>
-        <button class="home-action-meet" type="button" data-view-target="knowledge"><span>MEET</span><strong>大会準備へ</strong><small>ルールとノート</small></button>
+        <button class="home-action-data" type="button" data-view-target="analysis"><span>DATA</span><strong>進み具合を見る</strong><small>進捗と体調</small></button>
+        <button class="home-action-meet" type="button" data-view-target="knowledge"><span>MEET</span><strong>大会準備</strong><small>ルールとノート</small></button>
       </div>
     </section>
   `;
@@ -2574,47 +2575,69 @@ function homeDashboardDetailMarkup(openCard, context) {
 function homeStrategySummary(wellness, completed) {
   if (!completed) {
     return {
-      title: "体調チェックから開始",
+      title: "まずは体調チェック",
       condition: "未入力",
       range: "レンジ未判定",
-      action: "睡眠・食事・疲労・痛み・集中を確認しましょう。"
+      action: "今日の状態を見よう。"
     };
   }
   const actions = {
-    alert: "高重量なし。休養・代替・フォーム確認を優先。",
-    fatigue: "下限以下も候補。バックオフは1セット減らす候補。",
-    caution: "下限寄りから開始。予定RPEを最優先。",
-    normal: "中央寄りから開始。軽ければ少し上限寄りへ。",
-    good: "中央〜上限寄りも候補。フォーム再現性は崩さない。"
+    alert: "今日は守る日。軽く整えよう。",
+    fatigue: "重さより回復。下限寄りでOK。",
+    caution: "少し慎重に。RPEを守ろう。",
+    normal: "いつも通り。丁寧に積もう。",
+    good: "動きは良さそう。焦らず攻めよう。"
   };
   return {
-    title: "今日の体調と重量方針",
+    title: "今日の体調",
     condition: wellness.label,
     range: wellness.short,
     action: actions[wellness.status] || wellness.recommendation
   };
 }
 
+function homeBuddySummaryCopy(weekly) {
+  const copies = {
+    danger: {
+      title: "少し調整しよう",
+      message: "今日は少し重そう。来週は下限寄りでOK。無理せず積もう。"
+    },
+    warn: {
+      title: "少し慎重にいこう",
+      message: "疲れが見えます。今日はフォーム優先で整えよう。"
+    },
+    info: {
+      title: weekly.title === "余力あり" ? "余力あり" : "まず記録を集めよう",
+      message: weekly.title === "余力あり" ? "軽く動けています。次も丁寧に積もう。" : "体調と実績が入るほど、次の判断がしやすくなります。"
+    },
+    ok: {
+      title: "順調",
+      message: "いい流れです。予定RPEを守って、次へつなげよう。"
+    }
+  };
+  return copies[weekly.status] || { title: weekly.title, message: weekly.message };
+}
+
 function homePlanSummary(cycle = normalizedCycle(), phase = cyclePhase(cycle.week, cycle.length, cycle.programMethod)) {
   const name = phase?.name || "";
-  if (name.includes("蓄積")) return { aim: "軽さの再現", success: "余裕を残して完了" };
-  if (name.includes("ブリッジ")) return { aim: "現在地チェックへ整える", success: "疲労を残さず完了" };
-  if (name.includes("現在地")) return { aim: "今の実力を確認", success: "@8で止める" };
-  if (name.includes("強化")) return { aim: "競技重量に慣れる", success: "フォームを崩さず完了" };
-  if (name.includes("ピーキング")) return { aim: "強さを発揮する準備", success: "軽く鋭く終える" };
-  if (name.includes("MAX") || name.includes("PR") || cycle.week === cycle.length) return { aim: "白判定の試技運び", success: "第一を確実に" };
+  if (name.includes("蓄積")) return { aim: "軽く動かす", success: "余裕を残す" };
+  if (name.includes("ブリッジ")) return { aim: "整える", success: "疲労を残さない" };
+  if (name.includes("現在地")) return { aim: "今を確認", success: "@8で止める" };
+  if (name.includes("強化")) return { aim: "重さに慣れる", success: "フォームを守る" };
+  if (name.includes("ピーキング")) return { aim: "鋭く動く", success: "軽く終える" };
+  if (name.includes("MAX") || name.includes("PR") || cycle.week === cycle.length) return { aim: "白判定を取る", success: "第一を確実に" };
   if (cycle.recoveryMode || name.includes("デロード") || name.includes("休養")) return { aim: "疲労を抜く", success: "上限を超えない" };
-  return { aim: "予定RPEを守る", success: "次の週へつなげる" };
+  return { aim: "RPEを守る", success: "次へつなげる" };
 }
 
 function meetPriorityText(days) {
   if (days === null) return "大会日を設定";
-  if (days > 30) return "要項確認 / ルール確認 / 全体設計";
-  if (days >= 15) return "ギア確認 / 検量確認 / 要項確認";
-  if (days >= 7) return "疲労管理 / 持ち物確認 / 本番準備";
-  if (days >= 1) return "忘れ物確認 / 移動 / 検量";
+  if (days > 30) return "要項とルールを確認";
+  if (days >= 15) return "ギアと検量を確認";
+  if (days >= 7) return "疲労と持ち物を確認";
+  if (days >= 1) return "忘れ物・移動・検量";
   if (days === 0) return "第一試技で白を取る";
-  return "大会ノート / 次回課題";
+  return "大会ノートで次へ";
 }
 
 function renderMeetNotebook(athlete = currentAthlete()) {
@@ -3633,7 +3656,7 @@ function renderEditableExerciseSheet(item, cycle, dayIndex, itemIndex) {
     ? `<p class="method-check-note">3〜5回@8で現在地を確認。5回やり切るより、RPE8で止めることが目的です。</p>`
     : "";
   return `
-    <section class="editable-exercise-sheet actual-box ${item.kind === "method" ? "method-exercise-sheet" : ""} ${item.kind === "method" && /第一|第二|第三/.test(item.work || "") ? "meet-attempt-sheet" : ""}"
+    <section class="editable-exercise-sheet actual-box"
       data-plan-key="${escapeHtml(key)}"
       data-lift="${escapeHtml(item.lift || item.exerciseId || "custom")}"
       data-source="plan"
@@ -3647,7 +3670,7 @@ function renderEditableExerciseSheet(item, cycle, dayIndex, itemIndex) {
         </div>
       </div>
       ${checkNote}
-      <div class="editable-set-sheet actual-set-list ${item.kind === "method" ? "method-set-sheet" : ""}">
+      <div class="editable-set-sheet actual-set-list">
         <div class="editable-set-header-row">
           <span>set</span>
           <span>kg</span>
@@ -4974,7 +4997,7 @@ function parsePrescriptionBlocks(title = "") {
         sets: "",
         rpe: `@RPE${rpeLabel}`,
         rpeLabel,
-        goal: `${weightLabel} @${rpeLabel}`
+        goal: `${name} ${weightLabel} @${rpeLabel}`
       };
     });
   }
@@ -5052,39 +5075,11 @@ function actualSetRowMarkup(row = {}, index = 0) {
   return editableActualSetRowMarkup(row, index);
 }
 
-function planFeedbackKey(cycle, dayIndex, itemIndex, lift, name) {
-  return [
-    cycle.programMethod,
-    cycle.buddyLevel || "level1",
-    cycle.planTarget,
-    `w${cycle.week}`,
-    `d${dayIndex + 1}`,
-    itemIndex + 1,
-    lift || "custom",
-    name
-  ].join("|");
-}
-
-function rpeConfidenceLabel(value) {
-  if (value === "solid") return "RPE自信あり";
-  if (value === "unsure") return "RPE少し迷う";
-  return "RPE感覚練習中";
-}
-
-function feedbackMarkup(feedback) {
-  if (!feedback) return "";
-  if (!guideEnabled() && ["ok", "light"].includes(feedback.status)) return "";
-  const confidence = feedback.rpeConfidence
-    ? `<span>${escapeHtml(rpeConfidenceLabel(feedback.rpeConfidence))}</span>`
-    : "";
-  return `<p class="rpe-feedback ${escapeHtml(feedback.status || "ok")}">${confidence}${escapeHtml(feedback.message || "記録しました。")}</p>`;
-}
-
 function editableActualSetRowMarkup(row = {}, index = 0) {
   const kind = row.kind || row.label || "";
   const setLabel = row.displayLabel || `S${index + 1}`;
-  const isAttempt = /第一試技|第二試技|第三試技/.test(setLabel) || String(kind).includes("試技");
-  const isCheck = /確認セット/.test(setLabel) || String(kind).includes("確認");
+  const isAttempt = /第一試技|第二試技|第三試技/.test(setLabel);
+  const isCheck = /確認セット/.test(setLabel);
   const isAccessory = String(kind).includes("補助");
   const plannedKg = isAttempt || isAccessory ? "" : String(row.plannedWeight ?? row.weight ?? "");
   const plannedWeightHint = String(row.plannedWeightLabel ?? (row.plannedWeight ? `${row.plannedWeight}kg` : ""));
@@ -5107,31 +5102,14 @@ function editableActualSetRowMarkup(row = {}, index = 0) {
           : isAccessory
             ? "set-kind-accessory"
             : "set-kind-default";
+  const rowClass = isAttempt ? " attempt-row" : isCheck ? " check-row" : isAccessory ? " accessory-row" : "";
   const plannedLabel = row.plannedLabel || [
     plannedWeightHint,
     plannedRepsLabel ? `${plannedRepsLabel}回` : "",
     plannedRpeRaw ? `@${plannedRpeRaw}` : ""
   ].filter(Boolean).join(" / ");
+  const showPlanLabel = isAttempt || isCheck || isAccessory;
   const placeholderKg = isAttempt ? (row.weightLow || "kg") : (plannedKg || "kg");
-
-  if (isAttempt || isCheck) {
-    return methodActualSetRowMarkup({
-      setLabel,
-      kind,
-      kindClass,
-      plannedLabel,
-      placeholderKg,
-      actualKg,
-      actualReps,
-      actualRpe,
-      plannedRepsLabel,
-      plannedRpeRaw,
-      isAttempt
-    });
-  }
-
-  const rowClass = isAccessory ? " accessory-row" : "";
-  const showPlanLabel = isAccessory;
   return `
     <div class="editable-set-row actual-set-row${rowClass}">
       <div class="set-meta">
@@ -5150,40 +5128,21 @@ function editableActualSetRowMarkup(row = {}, index = 0) {
   `;
 }
 
-function methodActualSetRowMarkup({
-  setLabel,
-  kind,
-  kindClass,
-  plannedLabel,
-  placeholderKg,
-  actualKg,
-  actualReps,
-  actualRpe,
-  plannedRepsLabel,
-  plannedRpeRaw,
-  isAttempt
-}) {
-  const rowClass = isAttempt ? "attempt-row method-row" : "check-row method-row";
-  return `
-    <div class="editable-set-row actual-set-row ${rowClass}">
-      <div class="method-row-head">
-        <div class="set-meta">
-          <strong>${escapeHtml(setLabel)}</strong>
-          ${kind ? `<small class="${kindClass}">${escapeHtml(kind)}</small>` : ""}
-        </div>
-        ${plannedLabel ? `<span class="planned-method-label">提案 ${escapeHtml(plannedLabel)}</span>` : ""}
-      </div>
-      <div class="method-input-grid">
-        <input class="actual-weight" aria-label="実重量" inputmode="decimal" type="number" min="0" step="0.5"
-          placeholder="${escapeHtml(placeholderKg || "kg")}" value="${escapeHtml(actualKg)}">
-        <input class="actual-reps" aria-label="実回数" inputmode="numeric" type="number" min="1" step="1"
-          placeholder="${escapeHtml(plannedRepsLabel || "回")}" value="${escapeHtml(actualReps)}">
-        <input class="actual-rpe" aria-label="実RPE" inputmode="decimal" type="number" min="5" max="10" step="0.5"
-          placeholder="${escapeHtml(plannedRpeRaw || "RPE")}" value="${escapeHtml(actualRpe)}">
-        <button class="delete-entry actual-remove-set" type="button" aria-label="セットを削除">×</button>
-      </div>
-    </div>
-  `;
+function planFeedbackKey(cycle, dayIndex, itemIndex, lift, name) {
+  return [cycle.programMethod, cycle.buddyLevel || "level1", cycle.planTarget, `w${cycle.week}`, `d${dayIndex + 1}`, itemIndex + 1, lift || "custom", name].join("|");
+}
+
+function feedbackMarkup(feedback) {
+  if (!feedback) return "";
+  if (!guideEnabled() && ["ok", "light"].includes(feedback.status)) return "";
+  const confidence = feedback.rpeConfidence ? `<span>${escapeHtml(rpeConfidenceLabel(feedback.rpeConfidence))}</span>` : "";
+  return `<p class="rpe-feedback ${escapeHtml(feedback.status || "ok")}">${confidence}${escapeHtml(feedback.message || "記録しました。")}</p>`;
+}
+
+function rpeConfidenceLabel(value) {
+  if (value === "solid") return "RPE自信あり";
+  if (value === "unsure") return "RPE少し迷う";
+  return "RPE感覚練習中";
 }
 
 function previousFeedbackMarkup(cycle, item) {
@@ -5750,42 +5709,18 @@ function attemptRangeLabel(max, lowPercent, highPercent) {
 }
 
 function finalAttemptItem(lift, cycle) {
-  const athlete = currentAthlete();
   const max = Number(cycle.maxes[lift] || bestE1rm(lift) || 0);
-  if (!max) {
-    return methodItem(
-      lift,
-      exerciseMeta(lift).name,
-      "第一 0kg @7〜8 / 第二 0kg @8〜9 / 第三 0kg @9〜10",
-      "第一は確実に白を取る重量、第二はトータルを作る重量、第三はPRまたは挑戦重量として考えます。"
-    );
-  }
-
-  const projected = projectedPrRange(
-    lift,
-    max,
-    cycle.length,
-    cycle.daysPerWeek,
-    cycle.priorityLift,
-    athlete
-  );
-  const prLow = Number(projected.low || max);
-  const prHigh = Number(projected.high || prLow);
-  const rangeLabel = (low, high) => {
-    const roundedLow = roundToIncrement(low, 2.5);
-    const roundedHigh = Math.max(roundedLow, roundToIncrement(high, 2.5));
-    return `${formatNumber(roundedLow)}〜${formatNumber(roundedHigh)}`;
-  };
-
-  const first = rangeLabel(Math.min(max * 0.9, prLow * 0.88), Math.min(max * 0.94, prLow * 0.92));
-  const second = rangeLabel(prLow * 0.94, prLow * 0.98);
-  const third = rangeLabel(prLow, prHigh);
-  const work = `第一 ${first}kg @7〜8 / 第二 ${second}kg @8〜9 / 第三 ${third}kg @9〜10`;
+  const first = attemptRangeLabel(max, 0.88, 0.92);
+  const second = attemptRangeLabel(max, 0.94, 0.97);
+  const third = attemptRangeLabel(max, 0.98, 1.03);
+  const work = max
+    ? `第一 ${first}kg @7〜8 / 第二 ${second}kg @8〜9 / 第三 ${third}kg @9〜10`
+    : "第一 0kg @7〜8 / 第二 0kg @8〜9 / 第三 0kg @9〜10";
   return methodItem(
     lift,
     exerciseMeta(lift).name,
     work,
-    "第一は確実に白を取る重量、第二はトータルを作る重量、第三は予測PRレンジを参考に挑戦重量を選びます。"
+    "第一は確実に白を取る重量、第二はトータルを作る重量、第三はPRまたは挑戦重量として考えます。"
   );
 }
 
@@ -7718,5 +7653,4 @@ renderExerciseControls();
 els.dateInput.value = today();
 renderSetRows();
 render();
-
 
