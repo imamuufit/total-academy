@@ -6135,7 +6135,6 @@ textarea {
 
   .home-card.visual-card .home-card-top span,
   .home-card.visual-card strong,
-  .home-card.visual-card small,
   .home-card.visual-card .home-progress,
   .home-card.visual-card p {
     grid-column: 2;
@@ -6144,40 +6143,9 @@ textarea {
 
   .home-card.visual-card strong,
   .home-card.visual-card .home-metric {
-    font-size: 1rem;
-    line-height: 1.28;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-  }
-
-  .home-card.visual-card p,
-  .home-card.visual-card small,
-  .home-card.visual-card .home-card-note {
-    font-size: 0.8rem;
-    line-height: 1.35;
-    margin: 0;
-    word-break: keep-all;
-  }
-
-  .home-lift-pills {
-    gap: 4px;
-  }
-
-  .home-lift-pills span {
-    font-size: 0.72rem;
-    padding: 2px 6px;
-  }
-
-  .home-total-number span,
-  .home-card .home-total-number small {
-    font-size: 0.7rem;
-  }
-
-  .home-card .home-card-caret {
-    top: 8px;
-    right: 8px;
-    font-size: 0.78rem;
   }
 
   .home-card.visual-card::before {
@@ -8690,7 +8658,7 @@ body::before {
 .home-command-grid .home-card.visual-card {
   justify-content: space-between;
   min-height: 176px;
-  gap: 12px;
+  gap: 10px;
   padding: 16px !important;
   border-color: rgba(255, 255, 255, 0.16);
   border-radius: 20px;
@@ -8728,7 +8696,7 @@ body::before {
 
 .home-command-grid .home-card.visual-card strong {
   color: #fff !important;
-  line-height: 1.24;
+  line-height: 1.12;
 }
 
 .home-phase-pill {
@@ -8747,10 +8715,10 @@ body::before {
 .home-mini-lines {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
-  gap: 4px 10px;
-  margin-top: 4px;
-  font-size: 0.82rem;
-  line-height: 1.34;
+  gap: 5px 8px;
+  margin-top: 2px;
+  font-size: 0.8rem;
+  line-height: 1.28;
 }
 
 .home-mini-lines b {
@@ -8765,11 +8733,10 @@ body::before {
 
 .home-total-number {
   display: grid;
-  gap: 4px;
+  gap: 1px;
   color: #fff !important;
   font-size: clamp(2rem, 4.6vw, 3rem) !important;
   letter-spacing: -0.03em;
-  line-height: 1.05;
 }
 
 .home-total-number span {
@@ -8796,7 +8763,7 @@ body::before {
   align-items: baseline;
   gap: 5px;
   min-height: 28px;
-  padding: 5px 9px;
+  padding: 5px 8px;
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.07);
@@ -8817,18 +8784,18 @@ body::before {
 }
 
 .home-goal-gap {
-  margin: 2px 0 0;
+  margin: 0;
   color: #fff !important;
-  font-size: clamp(1.16rem, 2.7vw, 1.55rem) !important;
+  font-size: clamp(1.2rem, 2.8vw, 1.7rem) !important;
   font-weight: 950 !important;
-  line-height: 1.24 !important;
+  line-height: 1.1 !important;
 }
 
 .home-card-note {
   color: #e7edf6 !important;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 900;
-  line-height: 1.4;
+  line-height: 1.32;
 }
 
 .home-command-grid .home-card.visual-goal .home-progress {
@@ -8864,9 +8831,9 @@ body::before {
   .home-command-grid .home-card.visual-card {
     display: flex !important;
     flex-direction: column;
-    min-height: 146px;
-    gap: 10px;
-    padding: 14px !important;
+    min-height: 132px;
+    gap: 8px;
+    padding: 13px !important;
   }
 
   .home-command-grid .home-card.visual-card .home-card-top {
@@ -8884,55 +8851,19 @@ body::before {
   }
 
   .home-command-grid .home-card.visual-card strong {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-size: 1.02rem;
-    line-height: 1.3;
+    overflow: visible;
+    white-space: normal;
+    font-size: 1.04rem;
   }
 
   .home-total-number {
-    gap: 3px;
-    font-size: 2.1rem !important;
-  }
-
-  .home-total-number span {
-    font-size: 0.72rem;
-  }
-
-  .home-total-number small {
-    font-size: 0.72rem;
-  }
-
-  .home-lift-pills {
-    gap: 5px;
-  }
-
-  .home-lift-pills span {
-    min-height: 24px;
-    padding: 3px 7px;
-    font-size: 0.7rem;
-  }
-
-  .home-lift-pills b {
-    font-size: 0.82rem;
+    font-size: 2.25rem !important;
   }
 
   .home-mini-lines,
   .home-card-note,
   .home-command-grid .home-card.visual-meet p {
-    font-size: 0.78rem;
-    line-height: 1.4;
-  }
-
-  .home-goal-gap {
-    font-size: 1.1rem !important;
-    line-height: 1.3 !important;
-  }
-
-  .home-card .home-card-caret {
-    top: 10px;
-    right: 10px;
+    font-size: 0.76rem;
   }
 
   .home-command-grid .home-card.visual-plan::after,
