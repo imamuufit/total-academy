@@ -10566,6 +10566,110 @@ body {
   }
 }
 
+/* v115: HOME mobile number label and accordion polish */
+@media (max-width: 640px) {
+  body[data-active-view="home"] .home-command-grid .home-card.visual-card {
+    position: relative;
+    padding-right: 56px !important;
+  }
+
+  body[data-active-view="home"] .home-card-caret {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 4;
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.72);
+    color: #fff;
+    font-size: 0.92rem;
+    font-style: normal;
+    line-height: 1;
+    backdrop-filter: blur(8px);
+  }
+
+  body[data-active-view="home"] .home-current-card,
+  body[data-active-view="home"] .home-goal-card,
+  body[data-active-view="home"] .home-meet-card {
+    padding-right: 18px !important;
+  }
+
+  body[data-active-view="home"] .home-current-card .home-card-caret,
+  body[data-active-view="home"] .home-goal-card .home-card-caret,
+  body[data-active-view="home"] .home-meet-card .home-card-caret {
+    top: 16px;
+    right: 16px;
+  }
+
+  body[data-active-view="home"] .home-total-number {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0 5px;
+    width: 100%;
+    margin-top: 4px;
+  }
+
+  body[data-active-view="home"] .home-total-number span {
+    position: static !important;
+    order: 0;
+    flex: 0 0 100%;
+    width: 100%;
+    text-align: center;
+    color: #a78bfa !important;
+    font-size: 0.78rem;
+    font-weight: 1000;
+    letter-spacing: 0.04em;
+    line-height: 1;
+  }
+
+  body[data-active-view="home"] .home-total-number b {
+    order: 1;
+  }
+
+  body[data-active-view="home"] .home-total-number .unit {
+    order: 2;
+    align-self: baseline;
+    margin-left: 2px;
+  }
+
+  body[data-active-view="home"] .home-current-card .home-lift-pills {
+    margin-top: 4px;
+  }
+
+  body[data-active-view="home"] .home-goal-card .home-goal-target {
+    padding-right: 42px;
+  }
+
+  body[data-active-view="home"] .home-meet-card .home-card-top {
+    padding-right: 42px;
+  }
+
+  body[data-active-view="home"] .home-action-card {
+    margin-bottom: 128px;
+  }
+
+  body[data-active-view="home"] .wellness-floating,
+  body[data-active-view="home"] .guide-mode-bar {
+    bottom: calc(92px + env(safe-area-inset-bottom));
+  }
+
+  body[data-active-view="home"] .wellness-floating {
+    max-width: 150px;
+    transform: scale(0.8);
+  }
+
+  body[data-active-view="home"] .guide-mode-bar {
+    transform: scale(0.8);
+  }
+}
+
 .set-kind-check {
   background: rgba(96, 165, 250, 0.95) !important;
   color: #0f172a !important;
