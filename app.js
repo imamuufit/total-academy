@@ -2361,8 +2361,8 @@ function renderHomeDashboard(athlete = currentAthlete(), cycle = normalizedCycle
     <section class="home-hero-card">
       <div>
         <span>Platform Buddy</span>
-        <h2>「強くなりたい」を<br>計画に変える。</h2>
-        <p>Platform Buddyは、BIG3を楽しむあなたを、計画的に強くなるリフターへ導く相棒です。</p>
+        <h2>強くなるを、<br>習慣に。</h2>
+        <p>今日やることを、最短で確認。</p>
       </div>
       <div class="home-hero-visual" aria-hidden="true">
         <i></i><b></b><i></i>
@@ -2376,7 +2376,7 @@ function renderHomeDashboard(athlete = currentAthlete(), cycle = normalizedCycle
         <em class="home-phase-pill">${escapeHtml(phase.name)}</em>
         <div class="home-mini-lines">
           <b>狙い</b><span>${escapeHtml(homePlan.aim)}</span>
-          <b>成功</b><span>${escapeHtml(homePlan.success)}</span>
+          <b>基準</b><span>${escapeHtml(homePlan.success)}</span>
         </div>
         <i class="home-card-caret" aria-hidden="true">${homeDashboardOpenCard === "plan" ? "⌃" : "⌄"}</i>
       </button>
@@ -2413,7 +2413,7 @@ function renderHomeDashboard(athlete = currentAthlete(), cycle = normalizedCycle
     </section>
     ${detail}
     <section class="home-strategy-card ${escapeHtml(wellness.status)}" data-wellness-floating role="button" tabindex="0">
-      <div class="home-card-top"><i class="home-icon wellness" aria-hidden="true"></i><span>今日の作戦</span></div>
+      <div class="home-card-top"><i class="home-icon wellness" aria-hidden="true"></i><span>今日の方針</span></div>
       <div class="home-strategy-content">
         <strong>${escapeHtml(strategy.title)}</strong>
         <div class="home-strategy-pills">
@@ -2425,7 +2425,7 @@ function renderHomeDashboard(athlete = currentAthlete(), cycle = normalizedCycle
     </section>
     <section class="home-buddy-summary ${escapeHtml(weekly.status)}" data-view-target="analysis" role="button" tabindex="0">
       <div>
-        <span>Buddyコメント</span>
+        <span>Buddy</span>
         <strong>${escapeHtml(weekly.title)}</strong>
         <p>${escapeHtml(weekly.message)}</p>
       </div>
@@ -2433,13 +2433,13 @@ function renderHomeDashboard(athlete = currentAthlete(), cycle = normalizedCycle
     <section class="home-action-panel" aria-label="次の行動">
       <div class="home-action-head">
         <span>次の行動</span>
-        <strong>迷ったらここから</strong>
+        <strong>ここから移動</strong>
       </div>
       <div class="home-shortcut-grid home-action-grid">
-        <button class="home-action-plan" type="button" data-view-target="plan"><span>PLAN</span><strong>今日のプランへ</strong><small>メニュー確認</small></button>
-        <button class="home-action-log" type="button" data-view-target="log"><span>LOG</span><strong>記録する</strong><small>自由トレもここ</small></button>
-        <button class="home-action-data" type="button" data-view-target="analysis"><span>DATA</span><strong>分析を見る</strong><small>進捗と体調</small></button>
-        <button class="home-action-meet" type="button" data-view-target="knowledge"><span>MEET</span><strong>大会準備へ</strong><small>ルールとノート</small></button>
+        <button class="home-action-plan" type="button" data-view-target="plan"><span>PLAN</span><strong>プラン</strong><small>今日のメニュー</small></button>
+        <button class="home-action-log" type="button" data-view-target="log"><span>LOG</span><strong>記録</strong><small>種目を入力</small></button>
+        <button class="home-action-data" type="button" data-view-target="analysis"><span>DATA</span><strong>分析</strong><small>進捗と体調</small></button>
+        <button class="home-action-meet" type="button" data-view-target="knowledge"><span>MEET</span><strong>大会準備</strong><small>ルールとノート</small></button>
       </div>
     </section>
   `;
@@ -2501,7 +2501,7 @@ function homeDashboardDetailMarkup(openCard, context) {
       <div class="home-detail-head">
         <span>現在地</span>
         <strong>現在TOTAL ${formatNumber(currentTotal)}kg</strong>
-        <p>SQ / BP / DL を入力すると、現在TOTALが自動でまとまります。</p>
+        <p>SQ/BP/DLを入れると自動計算。</p>
       </div>
       <div class="home-detail-grid">
         ${currentInputs}
@@ -2512,7 +2512,7 @@ function homeDashboardDetailMarkup(openCard, context) {
       <div class="home-detail-head">
         <span>目標</span>
         <strong>${goalTotal ? `目標TOTAL ${formatNumber(goalTotal)}kg` : "目標TOTAL 未設定"}</strong>
-        <p>${escapeHtml(goalGap)} / ${escapeHtml(goalPercent)}</p>
+        <p>${escapeHtml(goalGap)} ・ ${escapeHtml(goalPercent)}</p>
       </div>
       <div class="home-detail-grid">
         ${goalInputs}

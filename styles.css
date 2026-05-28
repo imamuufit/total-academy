@@ -6135,6 +6135,7 @@ textarea {
 
   .home-card.visual-card .home-card-top span,
   .home-card.visual-card strong,
+  .home-card.visual-card small,
   .home-card.visual-card .home-progress,
   .home-card.visual-card p {
     grid-column: 2;
@@ -6143,9 +6144,40 @@ textarea {
 
   .home-card.visual-card strong,
   .home-card.visual-card .home-metric {
+    font-size: 1rem;
+    line-height: 1.28;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  .home-card.visual-card p,
+  .home-card.visual-card small,
+  .home-card.visual-card .home-card-note {
+    font-size: 0.76rem;
+    line-height: 1.35;
+    margin: 0;
+    text-wrap: balance;
+  }
+
+  .home-lift-pills {
+    gap: 4px;
+  }
+
+  .home-lift-pills span {
+    font-size: 0.68rem;
+    padding: 2px 6px;
+  }
+
+  .home-total-number span,
+  .home-card .home-total-number small {
+    font-size: 0.66rem;
+  }
+
+  .home-card .home-card-caret {
+    top: 8px;
+    right: 8px;
+    font-size: 0.78rem;
   }
 
   .home-card.visual-card::before {
