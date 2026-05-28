@@ -6154,10 +6154,10 @@ textarea {
   .home-card.visual-card p,
   .home-card.visual-card small,
   .home-card.visual-card .home-card-note {
-    font-size: 0.76rem;
+    font-size: 0.8rem;
     line-height: 1.35;
     margin: 0;
-    text-wrap: balance;
+    word-break: keep-all;
   }
 
   .home-lift-pills {
@@ -6165,13 +6165,13 @@ textarea {
   }
 
   .home-lift-pills span {
-    font-size: 0.68rem;
+    font-size: 0.72rem;
     padding: 2px 6px;
   }
 
   .home-total-number span,
   .home-card .home-total-number small {
-    font-size: 0.66rem;
+    font-size: 0.7rem;
   }
 
   .home-card .home-card-caret {

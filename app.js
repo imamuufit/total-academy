@@ -2361,7 +2361,7 @@ function renderHomeDashboard(athlete = currentAthlete(), cycle = normalizedCycle
     <section class="home-hero-card">
       <div>
         <span>Platform Buddy</span>
-        <h2>強くなるを、<br>習慣に。</h2>
+        <h2>強くなる、を<br>習慣に。</h2>
         <p>今日やることを、最短で確認。</p>
       </div>
       <div class="home-hero-visual" aria-hidden="true">
@@ -2376,7 +2376,7 @@ function renderHomeDashboard(athlete = currentAthlete(), cycle = normalizedCycle
         <em class="home-phase-pill">${escapeHtml(phase.name)}</em>
         <div class="home-mini-lines">
           <b>狙い</b><span>${escapeHtml(homePlan.aim)}</span>
-          <b>基準</b><span>${escapeHtml(homePlan.success)}</span>
+          <b>達成条件</b><span>${escapeHtml(homePlan.success)}</span>
         </div>
         <i class="home-card-caret" aria-hidden="true">${homeDashboardOpenCard === "plan" ? "⌃" : "⌄"}</i>
       </button>
@@ -2413,7 +2413,7 @@ function renderHomeDashboard(athlete = currentAthlete(), cycle = normalizedCycle
     </section>
     ${detail}
     <section class="home-strategy-card ${escapeHtml(wellness.status)}" data-wellness-floating role="button" tabindex="0">
-      <div class="home-card-top"><i class="home-icon wellness" aria-hidden="true"></i><span>今日の方針</span></div>
+      <div class="home-card-top"><i class="home-icon wellness" aria-hidden="true"></i><span>今日の作戦</span></div>
       <div class="home-strategy-content">
         <strong>${escapeHtml(strategy.title)}</strong>
         <div class="home-strategy-pills">
@@ -2433,7 +2433,7 @@ function renderHomeDashboard(athlete = currentAthlete(), cycle = normalizedCycle
     <section class="home-action-panel" aria-label="次の行動">
       <div class="home-action-head">
         <span>次の行動</span>
-        <strong>ここから移動</strong>
+        <strong>迷ったらここから</strong>
       </div>
       <div class="home-shortcut-grid home-action-grid">
         <button class="home-action-plan" type="button" data-view-target="plan"><span>PLAN</span><strong>プラン</strong><small>今日のメニュー</small></button>
@@ -2501,7 +2501,7 @@ function homeDashboardDetailMarkup(openCard, context) {
       <div class="home-detail-head">
         <span>現在地</span>
         <strong>現在TOTAL ${formatNumber(currentTotal)}kg</strong>
-        <p>SQ/BP/DLを入れると自動計算。</p>
+        <p>SQ / BP / DL を入れると自動計算。</p>
       </div>
       <div class="home-detail-grid">
         ${currentInputs}
