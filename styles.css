@@ -4688,30 +4688,28 @@ dialog::backdrop {
   }
 
   .tabbar .tab::before {
-    display: block;
-    margin-bottom: 2px;
-    font-size: 1rem;
-    line-height: 1;
+    content: none;
+    display: none;
   }
 
   .tabbar .tab[data-view="home"]::before {
-    content: "竚・;
+    content: none;
   }
 
   .tabbar .tab[data-view="plan"]::before {
-    content: "笆｣";
+    content: none;
   }
 
   .tabbar .tab[data-view="log"]::before {
-    content: "笆ｮ";
+    content: none;
   }
 
   .tabbar .tab[data-view="analysis"]::before {
-    content: "笙・;
+    content: none;
   }
 
   .tabbar .tab[data-view="knowledge"]::before {
-    content: "笳・;
+    content: none;
   }
 
   .actual-box {
@@ -9744,13 +9742,8 @@ body::before {
   }
 
   .editable-set-sheet::before {
-    content: "讓ｪ縺ｫ繧ｹ繝ｯ繧､繝励＠縺ｦ蜈･蜉・竊・;
-    display: block;
-    padding: 6px 10px;
-    color: rgba(248, 250, 252, 0.52);
-    font-size: 0.72rem;
-    font-weight: 800;
-    text-align: right;
+    content: none;
+    display: none;
   }
 
   .editable-set-row {
@@ -10837,7 +10830,7 @@ body.home-mode::before {
 .topbar {
   border-top: 5px solid var(--accent) !important;
   background: #22272e !important;
-  color: #171717 !important;
+  color: #fffaf2 !important;
 }
 
 .panel,
@@ -11065,7 +11058,7 @@ body[data-active-view="home"] .home-card-caret,
 .home-shortcut-grid a:first-child,
 .home-shortcut-grid button:first-child {
   background: #22272e !important;
-  color: #171717 !important;
+  color: #fffaf2 !important;
   border-color: #22272e !important;
 }
 
@@ -11154,7 +11147,7 @@ textarea:focus {
 
   .topbar {
     background: #22272e !important;
-    color: #171717 !important;
+    color: #fffaf2 !important;
   }
 
   .home-hero-card {
@@ -12538,7 +12531,7 @@ html body .onboarding-card .text-button {
 html body .onboarding-card .primary-button,
 html body .onboarding-card button.primary-button {
   background: #22272e !important;
-  color: #171717 !important;
+  color: #fffaf2 !important;
 }
 
 html body .onboarding-card .text-button:not(.primary-button) {
@@ -13424,3 +13417,80 @@ html body .meet-prep-announcement button {
   }
 }
 
+/* v129: hotfix broken pseudo icons and dark-on-dark cards */
+html body .tabbar .tab::before,
+html body .tabbar .tab::after,
+html body .tabbar .tab[data-view="home"]::before,
+html body .tabbar .tab[data-view="plan"]::before,
+html body .tabbar .tab[data-view="log"]::before,
+html body .tabbar .tab[data-view="analysis"]::before,
+html body .tabbar .tab[data-view="knowledge"]::before,
+html body .editable-set-sheet::before {
+  content: none !important;
+  display: none !important;
+}
+
+html body .tabbar .tab.active,
+html body .tab.active,
+html body .tabbar .tab[aria-selected="true"],
+html body .tab[aria-selected="true"] {
+  background: #22272e !important;
+  border-color: #b42318 !important;
+  color: #fffaf2 !important;
+  text-shadow: none !important;
+  opacity: 1 !important;
+}
+
+html body .tabbar .tab.active *,
+html body .tab.active *,
+html body .tabbar .tab[aria-selected="true"] *,
+html body .tab[aria-selected="true"] * {
+  color: #fffaf2 !important;
+  text-shadow: none !important;
+}
+
+html body .tabbar .tab:not(.active),
+html body .tab:not(.active):not([aria-selected="true"]) {
+  background: transparent !important;
+  color: #526179 !important;
+  text-shadow: none !important;
+  opacity: 1 !important;
+}
+
+html body[data-active-view="home"] .home-action-grid button,
+html body[data-active-view="home"] .home-shortcut-grid button {
+  background:
+    linear-gradient(90deg, rgba(180, 35, 24, 0.035), transparent 46%),
+    #fffaf2 !important;
+  color: #171717 !important;
+  border: 1px solid #ded6c8 !important;
+  box-shadow: 0 8px 18px rgba(51, 42, 29, 0.06) !important;
+}
+
+html body[data-active-view="home"] .home-action-grid button *,
+html body[data-active-view="home"] .home-shortcut-grid button * {
+  color: #171717 !important;
+  text-shadow: none !important;
+}
+
+html body[data-active-view="home"] .home-action-grid button strong,
+html body[data-active-view="home"] .home-shortcut-grid button strong {
+  color: #171717 !important;
+}
+
+html body[data-active-view="home"] .home-action-grid button small,
+html body[data-active-view="home"] .home-shortcut-grid button small {
+  color: #526179 !important;
+}
+
+html body[data-active-view="home"] .home-action-grid button span,
+html body[data-active-view="home"] .home-shortcut-grid button span {
+  background: #22272e !important;
+  color: #fffaf2 !important;
+  border-color: #22272e !important;
+}
+
+html body[data-active-view="home"] .home-action-grid button span *,
+html body[data-active-view="home"] .home-shortcut-grid button span * {
+  color: #fffaf2 !important;
+}
