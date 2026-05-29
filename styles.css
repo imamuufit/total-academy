@@ -10742,6 +10742,383 @@ body {
   }
 }
 
+/* v117: IRON NOTE color theme - paper notebook, iron text, red rules */
+:root {
+  --bg: #f4efe6;
+  --surface: #fffaf2;
+  --ink: #171717;
+  --muted: #667085;
+  --line: #ded6c8;
+  --accent: #b42318;
+  --accent-dark: #7a271a;
+  --blue: #2563eb;
+  --green: #157f3b;
+  --coach: #2f6f73;
+  --paper: #fff7ed;
+  --shadow: 0 12px 26px rgba(51, 42, 29, 0.08);
+  --readable: #171717;
+  --readable-soft: #667085;
+  --glass: rgba(255, 250, 242, 0.9);
+}
+
+body {
+  color: var(--ink) !important;
+  background:
+    linear-gradient(90deg, rgba(180, 35, 24, 0.12) 0 2px, transparent 2px 100%),
+    repeating-linear-gradient(180deg, rgba(21, 23, 26, 0.035) 0 1px, transparent 1px 31px),
+    linear-gradient(180deg, #f7f2e8 0, #f1eadf 100%),
+    var(--bg) !important;
+  background-attachment: fixed;
+}
+
+body.home-mode {
+  color: var(--ink) !important;
+  background:
+    radial-gradient(circle at 20% 0, rgba(180, 35, 24, 0.14), transparent 34%),
+    radial-gradient(circle at 82% 8%, rgba(47, 111, 115, 0.1), transparent 28%),
+    linear-gradient(180deg, #f7f2e8 0, #f4efe6 48%, #efe7dc 100%) !important;
+  background-attachment: fixed;
+}
+
+body::before,
+body.home-mode::before {
+  opacity: 0.6;
+  background:
+    linear-gradient(118deg, transparent 0 53%, rgba(180, 35, 24, 0.05) 53% 54%, transparent 54% 100%),
+    repeating-linear-gradient(180deg, rgba(21, 23, 26, 0.025) 0 1px, transparent 1px 42px) !important;
+}
+
+.topbar {
+  border-top: 5px solid var(--accent) !important;
+  background: #22272e !important;
+  color: #fff !important;
+}
+
+.panel,
+.compact-panel,
+.athlete-panel,
+.welcome-panel,
+.start-guide,
+.association-guide,
+.dashboard-card,
+.achievement-card,
+.home-card,
+.home-card-detail-panel,
+.home-action-panel,
+.home-strategy-card,
+.home-buddy-summary,
+.plan-card,
+.day-card,
+.plan-context-panel,
+.cycle-setup-panel,
+.buddy-method-panel,
+.facility-panel,
+.actual-entry-card,
+.actual-set-row,
+.set-detail-panel,
+.alternative-panel,
+.data-panel,
+.stats-panel,
+.metrics-panel,
+.academy-evaluation-panel,
+.weekly-data-panel,
+.weekly-verdict,
+.history-card,
+.history-day,
+.history-day-card,
+.history-summary-card,
+.history-item,
+.knowledge-card,
+.quiz-panel,
+.quiz-category-card,
+.quiz-result,
+.meet-note-panel,
+.meet-review-card,
+.meet-prep-checklist,
+.meet-shortcut,
+.meet-dday-card,
+.meet-today-card,
+.meet-command-actions a,
+.meet-command-actions button,
+.wellness-card,
+.wellness-check-card,
+.daily-entry-panel,
+.summary-card,
+.start-card,
+.log-form label,
+.method-guide-grid article,
+.week-learning-card,
+.equipment-card {
+  border-color: var(--line) !important;
+  background:
+    linear-gradient(90deg, rgba(180, 35, 24, 0.055), transparent 42%),
+    var(--surface) !important;
+  color: var(--ink) !important;
+  box-shadow: var(--shadow);
+}
+
+.home-hero-card {
+  border-color: rgba(180, 35, 24, 0.18) !important;
+  background:
+    linear-gradient(90deg, rgba(255, 250, 242, 0.96), rgba(255, 250, 242, 0.86) 56%, rgba(255, 247, 237, 0.7)),
+    var(--asset-home) right center / cover no-repeat,
+    var(--surface) !important;
+  color: var(--ink) !important;
+}
+
+.home-hero-card::after {
+  opacity: 0.18;
+}
+
+.home-hero-card h2,
+.home-hero-card p,
+.home-action-head strong,
+.home-shortcut-grid strong,
+.home-card strong,
+.home-buddy-summary strong,
+.home-strategy-content strong,
+.meet-dday-card strong,
+.meet-today-card strong,
+.section-title h2,
+.section-title h3,
+.plan-card h2,
+.day-card h2,
+.dashboard-card strong,
+.weekly-data-card strong,
+.quiz-category-card strong {
+  color: var(--ink) !important;
+}
+
+.home-hero-card span,
+.home-card .home-card-top span,
+.home-buddy-summary span,
+.home-action-head span,
+.home-shortcut-grid span,
+.eyebrow,
+.section-title span,
+.method-guide-head span,
+.knowledge-card span,
+.quiz-category-card span,
+.meet-note-card summary span {
+  color: var(--accent-dark) !important;
+}
+
+.panel p,
+.compact-panel p,
+.plan-card p,
+.day-card p,
+.home-card p,
+.home-buddy-summary p,
+.home-strategy-content p,
+.dashboard-card p,
+.weekly-data-card p,
+.history-meta,
+.data-note,
+.guide-note,
+.screen-note,
+.muted,
+small {
+  color: var(--muted) !important;
+}
+
+.home-command-grid .home-card.visual-card,
+body[data-active-view="home"] .home-command-grid .home-card.visual-card {
+  border-color: var(--line) !important;
+  background:
+    linear-gradient(90deg, rgba(180, 35, 24, 0.055), transparent 44%),
+    var(--surface) !important;
+  color: var(--ink) !important;
+}
+
+.home-command-grid .home-card.visual-card::after,
+body[data-active-view="home"] .home-command-grid .home-card.visual-card::after {
+  opacity: 0.16 !important;
+  filter: saturate(0.82) contrast(0.95);
+}
+
+.home-current-card,
+.home-goal-card,
+.home-meet-card {
+  background:
+    linear-gradient(135deg, rgba(180, 35, 24, 0.1), rgba(255, 255, 255, 0) 46%),
+    var(--surface) !important;
+  color: var(--ink) !important;
+}
+
+.home-current-card .main-value,
+.home-goal-card .main-value,
+.home-meet-card .main-value,
+.home-total-number b,
+.home-goal-gap,
+.remaining-value,
+.home-metric,
+body[data-active-view="home"] .home-total-number b,
+body[data-active-view="home"] .home-goal-gap,
+body[data-active-view="home"] .remaining-value,
+body[data-active-view="home"] .home-meet-card .days-left,
+body[data-active-view="home"] .home-meet-card .main-value {
+  color: #171717 !important;
+}
+
+.home-current-card .home-total-number span,
+body[data-active-view="home"] .home-total-number span {
+  color: var(--accent-dark) !important;
+}
+
+.home-total-number .unit,
+body[data-active-view="home"] .home-total-number .unit {
+  color: var(--muted) !important;
+}
+
+.home-lift-pills span,
+.home-phase-pill,
+.home-card-note,
+.home-detail-stats article,
+.home-association-mini,
+.home-detail-total,
+.home-detail-total-input,
+.wellness-result,
+.program-card-mini,
+.cycle-note,
+.projection-card,
+.meet-attempt-chip,
+.rule-source-chip,
+.association-guide a,
+.tag,
+.lift-badge {
+  border-color: rgba(23, 23, 23, 0.12) !important;
+  background: rgba(255, 255, 255, 0.72) !important;
+  color: var(--ink) !important;
+}
+
+.home-progress,
+.progress-bar {
+  background: rgba(23, 23, 23, 0.12) !important;
+}
+
+.home-progress i,
+.progress-bar i {
+  background: linear-gradient(90deg, var(--accent), #d97706) !important;
+}
+
+.home-card-caret,
+body[data-active-view="home"] .home-card-caret,
+.collapse-toggle {
+  border-color: rgba(23, 23, 23, 0.14) !important;
+  background: rgba(255, 255, 255, 0.86) !important;
+  color: var(--ink) !important;
+}
+
+.tab.active,
+.athlete-chip.active,
+.text-button.primary,
+.primary-button,
+.guide-mode-toggle,
+.save-button,
+.home-guide-chip,
+.home-shortcut-grid a:first-child,
+.home-shortcut-grid button:first-child {
+  background: #22272e !important;
+  color: #fff !important;
+  border-color: #22272e !important;
+}
+
+.tabbar,
+.guide-mode-bar,
+.wellness-floating {
+  border-color: rgba(23, 23, 23, 0.12) !important;
+  background: rgba(255, 250, 242, 0.94) !important;
+  color: var(--ink) !important;
+  box-shadow: 0 14px 30px rgba(51, 42, 29, 0.12);
+}
+
+.guide-mode-bar span,
+.wellness-floating strong,
+.wellness-floating-detail p {
+  color: var(--ink) !important;
+}
+
+.guide-mode-bar small,
+.wellness-floating span,
+.wellness-floating small {
+  color: var(--muted) !important;
+}
+
+input,
+select,
+textarea,
+.actual-weight,
+.actual-reps,
+.actual-rpe,
+.actual-grid input,
+.actual-grid select,
+.actual-set-row input,
+.actual-set-row select,
+.input-grid input,
+.input-grid select,
+.input-grid textarea,
+.profile-grid input,
+.profile-grid select,
+.profile-grid textarea,
+.cycle-grid input,
+.cycle-grid select,
+.max-grid input,
+.max-grid select,
+.dashboard-input-grid input,
+.dashboard-input-grid select,
+.dashboard-profile-editor input,
+.dashboard-profile-editor select,
+.log-form input,
+.log-form select,
+.log-form textarea,
+.meet-attempt-row input,
+.meet-attempt-row select,
+.home-detail-grid input,
+.home-detail-grid select {
+  border-color: #cbd5e1 !important;
+  border-bottom-color: #94a3b8 !important;
+  background: #ffffff !important;
+  color: #111827 !important;
+}
+
+input::placeholder,
+textarea::placeholder,
+.actual-weight::placeholder,
+.actual-reps::placeholder,
+.actual-rpe::placeholder {
+  color: rgba(17, 24, 39, 0.38) !important;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline-color: rgba(180, 35, 24, 0.22) !important;
+  border-color: var(--accent) !important;
+}
+
+@media (max-width: 640px) {
+  body,
+  body.home-mode {
+    background:
+      radial-gradient(circle at 18% 0, rgba(180, 35, 24, 0.14), transparent 34%),
+      radial-gradient(circle at 86% 6%, rgba(47, 111, 115, 0.1), transparent 28%),
+      linear-gradient(180deg, #f7f2e8 0, #f4efe6 54%, #efe7dc 100%) !important;
+    color: var(--ink) !important;
+  }
+
+  .topbar {
+    background: #22272e !important;
+    color: #fff !important;
+  }
+
+  .home-hero-card {
+    background:
+      linear-gradient(90deg, rgba(255, 250, 242, 0.98), rgba(255, 250, 242, 0.9) 68%, rgba(255, 247, 237, 0.74)),
+      var(--asset-home) right center / cover no-repeat,
+      var(--surface) !important;
+  }
+}
+
 .set-kind-check {
   background: rgba(96, 165, 250, 0.95) !important;
   color: #0f172a !important;
