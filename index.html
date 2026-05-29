@@ -12,14 +12,14 @@
     <link rel="preload" as="image" href="home-bg-lite.jpg">
     <link rel="preload" as="image" href="icon-sheet-lite.jpg">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <link rel="stylesheet" href="styles.css?v=126">
+    <link rel="stylesheet" href="styles.css?v=127">
   </head>
   <body>
     <div class="app-shell">
       <header class="topbar">
         <div class="brand-block">
           <h1>Platform Buddy</h1>
-          <p class="brand-subtitle">強くなりたい気持ちを、計画に変える。<br>現在地を知り、目標までの距離を見える化し、週ごとの課題をクリアしながらMAX更新へ進む。<br>Platform Buddyは、BIG3を楽しむあなたを、計画的に強くなるリフターに導きます。</p>
+          <p class="brand-subtitle">強くなりたい気持ちを、計画に変える。<br>現在地を見て、MAX更新へ進もう。</p>
           <div class="brand-tags" aria-label="アプリのテーマ">
             <span>LOG</span>
             <span>PLAN</span>
@@ -38,10 +38,10 @@
           <p class="eyebrow">First Setup</p>
           <h2>Platform Buddy</h2>
           <p class="onboarding-subtitle">強くなりたい気持ちを、計画に変える。</p>
-          <p class="onboarding-value">現在1RMと目標を入れると、目標までの差、達成率、PRサイクル、次にやるべき練習が見えるようになります。</p>
+          <p class="onboarding-value">1RMと目標を入れると、次にやる練習が見えます。</p>
 
           <div class="onboarding-step" data-onboarding-step="intro">
-            <p>Platform Buddyは、BIG3の現在地を入力し、目標までの距離を見ながら、計画的にMAX更新と大会挑戦へ進むためのアプリです。</p>
+            <p>現在地を入れて、MAX更新までの道筋を見よう。</p>
             <button class="primary-button" type="button" data-onboarding-action="start">はじめて設定を始める</button>
           </div>
 
@@ -83,7 +83,7 @@
               <label>ベンチプレスMAX<input id="onboardingBenchMax" inputmode="decimal" type="number" min="0" step="0.5" placeholder="例: 100"></label>
               <label>デッドリフトMAX<input id="onboardingDeadliftMax" inputmode="decimal" type="number" min="0" step="0.5" placeholder="例: 160"></label>
             </div>
-            <p class="onboarding-hint">正確な1RMが分からない場合は、最近の重めセットからの推定MAXで大丈夫です。後からPLAN画面で修正できます。</p>
+            <p class="onboarding-hint">MAXが曖昧でもOK。後から直せます。</p>
             <div class="onboarding-actions">
               <button class="text-button" type="button" data-onboarding-action="back">戻る</button>
               <button class="primary-button" type="button" data-onboarding-action="create">プランを作成</button>
@@ -92,20 +92,20 @@
 
           <div class="onboarding-step hidden" data-onboarding-step="complete">
             <h3>PRサイクルを作成しました</h3>
-            <p>あとは実際にプログラムに沿って体験してみましょう。W1 Day1の実績を入力すると、履歴に残り、DATA画面や今後のRPE補正に反映されます。</p>
-            <p class="onboarding-hint">サイクル終了後は、更新できた重量をもとに次のプランを作成できます。</p>
+            <p>まずはW1 Day1へ。実績を入れると、DATAとRPE補正に反映されます。</p>
+            <p class="onboarding-hint">終わったら、更新重量で次のプランへ。</p>
             <button class="primary-button" type="button" data-onboarding-action="finish">W1 Day1へ進む</button>
           </div>
 
           <div class="onboarding-step hidden" data-onboarding-step="daily">
             <p class="eyebrow">Today's Entry</p>
-            <h3>まず今日の体調を確認しましょう</h3>
+            <h3>まず体調を見よう</h3>
             <section class="wellness-check-card" id="dailyWellnessCard">
               <div class="wellness-check-head">
                 <span>今日のウェルネスチェック</span>
-                <strong>今日のBuddy方針を決める</strong>
+                <strong>今日の方針を決める</strong>
               </div>
-              <p>睡眠、栄養、疲労、痛み、集中力から、今日の提案重量レンジのどこを選ぶかを決めます。自動で重量を変えるのではなく、判断材料として使います。</p>
+              <p>今日の状態を見よう。重さ選びのヒントにします。</p>
               <div class="wellness-grid" aria-label="今日の体調">
                 <div class="wellness-field" data-wellness-field="sleep">
                   <span>睡眠</span>
@@ -155,13 +155,13 @@
             </section>
             <div class="daily-entry-head">
               <span>次の行動</span>
-              <strong>体調を確認したら、進む場所を選んでください</strong>
+              <strong>次に進む場所を選ぼう</strong>
             </div>
             <div class="daily-entry-grid">
-              <button type="button" data-onboarding-action="daily-plan"><strong>今日のプランへ</strong><span>W1 Day1や現在週のメニューを進める</span></button>
-              <button type="button" data-onboarding-action="daily-log"><strong>トレーニングを記録</strong><span>プラン外の練習や自由記録を残す</span></button>
-              <button type="button" data-onboarding-action="daily-max"><strong>DATAを確認</strong><span>e1RM、ボリューム、体調、Buddyコメントを見る</span></button>
-              <button type="button" data-onboarding-action="daily-meet"><strong>大会準備・ルール確認</strong><span>白判定クイズや公式ルールへ進む</span></button>
+              <button type="button" data-onboarding-action="daily-plan"><strong>今日のプランへ</strong><span>今日のメニューへ</span></button>
+              <button type="button" data-onboarding-action="daily-log"><strong>トレーニングを記録</strong><span>自由トレもここ</span></button>
+              <button type="button" data-onboarding-action="daily-max"><strong>DATAを確認</strong><span>進み具合を見る</span></button>
+              <button type="button" data-onboarding-action="daily-meet"><strong>大会準備・ルール確認</strong><span>ルールと準備へ</span></button>
             </div>
             <div class="onboarding-actions">
               <button class="text-button" type="button" data-onboarding-action="restart-first">初回ガイドをもう一度見る</button>
@@ -191,12 +191,12 @@
               <button class="start-card" type="button" data-start-action="log">
                 <span>LOG</span>
                 <strong>今日のトレーニングを記録したい</strong>
-                <small>種目、重量、回数、RPEを残して成長を見ます。</small>
+                <small>今日の1セットを残そう。</small>
               </button>
               <button class="start-card" type="button" data-start-action="meet">
                 <span>MEET</span>
                 <strong>パワーリフティング大会に出てみたい</strong>
-                <small>白判定、公式ルール、大会準備を確認します。</small>
+                <small>白判定と準備を確認。</small>
               </button>
             </div>
             <div class="start-guide" id="startGuide" aria-live="polite"></div>
@@ -285,7 +285,7 @@
               </div>
               <input id="dateInput" type="date" required>
             </div>
-            <p class="screen-note">プラン外の補助種目、単発練習、自主トレを残す場所です。</p>
+            <p class="screen-note">自由トレや補助種目を残そう。</p>
 
             <div class="form-row">
               <label>
@@ -314,7 +314,7 @@
               <div class="set-detail-head">
                 <div>
                   <h3>セット入力</h3>
-                  <p>Set1を入力してコピーすると、同じ内容を下のセットへ反映できます。</p>
+                  <p>Set1を下のセットへコピーできます。</p>
                 </div>
                 <button class="text-button compact" id="fillSetRowsBtn" type="button">Set1を下へコピー</button>
               </div>
@@ -338,7 +338,7 @@
               </div>
               <button class="text-button" type="button" data-view-target="history">開く</button>
             </div>
-            <p class="screen-note">過去ログの確認、バックアップ、Excel出力はここから開けます。</p>
+            <p class="screen-note">履歴、バックアップ、Excelはここ。</p>
           </section>
         </section>
 
@@ -361,7 +361,7 @@
                 <h2>今週の進捗</h2>
               </div>
             </div>
-            <p class="screen-note">その日だけで判断せず、直近7日間のウェルネス、プラン実施、RPE差、ボリューム、e1RM変化をまとめて確認します。</p>
+            <p class="screen-note">直近7日の流れをまとめて見よう。</p>
             <div class="weekly-data-summary" id="weeklyDataSummary"></div>
             <canvas id="weeklyDataChart" width="720" height="320" aria-label="週間の体調とトレーニング負荷グラフ"></canvas>
           </section>
@@ -373,7 +373,7 @@
                 <h2>Buddyコメント</h2>
               </div>
             </div>
-            <p class="screen-note">自分は強くなっているのか、目標へ近づいているのかを確認する画面です。e1RM、記録傾向、Buddyコメントから次の練習判断を見直します。</p>
+            <p class="screen-note">伸び方を見て、次の一手を決めよう。</p>
             <div class="academy-evaluation-list" id="academyEvaluation"></div>
           </section>
 
@@ -424,18 +424,18 @@
             </div>
             <p class="collapse-summary" id="buddyMethodSummary"></p>
             <div class="collapsible-content" id="buddyMethodPanelContent">
-              <p class="screen-note">Buddyメソッドは、Platform Buddy独自のPRサイクルです。毎回やみくもに重い重量を狙うのではなく、現在地、RPE、フォーム再現性、疲労管理、大会形式チェックを学びながらPRへ進むために設計しています。</p>
-              <p class="program-disclaimer">本メソッドは科学的知見を参考に設計した学習・実践用テンプレートです。特定の研究でそのまま証明された万能プログラムではなく、実施中のRPE・疲労・フォームに応じた調整を前提にしています。</p>
+              <p class="screen-note">RPEと疲労を見ながら、PRへ進むサイクルです。</p>
+              <p class="program-disclaimer">万能メニューではありません。体調とRPEで調整します。</p>
               <div class="method-level-grid">
                 <article>
                   <span>Lv1</span>
                   <strong>標準 / 初中級者向け</strong>
-                  <p>RPE感覚、フォーム再現性、1サイクル完走を重視。軽めに見える週も、後半の成功率を作るための練習です。</p>
+                  <p>RPE感覚と完走を重視。後半の成功率を作ります。</p>
                 </article>
                 <article>
                   <span>Lv2</span>
                   <strong>実戦寄り / 中級者向け</strong>
-                  <p>RPEと%1RMを併用し、週内の強弱、高重量シングル、競技特異性を少し高めます。</p>
+                  <p>RPEと%1RMを併用。週内に強弱を作ります。</p>
                 </article>
                 <article>
                   <span>Rebuild</span>
@@ -459,7 +459,7 @@
             </div>
             <p class="collapse-summary" id="cycleSummary"></p>
             <div class="collapsible-content" id="cyclePanelContent">
-              <p class="screen-note">現在1RMと目標はダッシュボードで入力。ここでは、どの方式で、何週間、週何回でMAX更新を狙うかを決めます。</p>
+              <p class="screen-note">方式、週数、頻度を選ぼう。</p>
               <div class="cycle-grid">
                 <label>
                   プラン対象
@@ -548,7 +548,7 @@
                 <div class="facility-head">
                   <div>
                     <h3>設備依存種目</h3>
-                    <p>使える設備にチェックすると、プランの補助種目候補に入ります。</p>
+                    <p>使える設備だけチェック。</p>
                   </div>
                   <button class="collapse-toggle" id="facilityCollapseBtn" type="button" aria-label="設備依存種目を閉じる" aria-expanded="true">▴</button>
                 </div>
@@ -569,7 +569,7 @@
                 <h2>大会準備ツール</h2>
               </div>
             </div>
-            <p class="screen-note meet-screen-note">準備、試技戦略、白判定クイズ、大会ノートへ迷わず進むための大会専用エリアです。</p>
+            <p class="screen-note meet-screen-note">大会準備、ルール、ノートをここで確認。</p>
             <section class="meet-prep-checklist" id="meetPrepChecklist" aria-labelledby="meetPrepChecklistTitle">
               <div class="section-title">
                 <div>
@@ -577,7 +577,7 @@
                   <h3 id="meetPrepChecklistTitle">大会準備チェックリスト</h3>
                 </div>
               </div>
-              <p class="meet-rule-note">完了した項目からチェックして、大会当日の不安をひとつずつ減らしていきましょう。</p>
+              <p class="meet-rule-note">終わったものから潰そう。</p>
               <div class="meet-checklist-grid"></div>
             </section>
             <div class="meet-shortcut-grid meet-action-grid">
@@ -607,7 +607,7 @@
               </div>
               <p class="collapse-summary" id="meetNoteSummary"></p>
               <div class="collapsible-content" id="meetNotePanelContent">
-                <p class="screen-note">試合の記憶が薄れる前に、9本の結果・赤判定・きつかった位置・次回課題を残します。</p>
+                <p class="screen-note">9本の結果、赤、次回課題を残そう。</p>
                 <form class="meet-note-form" id="meetNoteForm">
                   <div class="input-grid">
                     <label>
@@ -631,7 +631,7 @@
                       <input id="meetReviewTotalInput" inputmode="decimal" type="number" min="0" step="2.5" placeholder="kg">
                     </label>
                   </div>
-                  <p class="meet-rule-note">赤判定の選択肢は、IPF/JPAのFailure Cardsに合わせて赤①・赤②・赤③で記録します。最終判断は大会要項・最新ルール・審判説明を優先してください。</p>
+                  <p class="meet-rule-note">赤判定は赤1〜3で記録。最終判断は公式と当日の説明を優先。</p>
                   <div class="meet-attempt-grid" id="meetAttemptGrid"></div>
                   <div class="input-grid">
                     <label>
@@ -676,7 +676,7 @@
               <article class="knowledge-card official-rules-card">
                 <span>公式情報</span>
                 <h3>公式ルール</h3>
-                <p>本アプリは、パワーリフティングの学習・記録補助を目的とした個人開発アプリです。JPA、IPF、各都道府県協会の公式アプリではなく、公認・監修・提携を受けたものではありません。ルール情報、クイズ、解説は学習補助であり、最終判断は最新の公式ルールブック、大会要項、当日の審判・大会運営の指示を優先してください。</p>
+                <p>本アプリは学習・記録補助です。最終判断は公式ルール、大会要項、当日の指示を優先してください。</p>
                 <div class="rule-links">
                   <a href="https://www.powerlifting.sport/rules/codes/info/technical-rules" target="_blank" rel="noopener">IPF技術規則ページを見る</a>
                   <a href="https://www.jpa-powerlifting.or.jp/rules-members.php" target="_blank" rel="noopener">JPAルール関連ページを見る</a>
@@ -760,7 +760,7 @@
               <article class="knowledge-card">
                 <span>プログラム</span>
                 <h3>頻度</h3>
-                <p>週に何回その種目を練習するかです。頻度を増やすと技術練習を分散できますが、回復とのバランスが必要です。</p>
+                <p>週あたりの練習回数です。増やす時は回復も見よう。</p>
               </article>
               <article class="knowledge-card">
                 <span>プログラム</span>
@@ -939,7 +939,7 @@
                 <h2>データ管理</h2>
               </div>
             </div>
-            <p class="data-note">同じURLでアップデートする限り、記録はこの端末に残ります。大きな更新前はバックアップを書き出しておくと安心です。</p>
+            <p class="data-note">大きな更新前はバックアップしておこう。</p>
             <div class="data-actions">
               <button class="text-button" id="backupExportBtn" type="button">バックアップを書き出す</button>
               <button class="primary-button inline" id="backupImportBtn" type="button">バックアップを読み込む</button>
@@ -976,6 +976,6 @@
       </form>
     </dialog>
 
-    <script src="app.js?v=126"></script>
+    <script src="app.js?v=127"></script>
   </body>
 </html>

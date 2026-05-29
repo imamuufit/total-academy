@@ -1,4 +1,4 @@
-﻿:root {
+:root {
   --bg: #f4efe6;
   --surface: #fffaf2;
   --surface-soft: #fff7ed;
@@ -38,6 +38,44 @@
   --asset-buddy-focus: url("buddy-team-focus-lite.webp");
   --asset-buddy-meet: url("buddy-team-meet-lite.webp");
   --asset-icons: url("icon-sheet-lite.jpg");
+}
+
+/* v127: compact guide copy */
+html body :is(
+  .compact-guide,
+  .guide-note,
+  .screen-note,
+  .data-note,
+  .rpe-coach-card,
+  .cycle-note,
+  .cycle-method-note,
+  .meet-rule-note,
+  .program-disclaimer,
+  .quiz-guide,
+  .onboarding-hint,
+  .wellness-result,
+  .history-meta
+) {
+  font-size: 0.86rem !important;
+  line-height: 1.45 !important;
+}
+
+html body :is(
+  .compact-guide p,
+  .guide-note p,
+  .screen-note p,
+  .data-note p,
+  .rpe-coach-card p,
+  .meet-rule-note p,
+  .program-disclaimer p,
+  .quiz-guide p,
+  .wellness-result p
+) {
+  margin: 0 !important;
+}
+
+html body .brand-subtitle {
+  line-height: 1.35 !important;
 }
 
 * {

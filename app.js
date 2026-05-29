@@ -432,12 +432,12 @@ const ruleSource = {
 };
 
 const quizCategories = {
-  squat: { label: "スクワット", short: "SQ", description: "深さ、コール、動作中の失敗を確認。" },
-  bench: { label: "ベンチプレス", short: "BP", description: "静止、コール、足や尻のルールを確認。" },
-  deadlift: { label: "デッドリフト", short: "DL", description: "ロックアウト、下ろし方、反則動作を確認。" },
-  meet: { label: "試技申請・大会進行", short: "進行", description: "試技順、重量変更、コールの流れを確認。" },
-  gear: { label: "検量・服装・ギア", short: "ギア", description: "検量、装備、当日の持ち物を確認。" },
-  manners: { label: "初出場者向けマナー", short: "初出場", description: "会場で迷わないための振る舞いを確認。" }
+  squat: { label: "スクワット", short: "SQ", description: "深さと合図を確認。" },
+  bench: { label: "ベンチプレス", short: "BP", description: "止めと接地を確認。" },
+  deadlift: { label: "デッドリフト", short: "DL", description: "ロックアウトを確認。" },
+  meet: { label: "試技申請・大会進行", short: "進行", description: "申請と進行を確認。" },
+  gear: { label: "検量・服装・ギア", short: "ギア", description: "装備と持ち物を確認。" },
+  manners: { label: "初出場者向けマナー", short: "初出場", description: "初出場の動きを確認。" }
 };
 
 const ruleQuestions = [
@@ -679,7 +679,7 @@ const ruleQuestions = [
     question: "大会で使う服装・ギアについて安全な準備は？",
     choices: ["当日会場で何とかする", "大会要項と公式ルールで使用可否を確認する", "有名選手が使っていれば必ず使える"],
     answerIndex: 1,
-    explanation: "シングレット、ベルト、リストラップ、ニースリーブなどは規定があります。大会前に必ず要項とルールを確認しましょう。",
+    explanation: "装備には規定があります。大会前に要項とルールを見ておこう。",
     sourceSection: "服装・個人装備",
     sourceUrl: ruleSource.jpaUrl
   },
@@ -712,7 +712,7 @@ const ruleQuestions = [
     question: "ラック高さ・セーフティ設定について正しい準備は？",
     choices: ["当日の係に完全に任せる", "事前に自分の高さを把握して申告・確認する", "毎試技ランダムでよい"],
     answerIndex: 1,
-    explanation: "ラック高さの迷いは試技時間と集中力を削ります。普段から自分の高さを記録し、大会当日は早めに確認しましょう。",
+    explanation: "ラック高は事前に記録。当日は早めに合わせよう。",
     sourceSection: "大会進行 / ラック設定",
     sourceUrl: ruleSource.jpaUrl
   },
@@ -756,7 +756,7 @@ const ruleQuestions = [
     question: "ルールや進行で不安があるときの対応として安全なのは？",
     choices: ["自己判断で進める", "大会スタッフや審判に丁寧に確認する", "他選手の邪魔になる場所で議論する"],
     answerIndex: 1,
-    explanation: "不明点は早めに丁寧に確認しましょう。初出場こそ、聞けることを聞いておくのが白判定への近道です。",
+    explanation: "不明点は早めに聞こう。初出場ほど準備が白につながります。",
     sourceSection: "大会進行 / 公式判断",
     sourceUrl: ruleSource.jpaUrl
   },
@@ -833,7 +833,7 @@ const ruleQuestions = [
     question: "ベンチプレスのグリップで安全に確認したいことは？",
     choices: ["大会ルール上の握り幅や手の位置を確認する", "広ければ広いほど必ず有利", "片手だけ極端に広くても問題ない"],
     answerIndex: 0,
-    explanation: "ベンチの握り幅や手の位置には規定があります。大会で使うグリップは、事前に公式ルールと大会要項で確認しましょう。",
+    explanation: "大会で使うグリップは、事前に公式ルールで確認。",
     sourceSection: "ベンチプレス / グリップ",
     sourceUrl: ruleSource.jpaUrl
   },
@@ -855,7 +855,7 @@ const ruleQuestions = [
     question: "ベンチプレスで赤判定につながりやすい押し方は？",
     choices: ["胸で静止してから押す", "胸や腹でバーを沈ませて反動を使う", "合図後に肘を伸ばす"],
     answerIndex: 1,
-    explanation: "胸や腹でバーを沈ませるような反動は失敗判定の原因になります。止める、待つ、押すの順番を練習しましょう。",
+    explanation: "反動は赤の原因。止める、待つ、押すを練習。",
     sourceSection: "ベンチプレス / 失敗判定",
     sourceUrl: ruleSource.jpaUrl
   },
@@ -921,7 +921,7 @@ const ruleQuestions = [
     question: "大会のデッドリフトでストラップについて正しい考え方は？",
     choices: ["一般的なパワーリフティング大会では使えない前提で確認する", "握力が不安なら自由に使える", "第三試技だけ使える"],
     answerIndex: 0,
-    explanation: "大会では使用できる装備が決まっています。普段ストラップを使う人も、試合に向けて素手や許可された補助具で練習しましょう。",
+    explanation: "試合で使える装備は限定。普段から本番仕様も練習。",
     sourceSection: "服装・個人装備",
     sourceUrl: ruleSource.jpaUrl
   },
@@ -932,7 +932,7 @@ const ruleQuestions = [
     question: "アップ場でのデッドリフトの下ろし方として望ましいものは？",
     choices: ["本番同様にコントロールして下ろす", "毎回手を離して落とす", "周囲を見ずに急いで下ろす"],
     answerIndex: 0,
-    explanation: "JPAはアップ場での下ろし方についても注意喚起しています。周囲の安全と大会での白判定のため、普段からコントロールしましょう。",
+    explanation: "アップ場でも安全第一。普段から丁寧に下ろそう。",
     sourceSection: "技術委員会通達 / アップ場",
     sourceUrl: ruleSource.jpaUrl
   },
@@ -998,7 +998,7 @@ const ruleQuestions = [
     question: "シングレットなど服装の準備として安全なのは？",
     choices: ["大会要項とルールで使用可否を確認する", "ジムで着られれば必ず使える", "当日に借りれば必ず間に合う"],
     answerIndex: 0,
-    explanation: "大会で使う服装には規定があります。初出場では早めに大会要項と公式ルールを確認し、不明点は主催者へ確認しましょう。",
+    explanation: "服装にも規定あり。早めに要項と公式ルールを確認。",
     sourceSection: "服装・個人装備",
     sourceUrl: ruleSource.jpaUrl
   },
@@ -1020,7 +1020,7 @@ const ruleQuestions = [
     question: "リストラップやニースリーブで大切なことは？",
     choices: ["大会規定と装着ルールを確認する", "強そうに見えれば何でもよい", "試技中に自由に付け替えればよい"],
     answerIndex: 0,
-    explanation: "装備は種類だけでなく、装着方法や使用可否の確認が必要です。大会で焦らないよう、普段から本番装備で練習しましょう。",
+    explanation: "装備は使い方も大事。本番装備で練習しておこう。",
     sourceSection: "服装・個人装備",
     sourceUrl: ruleSource.jpaUrl
   },
@@ -1031,7 +1031,7 @@ const ruleQuestions = [
     question: "チョーク類について安全な考え方は？",
     choices: ["大会要項や通達で使用可否を確認する", "どんな液体チョークでも必ず使える", "アップ場だけなら何でもよい"],
     answerIndex: 0,
-    explanation: "チョーク類は通達や大会要項で扱いが変わることがあります。使う予定がある場合は、最新の案内を確認しましょう。",
+    explanation: "チョーク類は大会ごとに確認。最新案内を見よう。",
     sourceSection: "技術委員会通達 / チョーク類",
     sourceUrl: ruleSource.jpaUrl
   },
@@ -1042,7 +1042,7 @@ const ruleQuestions = [
     question: "大会前日の持ち物確認として良いものはどれ？",
     choices: ["装備、身分証、食事、飲み物、大会要項をまとめて確認する", "当日の朝に全部探す", "ベルトだけあれば十分"],
     answerIndex: 0,
-    explanation: "忘れ物は試技の不安につながります。装備だけでなく、検量や補給に必要なものも前日までに確認しましょう。",
+    explanation: "忘れ物は不安の元。前日までに潰そう。",
     sourceSection: "大会準備 / 持ち物",
     sourceUrl: ruleSource.jpaUrl
   },
@@ -1086,7 +1086,7 @@ const ruleQuestions = [
     question: "セコンドや仲間と事前に決めておくと良いことは？",
     choices: ["試技重量の候補と失敗時の対応", "当日の気分だけ", "第三試技だけ"],
     answerIndex: 0,
-    explanation: "候補重量や失敗時の判断を事前に共有しておくと、試合中に焦りにくくなります。個人参加でもメモで準備できます。",
+    explanation: "重量案は先にメモ。試合中の迷いを減らそう。",
     sourceSection: "大会準備 / セコンド",
     sourceUrl: ruleSource.jpaUrl
   },
@@ -1097,7 +1097,7 @@ const ruleQuestions = [
     question: "自分の試技が終わった後の会場で望ましい行動は？",
     choices: ["使った場所を整え、他選手の進行を妨げない", "アップ場に荷物を広げたままにする", "平台近くで大声で長く話す"],
     answerIndex: 0,
-    explanation: "大会は全員で進行します。自分の試技後も、アップ場や通路、平台周辺で周囲に配慮しましょう。",
+    explanation: "大会は全員で進行。アップ場でも周りを見よう。",
     sourceSection: "大会マナー / 会場利用",
     sourceUrl: ruleSource.jpaUrl
   }
@@ -1348,7 +1348,7 @@ function wellnessEvaluation(entry = todayWellnessEntry()) {
       status: "unset",
       label: "未入力",
       short: "体調チェック",
-      recommendation: "今日の状態を入力すると、提案重量レンジのどこから始めるかを表示します。"
+      recommendation: "今日の状態から、始める重さを見よう。"
     };
   }
   let score = wellnessFields.reduce((sum, field) => {
@@ -1365,7 +1365,7 @@ function wellnessEvaluation(entry = todayWellnessEntry()) {
       status: "alert",
       label: "アラート",
       short: "高重量なし",
-      recommendation: "強い痛みや低コンディションの日です。高重量挑戦は避け、休養・代替種目・フォーム確認を優先しましょう。"
+      recommendation: "痛みが強い日。高重量は避けて整えよう。"
     };
   }
   if (score <= 54) {
@@ -1374,7 +1374,7 @@ function wellnessEvaluation(entry = todayWellnessEntry()) {
       status: "fatigue",
       label: "疲労強め",
       short: "下限以下も候補",
-      recommendation: "提案重量レンジの下限、または下限より-2.5kgから開始。バックオフや補助種目は1セット減らす候補があります。"
+      recommendation: "下限か-2.5kgから。バックオフは減らしてOK。"
     };
   }
   if (score <= 69) {
@@ -1383,7 +1383,7 @@ function wellnessEvaluation(entry = todayWellnessEntry()) {
       status: "caution",
       label: "注意",
       short: "下限寄り推奨",
-      recommendation: "提案重量レンジの下限寄りから開始。ウォームアップで重く感じる日は無理に上げず、予定RPEを優先しましょう。"
+      recommendation: "下限寄りから。重ければRPE優先でOK。"
     };
   }
   if (score <= 84) {
@@ -1392,7 +1392,7 @@ function wellnessEvaluation(entry = todayWellnessEntry()) {
       status: "normal",
       label: "通常",
       short: "中央寄り",
-      recommendation: "提案重量レンジの中央付近から開始。予定RPEに合えばそのまま進め、軽ければ少しだけ上限寄りを試せます。"
+      recommendation: "中央付近から。軽ければ少しだけ上へ。"
     };
   }
   return {
@@ -1400,7 +1400,7 @@ function wellnessEvaluation(entry = todayWellnessEntry()) {
     status: "good",
     label: "良好",
     short: "中央〜上限寄り",
-    recommendation: "状態は良好です。フォーム再現性が保てる範囲で、提案重量レンジの中央〜上限寄りも候補になります。"
+    recommendation: "状態良好。フォームが保てる範囲で上限寄りもOK。"
   };
 }
 
@@ -1987,11 +1987,11 @@ function meetCountdownText(athlete = currentAthlete()) {
   if (days === null) return { label: "未設定", message: "大会日を入れると、残り日数と準備の入口が表示されます。" };
   if (days > 60) return { label: `D-${days}`, message: "大会要項とプラン全体の流れを確認しておきましょう。" };
   if (days >= 31) return { label: `D-${days}`, message: "プラン進行と大会要項の確認を進める時期です。" };
-  if (days >= 15) return { label: `D-${days}`, message: "ギア、検量、ルール、オープナー候補を確認しましょう。" };
-  if (days >= 7) return { label: `D-${days}`, message: "疲労管理、ピーキング、持ち物準備を優先しましょう。" };
-  if (days >= 1) return { label: `D-${days}`, message: "忘れ物、移動、検量、試技順を最終確認しましょう。" };
+  if (days >= 15) return { label: `D-${days}`, message: "ギア、検量、オープナーを確認。" };
+  if (days >= 7) return { label: `D-${days}`, message: "疲労、ピーキング、持ち物を確認。" };
+  if (days >= 1) return { label: `D-${days}`, message: "忘れ物、移動、検量を最終確認。" };
   if (days === 0) return { label: "D-Day", message: "今日は大会当日。第一試技は白を取りに行きましょう。" };
-  return { label: `D+${Math.abs(days)}`, message: "大会ノートに結果と次回課題を残しましょう。" };
+  return { label: `D+${Math.abs(days)}`, message: "大会ノートに次回課題を残そう。" };
 }
 
 function meetPreparationFocus(days) {
@@ -2006,7 +2006,7 @@ function meetPreparationFocus(days) {
     return {
       label: "D-60〜D-31",
       title: "要項と全体像を確認",
-      body: "大会要項、出場区分、ルール、プラン全体の流れを早めに確認しましょう。"
+      body: "要項、区分、ルールを早めに確認。"
     };
   }
   if (days >= 15) {
@@ -2020,7 +2020,7 @@ function meetPreparationFocus(days) {
     return {
       label: "D-14〜D-7",
       title: "オープナーと疲労管理",
-      body: "オープナー候補、疲労管理、移動、持ち物を確認して、本番に向けて迷いを減らしましょう。"
+      body: "オープナー、移動、持ち物を確認。"
     };
   }
   if (days >= 1) {
@@ -2288,9 +2288,9 @@ function renderMeetPrepAnnouncement(athlete = currentAthlete()) {
   els.meetPrepAnnouncement.classList.remove("hidden");
   els.meetPrepAnnouncement.innerHTML = `
     <div>
-      <span>大会準備アナウンス</span>
+      <span>大会準備</span>
       <strong>${escapeHtml(timing)}</strong>
-      <p>${escapeHtml(countdown.message)} タップするとMEETのチェックリストへ進みます。</p>
+      <p>${escapeHtml(countdown.message)} MEETで確認。</p>
     </div>
     <button class="text-button compact" type="button" data-view-target="knowledge">MEETへ</button>
   `;
@@ -2794,7 +2794,7 @@ function renderMeetReviewPreview(note) {
 function renderMeetNoteList(athlete = currentAthlete()) {
   const notes = [...(athlete.meetNotes || [])].sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
   if (!notes.length) {
-    els.meetNoteList.innerHTML = `<p class="history-meta">まだ大会ノートはありません。大会後の記憶が新しいうちに、9本の結果と課題を残しましょう。</p>`;
+    els.meetNoteList.innerHTML = `<p class="history-meta">大会後は、9本の結果と課題を残そう。</p>`;
     return;
   }
   els.meetNoteList.innerHTML = notes.map((note) => meetNoteCardMarkup(note)).join("");
@@ -2870,30 +2870,30 @@ function meetBuddyReview(note) {
   const firstFails = attempts.filter((attempt) => attempt.attempt === 1 && attempt.result === "fail").length;
   const thirdFails = attempts.filter((attempt) => attempt.attempt === 3 && attempt.result === "fail").length;
   if (success >= 8) messages.push("白を積み上げられています。次回も第一・第二を堅実に取り、第三で挑戦を残す流れが作れそうです。");
-  if (success <= 5) messages.push("成功数が少なめです。次回は第一試技を練習で確実に通せる重量へ寄せ、白を取る設計を優先しましょう。");
+  if (success <= 5) messages.push("成功数が少なめ。次回は第一を確実に白へ。");
   if (firstFails) messages.push("第一試技の失敗があります。オープナーは当日の緊張やコール込みでも成功できる重量に下げる候補です。");
-  if (thirdFails >= 2) messages.push("第三試技の失敗が複数あります。第二を確実に通してから第三へ挑戦を残す重量運びを練習しましょう。");
+  if (thirdFails >= 2) messages.push("第三の失敗が多め。第二を確実に通してから攻めよう。");
 
   const reasons = attempts.map((attempt) => attempt.redReason).filter((reason) => reason && reason !== "none");
   const points = attempts.map((attempt) => attempt.stickingPoint).filter((point) => point && point !== "none");
   const hasRed = (lift, red) => attempts.some((attempt) => attempt.lift === lift && (attempt.redReason === red || (attempt.judges || []).includes(red)));
   if (hasRed("squat", "red1")) messages.push("スクワット赤①が出ています。次サイクルは深さの再現性を最優先にし、ポーズスクワットやテンポで毎回同じボトムを作りましょう。");
-  if (hasRed("squat", "red2")) messages.push("スクワット赤②が出ています。スタート/フィニッシュ姿勢、膝ロック、切り返し後の下がりを動画で確認しましょう。");
+  if (hasRed("squat", "red2")) messages.push("SQ赤2あり。開始・終了姿勢と下がりを動画で確認。");
   if (hasRed("squat", "red3")) messages.push("スクワット赤③が出ています。足の動き、主審コール、ラック動作を普段のセットから大会式に寄せましょう。");
-  if (hasRed("bench", "red1")) messages.push("ベンチ赤①が出ています。胸/腹部への確実な接触、ベルト接触、肘の深さを練習動画で確認しましょう。");
+  if (hasRed("bench", "red1")) messages.push("BP赤1あり。接触位置と肘の深さを動画で確認。");
   if (hasRed("bench", "red2")) messages.push("ベンチ赤②が出ています。挙上中の下がりや肘ロック不足が課題です。止めベンチとロックアウトまで押し切る練習を入れましょう。");
-  if (hasRed("bench", "red3")) messages.push("ベンチ赤③が出ています。コール待ち、沈み、尻・足・頭・グリップの固定を大会式で練習しましょう。");
-  if (hasRed("deadlift", "red1")) messages.push("デッドリフト赤①が出ています。膝ロックと肩を返したフィニッシュを、トップ保持込みで練習しましょう。");
+  if (hasRed("bench", "red3")) messages.push("BP赤3あり。コール待ちと接地を大会式で練習。");
+  if (hasRed("deadlift", "red1")) messages.push("DL赤1あり。膝ロックとトップ保持を練習。");
   if (hasRed("deadlift", "red2")) messages.push("デッドリフト赤②が出ています。挙上中の下がりや大腿部での支持を避けるため、床からトップまで同じテンポで引き切る練習が必要です。");
   if (hasRed("deadlift", "red3")) messages.push("デッドリフト赤③が出ています。主審のダウンコールまで保持し、両手でコントロールして下ろす流れを毎回守りましょう。");
   if (reasons.includes("depth")) messages.push("スクワットの深さが課題です。軽中重量で深さを固定し、ポーズスクワットやテンポで再現性を作りましょう。");
   if (reasons.includes("pause") || reasons.includes("command")) messages.push("コールや胸止めで赤が出ています。競技式の合図待ちを普段のベンチ練習に入れましょう。");
-  if (reasons.includes("butt") || reasons.includes("foot")) messages.push("ベンチの接地が課題です。足位置とブリッジを固定し、重くなっても尻・足が動かないセットアップを探しましょう。");
-  if (reasons.includes("lockout") || reasons.includes("hitch") || reasons.includes("downward")) messages.push("デッドリフトのフィニッシュが課題です。トップ保持、ヒップスルー、最後まで押し切る練習を優先しましょう。");
+  if (reasons.includes("butt") || reasons.includes("foot")) messages.push("BP接地が課題。尻と足が動かない形を探そう。");
+  if (reasons.includes("lockout") || reasons.includes("hitch") || reasons.includes("downward")) messages.push("DLフィニッシュが課題。トップ保持を優先。");
   if (points.includes("bottom")) messages.push("ボトムで重く感じています。切り返し姿勢を崩さないため、ポーズ系やボトム付近のフォーム確認が有効です。");
   if (points.includes("offChest")) messages.push("ベンチの胸から離れる局面が課題です。静止ベンチ、足の踏み込み、胸上での軌道再現を次サイクルに入れましょう。");
-  if (points.includes("top") || points.includes("lockout")) messages.push("トップ・ロックアウトで詰まっています。過重量よりもフォームを保てる範囲で最後まで押し切る練習を増やしましょう。");
-  if (points.includes("mental")) messages.push("メンタル面の負荷が大きかった記録です。次回はウォームアップ、試技申請、待機時間の流れを事前にメモ化しましょう。");
+  if (points.includes("top") || points.includes("lockout")) messages.push("トップで詰まりあり。フォームを保って押し切ろう。");
+  if (points.includes("mental")) messages.push("メンタル負荷あり。次回の流れをメモで準備。");
   if (!messages.length) messages.push("大きな赤信号は少ない記録です。良かった点を次回も再現できるよう、ウォームアップと試技選択を残しておきましょう。");
   return [...new Set(messages)].slice(0, 5);
 }
@@ -3027,7 +3027,7 @@ function renderLogCommand(athlete = currentAthlete(), cycle = normalizedCycle())
         <article>
           <span>今日の記録</span>
           <strong>${todayLogs.length}件</strong>
-          <small>${todayLogs.length ? "この下から追加入力できます" : "まず1種目だけでも残しましょう"}</small>
+          <small>${todayLogs.length ? "追加入力できます" : "まず1種目だけでも"}</small>
         </article>
         <article>
           <span>今日の体調</span>
@@ -3145,14 +3145,14 @@ function weeklyDataVerdict(snapshot) {
     return {
       status: "info",
       title: "今週のデータを集めましょう",
-      message: "ウェルネスチェックとプラン実績が入ると、体調と練習内容の釣り合いを1週間単位で確認できます。"
+      message: "体調と練習の釣り合いを見よう。"
     };
   }
   if ((snapshot.wellnessAverage !== null && snapshot.wellnessAverage <= 54) || (snapshot.avgRpeDiff !== null && snapshot.avgRpeDiff >= 1.5)) {
     return {
       status: "danger",
       title: "再調整候補",
-      message: "体調または実績RPEが強く出ています。来週は提案重量レンジの下限寄り、バックオフ削減、必要なら回復週を候補にしましょう。"
+      message: "今日は少し重そう。来週は下限寄りでOK。"
     };
   }
   if ((snapshot.wellnessAverage !== null && snapshot.wellnessAverage <= 69) || (snapshot.avgRpeDiff !== null && snapshot.avgRpeDiff >= 0.75)) {
@@ -3242,7 +3242,7 @@ function academyEvaluations(athlete, cycle) {
     return [{
       status: "info",
       label: "記録",
-      title: "まずは記録を増やしましょう",
+      title: "まずは記録を増やそう",
       message: "分析の精度は記録量に左右されます。まずはBIG3と主要補助種目を、RPEつきで残していきましょう。"
     }];
   }
@@ -3262,7 +3262,7 @@ function academyEvaluations(athlete, cycle) {
       status: "danger",
       label: "疲労注意",
       title: "予定RPEより高く出ています",
-      message: `直近の${recentRpeIssue.name}で予定@${recentRpeIssue.planned}に対して実績@${recentRpeIssue.actual}でした。回復が追いついていない可能性があります。次回は提案重量より-2.5〜5kg下げ、予定RPEを優先しましょう。`
+      message: `直近の${recentRpeIssue.name}で予定@${recentRpeIssue.planned}に対して実績@${recentRpeIssue.actual}でした。回復が追いついていないかも。次回は-2.5〜5kg候補。`
     });
   } else if (recentRpeIssue && recentRpeIssue.diff >= 0.75) {
     cards.push({
@@ -3276,21 +3276,21 @@ function academyEvaluations(athlete, cycle) {
       status: "warn",
       label: "疲労管理",
       title: "平均RPEが高めです",
-      message: `直近7日の平均RPEは${avgRpe.toFixed(1)}です。高RPEが続く時は、トップセットよりバックオフの質とフォーム再現性を優先しましょう。`
+      message: `直近7日の平均RPEは${avgRpe.toFixed(1)}です。高RPEが続く時は、バックオフの質を優先。`
     });
   } else if (rpeLogs.length >= 2 && avgRpe <= 6.5) {
     cards.push({
       status: "info",
       label: "強度",
       title: "余力が多めです",
-      message: `直近7日の平均RPEは${avgRpe.toFixed(1)}です。フォームが安定しているなら、次回は+2.5kg程度の小さな上積みを検討できます。`
+      message: `直近7日の平均RPEは${avgRpe.toFixed(1)}です。フォームが安定なら、+2.5kgも候補。`
     });
   } else {
     cards.push({
       status: "ok",
       label: "RPE管理",
       title: "堅実に進められています",
-      message: "直近のRPEは極端に高すぎず低すぎない範囲です。表示重量より予定RPEを守ることを優先して継続しましょう。"
+      message: "RPEは良い範囲。予定RPEを守って続けよう。"
     });
   }
 
@@ -3299,14 +3299,14 @@ function academyEvaluations(athlete, cycle) {
       status: "warn",
       label: "ボリューム",
       title: "練習量が急に増えています",
-      message: "直近7日のボリュームが前週より大きく増えています。疲労が遅れて出ることがあるため、次回はRPEとフォームの乱れを優先して確認しましょう。"
+      message: "ボリューム増。次回はRPEとフォームをよく見よう。"
     });
   } else if (prevVolume > 0 && lastVolume < prevVolume * 0.65) {
     cards.push({
       status: "info",
       label: "ボリューム",
       title: "練習量が少なめです",
-      message: "直近7日のボリュームが前週より少なめです。忙しさや疲労が理由なら問題ありませんが、伸ばしたい種目は最低限の練習量を確保しましょう。"
+      message: "ボリューム少なめ。伸ばしたい種目は最低限確保。"
     });
   }
 
@@ -3324,7 +3324,7 @@ function academyEvaluations(athlete, cycle) {
       status: "info",
       label: "記録習慣",
       title: "直近の記録が少なめです",
-      message: "分析は記録が増えるほど役に立ちます。完璧に残すより、まずは主要セットだけでも継続して記録しましょう。"
+      message: "分析は記録が増えるほど効きます。まず主要セットだけでも。"
     });
   }
 
@@ -4080,7 +4080,7 @@ function rpeCalibrationOutcome(saved = {}) {
   const diff = actual - predicted;
   if (diff >= 2) return `予想より${diff}回多くできました。きつさを早めに限界と判断しやすい可能性があります。`;
   if (diff <= -2) return `予想より${Math.abs(diff)}回少なく限界でした。思ったより限界に近い状態だった可能性があります。`;
-  return "予想RIRと実際の追加回数は近い範囲です。この感覚を@7〜@9判断の基準にしましょう。";
+  return "予想RIRは近いです。この感覚をRPE判断の基準に。";
 }
 
 function saveRpeCalibration(body) {
@@ -4214,7 +4214,7 @@ function weekLearningCard(cycle, phase) {
     ? `<p class="white-nine-note"><strong>白9本:</strong> 第一を確実に、第二でトータルを作り、第三で挑戦する。成功試技を積み上げることも競技力です。</p>`
     : "";
   const accumulationNote = isPlatform && ((phase.name || "").includes("蓄積") || (phase.name || "").includes("ブリッジ"))
-    ? `<p class="guide-note">この時期はMAX更新を狙う週ではありません。フォーム再現性・練習量・RPE感覚を作り、後半で重さを発揮するための土台を整えます。</p>`
+    ? `<p class="guide-note">MAX更新週ではありません。フォームとRPE感覚を作る時期。</p>`
     : "";
   const purpose = phasePurpose(phase, cycle);
   const fullGoal = phaseGoalText(cycle, phase);
@@ -4312,13 +4312,13 @@ function renderRecoveryAlert(cycle) {
   els.planList.innerHTML = `
     <article class="plan-card recovery-alert-card">
       <span class="recommended-badge">進行を止める候補</span>
-      <h2>このままW${nextWeek}へ進む前に、デロード週を挟む候補です。</h2>
-      <p>前週のPLAN実績で、予定よりRPEが高い記録が続いています。進行を止める判断もトレーニングの一部です。</p>
+      <h2>W${nextWeek}へ進む前に、回復週も候補です。</h2>
+      <p>RPE高めが続いています。止まる判断も強くなる一部です。</p>
       <div class="recovery-reasons">
         ${(alert.reasons || []).map((reason) => `<span>${escapeHtml(reason)}</span>`).join("")}
       </div>
       <div class="recovery-actions">
-        <button class="primary-button inline" type="button" data-recovery-action="start">デロード週を実施する</button>
+        <button class="primary-button inline" type="button" data-recovery-action="start">回復週へ</button>
         <button class="text-button" type="button" data-recovery-action="skip">通常通りW${nextWeek}へ進む</button>
       </div>
     </article>
@@ -4329,7 +4329,7 @@ function renderRecoveryWeek(cycle) {
   const targetWeek = cycle.recoveryForWeek || Math.min(cycle.week + 1, cycle.length);
   els.cyclePhaseTitle.textContent = `W${targetWeek}前のデロード週`;
   els.cyclePhaseNote.textContent = guideEnabled()
-    ? "この週は強くなるために追い込む週ではなく、次に進むために回復する週です。表示された上限重量を超えず、RPE6以下でフォーム確認を優先してください。"
+    ? "回復週です。上限を超えず、RPE6以下でフォーム確認。"
     : "";
   els.rpeCoachCard.innerHTML = "";
   renderProjections(cycle);
@@ -4501,7 +4501,7 @@ function planInsight(cycle) {
     ? `<p class="safety-note"><strong>推奨:</strong> 大会後・高疲労・停滞・ブランク明け向け。初心者用に戻るプランではなく、次のLv2へ入るための再準備ブロックです。</p>`
     : "";
   const levelActiveNote = cycle.programMethod === "platform" && cycle.buddyLevel === "level2"
-    ? `<p class="guide-note"><strong>Lv2適用中:</strong> 表示メニューは週内非線形です。SQ/DL週2回、BP週3〜4回を目安に、高強度日・ボリューム日・技術日を分けて表示します。</p>`
+    ? `<p class="guide-note"><strong>Lv2適用中:</strong> 強度日・量の日・技術日を分けます。</p>`
     : "";
   if (!showGuide && !levelWarning) return "";
   if (!balance && cycle.planTarget === "bench_only") {
@@ -4568,12 +4568,12 @@ function renderCycleSetupCard(athlete = currentAthlete(), cycle = normalizedCycl
       </div>
       <button class="primary-button inline" type="button" data-cycle-setup-action="open">${ready ? "PRサイクル設定へ進む" : "現在1RMを確認する"}</button>
     </div>
-    <p class="screen-note">ダッシュボードで入力した現在1RMと目標をもとに、PRサイクル設計へ進みます。ここが「現在地を見る」から「計画を作る」への接続地点です。</p>
+    <p class="screen-note">現在1RMと目標から、PRサイクルへ進もう。</p>
     <div class="cycle-setup-grid">
       <article>
         <span>現在1RM</span>
         <strong>${escapeHtml(maxStatus)}</strong>
-        <p>${ready ? `${liftIds.map((liftId) => `${mainLiftNames[liftId]} ${formatNumber(Number(cycle.maxes[liftId] || bestE1rm(liftId) || 0))}kg`).join(" / ")}` : "ダッシュボードで現在1RMを入力してください。"}</p>
+        <p>${ready ? `${liftIds.map((liftId) => `${mainLiftNames[liftId]} ${formatNumber(Number(cycle.maxes[liftId] || bestE1rm(liftId) || 0))}kg`).join(" / ")}` : "ダッシュボードで1RMを入力。"}</p>
       </article>
       <article>
         <span>目標</span>
@@ -4686,7 +4686,7 @@ function methodControlNote(cycle) {
     return `トレーニング週数は${cycle.length}週。現在地チェック前の休養ブロックを含むため、想定完了期間は約${cycle.length + 1}週です。${levelNote}`;
   }
   if (cycle.programMethod === "rebuild16") return "Buddy Rebuild 16は16週固定。W1〜W5でLv1 Reset、W6で移行、W7〜W16でLv2 10週へ進む大会後・高疲労向けの再準備プランです。";
-  if (!locked.length) return "この方式では週数・頻度を選択できます。";
+  if (!locked.length) return "週数・頻度を選べます。";
   if (cycle.programMethod === "hps") return "HPSは6週・週3回固定です。Hypertrophy → Power → Strengthの順で回します。";
   if (cycle.programMethod === "smolov_jr") return "Smolov Jr.は3週・週4回・補助少なめ固定です。SQ/BP向けで、DLには適用しません。";
   return "この方式では一部の設定が固定されます。";
@@ -5175,7 +5175,7 @@ function previousAdjustmentMessage(feedback) {
   if (feedback.status === "deload") return "デロード候補です。次週へ進む前に重量上限を守る回復週を挟む判断も検討してください。";
   if (feedback.status === "heavy") return "今週は -2.5〜5kg やバックオフ減を検討し、予定RPEを守ることを優先してください。";
   if (feedback.status === "warn") return "今週は -2.5kg を検討してください。重量を下げる判断もプログラム成功の一部です。";
-  if (feedback.status === "light") return "軽く感じていたので +2.5kg、最大でも +5kg までなら検討できます。追いすぎず予定RPE内で止めましょう。";
+  if (feedback.status === "light") return "軽めでした。+2.5kg候補。最大でも+5kgまで。";
   return "今週も提案重量を基準に、予定RPEを守る感覚を育てましょう。";
 }
 
@@ -5254,7 +5254,7 @@ function prescriptionForWeek(liftId, max, week, length, daysPerWeek, variant = "
     title: `トップ ${topWeight}kg x ${intensity.reps} @${intensity.topRpe} / バックオフ ${backoffWeight}kg x ${intensity.backoffReps} x ${intensity.backoffSets} @${intensity.backoffRpe}`,
     detail: phase === "蓄積期" || phase === "ブリッジ週"
       ? "MAX更新を狙う週ではなく、RPE練習とフォーム再現性を作る週。重く感じたら-2.5〜5kg、軽すぎる時だけ+2.5〜5kg。"
-      : "次週につながる良い反復を優先。上振れ狙いではなく予定RPEで止める。"
+      : "予定RPEで止めよう。次週につなげる日。"
   };
 }
 
@@ -6292,7 +6292,7 @@ function renderQuizTop() {
         <div><span>正解率</span><strong>${rate}%</strong></div>
         <div><span>復習</span><strong>${wrong}問</strong></div>
       </div>
-      <p class="quiz-guide">大会直前だけでなく、普段の練習から「何が白判定で、何が赤判定になりやすいか」を3択で確認できます。</p>
+      <p class="quiz-guide">赤を減らす3択。普段から白判定を作ろう。</p>
       <p class="quiz-disclaimer quiz-guide">本クイズは、パワーリフティング競技ルールの理解を補助するための学習機能です。実際の大会では、主催団体の大会要項、最新ルールブック、審判・大会運営の指示を必ず優先してください。</p>
       <div class="quiz-actions">
         <button class="primary-button inline" type="button" data-quiz-action="categories">カテゴリから選ぶ</button>
@@ -6381,7 +6381,7 @@ function renderQuizResult() {
     <div class="quiz-result">
       <span>${escapeHtml(label)}</span>
       <h3>${quiz.correct}/${total} 正解</h3>
-      <p>${quiz.correct === total ? "白3つ。かなり落ち着いて試合に入れそうです。" : "ここで確認できた分だけ、本番の赤判定を減らせます。"}</p>
+      <p>${quiz.correct === total ? "白3つ。落ち着いて試合へ。" : "本番前に知れて白判定。"}</p>
       <div class="quiz-actions">
         <button class="primary-button inline" type="button" data-quiz-action="categories">別カテゴリへ</button>
         <button class="text-button" type="button" data-quiz-action="review" ${quizWrongQuestions().length ? "" : "disabled"}>間違えた問題を復習</button>
@@ -6835,7 +6835,7 @@ els.meetNoteForm?.addEventListener("submit", (event) => {
   const note = buildMeetNoteFromForm();
   const entered = meetEnteredAttempts(note.attempts);
   if (!entered.length && !note.selfNote && !note.goodNote && !note.issueNote) {
-    alert("試技結果か感想を1つ以上入力してください。");
+    alert("試技結果か感想を1つ入力しよう。");
     return;
   }
   const athlete = currentAthlete();
@@ -6966,20 +6966,20 @@ els.planList.addEventListener("click", (event) => {
 
 function rpeAdjustmentFeedback(plannedRpe, actualRpe, confidence = "learning") {
   if (!plannedRpe) {
-    return { status: "ok", message: "記録しました。次回もフォームと余力をメモしてRPE感覚を育てましょう。" };
+    return { status: "ok", message: "記録しました。次回の基準にしよう。" };
   }
   const diff = actualRpe - plannedRpe;
   const learningNote = confidence === "solid"
     ? ""
     : confidence === "unsure"
-    ? " ただしRPEに迷いがあるため、動画やフォーム再現性も合わせて確認しましょう。"
-    : " RPE感覚は練習中です。重量変更を強く決めつけず、深さ・止め・ロックアウト・バー速度も観察しましょう。";
-  if (diff >= 2) return { status: "deload", rpeConfidence: confidence, message: `デロード候補: 予定よりRPE +${diff.toFixed(1)}。次週へ進む前に回復週や上限重量の設定を検討してください。${learningNote}` };
-  if (diff >= 1.5) return { status: "heavy", rpeConfidence: confidence, message: `警告: 予定よりRPE +${diff.toFixed(1)}。今日は重量を下げて予定RPEを守る方がプログラムとして成功です。次回は -2.5〜5kg、バックオフ減を検討してください。${learningNote}` };
-  if (diff >= 1) return { status: "warn", rpeConfidence: confidence, message: `注意: 予定よりRPE +${diff.toFixed(1)}。次回は -2.5kg を検討し、重量より予定RPEを守る感覚を優先しましょう。${learningNote}` };
-  if (diff <= -1.5) return { status: "light", rpeConfidence: confidence, message: `予定よりRPE ${diff.toFixed(1)}。余力がありますが追いすぎず、次セットやバックオフを +2.5〜5kg まで。予定RPEを超えない範囲で止めましょう。${learningNote}` };
-  if (diff <= -0.75) return { status: "light", rpeConfidence: confidence, message: `予定よりRPE ${diff.toFixed(1)}。少し軽めです。次回は +2.5kg までを候補にし、フォーム精度を優先しましょう。${learningNote}` };
-  return { status: "ok", rpeConfidence: confidence, message: `予定通り。RPE差 ${diff >= 0 ? "+" : ""}${diff.toFixed(1)}。この感覚を次回の基準にしましょう。${learningNote}` };
+    ? " 動画も見ておこう。"
+    : " まずは観察でOK。";
+  if (diff >= 2) return { status: "deload", rpeConfidence: confidence, message: `デロード候補。予定よりRPE +${diff.toFixed(1)}。進む前に回復週を検討。${learningNote}` };
+  if (diff >= 1.5) return { status: "heavy", rpeConfidence: confidence, message: `今日は重そう。次回は-2.5〜5kgか、バックオフ減でOK。${learningNote}` };
+  if (diff >= 1) return { status: "warn", rpeConfidence: confidence, message: `少し重め。次回は-2.5kg候補。RPE優先でいこう。${learningNote}` };
+  if (diff <= -1.5) return { status: "light", rpeConfidence: confidence, message: `かなり軽め。足すなら+2.5〜5kgまで。追いすぎ注意。${learningNote}` };
+  if (diff <= -0.75) return { status: "light", rpeConfidence: confidence, message: `少し軽め。次回+2.5kgまで候補。フォーム優先。${learningNote}` };
+  return { status: "ok", rpeConfidence: confidence, message: `予定通り。RPE差 ${diff >= 0 ? "+" : ""}${diff.toFixed(1)}。この感覚を次へ。${learningNote}` };
 }
 
 els.logForm.addEventListener("submit", (event) => {
@@ -6990,7 +6990,7 @@ els.logForm.addEventListener("submit", (event) => {
   const exerciseName = exerciseId === "custom" ? els.customExerciseInput.value.trim() : meta.name;
   const setDetails = collectSetDetails();
   if (!setDetails.length) {
-    alert("少なくとも1セット分の重量と回数を入力してください。");
+    alert("1セット分の重量と回数を入力しよう。");
     return;
   }
   const topSet = setDetails.reduce((best, set) => e1rm(set.weight, set.reps) > e1rm(best.weight, best.reps) ? set : best, setDetails[0]);
