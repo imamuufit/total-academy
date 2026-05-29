@@ -1,12 +1,12 @@
-const CACHE_NAME = "platform-buddy-v125";
+const CACHE_NAME = "platform-buddy-v126";
 const CORE_ASSETS = [
   "./",
   "index.html",
-  "index.html?v=125",
+  "index.html?v=126",
   "styles.css",
-  "styles.css?v=125",
+  "styles.css?v=126",
   "app.js",
-  "app.js?v=125",
+  "app.js?v=126",
   "manifest.webmanifest",
   "icon.svg",
   "apple-touch-icon.png",

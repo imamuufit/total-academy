@@ -13289,3 +13289,100 @@ html body .home-card-caret {
   border-color: var(--line) !important;
 }
 
+/* v126: remove redundant screen title hero cards and tighten utility screens */
+html body #planView::before,
+html body #logView::before,
+html body #analysisView::before,
+html body #knowledgeView::before,
+html body #meetView::before,
+html body .screen-hero,
+html body .view-hero,
+html body .page-hero,
+html body .view-title-card,
+html body .screen-title-card {
+  display: none !important;
+  content: none !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+
+html body #planView,
+html body #logView,
+html body #analysisView,
+html body #knowledgeView,
+html body #meetView {
+  padding-top: 0 !important;
+}
+
+html body :is(#planView, #logView, #analysisView, #knowledgeView, #meetView).view.active {
+  gap: 12px !important;
+}
+
+html body :is(#planView, #logView, #analysisView, #knowledgeView, #meetView) > .panel:first-child,
+html body :is(#planView, #logView, #analysisView, #knowledgeView, #meetView) > form.panel:first-child,
+html body :is(#planView, #logView, #analysisView, #knowledgeView, #meetView) > section:first-child {
+  margin-top: 0 !important;
+}
+
+html body :is(#planView, #logView, #analysisView, #knowledgeView, #meetView) .section-title {
+  margin-top: 0 !important;
+}
+
+html body .meet-prep-announcement {
+  min-height: auto !important;
+  margin-bottom: 10px !important;
+  border-radius: 10px !important;
+  border-left-width: 5px !important;
+  padding: 10px 14px !important;
+  gap: 10px !important;
+  box-shadow: 0 8px 18px rgba(51, 42, 29, 0.06) !important;
+}
+
+html body .meet-prep-announcement div {
+  gap: 2px !important;
+}
+
+html body .meet-prep-announcement span {
+  font-size: 0.68rem !important;
+  line-height: 1.1 !important;
+}
+
+html body .meet-prep-announcement strong {
+  font-size: clamp(1rem, 2.3vw, 1.22rem) !important;
+  line-height: 1.15 !important;
+}
+
+html body .meet-prep-announcement p {
+  font-size: 0.78rem !important;
+  line-height: 1.35 !important;
+}
+
+html body .meet-prep-announcement .text-button,
+html body .meet-prep-announcement button {
+  min-height: 34px !important;
+  padding: 7px 10px !important;
+  font-size: 0.82rem !important;
+}
+
+@media (max-width: 640px) {
+  html body :is(#planView, #logView, #analysisView, #knowledgeView, #meetView).view.active {
+    gap: 10px !important;
+  }
+
+  html body .meet-prep-announcement {
+    align-items: flex-start !important;
+    padding: 9px 11px !important;
+  }
+
+  html body .meet-prep-announcement p {
+    display: -webkit-box !important;
+    overflow: hidden !important;
+    -webkit-box-orient: vertical !important;
+    -webkit-line-clamp: 2 !important;
+  }
+}
+
