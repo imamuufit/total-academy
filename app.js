@@ -1618,7 +1618,7 @@ function renderGuideMode() {
     els.guideModeBtn.title = enabled ? "説明を表示するモード" : "説明を減らすモード";
   }
   if (els.guideModeDescription) {
-    els.guideModeDescription.textContent = enabled ? "説明を表示して使う" : "入力と記録を優先する";
+    els.guideModeDescription.textContent = enabled ? "短いガイドを表示" : "入力を優先";
   }
 }
 
@@ -1792,7 +1792,7 @@ function renderCollapseSummaries(athlete, cycle) {
   }
   if (els.welcomeSummary) {
     const guideLabels = { plan: "MAX更新へのPRサイクル", log: "今日のトレーニング記録", meet: "大会準備と白判定" };
-    const hint = guideEnabled() ? " / ⌄を押すと詳細が開きます" : "";
+    const hint = guideEnabled() ? " / ⌄で詳細" : "";
     els.welcomeSummary.textContent = `目的別ヘルプ: ${guideLabels[state.startAction] || guideLabels.plan}${hint}`;
   }
   if (els.buddyMethodSummary) {
@@ -3485,7 +3485,7 @@ function renderPlan() {
   els.cyclePhaseTitle.textContent = `今週の短期目標 / ${cycle.length}週中 ${cycle.week}週目 / ${phase.name}${levelLabel}`;
   const purpose = phasePurpose(phase, cycle);
   const goal = phaseGoalText(cycle, phase);
-  els.cyclePhaseNote.textContent = guideEnabled() ? `短期目標: ${goal} そのための目的: ${purpose} ${programMethodInfo(cycle).note}` : "";
+  els.cyclePhaseNote.textContent = guideEnabled() ? `目標: ${goal} / 目的: ${purpose}` : "";
   renderRpeCoach(cycle, phase);
   renderProjections(cycle);
 
@@ -4113,10 +4113,10 @@ function renderRpeCoach(cycle, phase) {
   const isAccumulation = phase.name === "蓄積期";
   const isBridge = phase.name === "ブリッジ週";
   const guide = cycle.programMethod === "platform" && cycle.buddyLevel === "level2"
-    ? "Lv2はRPEと%1RMを併用します。表示重量は刺激の下限と上限を守るための目安です。@8を超える日は重量を下げ、軽くても+2.5kg程度に留めて週全体の波を崩さないでください。"
+    ? "Lv2はRPEと%1RMを併用。@8超えなら下げよう。"
     : isAccumulation || isBridge
-    ? "蓄積期はMAX更新を狙う週ではありません。フォーム再現性・練習量・RPE感覚を作り、現在地チェックで確かめるための期間です。予定RPEより重いなら -2.5〜5kg、軽すぎる時だけ +2.5〜5kgで調整してください。"
-    : "表示重量は提案です。予定RPEを超えそうなら重量を下げ、余裕がありすぎる時だけ小さく上げます。RIRはフォーム再現性を含めた余力として使います。";
+    ? "蓄積期は土台作り。迷ったらRPEを優先。"
+    : "表示重量は提案。予定RPEを超えそうなら下げよう。";
   els.rpeCoachCard.innerHTML = `
     <details class="rpe-coach-details">
       <summary class="rpe-coach-summary">
@@ -4124,7 +4124,7 @@ function renderRpeCoach(cycle, phase) {
         <strong>${escapeHtml(rpeCoachHeadline(phase, cycle))}</strong>
       </summary>
       <p>${guide}</p>
-      <p class="rpe-principle">RPEは最初から正確に当てる数字ではなく、自分の身体感覚を観察して育てるものです。RIRは「競技フォームを保ったまま、あと何回できそうか」で見ます。深さ、止め、ロックアウト、バー軌道が崩れる余力は、RIRに多く数えません。</p>
+      <p class="rpe-principle">RPEは育てる感覚。競技フォームが崩れる余力は数えません。</p>
       <div class="rpe-scale">
         <span><strong>RPE 6</strong> RIR 4目安</span>
         <span><strong>RPE 7</strong> RIR 3目安</span>
@@ -4143,16 +4143,16 @@ function rpeCoachHeadline(phase, cycle) {
 
 function phasePurpose(phase, cycle = normalizedCycle()) {
   const name = phase?.name || "";
-  if (name.includes("Reset 蓄積")) return "大会後や高疲労後のフォーム再現性・練習量・RPE感覚を戻す。";
-  if (name.includes("移行")) return "鍛え込まず、疲労を抜き、Lv2用Training Maxと次週の入り方を決める。";
-  if (name.includes("蓄積")) return "フォーム再現性・練習量・RPE感覚を作る。";
-  if (name.includes("ブリッジ")) return "蓄積期の土台を保ちながら、現在地チェック前に疲労を増やしすぎない。";
-  if (name.includes("現在地")) return "限界MAXではなく、後半サイクルの設定材料を確認する。";
-  if (name.includes("強化")) return "競技重量に近い練習を増やし、成功率を保ちながら重さへつなげる。";
-  if (name.includes("ピーキング")) return "強さを作るより、強さを発揮する準備をする。";
-  if (name.includes("MAX") || name.includes("PR") || cycle.week === cycle.length) return "大会形式で成功試技を積み上げる。";
-  if (cycle.recoveryMode || name.includes("デロード") || name.includes("休養")) return "疲労を抜き、現在地チェックや次週の精度を上げる。";
-  return "今週の練習目的を確認し、予定RPEを守って次週へつなげる。";
+  if (name.includes("Reset 蓄積")) return "フォームとRPE感覚を戻す。";
+  if (name.includes("移行")) return "疲労を抜き、Lv2へ備える。";
+  if (name.includes("蓄積")) return "フォームとRPE感覚を作る。";
+  if (name.includes("ブリッジ")) return "疲労を増やさずW5へ。";
+  if (name.includes("現在地")) return "後半の設定材料を確認。";
+  if (name.includes("強化")) return "重さへつなげる。";
+  if (name.includes("ピーキング")) return "強さを出す準備。";
+  if (name.includes("MAX") || name.includes("PR") || cycle.week === cycle.length) return "成功試技を積み上げる。";
+  if (cycle.recoveryMode || name.includes("デロード") || name.includes("休養")) return "疲労を抜いて次へ。";
+  return "予定RPEを守って積む。";
 }
 
 function liftTargetRangeText(cycle = normalizedCycle(), low = 0.75, high = 0.82) {
@@ -4181,30 +4181,30 @@ function finalTargetText(cycle = normalizedCycle()) {
 function phaseGoalText(cycle = normalizedCycle(), phase = cyclePhase(cycle.week, cycle.length, cycle.programMethod)) {
   const name = phase?.name || "";
   if (cycle.programMethod === "rebuild16") {
-    if (cycle.week <= 4) return `W5 Reset現在地チェックで、${liftTargetRangeText(cycle, 0.72, 0.8)}をRPE8以内で再現できる状態を目指します。大会後や疲労後でも「また積める身体」に戻すことがゴールです。`;
-    if (cycle.week === 5) return "限界MAXではなく、次のLv2に入るためのTraining Max候補を確認します。3〜5回@8で止め、強く見せるより正確に現在地を見ることが目標です。";
-    if (cycle.week === 6) return "W7からLv2へ入れるように、疲労を抜きながらフォーム、RPE、Training Maxを整理します。鍛え込まず、次に進める状態を作ることが目標です。";
+    if (cycle.week <= 4) return `W5で${liftTargetRangeText(cycle, 0.72, 0.8)}をRPE8以内で確認。`;
+    if (cycle.week === 5) return "3〜5回@8で現在地を見る。限界MAXではありません。";
+    if (cycle.week === 6) return "疲労を抜き、Lv2用TMを整える週。";
   }
   if (name.includes("蓄積") || name.includes("ブリッジ")) {
     const checkLabel = cycle.week < 4 ? "4週間後のW5現在地チェック" : cycle.week === 4 ? "来週のW5現在地チェック" : "W5現在地チェック";
-    return `${checkLabel}で、${liftTargetRangeText(cycle, 0.75, 0.82)}を3〜5回@8以内で扱える状態を目指します。最初より同じ重量が軽く感じる、または1〜2回分の余裕が増えていれば成功です。`;
+    return `${checkLabel}で、${liftTargetRangeText(cycle, 0.75, 0.82)}を3〜5回@8以内。`;
   }
   if (name.includes("現在地")) {
-    return "3〜5回@8で今の実力を確認します。5回やり切ることより、RPE8で止めることが目標です。結果を後半ブロックの重量判断に使います。";
+    return "3〜5回@8で確認。やり切りよりRPE優先。";
   }
   if (name.includes("強化")) {
-    return `ピーキング前までに、${liftTargetRangeText(cycle, 0.82, 0.9)}付近をフォームを崩さず扱える状態を目指します。重さに慣れつつ、予定RPEを守ることが目標です。`;
+    return `${liftTargetRangeText(cycle, 0.82, 0.9)}付近へ慣れる。`;
   }
   if (name.includes("ピーキング")) {
-    return "最終チェックで強さを発揮できるように、重さへの接触を残しながら疲労を抜きます。練習量を増やすより、成功率とバーの再現性を上げることが目標です。";
+    return "疲労を抜き、成功率を上げる。";
   }
   if (name.includes("MAX") || name.includes("PR") || cycle.week === cycle.length) {
-    return `第一を確実に、第二でトータルを作り、第三で${finalTargetText(cycle)}付近へ挑戦できる状態を目指します。成功試技を積み上げることも競技力です。`;
+    return `第一を確実に。第三で${finalTargetText(cycle)}付近へ。`;
   }
   if (cycle.recoveryMode || name.includes("デロード") || name.includes("休養")) {
-    return "次の週に進める身体へ戻すことが目標です。表示上限を超えず、RPE6以下でフォーム確認に留めましょう。";
+    return "上限を超えず、RPE6以下で整える。";
   }
-  return "次の節目へ向けて、予定RPEを守りながら今日の練習を積み上げることが目標です。";
+  return "予定RPEを守って次へ。";
 }
 
 function weekLearningCard(cycle, phase) {
@@ -4241,16 +4241,16 @@ function currentCheckCarryoverCard(cycle) {
   if (!entries.length && cycle.length !== 10) return "";
   const heavy = entries.filter((entry) => rpeDiff(entry) >= 1);
   const light = entries.filter((entry) => rpeDiff(entry) <= -1);
-  let message = "現在地チェックの記録を後半ブロックの判断材料にします。W6以降は表示重量を盲信せず、予定RPEとフォーム再現性を優先してください。";
+  let message = "W6以降は表示重量よりRPE優先。";
   if (cycle.length === 10) {
     message = cycle.buddyLevel === "level2"
-      ? "10週版はW5チェック後すぐW6強化期に入ります。W5チェックが@8前後なら予定通り。@9近く出た場合は、W6のトップシングルまたはバックオフを-2.5〜5kgして入りましょう。"
-      : "10週版はW5チェック後すぐW6強化期に入ります。W5現在地チェックで3回@8だった場合、W6は予定重量より-2.5〜5kgから入る候補があります。5回@8で余裕があった場合は予定通り進めましょう。";
+      ? "W5が@8なら予定通り。@9ならW6は控えめに。"
+      : "W5が@8なら予定通り。重ければW6は-2.5kg候補。";
   }
   if (heavy.length) {
-    message = "現在地チェックで予定より重く出た種目があります。@9近くまで上がった場合は後半ブロックで強く攻めすぎず、該当種目は -2.5〜5kg やバックオフ減を候補にしてください。";
+    message = "予定より重め。後半は-2.5〜5kgも候補。";
   } else if (light.length) {
-    message = "現在地チェックは余裕を持って終えられています。後半ブロックで +2.5kg 程度の上積みは候補ですが、予定RPEを超えない範囲で進めましょう。";
+    message = "余裕あり。+2.5kg候補、でもRPE優先。";
   }
   return `
     <article class="plan-card week-learning-card">
@@ -4268,7 +4268,7 @@ function rebuild16CarryoverCard(cycle) {
       <article class="plan-card week-learning-card">
         <span class="recommended-badge">Reset結果の反映</span>
         <h2>Lv2へ入る前の判断</h2>
-        <p>W5 Reset現在地チェックが@8前後なら予定通りLv2へ。@9近く出た種目は、W7のトップシングルまたはバックオフを-2.5〜5kg控えめに入る候補があります。</p>
+        <p>W5が@8なら予定通り。@9ならW7は控えめに。</p>
       </article>
     `;
   }
@@ -4277,7 +4277,7 @@ function rebuild16CarryoverCard(cycle) {
       <article class="plan-card week-learning-card">
         <span class="recommended-badge">Lv2現在地チェック反映</span>
         <h2>後半ブロックの入り方</h2>
-        <p>W11 Lv2現在地チェックが@8前後なら予定通り。@9近く出た場合は、W12以降のトップシングルまたはバックオフを-2.5〜5kgして入りましょう。</p>
+        <p>W11が@8なら予定通り。@9ならW12は控えめに。</p>
       </article>
     `;
   }
@@ -4297,7 +4297,7 @@ function tenWeekBenchCareCard(cycle) {
     <article class="plan-card week-learning-card">
       <span class="recommended-badge">ベンチ頻度の調整</span>
       <h2>押せる状態を保つ</h2>
-      <p>肘・肩・前腕に違和感がある場合は、ナローBPまたは三頭補助を減らしてください。ベンチ頻度を守ることより、押せる状態を保つことを優先します。</p>
+      <p>違和感があれば補助を減らそう。押せる状態を優先。</p>
     </article>
   `;
 }
@@ -4427,14 +4427,14 @@ function programMethodInfo(cycle = normalizedCycle()) {
   const target = cycle.planTarget === "bench_only" ? "ベンチプレスのみ" : "BIG3";
   const platformLabel = cycle.buddyLevel === "level2" ? "Buddy式 Lv2（実戦寄り）" : "Buddy式 Lv1（標準）";
   const platformNote = cycle.buddyLevel === "level2"
-    ? "中級者以上向け。SQ/DL週2回、BP週3〜4回を目安に、週内でRPEと%1RMに波を作り、重点種目へ高重量シングルを少量入れる実戦寄りプランです。"
-    : "前半4週で現在のMAXを安定させ、休養後の現在地チェックで再現性を確認し、後半の強化・ピーキングから大会想定MAXチェックへ進む標準プランです。";
+    ? "週内に強弱を作る実戦寄りプラン。"
+    : "完走とRPE感覚を重視する標準プラン。";
   const info = {
     platform: [platformLabel, platformNote],
-    rebuild16: ["Buddy Rebuild 16（大会後リビルド）", "大会後・高疲労・停滞・ブランク明けに、すぐLv2へ入らず、Lv1 Resetでフォーム・RPE感覚・練習量・疲労状態を整えてから実戦寄りのLv2へ進むリビルド型プランです。"],
-    hps: ["HPS（BP向き）", "Hypertrophy → Power → Strength のDUP型。特にベンチ強化との相性が良い方式です。"],
-    "531": ["5/3/1（長期型）", "Training Maxを使って堅実に積む長期型。AMRAPは余力を残して止めます。"],
-    smolov_jr: ["Smolov Jr.（SQ/BP高負荷）", "3週・週4固定の短期集中高ボリューム方式。SQ/BP向けで、DLには適用しません。補助種目は最小限にします。"]
+    rebuild16: ["Buddy Rebuild 16（大会後リビルド）", "疲労や停滞を整えてLv2へ戻るプラン。"],
+    hps: ["HPS（BP向き）", "肥大、パワー、筋力を回すBP向き方式。"],
+    "531": ["5/3/1（長期型）", "Training Maxで堅実に積む長期型。"],
+    smolov_jr: ["Smolov Jr.（SQ/BP高負荷）", "3週・週4固定。SQ/BP向け高負荷方式。"]
   }[cycle.programMethod] || ["Platform Buddy", ""];
   return { label: `${info[0]} / ${target}`, note: info[1] };
 }
@@ -4495,10 +4495,10 @@ function planInsight(cycle) {
   const method = programMethodInfo(cycle);
   const balance = liftBalance(cycle, athlete);
   const levelWarning = cycle.programMethod === "platform" && cycle.buddyLevel === "level2" && cycle.experienceLevel === "beginner"
-    ? `<p class="safety-note"><strong>注意:</strong> Lv2は中級者向けです。RPEに慣れていない方や、まず1サイクル完走を優先したい方はLv1推奨です。</p>`
+    ? `<p class="safety-note"><strong>注意:</strong> Lv2は中級者向け。迷ったらLv1でOK。</p>`
     : "";
   const rebuildNote = cycle.programMethod === "rebuild16"
-    ? `<p class="safety-note"><strong>推奨:</strong> 大会後・高疲労・停滞・ブランク明け向け。初心者用に戻るプランではなく、次のLv2へ入るための再準備ブロックです。</p>`
+    ? `<p class="safety-note"><strong>推奨:</strong> 大会後や停滞時の再準備ブロック。</p>`
     : "";
   const levelActiveNote = cycle.programMethod === "platform" && cycle.buddyLevel === "level2"
     ? `<p class="guide-note"><strong>Lv2適用中:</strong> 強度日・量の日・技術日を分けます。</p>`
@@ -4513,10 +4513,10 @@ function planInsight(cycle) {
   const recommendedName = mainLiftNames[balance.recommended];
   const selectedName = cycle.priorityLift === "total" ? "トータル" : mainLiftNames[cycle.priorityLift];
   const note = cycle.priorityLift === "total"
-    ? `${recommendedName}が相対的に低めです。重点種目に迷う場合は${recommendedName}重視が候補です。`
+    ? `${recommendedName}が低め。迷ったら${recommendedName}重視も候補。`
     : cycle.priorityLift === balance.recommended
-      ? `${selectedName}重視は現在のBIG3バランスとも合っています。`
-      : `${recommendedName}が相対的に低めです。今の選択は${selectedName}重視なので、目的が明確ならそのままでOKです。`;
+      ? `${selectedName}重視は今のバランスに合っています。`
+      : `${recommendedName}が低め。目的が明確なら${selectedName}重視でOK。`;
 
   return `
     <article class="plan-card ${["platform", "rebuild16"].includes(cycle.programMethod) ? "recommended-plan" : ""}">
@@ -4618,9 +4618,9 @@ function renderProgramMethodGuide(cycle = normalizedCycle()) {
   const method = programMethodInfo(cycle);
   const current = method.label.replace(" / BIG3", "").replace(" / ベンチプレスのみ", "");
   const cards = [
-    ["Buddy Lv1", "RPE感覚、フォーム再現性、1サイクル完走を重視。初中級者や迷った人の標準ルートです。"],
-    ["Buddy Lv2", "RPEと%1RMを併用し、週内の強弱と高重量シングルを少し増やす中級者向けです。"],
-    ["Rebuild 16", "大会後、高疲労、停滞、ブランク明けに一度整えてからLv2へ進む再準備プランです。"]
+    ["Buddy Lv1", "完走とRPE感覚を作る標準ルート。"],
+    ["Buddy Lv2", "週内に強弱を作る実戦寄り。"],
+    ["Rebuild 16", "大会後や停滞時に整え直すルート。"]
   ];
   const showBuddyCards = ["platform", "rebuild16"].includes(cycle.programMethod);
   els.programMethodGuide.innerHTML = `
@@ -4639,7 +4639,7 @@ function renderProgramMethodGuide(cycle = normalizedCycle()) {
         `).join("")}
       </div>
     ` : `
-      <p class="program-disclaimer inline">この方式は各メソッドの考え方を参考にした簡略テンプレートです。完全再現ではありません。</p>
+      <p class="program-disclaimer inline">参考テンプレートです。完全再現ではありません。</p>
     `}
   `;
 }
@@ -4772,38 +4772,38 @@ function cyclePhase(week, length, programMethod = "platform") {
   if (programMethod === "platform" && length >= 10 && week === 5) {
     return {
       name: "現在地チェック",
-      note: "3日程度の休養で疲労を抜き、前半4週で作ったフォーム再現性とRPE感覚を確認する週。限界MAXは必須ではありません。"
+      note: "疲労を抜いて、RPE8前後で現在地を確認。"
     };
   }
   if (programMethod === "platform" && [10, 12].includes(Number(length)) && week === 4) {
     return {
       name: "ブリッジ週",
-      note: "この週は強化期ではなく、現在地チェックへつなぐブリッジ週です。フォーム再現性とRPE感覚を保ちながら、少しだけ競技重量へ近づけます。疲労を溜めすぎず、W5の現在地チェックに備えましょう。"
+      note: "W5へつなぐ週。重さより疲労を残さない。"
     };
   }
   if (programMethod === "platform" && week === length) {
     return {
       name: "大会想定MAXチェック",
-      note: "通常練習ではなく、SQ→BP→DLを1日にまとめて試技形式で確認する週。第一・第二は成功率、第三だけMAX更新候補。"
+      note: "SQ→BP→DLを試技形式で確認。第三だけ挑戦。"
     };
   }
   const ratio = week / length;
   if (ratio <= 0.34) {
     return {
       name: "蓄積期",
-      note: "フォーム再現性と練習量を積みながら、提案重量を自分のRPE感覚へ合わせる週。"
+      note: "フォームとRPE感覚を作る週。"
     };
   }
   if (ratio <= 0.67) {
     return {
       name: "強化期",
-      note: "高重量へ移行する週。トップセットで強さを確認し、バックオフで必要な反復を確保する。"
+      note: "重さへ移行。トップで確認、バックオフで積む。"
     };
   }
   if (week < length) {
     return {
       name: "ピーキング期",
-      note: "1RMに近い重量へ慣らす週。ボリュームを落とし、重さの精度と成功率を上げる。"
+      note: "量を落として、重さの精度を上げる。"
     };
   }
   return { name: "大会想定MAXチェック", note: "SQ→BP→DLの順で確認する週。" };
@@ -4813,19 +4813,19 @@ function rebuild16Phase(week) {
   if (week <= 4) {
     return {
       name: "Lv1 Reset 蓄積期",
-      note: "大会後や高疲労時に、フォーム再現性・RPE感覚・練習量を戻す週。高重量を急いで狙わない。"
+      note: "フォームとRPE感覚を戻す週。"
     };
   }
   if (week === 5) {
     return {
       name: "Reset 現在地チェック",
-      note: "限界MAXではなく、次のLv2に入るための現在地を確認する週。"
+      note: "Lv2へ入る前の現在地確認。"
     };
   }
   if (week === 6) {
     return {
       name: "移行週",
-      note: "鍛える週ではなく、W5の結果を整理し、疲労を抜き、Lv2用Training Maxを決める準備週。"
+      note: "疲労を抜き、Lv2用TMを決める週。"
     };
   }
   const lv2Week = week - 6;
@@ -5520,13 +5520,13 @@ function rebuildTransitionTemplate(cycle) {
       title: "移行週 Day2 軽い引きと補助",
       items: [
         methodItem("deadlift", "デッドリフト", `${max("deadlift", 0.55)} x 3 x 2 @6`, "引き切りと下ろし方だけ確認。重さを足さない。"),
-        { kind: "accessory", name: "軽い背中・体幹補助", work: "通常の半分 / RPE6以下", note: "パンプ狙いで追い込まない。疲労を抜いてLv2へ入る。" }
+        { kind: "accessory", name: "軽い背中・体幹補助", work: "通常の半分 / RPE6以下", note: "追い込まず、疲労を抜く。" }
       ]
     },
     {
       title: "移行週 Day3 Lv2準備",
       items: [
-        { kind: "accessory", name: "Training Max確認", work: "W5のRPEとフォーム動画を確認", note: "W5が@9近い場合、Lv2開始は-2.5〜5kg控えめに入る。" },
+        { kind: "accessory", name: "Training Max確認", work: "W5のRPEとフォーム動画を確認", note: "@9ならLv2は控えめに。" },
         { kind: "accessory", name: "完全休養または散歩", work: "20分まで", note: "次週からLv2 10週。疲労を持ち越さない。" }
       ]
     }
@@ -5645,7 +5645,7 @@ function currentCheckTemplate(cycle) {
     {
       title: "休養ブロック",
       items: [
-        { kind: "accessory", name: "3日間の休養", work: "完全休養 or 散歩・ストレッチ", note: "蓄積期の疲労を抜いてから現在地チェックへ。筋トレは足さない。" }
+        { kind: "accessory", name: "3日間の休養", work: "完全休養 or 散歩・ストレッチ", note: "筋トレは足さず、疲労を抜く。" }
       ]
     },
     {
@@ -5672,13 +5672,13 @@ function currentCheckWork(lift, cycle) {
 
 function currentCheckNote(cycle) {
   if (cycle.buddyLevel === "level2") {
-    if (cycle.experienceLevel === "advanced") return "Lv2現在地チェック。限界1RMではなく、重めシングルで高重量慣れと試技精度を確認。@8前後が基準、@9まで上がった場合は後半を攻めすぎない。";
-    if (cycle.experienceLevel === "intermediate") return "Lv2現在地チェック。シングル@8前後を基準に蓄積期の成果と高重量への再導入を確認。@9近くなら後半ブロックは控えめに入る。";
-    return "Lv2選択中でも初心者は3〜5回@8で確認。5回やり切るより、RPE8で止めることを優先。重すぎる場合はLv1への変更も検討。";
+    if (cycle.experienceLevel === "advanced") return "重めシングル@8前後。@9なら後半は控えめ。";
+    if (cycle.experienceLevel === "intermediate") return "シングル@8前後。@9なら後半は控えめ。";
+    return "3〜5回@8で確認。重すぎたらLv1も候補。";
   }
-  if (cycle.experienceLevel === "advanced") return "限界1RMではなく、試技形式に近い重めシングルで再現性を確認。@8前後が基準、@9なら後半は控えめに入る。";
-  if (cycle.experienceLevel === "intermediate") return "重めシングルで1RM付近への慣れを確認。@8前後を基準にし、RPEが高すぎる場合は後半を控えめに調整。";
-  return "初心者は1RMではなく3〜5回@8で確認。5回やり切ることより、RPE8で止めることとフォーム再現性を優先。";
+  if (cycle.experienceLevel === "advanced") return "重めシングル@8前後。@9なら後半は控えめ。";
+  if (cycle.experienceLevel === "intermediate") return "重めシングル@8前後。高すぎたら控えめに。";
+  return "3〜5回@8で確認。やり切りよりRPE優先。";
 }
 
 function finalMeetTemplate(cycle) {
@@ -5691,7 +5691,7 @@ function finalMeetTemplate(cycle) {
     {
       title: "Day2 休養",
       items: [
-        { kind: "accessory", name: "完全休養", work: "休む", note: "追加練習はしない。睡眠、食事、当日の準備を優先。" }
+        { kind: "accessory", name: "完全休養", work: "休む", note: "追加練習なし。準備を優先。" }
       ]
     },
     {
@@ -6541,19 +6541,19 @@ function renderStartGuide() {
       title: "自由記録へ進む",
       view: "log",
       button: "LOGを開く",
-      note: "プラン外の練習や補助種目を残します。"
+      note: "自由トレを残そう。"
     },
     plan: {
       title: "PRサイクルを作る",
       view: "plan",
       button: "PLANを開く",
-      note: "現在1RMと目標から、MAX更新までの計画を作ります。"
+      note: "MAX更新までの計画へ。"
     },
     meet: {
       title: "大会準備へ進む",
       view: "knowledge",
       button: "MEETを開く",
-      note: "白判定、公式ルール、持ち物、大会ノートを確認します。"
+      note: "白判定と持ち物を確認。"
     }
   };
   const active = guides[state.startAction] || guides.plan;
