@@ -1,11 +1,22 @@
---- v123/index.html
-+++ v124/index.html
-@@ -12,7 +12,7 @@
+--- v124/index.html
++++ v125/index.html
+@@ -3,16 +3,16 @@
+   <head>
+     <meta charset="utf-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+-    <meta name="theme-color" content="#15171a">
++    <meta name="theme-color" content="#f4efe6">
+     <meta name="apple-mobile-web-app-capable" content="yes">
+     <meta name="apple-mobile-web-app-title" content="Platform Buddy">
+-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
++    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+     <title>Platform Buddy</title>
+     <link rel="manifest" href="manifest.webmanifest">
      <link rel="preload" as="image" href="home-bg-lite.jpg">
      <link rel="preload" as="image" href="icon-sheet-lite.jpg">
      <link rel="apple-touch-icon" href="apple-touch-icon.png">
--    <link rel="stylesheet" href="styles.css?v=123">
-+    <link rel="stylesheet" href="styles.css?v=124">
+-    <link rel="stylesheet" href="styles.css?v=124">
++    <link rel="stylesheet" href="styles.css?v=125">
    </head>
    <body>
      <div class="app-shell">
@@ -13,499 +24,2338 @@
        </form>
      </dialog>
  
--    <script src="app.js?v=123"></script>
-+    <script src="app.js?v=124"></script>
+-    <script src="app.js?v=124"></script>
++    <script src="app.js?v=125"></script>
    </body>
  </html>
---- v123/styles.css
-+++ v124/styles.css
-@@ -12509,3 +12509,459 @@
-       linear-gradient(180deg, rgba(247, 242, 232, 0.98), rgba(244, 239, 230, 0.98)) !important;
+--- v124/styles.css
++++ v125/styles.css
+@@ -1,16 +1,24 @@
+-:root {
+-  --bg: #f5f1e8;
+-  --surface: #fffdf8;
+-  --ink: #15171a;
++﻿:root {
++  --bg: #f4efe6;
++  --surface: #fffaf2;
++  --surface-soft: #fff7ed;
++  --surface-plain: #ffffff;
++  --ink: #171717;
++  --text-main: #171717;
++  --text-sub: #526179;
++  --text-muted: #667085;
+   --muted: #667085;
+   --line: #ded6c8;
++  --line-strong: #cbbda8;
+   --accent: #b42318;
+   --accent-dark: #7a271a;
+-  --blue: #155eef;
++  --button-dark: #22272e;
++  --button-dark-text: #ffffff;
++  --blue: #2563eb;
+   --green: #157f3b;
+   --coach: #2f6f73;
+-  --paper: #fbf7ef;
+-  --shadow: 0 14px 30px rgba(51, 42, 29, 0.08);
++  --paper: #fff7ed;
++  --shadow: 0 12px 26px rgba(51, 42, 29, 0.08);
+   --asset-home: url("home-bg-lite.jpg");
+   --asset-plan: url("plan-bg-lite.jpg");
+   --asset-meet: url("meet-bg-lite.jpg");
+@@ -69,9 +77,9 @@
+ 
+ body.home-mode {
+   background:
+-    radial-gradient(circle at 20% 0, rgba(180, 35, 24, 0.25), transparent 32%),
+-    radial-gradient(circle at 82% 8%, rgba(47, 111, 115, 0.18), transparent 28%),
+-    linear-gradient(180deg, #090c10 0, #15171a 28%, #f1eadf 28%, #f5f1e8 100%);
++    radial-gradient(circle at 20% 0, rgba(180, 35, 24, 0.12), transparent 34%),
++    radial-gradient(circle at 82% 8%, rgba(47, 111, 115, 0.08), transparent 28%),
++    linear-gradient(180deg, #f7f2e8 0, #f4efe6 48%, #efe7dc 100%);
+   background-attachment: fixed;
+ }
+ 
+@@ -110,7 +118,7 @@
+   border-top: 5px solid var(--accent);
+   border-radius: 6px;
+   background: var(--ink);
+-  color: #fff;
++  color: #171717;
+   padding: 16px;
+   box-shadow: var(--shadow);
+ }
+@@ -163,7 +171,7 @@
+   border: 1px solid rgba(255, 255, 255, 0.22);
+   border-radius: 999px;
+   background: rgba(255, 255, 255, 0.08);
+-  color: #ffffff;
++  color: #171717;
+   padding: 4px 8px;
+   font-size: 0.68rem;
+   font-weight: 900;
+@@ -305,7 +313,7 @@
+ .icon-button {
+   width: 44px;
+   background: var(--ink);
+-  color: #fff;
++  color: #171717;
+   font-size: 1.3rem;
+ }
+ 
+@@ -347,7 +355,7 @@
+ .primary-button {
+   width: 100%;
+   background: var(--accent);
+-  color: #fff;
++  color: #171717;
+   padding: 0 16px;
+ }
+ 
+@@ -403,7 +411,7 @@
+   min-width: 92px;
+   min-height: 34px;
+   background: var(--ink);
+-  color: #fff;
++  color: #171717;
+   font-size: 0.76rem;
+   font-weight: 900;
+   white-space: nowrap;
+@@ -664,7 +672,7 @@
+ .wellness-options button.active {
+   border-color: var(--accent);
+   background: var(--ink);
+-  color: #fff;
++  color: #171717;
+ }
+ 
+ .wellness-result {
+@@ -782,7 +790,7 @@
+   width: fit-content;
+   border-radius: 999px;
+   background: var(--ink);
+-  color: #fff;
++  color: #171717;
+   padding: 4px 8px;
+   font-size: 0.7rem;
+   font-weight: 900;
+@@ -912,7 +920,7 @@
+ .association-guide a:focus-visible,
+ .association-guide a:hover {
+   background: var(--ink);
+-  color: #fff;
++  color: #171717;
+ }
+ 
+ .meet-prep-announcement {
+@@ -984,7 +992,7 @@
+ .athlete-chip.active {
+   background: var(--ink);
+   border-color: var(--ink);
+-  color: #fff;
++  color: #171717;
+ }
+ 
+ .athlete-dashboard {
+@@ -1248,7 +1256,7 @@
+ 
+ .tab.active {
+   background: var(--ink);
+-  color: #fff;
++  color: #171717;
+   box-shadow: inset 0 -3px 0 var(--accent);
+ }
+ 
+@@ -1300,7 +1308,7 @@
+     radial-gradient(circle at 84% 34%, rgba(180, 35, 24, 0.46), transparent 30%),
+     linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0 1px, transparent 1px 100%),
+     var(--ink);
+-  color: #fff;
++  color: #171717;
+   padding: 24px;
+ }
+ 
+@@ -1338,7 +1346,7 @@
+ 
+ .home-hero-card h2 {
+   margin: 8px 0 8px;
+-  color: #fff;
++  color: #171717;
+   max-width: 620px;
+   font-size: clamp(2rem, 5vw, 3.4rem);
+   line-height: 1.1;
+@@ -1383,7 +1391,7 @@
+   border-radius: 999px;
+   min-height: 42px;
+   background: rgba(255, 255, 255, 0.1);
+-  color: #fff;
++  color: #171717;
+   padding: 0 14px;
+   font-weight: 900;
+   white-space: nowrap;
+@@ -1458,7 +1466,7 @@
+   width: 42px;
+   height: 42px;
+   border-radius: 13px;
+-  color: #fff;
++  color: #171717;
+   background-image: var(--asset-icons);
+   background-repeat: no-repeat;
+   background-size: 300% 300%;
+@@ -1633,7 +1641,7 @@
+   flex: 0 0 auto;
+   border-radius: 999px;
+   background: var(--coach);
+-  color: #fff;
++  color: #171717;
+   padding: 5px 8px;
+   font-size: 0.72rem;
+   font-weight: 900;
+@@ -2317,7 +2325,7 @@
+ .rule-links a:focus-visible,
+ .rule-links a:hover {
+   background: var(--ink);
+-  color: #fff;
++  color: #171717;
+ }
+ 
+ .plan-card,
+@@ -2334,7 +2342,7 @@
+ }
+ 
+ .recommended-plan {
+-  border-color: #cbd5e1;
++  border-color: #526179;
+   border-left: 5px solid var(--accent);
+   background: linear-gradient(90deg, #fff9e8 0, #ffffff 42%);
+ }
+@@ -2372,7 +2380,7 @@
+   width: fit-content;
+   border-radius: 999px;
+   background: var(--accent);
+-  color: #fff;
++  color: #171717;
+   padding: 4px 8px;
+   font-size: 0.72rem;
+   font-weight: 900;
+@@ -2423,7 +2431,7 @@
+ 
+ .plan-day .exercise-list {
+   border-top: 1px solid var(--line);
+-  background: #f8fafc;
++  background: #ffffff;
+   padding: 10px;
+ }
+ 
+@@ -2508,7 +2516,7 @@
+   width: fit-content;
+   border-radius: 999px;
+   background: var(--accent);
+-  color: #fff;
++  color: #171717;
+   padding: 4px 8px;
+   font-size: 0.7rem;
+   font-weight: 900;
+@@ -2798,7 +2806,7 @@
+   display: grid;
+   gap: 8px;
+   border-top: 1px solid var(--line);
+-  background: #f8fafc;
++  background: #ffffff;
+   padding: 10px;
+ }
+ 
+@@ -2930,7 +2938,7 @@
+   background:
+     linear-gradient(145deg, rgba(21, 23, 26, 0.96), rgba(33, 38, 45, 0.94)),
+     var(--ink);
+-  color: #fff;
++  color: #171717;
+   padding: 14px;
+ }
+ 
+@@ -3035,7 +3043,7 @@
+   min-height: 38px;
+   border-radius: 999px;
+   background: var(--ink);
+-  color: #fff;
++  color: #171717;
+   font-size: 0.8rem;
+ }
+ 
+@@ -3248,8 +3256,8 @@
+ .quiz-badge {
+   width: fit-content;
+   border-radius: 999px;
+-  background: #15171a;
+-  color: #fff;
++  background: var(--button-dark);
++  color: var(--button-dark-text);
+   padding: 4px 8px;
+   font-size: 0.72rem;
+   font-weight: 900;
+@@ -3305,7 +3313,7 @@
+ 
+ .quiz-choice.correct span {
+   background: var(--green);
+-  color: #fff;
++  color: #171717;
+ }
+ 
+ .quiz-choice.wrong {
+@@ -3315,7 +3323,7 @@
+ 
+ .quiz-choice.wrong span {
+   background: var(--accent);
+-  color: #fff;
++  color: #171717;
+ }
+ 
+ .quiz-feedback {
+@@ -3359,7 +3367,7 @@
+   width: fit-content;
+   border-radius: 999px;
+   background: var(--accent);
+-  color: #fff;
++  color: #171717;
+   padding: 5px 10px;
+   font-weight: 900;
+ }
+@@ -3372,7 +3380,7 @@
+   body.home-mode {
+     background:
+       radial-gradient(circle at 18% 0, rgba(180, 35, 24, 0.32), transparent 34%),
+-      linear-gradient(180deg, #090c10 0, #15171a 34%, #f1eadf 34%, #f5f1e8 100%);
++      linear-gradient(180deg, #f7f2e8 0, #f4efe6 48%, #efe7dc 100%);
+     background-attachment: fixed;
+   }
+ 
+@@ -4113,18 +4121,18 @@
+ 
+   .tabbar .tab.active {
+     background: rgba(180, 35, 24, 0.22);
+-    color: #fff;
++    color: #171717;
+     box-shadow: inset 0 -3px 0 var(--accent);
    }
  }
-+
-+/* v124: final light-theme contrast pass for remaining dark/pale components */
-+html body .tabbar {
-+  background: rgba(255, 250, 242, 0.96) !important;
-+  border-color: #ded6c8 !important;
-+  box-shadow: 0 10px 24px rgba(51, 42, 29, 0.08) !important;
-+}
-+
-+html body .tabbar .tab:not(.active),
-+html body .tab:not(.active) {
-+  background: transparent !important;
-+  color: #526179 !important;
-+  opacity: 1 !important;
-+  text-shadow: none !important;
-+}
-+
-+html body .tabbar .tab.active,
-+html body .tab.active {
-+  background: #22272e !important;
-+  border-color: #b42318 !important;
-+  color: #ffffff !important;
-+  opacity: 1 !important;
-+}
-+
-+html body .tabbar .tab.active * {
-+  color: #ffffff !important;
-+}
-+
-+html body #homeView .dashboard-head,
-+html body #homeView .dashboard-head-compact,
-+html body #homeView .home-athlete-dashboard .dashboard-head,
-+html body #homeView .home-athlete-dashboard .dashboard-head-compact,
-+html body #homeView .athlete-dashboard .dashboard-head,
-+html body #homeView .athlete-dashboard .dashboard-head-compact {
+ 
+ @media (max-width: 640px) {
+   body {
+-    color: #f8fafc;
++    color: #171717;
+     background:
+       radial-gradient(circle at 50% -90px, rgba(255, 255, 255, 0.11), transparent 42%),
+       radial-gradient(circle at 18% 10%, rgba(180, 35, 24, 0.26), transparent 28%),
+-      linear-gradient(180deg, #06090d 0, #0b1117 42%, #10161d 100%);
++      linear-gradient(180deg, #fffaf2 0, #0b1117 42%, #fff7ed 100%);
+     background-attachment: fixed;
+   }
+ 
+@@ -4143,8 +4151,8 @@
+     border: 0;
+     border-radius: 22px;
+     background:
+-      linear-gradient(145deg, rgba(13, 18, 24, 0.96), rgba(6, 9, 13, 0.98));
+-    color: #fff;
++      linear-gradient(145deg, rgba(13, 18, 24, 0.96), rgba(255, 250, 242, 0.98));
++    color: #171717;
+     box-shadow: 0 22px 60px rgba(0, 0, 0, 0.34);
+   }
+ 
+@@ -4154,7 +4162,7 @@
+   .section-title h3,
+   .plan-card h2,
+   .day-card h2 {
+-    color: #f8fafc;
++    color: #171717;
+   }
+ 
+   .section-title h2,
+@@ -4198,7 +4206,7 @@
+     border-color: rgba(255, 255, 255, 0.13);
+     background:
+       linear-gradient(145deg, rgba(18, 25, 32, 0.96), rgba(7, 11, 16, 0.96));
+-    color: #f8fafc;
++    color: #171717;
+     box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
+   }
+ 
+@@ -4224,7 +4232,7 @@
+   textarea {
+     border-color: rgba(255, 255, 255, 0.16);
+     background: rgba(255, 255, 255, 0.06);
+-    color: #f8fafc;
++    color: #171717;
+   }
+ 
+   input::placeholder,
+@@ -4245,12 +4253,12 @@
+   .collapse-toggle,
+   .actual-set-add {
+     background: rgba(255, 255, 255, 0.08);
+-    color: #f8fafc;
++    color: #171717;
+   }
+ 
+   .primary-button {
+     background: #ef4444;
+-    color: #fff;
++    color: #171717;
+   }
+ 
+   .segmented {
+@@ -4259,7 +4267,7 @@
+ 
+   .segment.active {
+     background: rgba(239, 68, 68, 0.26);
+-    color: #fff;
++    color: #171717;
+   }
+ 
+   .home-mode .topbar {
+@@ -4274,9 +4282,9 @@
+     min-height: 254px;
+     border: 1px solid rgba(255, 255, 255, 0.14);
+     background:
+-      linear-gradient(90deg, rgba(6, 9, 13, 0.9), rgba(6, 9, 13, 0.48)),
++      linear-gradient(90deg, rgba(255, 250, 242, 0.9), rgba(255, 250, 242, 0.48)),
+       radial-gradient(circle at 84% 18%, rgba(255, 255, 255, 0.14), transparent 28%),
+-      linear-gradient(145deg, #10161d, #06090d);
++      linear-gradient(145deg, #fff7ed, #fffaf2);
+     box-shadow: 0 26px 64px rgba(0, 0, 0, 0.38);
+   }
+ 
+@@ -4285,7 +4293,7 @@
+     position: absolute;
+     top: 18px;
+     left: 18px;
+-    color: #f8fafc;
++    color: #171717;
+     font-size: 0.88rem;
+     font-weight: 1000;
+     letter-spacing: 0;
+@@ -4293,7 +4301,7 @@
+ 
+   .home-hero-card h2 {
+     margin-top: 46px;
+-    color: #fff;
++    color: #171717;
+     font-size: 2rem;
+   }
+ 
+@@ -4312,15 +4320,15 @@
+     border: 1px solid rgba(255, 255, 255, 0.12);
+     border-left-width: 0;
+     background:
+-      linear-gradient(145deg, rgba(19, 26, 34, 0.98), rgba(8, 12, 17, 0.98));
+-    color: #f8fafc;
++      linear-gradient(145deg, rgba(255, 247, 237, 0.98), rgba(255, 250, 242, 0.98));
++    color: #171717;
+     box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28);
+   }
+ 
+   .home-card strong,
+   .home-card .home-metric,
+   .home-shortcut-grid strong {
+-    color: #f8fafc;
++    color: #171717;
+   }
+ 
+   .home-card p {
+@@ -4342,8 +4350,8 @@
+ 
+   .home-shortcut-grid button {
+     border-color: rgba(255, 255, 255, 0.12);
+-    background: linear-gradient(145deg, rgba(22, 29, 37, 0.96), rgba(8, 12, 17, 0.96));
+-    color: #f8fafc;
++    background: linear-gradient(145deg, rgba(22, 29, 37, 0.96), rgba(255, 250, 242, 0.96));
++    color: #171717;
+     text-align: center;
+   }
+ 
+@@ -4361,7 +4369,7 @@
+   .dashboard-card strong,
+   .weekly-data-card strong,
+   .data-status strong {
+-    color: #f8fafc;
++    color: #171717;
+   }
+ 
+   .dashboard-card.goal strong,
+@@ -4381,7 +4389,7 @@
+   }
+ 
+   .day-summary {
+-    color: #f8fafc;
++    color: #171717;
+   }
+ 
+   .plan-day .exercise-list {
+@@ -4392,11 +4400,11 @@
+   .exercise-row {
+     border-color: rgba(255, 255, 255, 0.13);
+     background: rgba(255, 255, 255, 0.06);
+-    color: #f8fafc;
++    color: #171717;
+   }
+ 
+   .exercise-row span {
+-    color: #f8fafc;
++    color: #171717;
+   }
+ 
+   .plan-prescription-block {
+@@ -4431,23 +4439,23 @@
+ 
+   .actual-set-row,
+   .set-row {
+-    color: #f8fafc;
++    color: #171717;
+   }
+ 
+   .meet-prep-announcement {
+     border: 1px solid rgba(255, 255, 255, 0.12);
+     border-radius: 22px;
+     background:
+-      linear-gradient(90deg, rgba(6, 9, 13, 0.98), rgba(6, 9, 13, 0.52)),
++      linear-gradient(90deg, rgba(255, 250, 242, 0.98), rgba(255, 250, 242, 0.52)),
+       radial-gradient(circle at 82% 22%, rgba(180, 35, 24, 0.34), transparent 32%),
+       #0b1117;
+-    color: #fff;
++    color: #171717;
+     min-height: 174px;
+     align-content: end;
+   }
+ 
+   .meet-prep-announcement strong {
+-    color: #fff;
++    color: #171717;
+     font-size: 2.9rem;
+     line-height: 1;
+   }
+@@ -4456,7 +4464,7 @@
+     width: fit-content;
+     border-radius: 999px;
+     background: #ef4444;
+-    color: #fff;
++    color: #171717;
+     padding: 4px 9px;
+   }
+ 
+@@ -4491,7 +4499,7 @@
+ 
+   .meet-shortcut strong,
+   .meet-shortcut small {
+-    color: #f8fafc;
++    color: #171717;
+   }
+ 
+   .history-day summary,
+@@ -4502,7 +4510,7 @@
+   .wellness-check-card {
+     border-color: rgba(255, 255, 255, 0.13);
+     background: linear-gradient(145deg, rgba(18, 25, 32, 0.98), rgba(7, 11, 16, 0.98));
+-    color: #f8fafc;
++    color: #171717;
+   }
+ 
+   .wellness-field {
+@@ -4513,20 +4521,20 @@
+   .wellness-options button {
+     border-color: rgba(255, 255, 255, 0.13);
+     background: rgba(255, 255, 255, 0.07);
+-    color: #f8fafc;
++    color: #171717;
+   }
+ 
+   .wellness-options button.active {
+     background: rgba(239, 68, 68, 0.25);
+-    color: #fff;
++    color: #171717;
+     box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.28);
+   }
+ 
+   .guide-mode-bar,
+   .wellness-floating {
+     border-color: rgba(255, 255, 255, 0.13);
+-    background: rgba(8, 12, 17, 0.9);
+-    color: #f8fafc;
++    background: rgba(255, 250, 242, 0.9);
++    color: #171717;
+     backdrop-filter: blur(14px);
+   }
+ 
+@@ -4536,7 +4544,7 @@
+     bottom: calc(10px + env(safe-area-inset-bottom));
+     border-radius: 22px;
+     background:
+-      linear-gradient(180deg, rgba(31, 38, 46, 0.96), rgba(8, 12, 17, 0.96));
++      linear-gradient(180deg, rgba(31, 38, 46, 0.96), rgba(255, 250, 242, 0.96));
+     box-shadow: 0 18px 54px rgba(0, 0, 0, 0.42);
+   }
+ 
+@@ -4572,7 +4580,7 @@
+   }
+ 
+   .guide-mode-bar span {
+-    color: #f8fafc;
++    color: #171717;
+     font-size: 0.66rem;
+     line-height: 1.1;
+   }
+@@ -4582,14 +4590,14 @@
+     min-height: 30px;
+     border-color: rgba(239, 68, 68, 0.36);
+     background: rgba(239, 68, 68, 0.22);
+-    color: #fff;
++    color: #171717;
+     font-size: 0.66rem;
+   }
+ 
+   .guide-mode-toggle[aria-pressed="false"] {
+     border-color: rgba(255, 255, 255, 0.14);
+     background: rgba(255, 255, 255, 0.08);
+-    color: #cbd5e1;
++    color: #526179;
+   }
+ 
+   .wellness-floating {
+@@ -4614,7 +4622,7 @@
+   }
+ 
+   .wellness-floating strong {
+-    color: #f8fafc;
++    color: #171717;
+     font-size: 0.82rem;
+   }
+ 
+@@ -4649,23 +4657,23 @@
+   }
+ 
+   .tabbar .tab[data-view="home"]::before {
+-    content: "⌂";
++    content: "竚・;
+   }
+ 
+   .tabbar .tab[data-view="plan"]::before {
+-    content: "▣";
++    content: "笆｣";
+   }
+ 
+   .tabbar .tab[data-view="log"]::before {
+-    content: "▮";
++    content: "笆ｮ";
+   }
+ 
+   .tabbar .tab[data-view="analysis"]::before {
+-    content: "♛";
++    content: "笙・;
+   }
+ 
+   .tabbar .tab[data-view="knowledge"]::before {
+-    content: "●";
++    content: "笳・;
+   }
+ 
+   .actual-box {
+@@ -4683,10 +4691,10 @@
+ 
+ .home-hero-card {
+   background:
+-    linear-gradient(90deg, rgba(6, 9, 13, 0.92), rgba(6, 9, 13, 0.52)),
++    linear-gradient(90deg, rgba(255, 250, 242, 0.92), rgba(255, 250, 242, 0.52)),
+     radial-gradient(circle at 82% 18%, rgba(255, 255, 255, 0.12), transparent 30%),
+     var(--asset-home) 62% center / cover no-repeat,
+-    linear-gradient(145deg, #10161d, #06090d);
++    linear-gradient(145deg, #fff7ed, #fffaf2);
+ }
+ 
+ #planView::before {
+@@ -4697,9 +4705,9 @@
+   border: 1px solid rgba(255, 255, 255, 0.13);
+   border-radius: 22px;
+   background:
+-    linear-gradient(90deg, rgba(6, 9, 13, 0.9), rgba(6, 9, 13, 0.5)),
++    linear-gradient(90deg, rgba(255, 250, 242, 0.9), rgba(255, 250, 242, 0.5)),
+     var(--asset-plan) center / cover no-repeat;
+-  color: #fff;
++  color: #171717;
+   padding: 16px;
+   font-size: 1.8rem;
+   font-style: italic;
+@@ -4709,11 +4717,11 @@
+ 
+ .meet-prep-announcement {
+   background:
+-    linear-gradient(90deg, rgba(6, 9, 13, 0.96), rgba(6, 9, 13, 0.52)),
++    linear-gradient(90deg, rgba(255, 250, 242, 0.96), rgba(255, 250, 242, 0.52)),
+     radial-gradient(circle at 82% 22%, rgba(180, 35, 24, 0.28), transparent 32%),
+     var(--asset-meet-prep) center / cover no-repeat,
+     #0b1117;
+-  color: #fff;
++  color: #171717;
+ }
+ 
+ .home-card.buddy,
+@@ -4778,10 +4786,10 @@
+ @media (max-width: 640px) {
+   .home-hero-card {
+     background:
+-      linear-gradient(90deg, rgba(6, 9, 13, 0.92), rgba(6, 9, 13, 0.54)),
++      linear-gradient(90deg, rgba(255, 250, 242, 0.92), rgba(255, 250, 242, 0.54)),
+       radial-gradient(circle at 82% 18%, rgba(255, 255, 255, 0.12), transparent 30%),
+       var(--asset-home) 62% center / cover no-repeat,
+-      linear-gradient(145deg, #10161d, #06090d);
++      linear-gradient(145deg, #fff7ed, #fffaf2);
+   }
+ 
+   .home-hero-visual {
+@@ -4825,9 +4833,9 @@
+     border: 1px solid rgba(255, 255, 255, 0.13);
+     border-radius: 22px;
+     background:
+-      linear-gradient(90deg, rgba(6, 9, 13, 0.9), rgba(6, 9, 13, 0.5)),
++      linear-gradient(90deg, rgba(255, 250, 242, 0.9), rgba(255, 250, 242, 0.5)),
+       var(--asset-plan) center / cover no-repeat;
+-    color: #fff;
++    color: #171717;
+     padding: 16px;
+     font-size: 1.8rem;
+     font-style: italic;
+@@ -4860,7 +4868,7 @@
+ 
+   .meet-prep-announcement {
+     background:
+-      linear-gradient(90deg, rgba(6, 9, 13, 0.98), rgba(6, 9, 13, 0.54)),
++      linear-gradient(90deg, rgba(255, 250, 242, 0.98), rgba(255, 250, 242, 0.54)),
+       radial-gradient(circle at 82% 22%, rgba(180, 35, 24, 0.28), transparent 32%),
+       var(--asset-meet) center / cover no-repeat,
+       #0b1117;
+@@ -4869,10 +4877,10 @@
+ 
+ /* v91: darker app-style polish and mobile readability fixes */
+ :root {
+-  --bg: #06090d;
++  --bg: #fffaf2;
+   --surface: rgba(14, 20, 27, 0.94);
+   --paper: rgba(18, 25, 32, 0.94);
+-  --ink: #f8fafc;
++  --ink: #171717;
+   --muted: #aeb8c6;
+   --line: rgba(255, 255, 255, 0.13);
+   --accent: #ef4444;
+@@ -4942,7 +4950,7 @@
+   border-color: rgba(255, 255, 255, 0.13);
+   background:
+     linear-gradient(145deg, rgba(18, 25, 32, 0.96), rgba(7, 11, 16, 0.96));
+-  color: #f8fafc;
++  color: #171717;
+   box-shadow: var(--shadow);
+ }
+ 
+@@ -4962,7 +4970,7 @@
+ .metric-grid strong,
+ .knowledge-card strong,
+ .quiz-result strong {
+-  color: #f8fafc;
++  color: #171717;
+   text-decoration: none;
+ }
+ 
+@@ -4997,7 +5005,7 @@
+ }
+ 
+ label {
+-  color: #cbd5e1;
++  color: #526179;
+ }
+ 
+ input,
+@@ -5006,13 +5014,13 @@
+   border-color: rgba(255, 255, 255, 0.16);
+   border-bottom-color: rgba(255, 255, 255, 0.24);
+   background: rgba(255, 255, 255, 0.07);
+-  color: #f8fafc;
++  color: #171717;
+   min-width: 0;
+ }
+ 
+ select option {
+   background: #0b1117;
+-  color: #f8fafc;
++  color: #171717;
+ }
+ 
+ input::placeholder,
+@@ -5032,12 +5040,12 @@
+ .actual-set-add {
+   border-color: rgba(255, 255, 255, 0.16);
+   background: rgba(255, 255, 255, 0.08);
+-  color: #f8fafc;
++  color: #171717;
+ }
+ 
+ .primary-button {
+   background: #ef4444;
+-  color: #fff;
++  color: #171717;
+ }
+ 
+ .onboarding-screen {
+@@ -5052,7 +5060,7 @@
+   border-left-color: #ef4444;
+   background:
+     linear-gradient(145deg, rgba(18, 25, 32, 0.98), rgba(7, 11, 16, 0.98));
+-  color: #f8fafc;
++  color: #171717;
+   box-shadow: 0 28px 90px rgba(0, 0, 0, 0.58);
+ }
+ 
+@@ -5062,7 +5070,7 @@
+ .onboarding-value,
+ .wellness-check-head strong,
+ .wellness-result strong {
+-  color: #f8fafc !important;
 +  color: #171717 !important;
-+  text-shadow: none !important;
-+}
-+
-+html body #homeView .dashboard-head :is(h1, h2, h3, h4, strong, b, label),
-+html body #homeView .dashboard-head-compact :is(h1, h2, h3, h4, strong, b, label),
-+html body #homeView .home-athlete-dashboard .section-title :is(h1, h2, h3, h4, strong, b, label),
-+html body #homeView .athlete-dashboard .section-title :is(h1, h2, h3, h4, strong, b, label) {
+ }
+ 
+ .onboarding-value {
+@@ -5085,14 +5093,14 @@
+ .actual-set-row {
+   border-color: rgba(255, 255, 255, 0.13);
+   background: rgba(255, 255, 255, 0.055);
+-  color: #f8fafc;
++  color: #171717;
+ }
+ 
+ .onboarding-goals button strong,
+ .daily-entry-grid button strong,
+ .exercise-row strong,
+ .history-day summary strong {
+-  color: #f8fafc;
++  color: #171717;
+ }
+ 
+ .onboarding-goals span,
+@@ -5105,13 +5113,13 @@
+ .wellness-options button {
+   border-color: rgba(255, 255, 255, 0.14);
+   background: rgba(255, 255, 255, 0.08);
+-  color: #f8fafc;
++  color: #171717;
+ }
+ 
+ .wellness-options button.active {
+   border-color: rgba(239, 68, 68, 0.72);
+   background: rgba(239, 68, 68, 0.26);
+-  color: #fff;
++  color: #171717;
+ }
+ 
+ .home-hero-card {
+@@ -5119,21 +5127,21 @@
+     linear-gradient(90deg, rgba(3, 5, 7, 0.96), rgba(3, 5, 7, 0.6)),
+     radial-gradient(circle at 82% 18%, rgba(239, 68, 68, 0.28), transparent 30%),
+     var(--asset-home) 62% center / cover no-repeat,
+-    linear-gradient(145deg, #10161d, #06090d);
++    linear-gradient(145deg, #fff7ed, #fffaf2);
+ }
+ 
+ .home-card,
+ .home-shortcut-grid button {
+   border-color: rgba(255, 255, 255, 0.12);
+   background:
+-    linear-gradient(145deg, rgba(19, 26, 34, 0.98), rgba(8, 12, 17, 0.98));
+-  color: #f8fafc;
++    linear-gradient(145deg, rgba(255, 247, 237, 0.98), rgba(255, 250, 242, 0.98));
++  color: #171717;
+ }
+ 
+ .home-card strong,
+ .home-card .home-metric,
+ .home-shortcut-grid strong {
+-  color: #f8fafc;
++  color: #171717;
+ }
+ 
+ .home-card p {
+@@ -5146,7 +5154,7 @@
+ 
+ .tabbar {
+   background:
+-    linear-gradient(180deg, rgba(31, 38, 46, 0.96), rgba(8, 12, 17, 0.96));
++    linear-gradient(180deg, rgba(31, 38, 46, 0.96), rgba(255, 250, 242, 0.96));
+ }
+ 
+ .tab {
+@@ -5255,7 +5263,7 @@
+       linear-gradient(90deg, rgba(3, 5, 7, 0.96), rgba(3, 5, 7, 0.62)),
+       radial-gradient(circle at 82% 18%, rgba(239, 68, 68, 0.26), transparent 30%),
+       var(--asset-home) 60% center / cover no-repeat,
+-      linear-gradient(145deg, #10161d, #06090d);
++      linear-gradient(145deg, #fff7ed, #fffaf2);
+   }
+ 
+   .home-hero-card h2 {
+@@ -5303,7 +5311,7 @@
+ }
+ 
+ .daily-entry-head strong {
+-  color: #f8fafc;
++  color: #171717;
+   font-size: 0.98rem;
+   line-height: 1.35;
+ }
+@@ -5328,7 +5336,7 @@
+ }
+ 
+ .home-athlete-dashboard .dashboard-head strong {
+-  color: #f8fafc;
++  color: #171717;
+ }
+ 
+ .home-athlete-dashboard .dashboard-input-grid label {
+@@ -5360,7 +5368,7 @@
+ 
+ .home-athlete-dashboard .dashboard-card strong,
+ .home-athlete-dashboard .achievement-card strong {
+-  color: #f8fafc;
++  color: #171717;
+ }
+ 
+ .home-athlete-dashboard .dashboard-card p,
+@@ -5558,7 +5566,7 @@
+ 
+ .dashboard-profile-strip strong {
+   overflow: hidden;
+-  color: #f8fafc;
++  color: #171717;
+   font-size: 0.82rem;
+   line-height: 1.24;
+   text-overflow: ellipsis;
+@@ -5843,7 +5851,7 @@
+     linear-gradient(90deg, rgba(5, 8, 12, 0.96) 0%, rgba(5, 8, 12, 0.74) 48%, rgba(5, 8, 12, 0.42) 100%),
+     radial-gradient(circle at 82% 18%, rgba(239, 68, 68, 0.22), transparent 34%),
+     var(--asset-home) 62% center / cover no-repeat,
+-    #06090d;
++    #fffaf2;
+   box-shadow: 0 24px 54px rgba(0, 0, 0, 0.34);
+ }
+ 
+@@ -6043,7 +6051,7 @@
+   min-height: 118px;
+   border: 1px solid rgba(255, 255, 255, 0.14);
+   border-radius: 24px;
+-  color: #fff;
++  color: #171717;
+   padding: 16px;
+   font-size: 1.75rem;
+   font-style: italic;
+@@ -6057,7 +6065,7 @@
+   background:
+     linear-gradient(90deg, rgba(5, 8, 12, 0.94), rgba(5, 8, 12, 0.58)),
+     var(--asset-plan) center / cover no-repeat,
+-    #06090d;
++    #fffaf2;
+ }
+ 
+ #logView::before {
+@@ -6066,7 +6074,7 @@
+     linear-gradient(90deg, rgba(5, 8, 12, 0.96), rgba(5, 8, 12, 0.66)),
+     radial-gradient(circle at 88% 22%, rgba(96, 165, 250, 0.3), transparent 32%),
+     var(--asset-log) center / cover no-repeat,
+-    #06090d;
++    #fffaf2;
+ }
+ 
+ #analysisView::before {
+@@ -6076,7 +6084,7 @@
+     radial-gradient(circle at 86% 22%, rgba(167, 139, 250, 0.34), transparent 32%),
+     var(--asset-data) center / cover no-repeat,
+     repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.06) 0 1px, transparent 1px 26px),
+-    #06090d;
++    #fffaf2;
+ }
+ 
+ #knowledgeView::before {
+@@ -6084,7 +6092,7 @@
+   background:
+     linear-gradient(90deg, rgba(5, 8, 12, 0.96), rgba(5, 8, 12, 0.48)),
+     var(--asset-meet) center / cover no-repeat,
+-    #06090d;
++    #fffaf2;
+ }
+ 
+ @media (min-width: 641px) {
+@@ -6230,7 +6238,7 @@
+ :root {
+   --bg: #05070a;
+   --surface: rgba(12, 17, 23, 0.94);
+-  --ink: #f8fafc;
++  --ink: #171717;
+   --muted: #c7d0dc;
+   --line: rgba(255, 255, 255, 0.14);
+   --paper: rgba(12, 17, 23, 0.94);
+@@ -6238,7 +6246,7 @@
+   --glass: rgba(10, 15, 21, 0.86);
+   --glass-strong: rgba(8, 12, 18, 0.94);
+   --glass-soft: rgba(255, 255, 255, 0.07);
+-  --readable: #f8fafc;
++  --readable: #171717;
+   --readable-soft: #dbe4ef;
+ }
+ 
+@@ -6439,7 +6447,7 @@
+ .text-button.primary {
+   border-color: rgba(239, 68, 68, 0.74) !important;
+   background: linear-gradient(135deg, #ef4444, #b42318) !important;
+-  color: #fff !important;
 +  color: #171717 !important;
-+}
-+
-+html body #homeView .dashboard-head :is(p, small, span, em),
-+html body #homeView .dashboard-head-compact :is(p, small, span, em),
-+html body #homeView .home-athlete-dashboard .section-title :is(p, small, span, em),
-+html body #homeView .athlete-dashboard .section-title :is(p, small, span, em),
-+html body #homeView .home-check-card :is(p, small, span, em) {
+ }
+ 
+ .guide-mode-bar,
+@@ -6458,7 +6466,7 @@
+ 
+ .guide-mode-toggle {
+   background: linear-gradient(135deg, #ef4444, #b42318);
+-  color: #fff !important;
++  color: #171717 !important;
+   border-color: rgba(255, 255, 255, 0.18);
+ }
+ 
+@@ -6474,7 +6482,7 @@
+ }
+ 
+ .tabbar .tab {
+-  color: #cbd5e1 !important;
 +  color: #526179 !important;
-+}
-+
-+html body #homeView .dashboard-head .eyebrow,
-+html body #homeView .dashboard-head-compact .eyebrow,
-+html body #homeView .home-check-card .home-card-top span {
-+  color: #b42318 !important;
-+}
-+
-+html body #homeView .home-check-card .home-strategy-content > p,
-+html body #homeView .home-check-card .home-strategy-content > small,
-+html body #homeView .home-check-card .home-strategy-content .muted {
+ }
+ 
+ .tabbar .tab.active {
+@@ -6557,35 +6565,35 @@
+ #analysisView::before,
+ #knowledgeView::before {
+   border-color: rgba(255, 255, 255, 0.14);
+-  color: #fff;
++  color: #171717;
+ }
+ 
+ #planView::before {
+   background:
+     linear-gradient(90deg, rgba(5, 8, 12, 0.86), rgba(5, 8, 12, 0.38)),
+     var(--asset-plan) center / cover no-repeat,
+-    #06090d;
++    #fffaf2;
+ }
+ 
+ #logView::before {
+   background:
+     linear-gradient(90deg, rgba(5, 8, 12, 0.88), rgba(5, 8, 12, 0.44)),
+     var(--asset-log) center / cover no-repeat,
+-    #06090d;
++    #fffaf2;
+ }
+ 
+ #analysisView::before {
+   background:
+     linear-gradient(90deg, rgba(5, 8, 12, 0.88), rgba(5, 8, 12, 0.42)),
+     var(--asset-data) center / cover no-repeat,
+-    #06090d;
++    #fffaf2;
+ }
+ 
+ #knowledgeView::before {
+   background:
+     linear-gradient(90deg, rgba(5, 8, 12, 0.88), rgba(5, 8, 12, 0.34)),
+     var(--asset-meet) center / cover no-repeat,
+-    #06090d;
++    #fffaf2;
+ }
+ 
+ .quiz-panel {
+@@ -6746,7 +6754,7 @@
+   border-color: rgba(255, 255, 255, 0.15) !important;
+   background:
+     linear-gradient(145deg, rgba(15, 21, 29, 0.92), rgba(6, 10, 15, 0.86)) !important;
+-  color: #f8fafc !important;
++  color: #171717 !important;
+ }
+ 
+ .athlete-chip {
+@@ -6756,14 +6764,14 @@
+ .athlete-chip.active {
+   border-color: rgba(239, 68, 68, 0.72) !important;
+   background: linear-gradient(135deg, #ef4444, #b42318) !important;
+-  color: #fff !important;
++  color: #171717 !important;
+ }
+ 
+ .association-guide a,
+ .rule-links a {
+   border: 1px solid rgba(239, 68, 68, 0.34);
+   background: rgba(239, 68, 68, 0.16) !important;
+-  color: #fff !important;
++  color: #171717 !important;
+ }
+ 
+ .association-guide a:focus-visible,
+@@ -6771,7 +6779,7 @@
+ .rule-links a:focus-visible,
+ .rule-links a:hover {
+   background: linear-gradient(135deg, #ef4444, #b42318) !important;
+-  color: #fff !important;
++  color: #171717 !important;
+ }
+ 
+ .meet-prep-announcement,
+@@ -6782,7 +6790,7 @@
+   background:
+     linear-gradient(145deg, rgba(9, 13, 18, 0.88), rgba(7, 11, 16, 0.7)),
+     var(--asset-meet) center / cover no-repeat !important;
+-  color: #f8fafc !important;
++  color: #171717 !important;
+ }
+ 
+ .meet-prep-checklist {
+@@ -6834,7 +6842,7 @@
+ .achievement-card strong,
+ .achievement-card p,
+ .recovery-reasons span {
+-  color: #f8fafc !important;
++  color: #171717 !important;
+ }
+ 
+ .meet-review-card p,
+@@ -6884,7 +6892,7 @@
+ }
+ 
+ .meet-attempt-chip.pass {
+-  color: #cbd5e1 !important;
 +  color: #526179 !important;
+ }
+ 
+ .quiz-choice.correct,
+@@ -6904,7 +6912,7 @@
+ .quiz-category-card span,
+ .quiz-badge {
+   background: rgba(239, 68, 68, 0.88) !important;
+-  color: #fff !important;
++  color: #171717 !important;
+ }
+ 
+ .meet-shortcut small,
+@@ -6953,7 +6961,7 @@
+   border-color: rgba(255, 255, 255, 0.16) !important;
+   background:
+     linear-gradient(145deg, rgba(15, 21, 29, 0.95), rgba(6, 10, 15, 0.88)) !important;
+-  color: #f8fafc !important;
++  color: #171717 !important;
+ }
+ 
+ .cycle-setup-grid article {
+@@ -6977,7 +6985,7 @@
+ .rpe-confidence span,
+ .association-guide a,
+ .athlete-chip {
+-  color: #f8fafc !important;
++  color: #171717 !important;
+ }
+ 
+ .cycle-setup-grid p,
+@@ -7002,7 +7010,7 @@
+ .collapse-summary {
+   min-height: 40px;
+   border-radius: 10px;
+-  color: #f8fafc !important;
++  color: #171717 !important;
+ }
+ 
+ .cycle-advanced-details summary {
+@@ -7023,7 +7031,7 @@
+ }
+ 
+ .rpe-scale strong {
+-  color: #f8fafc !important;
++  color: #171717 !important;
+ }
+ 
+ .actual-box {
+@@ -7050,7 +7058,7 @@
+   gap: 7px;
+   padding: 7px 9px !important;
+   border-radius: 12px !important;
+-  color: #f8fafc !important;
++  color: #171717 !important;
+ }
+ 
+ .rpe-confidence select {
+@@ -7101,7 +7109,7 @@
+   padding: 8px 9px !important;
+   border-color: rgba(255, 255, 255, 0.14) !important;
+   background: rgba(10, 15, 22, 0.78) !important;
+-  color: #f8fafc !important;
++  color: #171717 !important;
+ }
+ 
+ .input-grid label span,
+@@ -7146,7 +7154,7 @@
+   border-color: rgba(255, 255, 255, 0.15) !important;
+   background:
+     linear-gradient(145deg, rgba(15, 21, 29, 0.94), rgba(6, 10, 15, 0.86)) !important;
+-  color: #f8fafc !important;
++  color: #171717 !important;
+ }
+ 
+ .weekly-verdict span,
+@@ -7162,7 +7170,7 @@
+ .projection-card p,
+ .recovery-alert-card,
+ .rpe-feedback {
+-  color: #f8fafc !important;
++  color: #171717 !important;
+ }
+ 
+ .weekly-verdict p,
+@@ -7298,7 +7306,7 @@
+   background:
+     linear-gradient(145deg, rgba(22, 31, 42, 0.94), rgba(8, 13, 19, 0.9)) !important;
+   border-color: rgba(255, 255, 255, 0.16) !important;
+-  color: #f8fafc !important;
++  color: #171717 !important;
+ }
+ 
+ .athlete-panel {
+@@ -7374,7 +7382,7 @@
+ .dashboard-status-row strong {
+   display: block;
+   margin-top: 5px;
+-  color: #f8fafc;
++  color: #171717;
+   font-size: clamp(1.25rem, 2.6vw, 2rem);
+   line-height: 1.05;
+ }
+@@ -7412,7 +7420,7 @@
+ .dashboard-input-grid select {
+   min-height: 36px !important;
+   background: rgba(2, 6, 12, 0.88) !important;
+-  color: #f8fafc !important;
++  color: #171717 !important;
+ }
+ 
+ .dashboard-association-guide {
+@@ -7429,7 +7437,7 @@
+   border-radius: 12px;
+   padding: 10px 12px;
+   background: rgba(239, 68, 68, 0.16);
+-  color: #fff !important;
++  color: #171717 !important;
+   font-weight: 900;
+   text-decoration: none;
+ }
+@@ -7455,7 +7463,7 @@
+ .home-strategy-card strong,
+ .home-strategy-card p,
+ .home-strategy-card small {
+-  color: #f8fafc !important;
++  color: #171717 !important;
+ }
+ 
+ .home-card .home-card-top span,
+@@ -7518,7 +7526,7 @@
+ .home-strategy-card small {
+   display: block;
+   margin-top: 5px;
+-  color: #cbd5e1 !important;
++  color: #526179 !important;
+   font-weight: 700;
+   line-height: 1.45;
+ }
+@@ -7533,7 +7541,7 @@
+   padding: 14px;
+   border-color: rgba(255, 255, 255, 0.16) !important;
+   background: linear-gradient(145deg, rgba(22, 31, 42, 0.95), rgba(9, 15, 22, 0.88)) !important;
+-  color: #f8fafc !important;
++  color: #171717 !important;
+ }
+ 
+ .home-action-grid span {
+@@ -7541,18 +7549,18 @@
+ }
+ 
+ .home-action-grid strong {
+-  color: #fff !important;
++  color: #171717 !important;
+   font-size: 1rem;
+ }
+ 
+ .tab.active {
+   background: linear-gradient(135deg, #ef4444, #b42318) !important;
+-  color: #ffffff !important;
++  color: #171717 !important;
+   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35);
+ }
+ 
+ .tab:not(.active) {
+-  color: #cbd5e1 !important;
++  color: #526179 !important;
+ }
+ 
+ .primary-button,
+@@ -7564,7 +7572,7 @@
+ .meet-shortcut span,
+ .start-card span,
+ .quiz-badge {
+-  color: #ffffff !important;
++  color: #171717 !important;
+   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.28);
+ }
+ 
+@@ -7572,16 +7580,16 @@
+ .phase-goal-card span,
+ .short-term-goal span,
+ .badge {
+-  color: #ffffff !important;
++  color: #171717 !important;
+ }
+ 
+ .brand-subtitle {
+-  color: #f8fafc !important;
++  color: #171717 !important;
+   max-width: 760px;
+ }
+ 
+ .brand-tags span {
+-  color: #f8fafc !important;
++  color: #171717 !important;
+ }
+ 
+ @media (min-width: 1100px) {
+@@ -7785,7 +7793,7 @@
+ }
+ 
+ .home-action-head strong {
+-  color: #fff;
++  color: #171717;
+   font-size: 1.05rem;
+ }
+ 
+@@ -7933,7 +7941,7 @@
+   background:
+     linear-gradient(145deg, rgba(13, 22, 31, 0.94), rgba(5, 9, 14, 0.9)),
+     var(--asset-plan) right center / cover no-repeat;
+-  color: #f8fafc;
++  color: #171717;
+   box-shadow: 0 20px 46px rgba(0, 0, 0, 0.35);
+   overflow: hidden;
+ }
+@@ -7952,7 +7960,7 @@
+   height: 48px;
+   border-radius: 16px;
+   background: linear-gradient(145deg, rgba(34, 197, 94, 0.8), rgba(21, 128, 61, 0.64));
+-  color: #ffffff;
++  color: #171717;
+   font-size: 1.45rem;
+   font-weight: 1000;
+   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+@@ -7973,7 +7981,7 @@
+ .plan-command-card span,
+ .plan-command-card strong,
+ .plan-command-card small {
+-  color: #f8fafc !important;
++  color: #171717 !important;
+ }
+ 
+ .plan-command-card h2 {
+@@ -7983,7 +7991,7 @@
+ 
+ .plan-command-card p {
+   margin: 0;
+-  color: #cbd5e1 !important;
++  color: #526179 !important;
+ }
+ 
+ .plan-command-grid {
+@@ -8052,12 +8060,12 @@
+ }
+ 
+ .plan-day .day-summary h2 {
+-  color: #ffffff !important;
++  color: #171717 !important;
+   font-size: clamp(1.05rem, 2.4vw, 1.45rem);
+ }
+ 
+ .plan-day .day-summary p {
+-  color: #cbd5e1 !important;
++  color: #526179 !important;
+ }
+ 
+ .exercise-row {
+@@ -8066,7 +8074,7 @@
+ }
+ 
+ .exercise-row > strong {
+-  color: #ffffff !important;
++  color: #171717 !important;
+ }
+ 
+ .exercise-row > span {
+@@ -8094,7 +8102,7 @@
+   border-radius: 16px !important;
+   background: linear-gradient(145deg, rgba(16, 24, 34, 0.98), rgba(5, 8, 12, 0.94)) !important;
+   border-color: rgba(255, 255, 255, 0.16) !important;
+-  color: #f8fafc !important;
++  color: #171717 !important;
+ }
+ 
+ .plan-prescription-block.topset {
+@@ -8114,7 +8122,7 @@
+ }
+ 
+ .plan-prescription-block strong {
+-  color: #ffffff !important;
++  color: #171717 !important;
+   font-size: 1.02rem;
+ }
+ 
+@@ -8185,7 +8193,7 @@
+   background:
+     linear-gradient(145deg, rgba(10, 17, 24, 0.86), rgba(5, 9, 14, 0.92)),
+     var(--asset-log) right center / cover no-repeat;
+-  color: #f8fafc;
++  color: #171717;
+   box-shadow: 0 22px 50px rgba(0, 0, 0, 0.34);
+ }
+ 
+@@ -8194,7 +8202,7 @@
+ .log-command-card span,
+ .log-command-card strong,
+ .log-command-card small {
+-  color: #f8fafc !important;
++  color: #171717 !important;
+ }
+ 
+ .log-command-card h2 {
+@@ -8244,7 +8252,7 @@
+ .log-latest-card small {
+   display: block;
+   margin-top: 6px;
+-  color: #cbd5e1 !important;
++  color: #526179 !important;
+   font-weight: 750;
+   line-height: 1.4;
+ }
+@@ -8282,13 +8290,13 @@
+ .log-form input,
+ .log-form select,
+ .log-form textarea {
+-  color: #f8fafc !important;
++  color: #171717 !important;
+   background: rgba(3, 7, 11, 0.84) !important;
+ }
+ 
+ .set-detail-head h3,
+ .set-detail-head p {
+-  color: #f8fafc !important;
++  color: #171717 !important;
+ }
+ 
+ @media (max-width: 720px) {
+@@ -8368,7 +8376,7 @@
+ 
+ .meet-hero-copy h2 {
+   max-width: 520px;
+-  color: #fff;
++  color: #171717;
+   font-size: clamp(1.8rem, 5vw, 3rem);
+   line-height: 1.12;
+ }
+@@ -8395,7 +8403,7 @@
+   border-radius: 20px;
+   background:
+     linear-gradient(145deg, rgba(15, 21, 29, 0.95), rgba(6, 10, 15, 0.9));
+-  color: #f8fafc;
++  color: #171717;
+   box-shadow: 0 18px 46px rgba(0, 0, 0, 0.24);
+ }
+ 
+@@ -8423,7 +8431,7 @@
+ }
+ 
+ .meet-dday-card strong {
+-  color: #fff;
++  color: #171717;
+   font-size: clamp(2.8rem, 9vw, 5rem);
+   line-height: 0.95;
+   letter-spacing: -0.03em;
+@@ -8451,7 +8459,7 @@
+ }
+ 
+ .meet-today-card strong {
+-  color: #fff;
++  color: #171717;
+   font-size: clamp(1.25rem, 3vw, 1.75rem);
+   line-height: 1.25;
+ }
+@@ -8486,7 +8494,7 @@
+ }
+ 
+ .meet-command-actions strong {
+-  color: #f8fafc;
++  color: #171717;
+   font-size: 1.02rem;
+   line-height: 1.25;
+ }
+@@ -8554,7 +8562,7 @@
+ }
+ 
+ .meet-action-grid .meet-shortcut strong {
+-  color: #f8fafc !important;
++  color: #171717 !important;
+   font-size: 1.12rem;
+ }
+ 
+@@ -8695,7 +8703,7 @@
+ }
+ 
+ .home-command-grid .home-card.visual-card strong {
+-  color: #fff !important;
++  color: #171717 !important;
+   line-height: 1.12;
+ }
+ 
+@@ -8734,7 +8742,7 @@
+ .home-total-number {
+   display: grid;
+   gap: 1px;
+-  color: #fff !important;
++  color: #171717 !important;
+   font-size: clamp(2rem, 4.6vw, 3rem) !important;
+   letter-spacing: -0.03em;
+ }
+@@ -8774,7 +8782,7 @@
+ }
+ 
+ .home-lift-pills b {
+-  color: #fff;
++  color: #171717;
+   font-size: 0.9rem;
+ }
+ 
+@@ -8785,7 +8793,7 @@
+ 
+ .home-goal-gap {
+   margin: 0;
+-  color: #fff !important;
++  color: #171717 !important;
+   font-size: clamp(1.2rem, 2.8vw, 1.7rem) !important;
+   font-weight: 950 !important;
+   line-height: 1.1 !important;
+@@ -8811,7 +8819,7 @@
+ 
+ .home-command-grid .home-card.visual-meet p {
+   margin: 0;
+-  color: #f8fafc !important;
++  color: #171717 !important;
+   font-size: 0.82rem;
+   font-weight: 950;
+ }
+@@ -8902,7 +8910,7 @@
+ .home-athlete-dashboard .dashboard-head-compact strong {
+   display: block;
+   margin-top: 3px;
+-  color: #f8fafc !important;
++  color: #171717 !important;
+   font-size: clamp(1.05rem, 2.4vw, 1.35rem);
+   line-height: 1.2;
+ }
+@@ -8934,7 +8942,7 @@
+   border: 1px solid rgba(255, 255, 255, 0.2);
+   border-radius: 999px;
+   background: rgba(255, 255, 255, 0.09);
+-  color: #f8fafc;
++  color: #171717;
+   font-style: normal;
+   font-weight: 950;
+ }
+@@ -8975,7 +8983,7 @@
+ .home-detail-head strong {
+   display: block;
+   margin-top: 4px;
+-  color: #fff;
++  color: #171717;
+   font-size: clamp(1.25rem, 2.4vw, 1.65rem);
+   line-height: 1.15;
+ }
+@@ -8983,7 +8991,7 @@
+ .home-detail-head p,
+ .home-association-mini p {
+   margin: 6px 0 0;
+-  color: #cbd5e1;
++  color: #526179;
+   font-weight: 800;
+   line-height: 1.45;
+ }
+@@ -9028,13 +9036,13 @@
+   border: 1px solid rgba(255, 255, 255, 0.22);
+   border-radius: 12px;
+   background: rgba(4, 8, 13, 0.92);
+-  color: #f8fafc;
++  color: #171717;
+   font-weight: 900;
+ }
+ 
+ .home-detail-total strong,
+ .home-detail-stats strong {
+-  color: #fff;
++  color: #171717;
+   font-size: 1.15rem;
+   line-height: 1.15;
+ }
+@@ -9061,7 +9069,7 @@
+   padding: 0 14px;
+   border: 1px solid rgba(255, 255, 255, 0.2);
+   border-radius: 12px;
+-  color: #f8fafc;
++  color: #171717;
+   font-weight: 900;
+   text-decoration: none;
+ }
+@@ -9192,7 +9200,7 @@
+ 
+ .plan-context-grid strong {
+   font-size: 0.88rem;
+-  color: #f8fafc;
++  color: #171717;
+   font-weight: 800;
+ }
+ 
+@@ -9236,7 +9244,7 @@
+ 
+ .rpe-coach-summary strong {
+   font-size: 0.88rem;
+-  color: #f8fafc;
++  color: #171717;
+ }
+ 
+ .rpe-coach-details[open] .rpe-coach-summary {
+@@ -9272,7 +9280,7 @@
+ .plan-set-table td {
+   padding: 8px 10px;
+   border-top: 1px solid rgba(255, 255, 255, 0.06);
+-  color: #f8fafc;
++  color: #171717;
+   vertical-align: middle;
+ }
+ 
+@@ -9401,7 +9409,7 @@
+ 
+ .session-sheet .session-exercise {
+   font-weight: 900;
+-  color: #f8fafc;
++  color: #171717;
+ }
+ 
+ .session-sheet tr.topset td {
+@@ -9488,7 +9496,7 @@
+ 
+ .session-weight {
+   font-weight: 900;
+-  color: #f8fafc;
++  color: #171717;
+ }
+ 
+ .session-sheet tr.accessory td {
+@@ -9564,7 +9572,7 @@
+ .session-actual-header strong {
+   font-size: 0.9rem;
+   font-weight: 900;
+-  color: #f8fafc;
++  color: #171717;
+ }
+ 
+ .session-actual-label {
+@@ -9625,7 +9633,7 @@
+ .editable-exercise-head strong {
+   display: block;
+   font-size: 0.98rem;
+-  color: #f8fafc;
++  color: #171717;
+ }
+ 
+ .editable-exercise-head span {
+@@ -9658,7 +9666,7 @@
+ }
+ 
+ .editable-set-row strong {
+-  color: #f8fafc;
++  color: #171717;
+ }
+ 
+ .set-kind {
+@@ -9698,7 +9706,7 @@
+   }
+ 
+   .editable-set-sheet::before {
+-    content: "横にスワイプして入力 →";
++    content: "讓ｪ縺ｫ繧ｹ繝ｯ繧､繝励＠縺ｦ蜈･蜉・竊・;
+     display: block;
+     padding: 6px 10px;
+     color: rgba(248, 250, 252, 0.52);
+@@ -9763,7 +9771,7 @@
+ .editable-exercise-head strong {
+   font-size: 0.95rem;
+   font-weight: 900;
+-  color: #f8fafc;
++  color: #171717;
+ }
+ 
+ .exercise-rpe-hint {
+@@ -9907,7 +9915,7 @@
+ }
+ 
+ .editable-exercise-head strong {
+-  color: #f8fafc;
++  color: #171717;
+   font-size: 0.96rem;
+   letter-spacing: 0.01em;
+ }
+@@ -10005,7 +10013,7 @@
+   min-height: 36px;
+   border: 1px solid rgba(255, 255, 255, 0.18);
+   border-radius: 9px;
+-  background: #f8fafc;
++  background: #ffffff;
+   color: #111827;
+   font-size: 0.92rem;
+   font-weight: 900;
+@@ -10148,7 +10156,7 @@
+   background:
+     radial-gradient(circle at top left, rgba(239, 68, 68, 0.12), transparent 30%),
+     linear-gradient(180deg, #162033 0%, #111827 46%, #0f172a 100%);
+-  color: #f8fafc;
++  color: #171717;
+ }
+ 
+ .panel,
+@@ -10183,13 +10191,13 @@
+ .exercise-rpe-hint,
+ .planned-summary,
+ .accessory-summary {
+-  color: #cbd5e1;
++  color: #526179;
+ }
+ 
+ .actual-weight,
+ .actual-reps,
+ .actual-rpe {
+-  background: #f8fafc;
++  background: #ffffff;
+   color: #111827;
+   border-color: rgba(255, 255, 255, 0.28);
+ }
+@@ -10205,7 +10213,7 @@
+ }
+ 
+ .accessory-row .accessory-plan-label {
+-  color: #e2e8f0;
++  color: #526179;
+ }
+ 
+ @media (max-width: 640px) {
+@@ -10218,8 +10226,8 @@
+ body {
+   background:
+     radial-gradient(circle at top left, rgba(239, 68, 68, 0.12), transparent 28%),
+-    linear-gradient(180deg, #223047 0%, #1e293b 42%, #172033 100%) !important;
+-  color: #f8fafc;
++    linear-gradient(180deg, #fff7ed 0%, #fff7ed 42%, #fff7ed 100%) !important;
++  color: #171717;
+ }
+ 
+ .plan-card,
+@@ -10282,7 +10290,7 @@
+ .actual-weight,
+ .actual-reps,
+ .actual-rpe {
+-  background: #f8fafc !important;
++  background: #ffffff !important;
+   color: #111827 !important;
+   border-color: rgba(255, 255, 255, 0.35) !important;
+ }
+@@ -10420,7 +10428,7 @@
+   }
+ 
+   body[data-active-view="home"] .home-total-number b {
+-    color: #fff;
++    color: #171717;
+     font-size: clamp(4.2rem, 18vw, 6.2rem);
+     font-weight: 1000;
+     line-height: 0.9;
+@@ -10465,7 +10473,7 @@
+   body[data-active-view="home"] .home-goal-gap,
+   body[data-active-view="home"] .remaining-value {
+     margin: 2px 0 0;
+-    color: #fff !important;
++    color: #171717 !important;
+     text-align: center;
+     font-size: clamp(3.2rem, 14vw, 5rem) !important;
+     font-weight: 1000 !important;
+@@ -10585,7 +10593,7 @@
+     border: 1px solid rgba(255, 255, 255, 0.22);
+     border-radius: 999px;
+     background: rgba(15, 23, 42, 0.72);
+-    color: #fff;
++    color: #171717;
+     font-size: 0.92rem;
+     font-style: normal;
+     line-height: 1;
+@@ -10791,7 +10799,7 @@
+ .topbar {
+   border-top: 5px solid var(--accent) !important;
+   background: #22272e !important;
+-  color: #fff !important;
++  color: #171717 !important;
+ }
+ 
+ .panel,
+@@ -11019,7 +11027,7 @@
+ .home-shortcut-grid a:first-child,
+ .home-shortcut-grid button:first-child {
+   background: #22272e !important;
+-  color: #fff !important;
++  color: #171717 !important;
+   border-color: #22272e !important;
+ }
+ 
+@@ -11075,7 +11083,7 @@
+ .meet-attempt-row select,
+ .home-detail-grid input,
+ .home-detail-grid select {
+-  border-color: #cbd5e1 !important;
++  border-color: #526179 !important;
+   border-bottom-color: #94a3b8 !important;
+   background: #ffffff !important;
+   color: #111827 !important;
+@@ -11108,7 +11116,7 @@
+ 
+   .topbar {
+     background: #22272e !important;
+-    color: #fff !important;
++    color: #171717 !important;
+   }
+ 
+   .home-hero-card {
+@@ -11411,7 +11419,7 @@
+ .set-kind-attempt {
+   background: #22272e !important;
+   border-color: #22272e !important;
+-  color: #ffffff !important;
++  color: #171717 !important;
+ }
+ 
+ .primary-button *,
+@@ -11425,7 +11433,7 @@
+ .home-shortcut-grid button:first-child *,
+ .meet-command-actions a *,
+ .meet-command-actions button.primary * {
+-  color: #ffffff !important;
++  color: #171717 !important;
+ }
+ 
+ .text-button.danger,
+@@ -11466,7 +11474,7 @@
+ .home-detail-grid input,
+ .home-detail-grid select {
+   background: #ffffff !important;
+-  border-color: #cbd5e1 !important;
++  border-color: #526179 !important;
+   color: #111827 !important;
+ }
+ 
+@@ -11485,7 +11493,7 @@
+ }
+ 
+ .tabbar .tab.active :is(span, small, strong) {
+-  color: #ffffff !important;
++  color: #171717 !important;
+ }
+ 
+ @media (max-width: 640px) {
+@@ -11687,7 +11695,7 @@
+ .quiz-choice.correct span,
+ .quiz-choice.wrong span,
+ .quiz-result > span {
+-  color: #ffffff !important;
++  color: #171717 !important;
+ }
+ 
+ .quiz-feedback.correct {
+@@ -11734,14 +11742,14 @@
+ .editable-exercise-footer .actual-save {
+   background: #22272e !important;
+   border-color: #22272e !important;
+-  color: #ffffff !important;
++  color: #171717 !important;
+ }
+ 
+ .actual-save *,
+ .actual-add-set *,
+ .meet-command-actions a.primary *,
+ .meet-command-actions button.primary * {
+-  color: #ffffff !important;
++  color: #171717 !important;
+ }
+ 
+ table,
+@@ -11846,7 +11854,7 @@
+ .nav-tab[aria-selected="true"] {
+   background: #22272e !important;
+   border-color: #b42318 !important;
+-  color: #ffffff !important;
++  color: #171717 !important;
+ }
+ 
+ .section-hero,
+@@ -12096,7 +12104,7 @@
+ .meet-rule-note a:hover {
+   background: #b42318 !important;
+   border-color: #b42318 !important;
+-  color: #ffffff !important;
++  color: #171717 !important;
+ }
+ 
+ .primary,
+@@ -12106,7 +12114,7 @@
+ .text-button.primary {
+   background: #22272e !important;
+   border-color: #22272e !important;
+-  color: #ffffff !important;
++  color: #171717 !important;
+ }
+ 
+ .primary *,
+@@ -12114,7 +12122,7 @@
+ .actual-save *,
+ .actual-add-set *,
+ .text-button.primary * {
+-  color: #ffffff !important;
++  color: #171717 !important;
+ }
+ 
+ #planView::before,
+@@ -12458,7 +12466,7 @@
+ 
+ html body .wellness-options button {
+   background: #ffffff !important;
+-  border-color: #cbd5e1 !important;
++  border-color: #526179 !important;
+   color: #171717 !important;
+   text-shadow: none !important;
+ }
+@@ -12466,7 +12474,7 @@
+ html body .wellness-options button.active {
+   background: #22272e !important;
+   border-color: #22272e !important;
+-  color: #ffffff !important;
++  color: #171717 !important;
+   box-shadow: 0 0 0 2px rgba(180, 35, 24, 0.18) !important;
+ }
+ 
+@@ -12474,7 +12482,7 @@
+ html body .onboarding-card select,
+ html body .onboarding-card textarea {
+   background: #ffffff !important;
+-  border-color: #cbd5e1 !important;
++  border-color: #526179 !important;
+   color: #111827 !important;
+ }
+ 
+@@ -12492,7 +12500,7 @@
+ html body .onboarding-card .primary-button,
+ html body .onboarding-card button.primary-button {
+   background: #22272e !important;
+-  color: #ffffff !important;
++  color: #171717 !important;
+ }
+ 
+ html body .onboarding-card .text-button:not(.primary-button) {
+@@ -12529,12 +12537,12 @@
+ html body .tab.active {
+   background: #22272e !important;
+   border-color: #b42318 !important;
+-  color: #ffffff !important;
++  color: #171717 !important;
+   opacity: 1 !important;
+ }
+ 
+ html body .tabbar .tab.active * {
+-  color: #ffffff !important;
++  color: #171717 !important;
+ }
+ 
+ html body #homeView .dashboard-head,
+@@ -12673,7 +12681,7 @@
+ html body #planView .max-grid label > select,
+ html body #planView .max-grid label > input {
+   background: #ffffff !important;
+-  border-color: #cbd5e1 !important;
++  border-color: #526179 !important;
+   color: #111827 !important;
+ }
+ 
+@@ -12965,3 +12973,319 @@
+   color: #526179 !important;
+   text-shadow: none !important;
+ }
++
++/* v125: IRON NOTE global readability contract */
++html body {
++  color: var(--text-main) !important;
++  background:
++    linear-gradient(90deg, rgba(180, 35, 24, 0.10) 0 2px, transparent 2px 100%),
++    repeating-linear-gradient(180deg, rgba(21, 23, 26, 0.03) 0 1px, transparent 1px 31px),
++    linear-gradient(180deg, #f7f2e8 0, #f1eadf 100%),
++    var(--bg) !important;
 +}
 +
-+html body #planView .cycle-grid label,
-+html body #planView .max-grid label,
-+html body #planView .dashboard-input-grid label,
-+html body #planView .program-method-guide,
-+html body #planView .method-guide-grid article,
-+html body #planView .method-level-grid article,
-+html body #planView .cycle-advanced-details,
-+html body #planView .cycle-note,
-+html body #planView .cycle-method-note,
-+html body #planView .program-disclaimer,
-+html body #planView .week-learning-card,
-+html body #planView .program-card-mini,
-+html body #planView .rpe-principle,
-+html body #planView .rpe-confidence,
-+html body #planView .rpe-scale span,
-+html body #planView .projection-card,
-+html body #planView .academy-evaluation-card,
-+html body #analysisView .academy-evaluation-card,
-+html body #analysisView .academy-evaluation-list article,
-+html body #knowledgeView .meet-rule-note,
-+html body #knowledgeView .meet-check-group,
-+html body #knowledgeView .meet-check-item,
-+html body #knowledgeView .quiz-score-strip div,
-+html body #knowledgeView .quiz-disclaimer,
-+html body #knowledgeView .quiz-guide,
-+html body #knowledgeView .quiz-source,
-+html body #knowledgeView .quiz-category-card,
-+html body #knowledgeView .quiz-question-card,
-+html body #knowledgeView .quiz-choice,
-+html body #knowledgeView .quiz-feedback {
++html body.home-mode {
++  background:
++    radial-gradient(circle at 20% 0, rgba(180, 35, 24, 0.12), transparent 34%),
++    radial-gradient(circle at 82% 8%, rgba(47, 111, 115, 0.08), transparent 28%),
++    linear-gradient(180deg, #f7f2e8 0, #f4efe6 48%, #efe7dc 100%) !important;
++}
++
++html body :is(
++  .panel,
++  .compact-panel,
++  .athlete-panel,
++  .welcome-panel,
++  .dashboard-card,
++  .achievement-card,
++  .home-card,
++  .home-hero-card,
++  .home-strategy-card,
++  .home-buddy-summary,
++  .home-action-panel,
++  .home-shortcut-grid button,
++  .plan-card,
++  .day-card,
++  .plan-context-panel,
++  .buddy-method-panel,
++  .current-check-card,
++  .short-goal-card,
++  .editable-session-sheet,
++  .editable-exercise-sheet,
++  .editable-set-sheet,
++  .actual-box,
++  .log-card,
++  .log-command-panel,
++  .quick-stats article,
++  .analysis-card,
++  .data-card,
++  .metric-grid article,
++  .weekly-data-summary article,
++  .meet-card,
++  .meet-shortcut,
++  .meet-check-group,
++  .meet-check-item,
++  .quiz-card,
++  .quiz-category-card,
++  .quiz-question-card,
++  .quiz-choice,
++  .quiz-feedback,
++  .quiz-disclaimer,
++  .quiz-guide,
++  .quiz-source,
++  .knowledge-card,
++  .onboarding-card,
++  .daily-entry-card,
++  .wellness-check-card,
++  .wellness-result,
++  .wellness-floating,
++  .guide-mode-bar,
++  .cycle-grid label,
++  .max-grid label,
++  .cycle-setup-card,
++  .cycle-setup-grid article,
++  .program-method-guide,
++  .program-card-mini,
++  .cycle-advanced-details,
++  .program-disclaimer,
++  .rpe-coach-card,
++  .academy-evaluation-card,
++  .meet-rule-note,
++  dialog
++) {
 +  background:
 +    linear-gradient(90deg, rgba(180, 35, 24, 0.035), transparent 48%),
-+    #fffaf2 !important;
-+  border-color: #ded6c8 !important;
-+  color: #171717 !important;
-+  box-shadow: 0 10px 22px rgba(51, 42, 29, 0.06) !important;
-+  text-shadow: none !important;
-+}
-+
-+html body #planView .cycle-grid label :is(h1, h2, h3, h4, strong, b, label, summary, li),
-+html body #planView .max-grid label :is(h1, h2, h3, h4, strong, b, label, summary, li),
-+html body #planView .program-method-guide :is(h1, h2, h3, h4, strong, b, label, summary, li),
-+html body #planView .method-guide-grid article :is(h1, h2, h3, h4, strong, b, label, summary, li),
-+html body #planView .method-level-grid article :is(h1, h2, h3, h4, strong, b, label, summary, li),
-+html body #planView .cycle-advanced-details :is(h1, h2, h3, h4, strong, b, label, summary, li),
-+html body #planView .program-disclaimer :is(h1, h2, h3, h4, strong, b, label, summary, li),
-+html body #analysisView .academy-evaluation-card :is(h1, h2, h3, h4, strong, b, label, summary, li),
-+html body #analysisView .academy-evaluation-list article :is(h1, h2, h3, h4, strong, b, label, summary, li),
-+html body #knowledgeView .meet-rule-note :is(h1, h2, h3, h4, strong, b, label, summary, li),
-+html body #knowledgeView .meet-check-group :is(h1, h2, h3, h4, strong, b, label, summary, li),
-+html body #knowledgeView .meet-check-item :is(h1, h2, h3, h4, strong, b, label, summary, li),
-+html body #knowledgeView .quiz-score-strip div :is(h1, h2, h3, h4, strong, b, label, summary, li),
-+html body #knowledgeView .quiz-disclaimer :is(h1, h2, h3, h4, strong, b, label, summary, li),
-+html body #knowledgeView .quiz-guide :is(h1, h2, h3, h4, strong, b, label, summary, li),
-+html body #knowledgeView .quiz-source :is(h1, h2, h3, h4, strong, b, label, summary, li),
-+html body #knowledgeView .quiz-category-card :is(h1, h2, h3, h4, strong, b, label, summary, li),
-+html body #knowledgeView .quiz-question-card :is(h1, h2, h3, h4, strong, b, label, summary, li),
-+html body #knowledgeView .quiz-choice :is(h1, h2, h3, h4, strong, b, label, summary, li),
-+html body #knowledgeView .quiz-feedback :is(h1, h2, h3, h4, strong, b, label, summary, li) {
-+  color: #171717 !important;
-+  text-shadow: none !important;
-+}
-+
-+html body #planView .cycle-grid label :is(p, small, span, em, td, th),
-+html body #planView .max-grid label :is(p, small, span, em, td, th),
-+html body #planView .program-method-guide :is(p, small, span, em, td, th),
-+html body #planView .method-guide-grid article :is(p, small, span, em, td, th),
-+html body #planView .method-level-grid article :is(p, small, span, em, td, th),
-+html body #planView .cycle-advanced-details :is(p, small, span, em, td, th),
-+html body #planView .cycle-note,
-+html body #planView .cycle-method-note,
-+html body #planView .program-disclaimer :is(p, small, span, em, td, th),
-+html body #analysisView .academy-evaluation-card :is(p, small, span, em, td, th),
-+html body #analysisView .academy-evaluation-list article :is(p, small, span, em, td, th),
-+html body #knowledgeView .meet-rule-note :is(p, small, span, em, td, th),
-+html body #knowledgeView .meet-check-group :is(p, small, span, em, td, th),
-+html body #knowledgeView .meet-check-item :is(p, small, span, em, td, th),
-+html body #knowledgeView .quiz-score-strip div :is(p, small, span, em, td, th),
-+html body #knowledgeView .quiz-disclaimer :is(p, small, span, em, td, th),
-+html body #knowledgeView .quiz-guide :is(p, small, span, em, td, th),
-+html body #knowledgeView .quiz-source :is(p, small, span, em, td, th),
-+html body #knowledgeView .quiz-category-card :is(p, small, span, em, td, th),
-+html body #knowledgeView .quiz-question-card :is(p, small, span, em, td, th),
-+html body #knowledgeView .quiz-choice :is(p, small, span, em, td, th),
-+html body #knowledgeView .quiz-feedback :is(p, small, span, em, td, th) {
-+  color: #526179 !important;
-+  text-shadow: none !important;
-+}
-+
-+html body #planView .cycle-grid label,
-+html body #planView .max-grid label {
-+  padding: 10px !important;
-+}
-+
-+html body #planView .cycle-grid label > select,
-+html body #planView .cycle-grid label > input,
-+html body #planView .max-grid label > select,
-+html body #planView .max-grid label > input {
-+  background: #ffffff !important;
-+  border-color: #cbd5e1 !important;
-+  color: #111827 !important;
-+}
-+
-+html body #planView .program-method-guide > span,
-+html body #planView .program-method-guide .eyebrow,
-+html body #planView .method-guide-grid article > span,
-+html body #planView .method-level-grid article > span,
-+html body #analysisView .academy-evaluation-card > span,
-+html body #knowledgeView .meet-check-group h4,
-+html body #knowledgeView .quiz-score-strip span,
-+html body #knowledgeView .quiz-category-card span,
-+html body #knowledgeView .quiz-badge,
-+html body #knowledgeView .quiz-source span {
-+  color: #7a271a !important;
-+}
-+
-+html body #knowledgeView .quiz-score-strip div {
-+  border-left: 4px solid rgba(180, 35, 24, 0.22) !important;
-+}
-+
-+html body #knowledgeView .meet-rule-note {
-+  border-left: 4px solid rgba(180, 35, 24, 0.22) !important;
-+  padding: 12px 14px !important;
-+}
-+
-+/* v124b: stronger cleanup for dark cards and pale text still visible after IRON NOTE */
-+html body .home-athlete-dashboard .dashboard-head-compact,
-+html body .home-athlete-dashboard .dashboard-head,
-+html body .athlete-dashboard .dashboard-head-compact,
-+html body .athlete-dashboard .dashboard-head {
-+  color: #171717 !important;
-+  text-shadow: none !important;
-+}
-+
-+html body .home-athlete-dashboard .dashboard-head-compact strong,
-+html body .home-athlete-dashboard .dashboard-head strong,
-+html body .athlete-dashboard .dashboard-head-compact strong,
-+html body .athlete-dashboard .dashboard-head strong {
-+  color: #171717 !important;
-+  text-shadow: none !important;
-+}
-+
-+html body .home-athlete-dashboard .dashboard-head-compact small,
-+html body .home-athlete-dashboard .dashboard-head small,
-+html body .athlete-dashboard .dashboard-head-compact small,
-+html body .athlete-dashboard .dashboard-head small {
-+  color: #526179 !important;
-+  opacity: 1 !important;
-+  text-shadow: none !important;
-+}
-+
-+html body .home-athlete-dashboard .dashboard-head-compact span,
-+html body .home-athlete-dashboard .dashboard-head span,
-+html body .athlete-dashboard .dashboard-head-compact span,
-+html body .athlete-dashboard .dashboard-head span {
-+  color: #b42318 !important;
-+  opacity: 1 !important;
-+  text-shadow: none !important;
-+}
-+
-+html body .home-strategy-card,
-+html body .home-check-card,
-+html body .home-buddy-summary,
-+html body .home-buddy-comment-card {
-+  color: #171717 !important;
-+  text-shadow: none !important;
-+}
-+
-+html body .home-strategy-card strong,
-+html body .home-check-card strong,
-+html body .home-buddy-summary strong,
-+html body .home-buddy-comment-card strong {
-+  color: #171717 !important;
-+  text-shadow: none !important;
-+}
-+
-+html body .home-strategy-card p,
-+html body .home-strategy-card small,
-+html body .home-strategy-card .home-strategy-content p,
-+html body .home-check-card p,
-+html body .home-check-card small,
-+html body .home-buddy-summary p,
-+html body .home-buddy-comment-card p {
-+  color: #526179 !important;
-+  opacity: 1 !important;
-+  text-shadow: none !important;
-+}
-+
-+html body .home-strategy-card .home-card-top span,
-+html body .home-check-card .home-card-top span,
-+html body .home-buddy-summary span,
-+html body .home-buddy-comment-card span {
-+  color: #b42318 !important;
-+  opacity: 1 !important;
-+  text-shadow: none !important;
-+}
-+
-+html body .home-strategy-pills span,
-+html body .home-lift-pills span,
-+html body .home-card-note {
-+  background: #ffffff !important;
-+  border-color: #ded6c8 !important;
-+  color: #526179 !important;
-+  text-shadow: none !important;
-+}
-+
-+html body .cycle-grid label,
-+html body .max-grid label,
-+html body .dashboard-input-grid label,
-+html body .cycle-setup-grid article,
-+html body .cycle-setup-card,
-+html body .program-method-guide,
-+html body .method-guide-grid article,
-+html body .method-level-grid article,
-+html body .program-card-mini,
-+html body .cycle-advanced-details,
-+html body .program-disclaimer,
-+html body .cycle-note,
-+html body .cycle-method-note,
-+html body .rpe-coach-card,
-+html body .plan-card,
-+html body .cycle-setup-panel .dashboard-card,
-+html body .cycle-setup-panel .stat-card,
-+html body .academy-evaluation-card,
-+html body .academy-evaluation-list article,
-+html body .meet-rule-note,
-+html body .meet-check-group,
-+html body .meet-check-item,
-+html body .quiz-score-strip div,
-+html body .quiz-disclaimer,
-+html body .quiz-guide,
-+html body .quiz-source,
-+html body .quiz-category-card,
-+html body .quiz-question-card,
-+html body .quiz-choice,
-+html body .quiz-feedback {
-+  background:
-+    linear-gradient(90deg, rgba(180, 35, 24, 0.03), transparent 46%),
-+    #fffaf2 !important;
-+  border-color: #ded6c8 !important;
-+  color: #171717 !important;
-+  box-shadow: 0 10px 22px rgba(51, 42, 29, 0.06) !important;
-+  text-shadow: none !important;
-+}
-+
-+html body .cycle-grid label::before,
-+html body .cycle-grid label::after,
-+html body .max-grid label::before,
-+html body .max-grid label::after,
-+html body .program-method-guide::before,
-+html body .program-method-guide::after,
-+html body .cycle-setup-grid article::before,
-+html body .cycle-setup-grid article::after,
-+html body .plan-card::before,
-+html body .plan-card::after,
-+html body .rpe-coach-card::before,
-+html body .rpe-coach-card::after,
-+html body .academy-evaluation-card::before,
-+html body .academy-evaluation-card::after,
-+html body .meet-rule-note::before,
-+html body .meet-rule-note::after {
-+  opacity: 0 !important;
-+}
-+
-+html body .cycle-grid label :is(h1, h2, h3, h4, strong, b, label, summary, li),
-+html body .max-grid label :is(h1, h2, h3, h4, strong, b, label, summary, li),
-+html body .cycle-setup-grid article :is(h1, h2, h3, h4, strong, b, label, summary, li),
-+html body .cycle-setup-card :is(h1, h2, h3, h4, strong, b, label, summary, li),
-+html body .program-method-guide :is(h1, h2, h3, h4, strong, b, label, summary, li),
-+html body .method-guide-grid article :is(h1, h2, h3, h4, strong, b, label, summary, li),
-+html body .method-level-grid article :is(h1, h2, h3, h4, strong, b, label, summary, li),
-+html body .program-card-mini :is(h1, h2, h3, h4, strong, b, label, summary, li),
-+html body .cycle-advanced-details :is(h1, h2, h3, h4, strong, b, label, summary, li),
-+html body .program-disclaimer :is(h1, h2, h3, h4, strong, b, label, summary, li),
-+html body .rpe-coach-card :is(h1, h2, h3, h4, strong, b, label, summary, li),
-+html body .plan-card :is(h1, h2, h3, h4, strong, b, label, summary, li),
-+html body .academy-evaluation-card :is(h1, h2, h3, h4, strong, b, label, summary, li),
-+html body .academy-evaluation-list article :is(h1, h2, h3, h4, strong, b, label, summary, li),
-+html body .meet-rule-note :is(h1, h2, h3, h4, strong, b, label, summary, li),
-+html body .meet-check-group :is(h1, h2, h3, h4, strong, b, label, summary, li),
-+html body .meet-check-item :is(h1, h2, h3, h4, strong, b, label, summary, li),
-+html body .quiz-score-strip div :is(h1, h2, h3, h4, strong, b, label, summary, li),
-+html body .quiz-disclaimer :is(h1, h2, h3, h4, strong, b, label, summary, li),
-+html body .quiz-guide :is(h1, h2, h3, h4, strong, b, label, summary, li),
-+html body .quiz-source :is(h1, h2, h3, h4, strong, b, label, summary, li),
-+html body .quiz-category-card :is(h1, h2, h3, h4, strong, b, label, summary, li),
-+html body .quiz-question-card :is(h1, h2, h3, h4, strong, b, label, summary, li),
-+html body .quiz-choice :is(h1, h2, h3, h4, strong, b, label, summary, li),
-+html body .quiz-feedback :is(h1, h2, h3, h4, strong, b, label, summary, li) {
-+  color: #171717 !important;
-+  opacity: 1 !important;
-+  text-shadow: none !important;
-+}
-+
-+html body .cycle-grid label :is(p, small, span, em, td, th),
-+html body .max-grid label :is(p, small, span, em, td, th),
-+html body .cycle-setup-grid article :is(p, small, span, em, td, th),
-+html body .cycle-setup-card :is(p, small, span, em, td, th),
-+html body .program-method-guide :is(p, small, span, em, td, th),
-+html body .method-guide-grid article :is(p, small, span, em, td, th),
-+html body .method-level-grid article :is(p, small, span, em, td, th),
-+html body .program-card-mini :is(p, small, span, em, td, th),
-+html body .cycle-advanced-details :is(p, small, span, em, td, th),
-+html body .program-disclaimer :is(p, small, span, em, td, th),
-+html body .rpe-coach-card :is(p, small, span, em, td, th),
-+html body .plan-card :is(p, small, span, em, td, th),
-+html body .academy-evaluation-card :is(p, small, span, em, td, th),
-+html body .academy-evaluation-list article :is(p, small, span, em, td, th),
-+html body .meet-rule-note :is(p, small, span, em, td, th),
-+html body .meet-check-group :is(p, small, span, em, td, th),
-+html body .meet-check-item :is(p, small, span, em, td, th),
-+html body .quiz-score-strip div :is(p, small, span, em, td, th),
-+html body .quiz-disclaimer :is(p, small, span, em, td, th),
-+html body .quiz-guide :is(p, small, span, em, td, th),
-+html body .quiz-source :is(p, small, span, em, td, th),
-+html body .quiz-category-card :is(p, small, span, em, td, th),
-+html body .quiz-question-card :is(p, small, span, em, td, th),
-+html body .quiz-choice :is(p, small, span, em, td, th),
-+html body .quiz-feedback :is(p, small, span, em, td, th) {
-+  color: #526179 !important;
-+  opacity: 1 !important;
-+  text-shadow: none !important;
-+}
-+
-+html body .cycle-grid label > span,
-+html body .max-grid label > span,
-+html body .cycle-setup-grid article > span,
-+html body .program-method-guide > span,
-+html body .program-method-guide .eyebrow,
-+html body .method-guide-grid article > span,
-+html body .method-level-grid article > span,
-+html body .program-card-mini > span,
-+html body .academy-evaluation-card > span,
-+html body .meet-check-group h4,
-+html body .quiz-score-strip span,
-+html body .quiz-category-card span,
-+html body .quiz-source span {
-+  color: #7a271a !important;
-+  opacity: 1 !important;
-+  text-shadow: none !important;
-+}
-+
-+html body .section-hero,
-+html body .page-hero,
-+html body .view-hero,
-+html body .hero-card:not(.home-hero-card),
-+html body .plan-hero,
-+html body .meet-hero-card {
-+  background:
-+    linear-gradient(90deg, rgba(255, 250, 242, 0.92), rgba(255, 250, 242, 0.72)),
 +    var(--surface) !important;
-+  border-color: #ded6c8 !important;
-+  color: #171717 !important;
-+  box-shadow: 0 12px 26px rgba(51, 42, 29, 0.08) !important;
++  color: var(--text-main) !important;
++  border-color: var(--line) !important;
 +  text-shadow: none !important;
 +}
 +
-+html body .section-hero::before,
-+html body .section-hero::after,
-+html body .page-hero::before,
-+html body .page-hero::after,
-+html body .view-hero::before,
-+html body .view-hero::after,
-+html body .hero-card:not(.home-hero-card)::before,
-+html body .hero-card:not(.home-hero-card)::after,
-+html body .plan-hero::before,
-+html body .plan-hero::after,
-+html body .meet-hero-card::before,
-+html body .meet-hero-card::after {
-+  opacity: 0.16 !important;
-+}
-+
-+html body .section-hero :is(h1, h2, h3, strong, b, span),
-+html body .page-hero :is(h1, h2, h3, strong, b, span),
-+html body .view-hero :is(h1, h2, h3, strong, b, span),
-+html body .hero-card:not(.home-hero-card) :is(h1, h2, h3, strong, b, span),
-+html body .plan-hero :is(h1, h2, h3, strong, b, span),
-+html body .meet-hero-card :is(h1, h2, h3, strong, b, span) {
-+  color: #171717 !important;
++html body :is(
++  .panel,
++  .compact-panel,
++  .athlete-panel,
++  .welcome-panel,
++  .dashboard-card,
++  .achievement-card,
++  .home-card,
++  .home-hero-card,
++  .home-strategy-card,
++  .home-buddy-summary,
++  .home-action-panel,
++  .home-shortcut-grid button,
++  .plan-card,
++  .day-card,
++  .plan-context-panel,
++  .buddy-method-panel,
++  .current-check-card,
++  .short-goal-card,
++  .editable-session-sheet,
++  .editable-exercise-sheet,
++  .editable-set-sheet,
++  .actual-box,
++  .log-card,
++  .log-command-panel,
++  .quick-stats article,
++  .analysis-card,
++  .data-card,
++  .metric-grid article,
++  .weekly-data-summary article,
++  .meet-card,
++  .meet-shortcut,
++  .meet-check-group,
++  .meet-check-item,
++  .quiz-card,
++  .quiz-category-card,
++  .quiz-question-card,
++  .quiz-choice,
++  .quiz-feedback,
++  .quiz-disclaimer,
++  .quiz-guide,
++  .quiz-source,
++  .knowledge-card,
++  .onboarding-card,
++  .daily-entry-card,
++  .wellness-check-card,
++  .wellness-result,
++  .wellness-floating,
++  .guide-mode-bar,
++  .cycle-grid label,
++  .max-grid label,
++  .cycle-setup-card,
++  .cycle-setup-grid article,
++  .program-method-guide,
++  .program-card-mini,
++  .cycle-advanced-details,
++  .program-disclaimer,
++  .rpe-coach-card,
++  .academy-evaluation-card,
++  .meet-rule-note,
++  dialog
++) :is(h1, h2, h3, h4, strong, b, label, summary, th, dt, li) {
++  color: var(--text-main) !important;
 +  text-shadow: none !important;
 +}
 +
-+html body .section-hero :is(p, small),
-+html body .page-hero :is(p, small),
-+html body .view-hero :is(p, small),
-+html body .hero-card:not(.home-hero-card) :is(p, small),
-+html body .plan-hero :is(p, small),
-+html body .meet-hero-card :is(p, small) {
-+  color: #526179 !important;
++html body :is(
++  .panel,
++  .compact-panel,
++  .athlete-panel,
++  .welcome-panel,
++  .dashboard-card,
++  .achievement-card,
++  .home-card,
++  .home-hero-card,
++  .home-strategy-card,
++  .home-buddy-summary,
++  .home-action-panel,
++  .home-shortcut-grid button,
++  .plan-card,
++  .day-card,
++  .plan-context-panel,
++  .buddy-method-panel,
++  .current-check-card,
++  .short-goal-card,
++  .editable-session-sheet,
++  .editable-exercise-sheet,
++  .editable-set-sheet,
++  .actual-box,
++  .log-card,
++  .log-command-panel,
++  .quick-stats article,
++  .analysis-card,
++  .data-card,
++  .metric-grid article,
++  .weekly-data-summary article,
++  .meet-card,
++  .meet-shortcut,
++  .meet-check-group,
++  .meet-check-item,
++  .quiz-card,
++  .quiz-category-card,
++  .quiz-question-card,
++  .quiz-choice,
++  .quiz-feedback,
++  .quiz-disclaimer,
++  .quiz-guide,
++  .quiz-source,
++  .knowledge-card,
++  .onboarding-card,
++  .daily-entry-card,
++  .wellness-check-card,
++  .wellness-result,
++  .wellness-floating,
++  .guide-mode-bar,
++  .cycle-grid label,
++  .max-grid label,
++  .cycle-setup-card,
++  .cycle-setup-grid article,
++  .program-method-guide,
++  .program-card-mini,
++  .cycle-advanced-details,
++  .program-disclaimer,
++  .rpe-coach-card,
++  .academy-evaluation-card,
++  .meet-rule-note,
++  dialog
++) :is(p, small, em, dd, td, .muted, .guide-note, .screen-note, .data-note, .exercise-rpe-hint, .planned-summary, .home-card-note, .collapse-summary) {
++  color: var(--text-sub) !important;
 +  text-shadow: none !important;
 +}
---- v123/sw.js
-+++ v124/sw.js
++
++html body :is(.eyebrow, .lift-badge, .recommended-badge, .section-kicker, .home-card-label, .home-card-top span, .quiz-badge) {
++  color: var(--accent-dark) !important;
++  text-shadow: none !important;
++}
++
++html body input,
++html body select,
++html body textarea,
++html body .actual-weight,
++html body .actual-reps,
++html body .actual-rpe {
++  background: #ffffff !important;
++  color: #111827 !important;
++  border-color: #cbd5e1 !important;
++  text-shadow: none !important;
++}
++
++html body input::placeholder,
++html body textarea::placeholder {
++  color: #98a2b3 !important;
++}
++
++html body :is(
++  .topbar,
++  .primary-button,
++  .tab.active,
++  .tab[aria-selected="true"],
++  .segment.active,
++  .guide-mode-toggle[aria-pressed="true"],
++  .wellness-options button.active,
++  .brand-tags span,
++  .start-card span,
++  .meet-shortcut span,
++  .quiz-badge,
++  .badge.dark,
++  .chip.dark,
++  .text-button.primary,
++  .home-guide-chip,
++  .home-action-plan span,
++  .home-action-log span,
++  .home-action-data span,
++  .home-action-meet span
++) {
++  background: var(--button-dark) !important;
++  color: var(--button-dark-text) !important;
++  border-color: var(--button-dark) !important;
++}
++
++html body :is(
++  .topbar,
++  .topbar *,
++  .primary-button,
++  .primary-button *,
++  .tab.active,
++  .tab.active *,
++  .tab[aria-selected="true"],
++  .tab[aria-selected="true"] *,
++  .segment.active,
++  .segment.active *,
++  .guide-mode-toggle[aria-pressed="true"],
++  .wellness-options button.active,
++  .brand-tags span,
++  .start-card span,
++  .meet-shortcut span,
++  .quiz-badge,
++  .badge.dark,
++  .chip.dark,
++  .text-button.primary,
++  .home-guide-chip,
++  .home-action-plan span,
++  .home-action-log span,
++  .home-action-data span,
++  .home-action-meet span
++) {
++  color: var(--button-dark-text) !important;
++  text-shadow: none !important;
++}
++
++html body .tabbar {
++  background: rgba(255, 250, 242, 0.96) !important;
++  border-color: var(--line) !important;
++}
++
++html body .tabbar .tab:not(.active) {
++  background: transparent !important;
++  color: var(--text-sub) !important;
++  border-color: transparent !important;
++}
++
++html body .collapse-toggle,
++html body .home-card-caret {
++  background: #ffffff !important;
++  color: var(--text-main) !important;
++  border-color: var(--line) !important;
++}
++
+--- v124/sw.js
++++ v125/sw.js
 @@ -1,12 +1,12 @@
--const CACHE_NAME = "platform-buddy-v123";
-+const CACHE_NAME = "platform-buddy-v124";
+-const CACHE_NAME = "platform-buddy-v124";
++const CACHE_NAME = "platform-buddy-v125";
  const CORE_ASSETS = [
    "./",
    "index.html",
--  "index.html?v=123",
-+  "index.html?v=124",
+-  "index.html?v=124",
++  "index.html?v=125",
    "styles.css",
--  "styles.css?v=123",
-+  "styles.css?v=124",
+-  "styles.css?v=124",
++  "styles.css?v=125",
    "app.js",
--  "app.js?v=123",
-+  "app.js?v=124",
+-  "app.js?v=124",
++  "app.js?v=125",
    "manifest.webmanifest",
    "icon.svg",
    "apple-touch-icon.png",
---- v123/manifest.webmanifest
-+++ v124/manifest.webmanifest
-@@ -2,7 +2,7 @@
+--- v124/manifest.webmanifest
++++ v125/manifest.webmanifest
+@@ -2,11 +2,11 @@
    "name": "Platform Buddy",
    "short_name": "Buddy",
    "description": "BIG3の現在地と目標を見える化し、PRサイクル、記録、分析、大会準備までつなげて管理できるパワーリフティング向けPWAです。",
--  "start_url": "./index.html?v=123",
-+  "start_url": "./index.html?v=124",
+-  "start_url": "./index.html?v=124",
++  "start_url": "./index.html?v=125",
    "scope": "./",
    "display": "standalone",
-   "background_color": "#06090d",
+-  "background_color": "#06090d",
+-  "theme_color": "#15171a",
++  "background_color": "#f4efe6",
++  "theme_color": "#f4efe6",
+   "icons": [
+     {
+       "src": "icon.svg",
