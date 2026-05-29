@@ -12316,3 +12316,55 @@ html body #homeView .section-title :is(p, small, span),
 html body #homeView .home-card :is(p, small, span) {
   color: #526179 !important;
 }
+
+/* v122: keep Buddy mascot on HOME wellness only, not DATA verdict cards */
+html body #analysisView .weekly-verdict::after,
+html body[data-active-view="analysis"] .weekly-verdict::after,
+html body #analysisView .academy-evaluation-panel::after {
+  content: none !important;
+  display: none !important;
+  background: none !important;
+}
+
+html body[data-active-view="home"] .home-check-card {
+  position: relative !important;
+  overflow: visible !important;
+  min-height: 132px;
+  padding-right: clamp(128px, 20vw, 188px) !important;
+}
+
+html body[data-active-view="home"] .home-check-card::after {
+  content: "" !important;
+  position: absolute !important;
+  right: clamp(8px, 2.4vw, 18px) !important;
+  bottom: -8px !important;
+  z-index: 1 !important;
+  display: block !important;
+  width: clamp(104px, 17vw, 168px) !important;
+  height: clamp(118px, 19vw, 184px) !important;
+  border-radius: 0 !important;
+  background: var(--asset-buddy-normal) center bottom / contain no-repeat !important;
+  opacity: 1 !important;
+  filter: drop-shadow(0 14px 20px rgba(51, 42, 29, 0.20)) !important;
+  pointer-events: none !important;
+  mix-blend-mode: normal !important;
+}
+
+html body[data-active-view="home"] .home-check-card > * {
+  position: relative;
+  z-index: 2;
+}
+
+@media (max-width: 640px) {
+  html body[data-active-view="home"] .home-check-card {
+    min-height: 124px;
+    padding-right: 108px !important;
+  }
+
+  html body[data-active-view="home"] .home-check-card::after {
+    right: 4px !important;
+    bottom: -6px !important;
+    width: 104px !important;
+    height: 118px !important;
+  }
+}
