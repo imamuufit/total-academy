@@ -1,11 +1,11 @@
---- v122/index.html
-+++ v123/index.html
+--- v123/index.html
++++ v124/index.html
 @@ -12,7 +12,7 @@
      <link rel="preload" as="image" href="home-bg-lite.jpg">
      <link rel="preload" as="image" href="icon-sheet-lite.jpg">
      <link rel="apple-touch-icon" href="apple-touch-icon.png">
--    <link rel="stylesheet" href="styles.css?v=122">
-+    <link rel="stylesheet" href="styles.css?v=123">
+-    <link rel="stylesheet" href="styles.css?v=123">
++    <link rel="stylesheet" href="styles.css?v=124">
    </head>
    <body>
      <div class="app-shell">
@@ -13,184 +13,499 @@
        </form>
      </dialog>
  
--    <script src="app.js?v=122"></script>
-+    <script src="app.js?v=123"></script>
+-    <script src="app.js?v=123"></script>
++    <script src="app.js?v=124"></script>
    </body>
  </html>
---- v122/styles.css
-+++ v123/styles.css
-@@ -12368,3 +12368,144 @@
-     height: 118px !important;
+--- v123/styles.css
++++ v124/styles.css
+@@ -12509,3 +12509,459 @@
+       linear-gradient(180deg, rgba(247, 242, 232, 0.98), rgba(244, 239, 230, 0.98)) !important;
    }
  }
 +
-+/* v123: onboarding and daily wellness overlay follow IRON NOTE */
-+html body .onboarding-screen {
-+  background:
-+    radial-gradient(circle at 18% 0, rgba(180, 35, 24, 0.14), transparent 34%),
-+    radial-gradient(circle at 88% 8%, rgba(47, 111, 115, 0.10), transparent 28%),
-+    repeating-linear-gradient(180deg, rgba(21, 23, 26, 0.035) 0 1px, transparent 1px 31px),
-+    linear-gradient(180deg, rgba(247, 242, 232, 0.96), rgba(244, 239, 230, 0.98)) !important;
-+  color: #171717 !important;
-+}
-+
-+html body .onboarding-card {
-+  background:
-+    linear-gradient(90deg, rgba(180, 35, 24, 0.045), transparent 48%),
-+    #fffaf2 !important;
++/* v124: final light-theme contrast pass for remaining dark/pale components */
++html body .tabbar {
++  background: rgba(255, 250, 242, 0.96) !important;
 +  border-color: #ded6c8 !important;
-+  border-left-color: #b42318 !important;
-+  color: #171717 !important;
-+  box-shadow: 0 20px 46px rgba(51, 42, 29, 0.14) !important;
++  box-shadow: 0 10px 24px rgba(51, 42, 29, 0.08) !important;
 +}
 +
-+html body .onboarding-card :is(h1, h2, h3, h4, strong, b, label, summary, li),
-+html body .onboarding-step :is(h1, h2, h3, h4, strong, b, label, summary, li),
-+html body .daily-entry-head strong,
-+html body .wellness-check-card :is(h1, h2, h3, h4, strong, b, label, summary, li),
-+html body .wellness-result :is(h1, h2, h3, h4, strong, b, label, summary, li) {
++html body .tabbar .tab:not(.active),
++html body .tab:not(.active) {
++  background: transparent !important;
++  color: #526179 !important;
++  opacity: 1 !important;
++  text-shadow: none !important;
++}
++
++html body .tabbar .tab.active,
++html body .tab.active {
++  background: #22272e !important;
++  border-color: #b42318 !important;
++  color: #ffffff !important;
++  opacity: 1 !important;
++}
++
++html body .tabbar .tab.active * {
++  color: #ffffff !important;
++}
++
++html body #homeView .dashboard-head,
++html body #homeView .dashboard-head-compact,
++html body #homeView .home-athlete-dashboard .dashboard-head,
++html body #homeView .home-athlete-dashboard .dashboard-head-compact,
++html body #homeView .athlete-dashboard .dashboard-head,
++html body #homeView .athlete-dashboard .dashboard-head-compact {
 +  color: #171717 !important;
 +  text-shadow: none !important;
 +}
 +
-+html body .onboarding-card :is(p, small, span, em),
-+html body .onboarding-step :is(p, small, span, em),
-+html body .onboarding-value,
-+html body .onboarding-hint,
-+html body .daily-entry-head span,
-+html body .wellness-check-card :is(p, small, span, em),
-+html body .wellness-result :is(p, small, span, em) {
++html body #homeView .dashboard-head :is(h1, h2, h3, h4, strong, b, label),
++html body #homeView .dashboard-head-compact :is(h1, h2, h3, h4, strong, b, label),
++html body #homeView .home-athlete-dashboard .section-title :is(h1, h2, h3, h4, strong, b, label),
++html body #homeView .athlete-dashboard .section-title :is(h1, h2, h3, h4, strong, b, label) {
++  color: #171717 !important;
++}
++
++html body #homeView .dashboard-head :is(p, small, span, em),
++html body #homeView .dashboard-head-compact :is(p, small, span, em),
++html body #homeView .home-athlete-dashboard .section-title :is(p, small, span, em),
++html body #homeView .athlete-dashboard .section-title :is(p, small, span, em),
++html body #homeView .home-check-card :is(p, small, span, em) {
++  color: #526179 !important;
++}
++
++html body #homeView .dashboard-head .eyebrow,
++html body #homeView .dashboard-head-compact .eyebrow,
++html body #homeView .home-check-card .home-card-top span {
++  color: #b42318 !important;
++}
++
++html body #homeView .home-check-card .home-strategy-content > p,
++html body #homeView .home-check-card .home-strategy-content > small,
++html body #homeView .home-check-card .home-strategy-content .muted {
++  color: #526179 !important;
++}
++
++html body #planView .cycle-grid label,
++html body #planView .max-grid label,
++html body #planView .dashboard-input-grid label,
++html body #planView .program-method-guide,
++html body #planView .method-guide-grid article,
++html body #planView .method-level-grid article,
++html body #planView .cycle-advanced-details,
++html body #planView .cycle-note,
++html body #planView .cycle-method-note,
++html body #planView .program-disclaimer,
++html body #planView .week-learning-card,
++html body #planView .program-card-mini,
++html body #planView .rpe-principle,
++html body #planView .rpe-confidence,
++html body #planView .rpe-scale span,
++html body #planView .projection-card,
++html body #planView .academy-evaluation-card,
++html body #analysisView .academy-evaluation-card,
++html body #analysisView .academy-evaluation-list article,
++html body #knowledgeView .meet-rule-note,
++html body #knowledgeView .meet-check-group,
++html body #knowledgeView .meet-check-item,
++html body #knowledgeView .quiz-score-strip div,
++html body #knowledgeView .quiz-disclaimer,
++html body #knowledgeView .quiz-guide,
++html body #knowledgeView .quiz-source,
++html body #knowledgeView .quiz-category-card,
++html body #knowledgeView .quiz-question-card,
++html body #knowledgeView .quiz-choice,
++html body #knowledgeView .quiz-feedback {
++  background:
++    linear-gradient(90deg, rgba(180, 35, 24, 0.035), transparent 48%),
++    #fffaf2 !important;
++  border-color: #ded6c8 !important;
++  color: #171717 !important;
++  box-shadow: 0 10px 22px rgba(51, 42, 29, 0.06) !important;
++  text-shadow: none !important;
++}
++
++html body #planView .cycle-grid label :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body #planView .max-grid label :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body #planView .program-method-guide :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body #planView .method-guide-grid article :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body #planView .method-level-grid article :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body #planView .cycle-advanced-details :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body #planView .program-disclaimer :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body #analysisView .academy-evaluation-card :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body #analysisView .academy-evaluation-list article :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body #knowledgeView .meet-rule-note :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body #knowledgeView .meet-check-group :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body #knowledgeView .meet-check-item :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body #knowledgeView .quiz-score-strip div :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body #knowledgeView .quiz-disclaimer :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body #knowledgeView .quiz-guide :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body #knowledgeView .quiz-source :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body #knowledgeView .quiz-category-card :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body #knowledgeView .quiz-question-card :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body #knowledgeView .quiz-choice :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body #knowledgeView .quiz-feedback :is(h1, h2, h3, h4, strong, b, label, summary, li) {
++  color: #171717 !important;
++  text-shadow: none !important;
++}
++
++html body #planView .cycle-grid label :is(p, small, span, em, td, th),
++html body #planView .max-grid label :is(p, small, span, em, td, th),
++html body #planView .program-method-guide :is(p, small, span, em, td, th),
++html body #planView .method-guide-grid article :is(p, small, span, em, td, th),
++html body #planView .method-level-grid article :is(p, small, span, em, td, th),
++html body #planView .cycle-advanced-details :is(p, small, span, em, td, th),
++html body #planView .cycle-note,
++html body #planView .cycle-method-note,
++html body #planView .program-disclaimer :is(p, small, span, em, td, th),
++html body #analysisView .academy-evaluation-card :is(p, small, span, em, td, th),
++html body #analysisView .academy-evaluation-list article :is(p, small, span, em, td, th),
++html body #knowledgeView .meet-rule-note :is(p, small, span, em, td, th),
++html body #knowledgeView .meet-check-group :is(p, small, span, em, td, th),
++html body #knowledgeView .meet-check-item :is(p, small, span, em, td, th),
++html body #knowledgeView .quiz-score-strip div :is(p, small, span, em, td, th),
++html body #knowledgeView .quiz-disclaimer :is(p, small, span, em, td, th),
++html body #knowledgeView .quiz-guide :is(p, small, span, em, td, th),
++html body #knowledgeView .quiz-source :is(p, small, span, em, td, th),
++html body #knowledgeView .quiz-category-card :is(p, small, span, em, td, th),
++html body #knowledgeView .quiz-question-card :is(p, small, span, em, td, th),
++html body #knowledgeView .quiz-choice :is(p, small, span, em, td, th),
++html body #knowledgeView .quiz-feedback :is(p, small, span, em, td, th) {
 +  color: #526179 !important;
 +  text-shadow: none !important;
 +}
 +
-+html body .onboarding-card .eyebrow,
-+html body .onboarding-step .eyebrow,
-+html body .daily-entry-head span,
-+html body .wellness-check-head span,
-+html body .wellness-field > span,
-+html body .wellness-result > span {
-+  color: #7a271a !important;
++html body #planView .cycle-grid label,
++html body #planView .max-grid label {
++  padding: 10px !important;
 +}
 +
-+html body .onboarding-value {
-+  background: rgba(255, 255, 255, 0.50) !important;
-+  border-left-color: #b42318 !important;
-+}
-+
-+html body .onboarding-goals button,
-+html body .daily-entry-grid button,
-+html body .wellness-check-card,
-+html body .wellness-result,
-+html body .wellness-field,
-+html body .daily-entry-head {
-+  background:
-+    linear-gradient(90deg, rgba(180, 35, 24, 0.035), transparent 48%),
-+    #fff7ed !important;
-+  border-color: #ded6c8 !important;
-+  color: #171717 !important;
-+  box-shadow: 0 10px 22px rgba(51, 42, 29, 0.06) !important;
-+}
-+
-+html body .onboarding-goals button :is(strong, span),
-+html body .daily-entry-grid button :is(strong, span) {
-+  color: inherit !important;
-+  text-shadow: none !important;
-+}
-+
-+html body .onboarding-goals button span,
-+html body .daily-entry-grid button span {
-+  color: #7a271a !important;
-+}
-+
-+html body .onboarding-goals button.active,
-+html body .onboarding-goals button:hover,
-+html body .daily-entry-grid button:hover {
-+  background: #fffaf2 !important;
-+  border-color: #b42318 !important;
-+  box-shadow: inset 0 0 0 2px rgba(180, 35, 24, 0.16), 0 10px 22px rgba(51, 42, 29, 0.08) !important;
-+}
-+
-+html body .wellness-options button {
-+  background: #ffffff !important;
-+  border-color: #cbd5e1 !important;
-+  color: #171717 !important;
-+  text-shadow: none !important;
-+}
-+
-+html body .wellness-options button.active {
-+  background: #22272e !important;
-+  border-color: #22272e !important;
-+  color: #ffffff !important;
-+  box-shadow: 0 0 0 2px rgba(180, 35, 24, 0.18) !important;
-+}
-+
-+html body .onboarding-card input,
-+html body .onboarding-card select,
-+html body .onboarding-card textarea {
++html body #planView .cycle-grid label > select,
++html body #planView .cycle-grid label > input,
++html body #planView .max-grid label > select,
++html body #planView .max-grid label > input {
 +  background: #ffffff !important;
 +  border-color: #cbd5e1 !important;
 +  color: #111827 !important;
 +}
 +
-+html body .onboarding-card input::placeholder,
-+html body .onboarding-card textarea::placeholder {
-+  color: #98a2b3 !important;
++html body #planView .program-method-guide > span,
++html body #planView .program-method-guide .eyebrow,
++html body #planView .method-guide-grid article > span,
++html body #planView .method-level-grid article > span,
++html body #analysisView .academy-evaluation-card > span,
++html body #knowledgeView .meet-check-group h4,
++html body #knowledgeView .quiz-score-strip span,
++html body #knowledgeView .quiz-category-card span,
++html body #knowledgeView .quiz-badge,
++html body #knowledgeView .quiz-source span {
++  color: #7a271a !important;
 +}
 +
-+html body .onboarding-card .primary-button,
-+html body .onboarding-card button.primary-button,
-+html body .onboarding-card .text-button {
-+  border-color: #22272e !important;
++html body #knowledgeView .quiz-score-strip div {
++  border-left: 4px solid rgba(180, 35, 24, 0.22) !important;
 +}
 +
-+html body .onboarding-card .primary-button,
-+html body .onboarding-card button.primary-button {
-+  background: #22272e !important;
-+  color: #ffffff !important;
++html body #knowledgeView .meet-rule-note {
++  border-left: 4px solid rgba(180, 35, 24, 0.22) !important;
++  padding: 12px 14px !important;
 +}
 +
-+html body .onboarding-card .text-button:not(.primary-button) {
-+  background: #f3eadc !important;
++/* v124b: stronger cleanup for dark cards and pale text still visible after IRON NOTE */
++html body .home-athlete-dashboard .dashboard-head-compact,
++html body .home-athlete-dashboard .dashboard-head,
++html body .athlete-dashboard .dashboard-head-compact,
++html body .athlete-dashboard .dashboard-head {
 +  color: #171717 !important;
-+  border-color: #ded6c8 !important;
++  text-shadow: none !important;
 +}
 +
-+@media (max-width: 640px) {
-+  html body .onboarding-screen {
-+    background:
-+      radial-gradient(circle at 12% 0, rgba(180, 35, 24, 0.12), transparent 36%),
-+      repeating-linear-gradient(180deg, rgba(21, 23, 26, 0.035) 0 1px, transparent 1px 31px),
-+      linear-gradient(180deg, rgba(247, 242, 232, 0.98), rgba(244, 239, 230, 0.98)) !important;
-+  }
++html body .home-athlete-dashboard .dashboard-head-compact strong,
++html body .home-athlete-dashboard .dashboard-head strong,
++html body .athlete-dashboard .dashboard-head-compact strong,
++html body .athlete-dashboard .dashboard-head strong {
++  color: #171717 !important;
++  text-shadow: none !important;
 +}
---- v122/sw.js
-+++ v123/sw.js
++
++html body .home-athlete-dashboard .dashboard-head-compact small,
++html body .home-athlete-dashboard .dashboard-head small,
++html body .athlete-dashboard .dashboard-head-compact small,
++html body .athlete-dashboard .dashboard-head small {
++  color: #526179 !important;
++  opacity: 1 !important;
++  text-shadow: none !important;
++}
++
++html body .home-athlete-dashboard .dashboard-head-compact span,
++html body .home-athlete-dashboard .dashboard-head span,
++html body .athlete-dashboard .dashboard-head-compact span,
++html body .athlete-dashboard .dashboard-head span {
++  color: #b42318 !important;
++  opacity: 1 !important;
++  text-shadow: none !important;
++}
++
++html body .home-strategy-card,
++html body .home-check-card,
++html body .home-buddy-summary,
++html body .home-buddy-comment-card {
++  color: #171717 !important;
++  text-shadow: none !important;
++}
++
++html body .home-strategy-card strong,
++html body .home-check-card strong,
++html body .home-buddy-summary strong,
++html body .home-buddy-comment-card strong {
++  color: #171717 !important;
++  text-shadow: none !important;
++}
++
++html body .home-strategy-card p,
++html body .home-strategy-card small,
++html body .home-strategy-card .home-strategy-content p,
++html body .home-check-card p,
++html body .home-check-card small,
++html body .home-buddy-summary p,
++html body .home-buddy-comment-card p {
++  color: #526179 !important;
++  opacity: 1 !important;
++  text-shadow: none !important;
++}
++
++html body .home-strategy-card .home-card-top span,
++html body .home-check-card .home-card-top span,
++html body .home-buddy-summary span,
++html body .home-buddy-comment-card span {
++  color: #b42318 !important;
++  opacity: 1 !important;
++  text-shadow: none !important;
++}
++
++html body .home-strategy-pills span,
++html body .home-lift-pills span,
++html body .home-card-note {
++  background: #ffffff !important;
++  border-color: #ded6c8 !important;
++  color: #526179 !important;
++  text-shadow: none !important;
++}
++
++html body .cycle-grid label,
++html body .max-grid label,
++html body .dashboard-input-grid label,
++html body .cycle-setup-grid article,
++html body .cycle-setup-card,
++html body .program-method-guide,
++html body .method-guide-grid article,
++html body .method-level-grid article,
++html body .program-card-mini,
++html body .cycle-advanced-details,
++html body .program-disclaimer,
++html body .cycle-note,
++html body .cycle-method-note,
++html body .rpe-coach-card,
++html body .plan-card,
++html body .cycle-setup-panel .dashboard-card,
++html body .cycle-setup-panel .stat-card,
++html body .academy-evaluation-card,
++html body .academy-evaluation-list article,
++html body .meet-rule-note,
++html body .meet-check-group,
++html body .meet-check-item,
++html body .quiz-score-strip div,
++html body .quiz-disclaimer,
++html body .quiz-guide,
++html body .quiz-source,
++html body .quiz-category-card,
++html body .quiz-question-card,
++html body .quiz-choice,
++html body .quiz-feedback {
++  background:
++    linear-gradient(90deg, rgba(180, 35, 24, 0.03), transparent 46%),
++    #fffaf2 !important;
++  border-color: #ded6c8 !important;
++  color: #171717 !important;
++  box-shadow: 0 10px 22px rgba(51, 42, 29, 0.06) !important;
++  text-shadow: none !important;
++}
++
++html body .cycle-grid label::before,
++html body .cycle-grid label::after,
++html body .max-grid label::before,
++html body .max-grid label::after,
++html body .program-method-guide::before,
++html body .program-method-guide::after,
++html body .cycle-setup-grid article::before,
++html body .cycle-setup-grid article::after,
++html body .plan-card::before,
++html body .plan-card::after,
++html body .rpe-coach-card::before,
++html body .rpe-coach-card::after,
++html body .academy-evaluation-card::before,
++html body .academy-evaluation-card::after,
++html body .meet-rule-note::before,
++html body .meet-rule-note::after {
++  opacity: 0 !important;
++}
++
++html body .cycle-grid label :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body .max-grid label :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body .cycle-setup-grid article :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body .cycle-setup-card :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body .program-method-guide :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body .method-guide-grid article :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body .method-level-grid article :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body .program-card-mini :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body .cycle-advanced-details :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body .program-disclaimer :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body .rpe-coach-card :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body .plan-card :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body .academy-evaluation-card :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body .academy-evaluation-list article :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body .meet-rule-note :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body .meet-check-group :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body .meet-check-item :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body .quiz-score-strip div :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body .quiz-disclaimer :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body .quiz-guide :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body .quiz-source :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body .quiz-category-card :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body .quiz-question-card :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body .quiz-choice :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body .quiz-feedback :is(h1, h2, h3, h4, strong, b, label, summary, li) {
++  color: #171717 !important;
++  opacity: 1 !important;
++  text-shadow: none !important;
++}
++
++html body .cycle-grid label :is(p, small, span, em, td, th),
++html body .max-grid label :is(p, small, span, em, td, th),
++html body .cycle-setup-grid article :is(p, small, span, em, td, th),
++html body .cycle-setup-card :is(p, small, span, em, td, th),
++html body .program-method-guide :is(p, small, span, em, td, th),
++html body .method-guide-grid article :is(p, small, span, em, td, th),
++html body .method-level-grid article :is(p, small, span, em, td, th),
++html body .program-card-mini :is(p, small, span, em, td, th),
++html body .cycle-advanced-details :is(p, small, span, em, td, th),
++html body .program-disclaimer :is(p, small, span, em, td, th),
++html body .rpe-coach-card :is(p, small, span, em, td, th),
++html body .plan-card :is(p, small, span, em, td, th),
++html body .academy-evaluation-card :is(p, small, span, em, td, th),
++html body .academy-evaluation-list article :is(p, small, span, em, td, th),
++html body .meet-rule-note :is(p, small, span, em, td, th),
++html body .meet-check-group :is(p, small, span, em, td, th),
++html body .meet-check-item :is(p, small, span, em, td, th),
++html body .quiz-score-strip div :is(p, small, span, em, td, th),
++html body .quiz-disclaimer :is(p, small, span, em, td, th),
++html body .quiz-guide :is(p, small, span, em, td, th),
++html body .quiz-source :is(p, small, span, em, td, th),
++html body .quiz-category-card :is(p, small, span, em, td, th),
++html body .quiz-question-card :is(p, small, span, em, td, th),
++html body .quiz-choice :is(p, small, span, em, td, th),
++html body .quiz-feedback :is(p, small, span, em, td, th) {
++  color: #526179 !important;
++  opacity: 1 !important;
++  text-shadow: none !important;
++}
++
++html body .cycle-grid label > span,
++html body .max-grid label > span,
++html body .cycle-setup-grid article > span,
++html body .program-method-guide > span,
++html body .program-method-guide .eyebrow,
++html body .method-guide-grid article > span,
++html body .method-level-grid article > span,
++html body .program-card-mini > span,
++html body .academy-evaluation-card > span,
++html body .meet-check-group h4,
++html body .quiz-score-strip span,
++html body .quiz-category-card span,
++html body .quiz-source span {
++  color: #7a271a !important;
++  opacity: 1 !important;
++  text-shadow: none !important;
++}
++
++html body .section-hero,
++html body .page-hero,
++html body .view-hero,
++html body .hero-card:not(.home-hero-card),
++html body .plan-hero,
++html body .meet-hero-card {
++  background:
++    linear-gradient(90deg, rgba(255, 250, 242, 0.92), rgba(255, 250, 242, 0.72)),
++    var(--surface) !important;
++  border-color: #ded6c8 !important;
++  color: #171717 !important;
++  box-shadow: 0 12px 26px rgba(51, 42, 29, 0.08) !important;
++  text-shadow: none !important;
++}
++
++html body .section-hero::before,
++html body .section-hero::after,
++html body .page-hero::before,
++html body .page-hero::after,
++html body .view-hero::before,
++html body .view-hero::after,
++html body .hero-card:not(.home-hero-card)::before,
++html body .hero-card:not(.home-hero-card)::after,
++html body .plan-hero::before,
++html body .plan-hero::after,
++html body .meet-hero-card::before,
++html body .meet-hero-card::after {
++  opacity: 0.16 !important;
++}
++
++html body .section-hero :is(h1, h2, h3, strong, b, span),
++html body .page-hero :is(h1, h2, h3, strong, b, span),
++html body .view-hero :is(h1, h2, h3, strong, b, span),
++html body .hero-card:not(.home-hero-card) :is(h1, h2, h3, strong, b, span),
++html body .plan-hero :is(h1, h2, h3, strong, b, span),
++html body .meet-hero-card :is(h1, h2, h3, strong, b, span) {
++  color: #171717 !important;
++  text-shadow: none !important;
++}
++
++html body .section-hero :is(p, small),
++html body .page-hero :is(p, small),
++html body .view-hero :is(p, small),
++html body .hero-card:not(.home-hero-card) :is(p, small),
++html body .plan-hero :is(p, small),
++html body .meet-hero-card :is(p, small) {
++  color: #526179 !important;
++  text-shadow: none !important;
++}
+--- v123/sw.js
++++ v124/sw.js
 @@ -1,12 +1,12 @@
--const CACHE_NAME = "platform-buddy-v122";
-+const CACHE_NAME = "platform-buddy-v123";
+-const CACHE_NAME = "platform-buddy-v123";
++const CACHE_NAME = "platform-buddy-v124";
  const CORE_ASSETS = [
    "./",
    "index.html",
--  "index.html?v=122",
-+  "index.html?v=123",
+-  "index.html?v=123",
++  "index.html?v=124",
    "styles.css",
--  "styles.css?v=122",
-+  "styles.css?v=123",
+-  "styles.css?v=123",
++  "styles.css?v=124",
    "app.js",
--  "app.js?v=122",
-+  "app.js?v=123",
+-  "app.js?v=123",
++  "app.js?v=124",
    "manifest.webmanifest",
    "icon.svg",
    "apple-touch-icon.png",
---- v122/manifest.webmanifest
-+++ v123/manifest.webmanifest
+--- v123/manifest.webmanifest
++++ v124/manifest.webmanifest
 @@ -2,7 +2,7 @@
    "name": "Platform Buddy",
    "short_name": "Buddy",
    "description": "BIG3の現在地と目標を見える化し、PRサイクル、記録、分析、大会準備までつなげて管理できるパワーリフティング向けPWAです。",
--  "start_url": "./index.html?v=122",
-+  "start_url": "./index.html?v=123",
+-  "start_url": "./index.html?v=123",
++  "start_url": "./index.html?v=124",
    "scope": "./",
    "display": "standalone",
    "background_color": "#06090d",
