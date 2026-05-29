@@ -1,173 +1,154 @@
 --- a/index.html
 +++ b/index.html
-@@ -12,7 +12,7 @@
+@@ -12,14 +12,14 @@
      <link rel="preload" as="image" href="home-bg-lite.jpg">
      <link rel="preload" as="image" href="icon-sheet-lite.jpg">
      <link rel="apple-touch-icon" href="apple-touch-icon.png">
--    <link rel="stylesheet" href="styles.css?v=114">
-+    <link rel="stylesheet" href="styles.css?v=115">
+-    <link rel="stylesheet" href="styles.css?v=115">
++    <link rel="stylesheet" href="styles.css?v=116">
    </head>
    <body>
      <div class="app-shell">
-@@ -976,7 +976,6 @@
+       <header class="topbar">
+         <div class="brand-block">
+           <h1>Platform Buddy</h1>
+-          <p class="brand-subtitle">強くなりたい気持ちを、計画に変える。<br>現在地を知り、目標までの距離を見える化し、週ごとの課題をクリアしながらMAX更新へ進む。<br>Platform Buddyは、BIG3を楽しむあなたを、計画的に強くなるリフターへ導く相棒です。</p>
++          <p class="brand-subtitle">強くなりたい気持ちを、計画に変える。<br>現在地を知り、目標までの距離を見える化し、週ごとの課題をクリアしながらMAX更新へ進む。<br>Platform Buddyは、BIG3を楽しむあなたを、計画的に強くなるリフターに導きます。</p>
+           <div class="brand-tags" aria-label="アプリのテーマ">
+             <span>LOG</span>
+             <span>PLAN</span>
+@@ -976,6 +976,6 @@
        </form>
      </dialog>
  
--    <script src="app.js?v=114"></script>
-+    <script src="app.js?v=115"></script>
+-    <script src="app.js?v=115"></script>
++    <script src="app.js?v=116"></script>
    </body>
  </html>
--
 --- a/styles.css
 +++ b/styles.css
-@@ -10566,6 +10566,110 @@
+@@ -10670,6 +10670,78 @@
    }
  }
  
-+/* v115: HOME mobile number label and accordion polish */
++/* v116: HOME mobile copy rhythm and card alignment polish */
 +@media (max-width: 640px) {
-+  body[data-active-view="home"] .home-command-grid .home-card.visual-card {
-+    position: relative;
-+    padding-right: 56px !important;
++  body[data-active-view="home"] .home-hero-card p {
++    max-width: 24em;
++    line-height: 1.5;
++    word-break: keep-all;
++    overflow-wrap: anywhere;
 +  }
 +
-+  body[data-active-view="home"] .home-card-caret {
-+    position: absolute;
-+    top: 16px;
-+    right: 16px;
-+    z-index: 4;
-+    display: grid;
-+    place-items: center;
-+    width: 34px;
-+    height: 34px;
-+    border: 1px solid rgba(255, 255, 255, 0.22);
-+    border-radius: 999px;
-+    background: rgba(15, 23, 42, 0.72);
-+    color: #fff;
-+    font-size: 0.92rem;
-+    font-style: normal;
-+    line-height: 1;
-+    backdrop-filter: blur(8px);
-+  }
-+
-+  body[data-active-view="home"] .home-current-card,
-+  body[data-active-view="home"] .home-goal-card,
-+  body[data-active-view="home"] .home-meet-card {
-+    padding-right: 18px !important;
-+  }
-+
-+  body[data-active-view="home"] .home-current-card .home-card-caret,
-+  body[data-active-view="home"] .home-goal-card .home-card-caret,
-+  body[data-active-view="home"] .home-meet-card .home-card-caret {
-+    top: 16px;
-+    right: 16px;
-+  }
-+
-+  body[data-active-view="home"] .home-total-number {
-+    position: relative;
-+    display: flex;
-+    flex-wrap: wrap;
-+    align-items: baseline;
++  body[data-active-view="home"] .home-plan-card {
++    align-items: flex-start;
 +    justify-content: center;
-+    gap: 0 5px;
-+    width: 100%;
-+    margin-top: 4px;
++    min-height: 178px !important;
++    padding: 20px 58px 18px 18px !important;
++    text-align: left;
 +  }
 +
-+  body[data-active-view="home"] .home-total-number span {
-+    position: static !important;
-+    order: 0;
-+    flex: 0 0 100%;
-+    width: 100%;
-+    text-align: center;
-+    color: #a78bfa !important;
-+    font-size: 0.78rem;
-+    font-weight: 1000;
-+    letter-spacing: 0.04em;
-+    line-height: 1;
++  body[data-active-view="home"] .home-command-grid .home-plan-card.visual-plan::after {
++    background:
++      linear-gradient(90deg, rgba(3, 7, 11, 0.94), rgba(3, 7, 11, 0.82) 50%, rgba(3, 7, 11, 0.5)),
++      var(--asset-plan) 88% center / cover no-repeat;
 +  }
 +
-+  body[data-active-view="home"] .home-total-number b {
-+    order: 1;
++  body[data-active-view="home"] .home-plan-card .home-card-top,
++  body[data-active-view="home"] .home-plan-card strong,
++  body[data-active-view="home"] .home-plan-card .home-phase-pill,
++  body[data-active-view="home"] .home-plan-card .home-mini-lines {
++    align-self: flex-start;
++    text-align: left;
 +  }
 +
-+  body[data-active-view="home"] .home-total-number .unit {
-+    order: 2;
-+    align-self: baseline;
-+    margin-left: 2px;
++  body[data-active-view="home"] .home-plan-card strong {
++    max-width: 11.5em;
++    margin-top: 12px;
++    font-size: clamp(1.22rem, 6.2vw, 1.68rem) !important;
++    line-height: 1.18;
++    letter-spacing: 0;
 +  }
 +
-+  body[data-active-view="home"] .home-current-card .home-lift-pills {
-+    margin-top: 4px;
++  body[data-active-view="home"] .home-plan-card .home-phase-pill {
++    margin-top: 6px;
 +  }
 +
-+  body[data-active-view="home"] .home-goal-card .home-goal-target {
-+    padding-right: 42px;
++  body[data-active-view="home"] .home-plan-card .home-mini-lines {
++    margin-top: 9px;
++    max-width: 15em;
 +  }
 +
-+  body[data-active-view="home"] .home-meet-card .home-card-top {
-+    padding-right: 42px;
++  body[data-active-view="home"] .home-strategy-card,
++  body[data-active-view="home"] .home-buddy-summary {
++    text-align: left;
 +  }
 +
-+  body[data-active-view="home"] .home-action-card {
-+    margin-bottom: 128px;
++  body[data-active-view="home"] .home-strategy-card {
++    align-items: center;
 +  }
 +
-+  body[data-active-view="home"] .wellness-floating,
-+  body[data-active-view="home"] .guide-mode-bar {
-+    bottom: calc(92px + env(safe-area-inset-bottom));
++  body[data-active-view="home"] .home-strategy-content {
++    justify-items: start;
++    text-align: left;
 +  }
 +
-+  body[data-active-view="home"] .wellness-floating {
-+    max-width: 150px;
-+    transform: scale(0.8);
++  body[data-active-view="home"] .home-strategy-pills {
++    justify-content: flex-start;
 +  }
 +
-+  body[data-active-view="home"] .guide-mode-bar {
-+    transform: scale(0.8);
++  body[data-active-view="home"] .home-strategy-content strong,
++  body[data-active-view="home"] .home-buddy-summary strong {
++    letter-spacing: 0;
 +  }
 +}
 +
  .set-kind-check {
    background: rgba(96, 165, 250, 0.95) !important;
    color: #0f172a !important;
+--- a/app.js
++++ b/app.js
+@@ -2363,7 +2363,7 @@
+       <div>
+         <span>Platform Buddy</span>
+         <h2>「強くなりたい」を<br>計画に変える。</h2>
+-        <p>Platform Buddyは、BIG3を楽しむあなたを、計画的に強くなるリフターへ導く相棒です。</p>
++        <p>Platform Buddyは、BIG3を楽しむあなたを、計画的に強くなるリフターに導きます。</p>
+       </div>
+       <div class="home-hero-visual" aria-hidden="true">
+         <i></i><b></b><i></i>
+@@ -7653,4 +7653,3 @@
+ els.dateInput.value = today();
+ renderSetRows();
+ render();
+-
 --- a/sw.js
 +++ b/sw.js
 @@ -1,12 +1,12 @@
--const CACHE_NAME = "platform-buddy-v114";
-+const CACHE_NAME = "platform-buddy-v115";
+-const CACHE_NAME = "platform-buddy-v115";
++const CACHE_NAME = "platform-buddy-v116";
  const CORE_ASSETS = [
    "./",
    "index.html",
--  "index.html?v=114",
-+  "index.html?v=115",
+-  "index.html?v=115",
++  "index.html?v=116",
    "styles.css",
--  "styles.css?v=114",
-+  "styles.css?v=115",
+-  "styles.css?v=115",
++  "styles.css?v=116",
    "app.js",
--  "app.js?v=114",
-+  "app.js?v=115",
+-  "app.js?v=115",
++  "app.js?v=116",
    "manifest.webmanifest",
    "icon.svg",
    "apple-touch-icon.png",
-@@ -46,4 +46,3 @@
-   }
-   event.respondWith(fetch(event.request).catch(() => caches.match(event.request)));
- });
--
 --- a/manifest.webmanifest
 +++ b/manifest.webmanifest
 @@ -2,7 +2,7 @@
    "name": "Platform Buddy",
    "short_name": "Buddy",
    "description": "BIG3の現在地と目標を見える化し、PRサイクル、記録、分析、大会準備までつなげて管理できるパワーリフティング向けPWAです。",
--  "start_url": "./index.html?v=114",
-+  "start_url": "./index.html?v=115",
+-  "start_url": "./index.html?v=115",
++  "start_url": "./index.html?v=116",
    "scope": "./",
    "display": "standalone",
    "background_color": "#06090d",
-@@ -22,4 +22,3 @@
-     }
-   ]
- }
--

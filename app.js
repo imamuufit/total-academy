@@ -2363,7 +2363,7 @@ function renderHomeDashboard(athlete = currentAthlete(), cycle = normalizedCycle
       <div>
         <span>Platform Buddy</span>
         <h2>「強くなりたい」を<br>計画に変える。</h2>
-        <p>Platform Buddyは、BIG3を楽しむあなたを、計画的に強くなるリフターへ導く相棒です。</p>
+        <p>Platform Buddyは、BIG3を楽しむあなたを、計画的に強くなるリフターに導きます。</p>
       </div>
       <div class="home-hero-visual" aria-hidden="true">
         <i></i><b></b><i></i>
@@ -7653,4 +7653,3 @@ renderExerciseControls();
 els.dateInput.value = today();
 renderSetRows();
 render();
-

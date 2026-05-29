@@ -10670,6 +10670,78 @@ body {
   }
 }
 
+/* v116: HOME mobile copy rhythm and card alignment polish */
+@media (max-width: 640px) {
+  body[data-active-view="home"] .home-hero-card p {
+    max-width: 24em;
+    line-height: 1.5;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+  }
+
+  body[data-active-view="home"] .home-plan-card {
+    align-items: flex-start;
+    justify-content: center;
+    min-height: 178px !important;
+    padding: 20px 58px 18px 18px !important;
+    text-align: left;
+  }
+
+  body[data-active-view="home"] .home-command-grid .home-plan-card.visual-plan::after {
+    background:
+      linear-gradient(90deg, rgba(3, 7, 11, 0.94), rgba(3, 7, 11, 0.82) 50%, rgba(3, 7, 11, 0.5)),
+      var(--asset-plan) 88% center / cover no-repeat;
+  }
+
+  body[data-active-view="home"] .home-plan-card .home-card-top,
+  body[data-active-view="home"] .home-plan-card strong,
+  body[data-active-view="home"] .home-plan-card .home-phase-pill,
+  body[data-active-view="home"] .home-plan-card .home-mini-lines {
+    align-self: flex-start;
+    text-align: left;
+  }
+
+  body[data-active-view="home"] .home-plan-card strong {
+    max-width: 11.5em;
+    margin-top: 12px;
+    font-size: clamp(1.22rem, 6.2vw, 1.68rem) !important;
+    line-height: 1.18;
+    letter-spacing: 0;
+  }
+
+  body[data-active-view="home"] .home-plan-card .home-phase-pill {
+    margin-top: 6px;
+  }
+
+  body[data-active-view="home"] .home-plan-card .home-mini-lines {
+    margin-top: 9px;
+    max-width: 15em;
+  }
+
+  body[data-active-view="home"] .home-strategy-card,
+  body[data-active-view="home"] .home-buddy-summary {
+    text-align: left;
+  }
+
+  body[data-active-view="home"] .home-strategy-card {
+    align-items: center;
+  }
+
+  body[data-active-view="home"] .home-strategy-content {
+    justify-items: start;
+    text-align: left;
+  }
+
+  body[data-active-view="home"] .home-strategy-pills {
+    justify-content: flex-start;
+  }
+
+  body[data-active-view="home"] .home-strategy-content strong,
+  body[data-active-view="home"] .home-buddy-summary strong {
+    letter-spacing: 0;
+  }
+}
+
 .set-kind-check {
   background: rgba(96, 165, 250, 0.95) !important;
   color: #0f172a !important;
