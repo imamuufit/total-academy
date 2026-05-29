@@ -1,11 +1,11 @@
---- a/index.html
-+++ b/index.html
+--- v120/index.html
++++ v121/index.html
 @@ -12,7 +12,7 @@
      <link rel="preload" as="image" href="home-bg-lite.jpg">
      <link rel="preload" as="image" href="icon-sheet-lite.jpg">
      <link rel="apple-touch-icon" href="apple-touch-icon.png">
--    <link rel="stylesheet" href="styles.css?v=118">
-+    <link rel="stylesheet" href="styles.css?v=119">
+-    <link rel="stylesheet" href="styles.css?v=120">
++    <link rel="stylesheet" href="styles.css?v=121">
    </head>
    <body>
      <div class="app-shell">
@@ -13,331 +13,202 @@
        </form>
      </dialog>
  
--    <script src="app.js?v=118"></script>
-+    <script src="app.js?v=119"></script>
+-    <script src="app.js?v=120"></script>
++    <script src="app.js?v=121"></script>
    </body>
  </html>
---- a/styles.css
-+++ b/styles.css
-@@ -11502,3 +11502,291 @@
-     font-size: 0.68rem;
-   }
+--- v120/styles.css
++++ v121/styles.css
+@@ -12157,3 +12157,162 @@
+     var(--asset-meet) center / cover no-repeat,
+     #fffaf2 !important;
  }
 +
-+/* v119: remaining IRON NOTE surface cleanup */
-+.editable-session-sheet,
-+.editable-exercise-sheet,
-+.editable-set-sheet,
-+.editable-set-row,
-+.editable-exercise-head,
-+.editable-set-head,
-+.editable-set-header-row,
-+.editable-exercise-footer,
-+.plan-day-card,
-+.day-details,
-+details.plan-day,
-+.plan-day,
-+.plan-day .exercise-list,
-+.actual-box,
-+.set-row,
-+.exercise-row,
-+.planned-summary,
-+.actual-inputs,
-+.plan-prescription-block,
-+.method-level-card,
-+.method-card,
-+.plan-context-grid article,
-+.plan-context-item,
-+.short-goal-card,
-+.current-check-card,
-+.log-command-panel,
-+.log-command-card,
-+.log-main-panel,
-+.meet-command-panel,
-+.meet-main-panel,
-+.meet-hero-card,
-+.meet-hero-copy,
-+.meet-command-card,
-+.meet-check-group,
-+.meet-check-item,
-+.meet-attempt-lift,
-+.meet-attempt-row,
-+.meet-note-card,
-+.meet-review-card,
-+.meet-prep-announcement,
-+.quiz-top,
-+.quiz-question-card,
-+.quiz-choice,
-+.quiz-feedback,
-+.quiz-score-strip div,
-+.quiz-disclaimer,
-+.quiz-source,
-+.history-day summary,
-+.history-day-details,
-+.history-source-section,
-+.history-note,
-+.home-shortcut-grid button,
-+.daily-entry-grid button,
-+.onboarding-goals button,
-+.wellness-options button,
-+.dashboard-profile-editor label,
-+.dashboard-input-grid label,
-+.actual-set-add {
++/* v121: force remaining dark plan surfaces and pale text into IRON NOTE */
++html body .topbar,
++html body:not(.home-mode) .topbar,
++html body[data-active-view] .topbar {
 +  background:
-+    linear-gradient(90deg, rgba(180, 35, 24, 0.035), transparent 46%),
++    linear-gradient(90deg, rgba(180, 35, 24, 0.045), transparent 48%),
 +    #fffaf2 !important;
-+  border-color: #ded6c8 !important;
 +  color: #171717 !important;
-+  box-shadow: 0 10px 22px rgba(51, 42, 29, 0.06);
++  border-top: 5px solid #b42318 !important;
++  border-color: #ded6c8 !important;
 +}
 +
-+.editable-exercise-head,
-+.editable-set-head,
-+.editable-set-header-row,
-+.history-day-details,
-+.plan-day .exercise-list,
-+.meet-attempt-row,
-+.quiz-score-strip div,
-+.actual-box,
-+.set-row,
-+.actual-set-row,
-+.editable-set-row:nth-child(odd),
-+.editable-set-row:nth-child(even) {
-+  background:
-+    repeating-linear-gradient(180deg, rgba(21, 23, 26, 0.022) 0 1px, transparent 1px 31px),
-+    #fff7ed !important;
-+}
-+
-+.editable-session-sheet :is(h1, h2, h3, h4, strong, b, span, p, small, label, li),
-+.editable-exercise-sheet :is(h1, h2, h3, h4, strong, b, span, p, small, label, li),
-+.editable-set-sheet :is(h1, h2, h3, h4, strong, b, span, p, small, label, li),
-+.plan-day-card :is(h1, h2, h3, h4, strong, b, span, p, small, label, li),
-+.day-details :is(h1, h2, h3, h4, strong, b, span, p, small, label, li),
-+details.plan-day :is(h1, h2, h3, h4, strong, b, span, p, small, label, li),
-+.actual-box :is(h1, h2, h3, h4, strong, b, span, p, small, label, li),
-+.set-row :is(h1, h2, h3, h4, strong, b, span, p, small, label, li),
-+.exercise-row :is(h1, h2, h3, h4, strong, b, span, p, small, label, li),
-+.log-command-panel :is(h1, h2, h3, h4, strong, b, span, p, small, label, li),
-+.meet-command-panel :is(h1, h2, h3, h4, strong, b, span, p, small, label, li),
-+.meet-main-panel :is(h1, h2, h3, h4, strong, b, span, p, small, label, li),
-+.meet-hero-card :is(h1, h2, h3, h4, strong, b, span, p, small, label, li),
-+.meet-note-card :is(h1, h2, h3, h4, strong, b, span, p, small, label, li),
-+.meet-attempt-lift :is(h1, h2, h3, h4, strong, b, span, p, small, label, li),
-+.quiz-top :is(h1, h2, h3, h4, strong, b, span, p, small, label, li),
-+.quiz-question-card :is(h1, h2, h3, h4, strong, b, span, p, small, label, li),
-+.quiz-choice :is(h1, h2, h3, h4, strong, b, span, p, small, label, li),
-+.history-day :is(h1, h2, h3, h4, strong, b, span, p, small, label, li),
-+.history-day-details :is(h1, h2, h3, h4, strong, b, span, p, small, label, li),
-+.home-shortcut-grid button :is(h1, h2, h3, h4, strong, b, span, p, small, label, li),
-+.daily-entry-grid button :is(h1, h2, h3, h4, strong, b, span, p, small, label, li),
-+.onboarding-goals button :is(h1, h2, h3, h4, strong, b, span, p, small, label, li) {
++html body .topbar :is(h1, h2, h3, strong, b, p, span, small, button, a),
++html body .brand-block :is(h1, h2, h3, strong, b, p, span, small) {
 +  color: #171717 !important;
 +  text-shadow: none !important;
 +}
 +
-+.editable-session-sheet :is(p, small, em),
-+.editable-exercise-sheet :is(p, small, em),
-+.plan-day-card :is(p, small, em),
-+.day-details :is(p, small, em),
-+details.plan-day :is(p, small, em),
-+.actual-box :is(p, small, em),
-+.log-command-panel :is(p, small, em),
-+.meet-command-panel :is(p, small, em),
-+.meet-main-panel :is(p, small, em),
-+.meet-hero-card :is(p, small, em),
-+.meet-note-card :is(p, small, em),
-+.quiz-top :is(p, small, em),
-+.quiz-question-card :is(p, small, em),
-+.history-day :is(p, small, em),
-+.history-day-details :is(p, small, em),
-+.home-shortcut-grid button :is(p, small, em),
-+.daily-entry-grid button :is(p, small, em),
-+.onboarding-goals button :is(p, small, em) {
-+  color: #667085 !important;
++html body .topbar :is(p, small),
++html body .brand-subtitle {
++  color: #526179 !important;
 +}
 +
-+.editable-exercise-head strong,
-+.editable-set-header-row span,
-+.editable-set-head span,
-+.actual-title span,
-+.planned-method-label,
-+.history-date,
-+.quiz-badge,
-+.quiz-category-card span,
-+.quiz-source span,
-+.meet-note-meta span,
-+.meet-attempt-chip,
-+.meet-check-group h4,
-+.meet-hero-copy span,
-+.meet-dday-card span,
-+.meet-today-card span,
-+.log-command-panel span,
-+.log-command-card span,
-+.home-shortcut-grid span,
-+.daily-entry-grid button span,
-+.onboarding-goals button span {
-+  color: #7a271a !important;
-+}
-+
-+.editable-set-header-row,
-+.editable-set-row {
-+  border-color: rgba(23, 23, 23, 0.1) !important;
-+}
-+
-+.actual-remove-set,
-+.actual-set-add,
-+.meet-attempt-judge,
-+.quiz-choice span,
-+.collapse-summary,
-+.history-open {
-+  border-color: rgba(23, 23, 23, 0.14) !important;
-+  background: rgba(255, 255, 255, 0.86) !important;
-+  color: #171717 !important;
-+}
-+
-+.quiz-choice.correct {
-+  border-color: rgba(21, 127, 59, 0.34) !important;
-+  background: #f1fbf4 !important;
-+}
-+
-+.quiz-choice.wrong {
-+  border-color: rgba(180, 35, 24, 0.28) !important;
-+  background: #fff4f2 !important;
-+}
-+
-+.quiz-choice.correct span,
-+.quiz-choice.wrong span,
-+.quiz-result > span {
-+  color: #ffffff !important;
-+}
-+
-+.quiz-feedback.correct {
-+  border-color: rgba(21, 127, 59, 0.34) !important;
-+  background: #f1fbf4 !important;
-+}
-+
-+.quiz-feedback.wrong {
-+  border-color: rgba(180, 35, 24, 0.28) !important;
-+  background: #fff7f6 !important;
-+}
-+
-+.meet-command-actions a,
-+.meet-command-actions button,
-+.log-command-card,
-+.home-shortcut-grid button,
-+.daily-entry-grid button,
-+.onboarding-goals button {
-+  text-decoration: none;
-+}
-+
-+.meet-command-actions a:not(.primary),
-+.meet-command-actions button:not(.primary),
-+.home-shortcut-grid a:not(:first-child),
-+.home-shortcut-grid button:not(:first-child) {
++html body #planView::before,
++html body #logView::before,
++html body #analysisView::before,
++html body #knowledgeView::before {
 +  background:
-+    linear-gradient(90deg, rgba(180, 35, 24, 0.035), transparent 46%),
++    linear-gradient(90deg, rgba(255, 250, 242, 0.96), rgba(255, 250, 242, 0.86)),
++    #fffaf2 !important;
++  color: #171717 !important;
++  border-color: #ded6c8 !important;
++  box-shadow: 0 10px 22px rgba(51, 42, 29, 0.07) !important;
++  text-shadow: none !important;
++}
++
++html body #planView::before {
++  background:
++    linear-gradient(90deg, rgba(255, 250, 242, 0.96), rgba(255, 250, 242, 0.86)),
++    var(--asset-plan) center / cover no-repeat,
++    #fffaf2 !important;
++}
++
++html body #logView::before {
++  background:
++    linear-gradient(90deg, rgba(255, 250, 242, 0.96), rgba(255, 250, 242, 0.86)),
++    var(--asset-log) center / cover no-repeat,
++    #fffaf2 !important;
++}
++
++html body #analysisView::before {
++  background:
++    linear-gradient(90deg, rgba(255, 250, 242, 0.96), rgba(255, 250, 242, 0.86)),
++    var(--asset-data) center / cover no-repeat,
++    #fffaf2 !important;
++}
++
++html body #knowledgeView::before {
++  background:
++    linear-gradient(90deg, rgba(255, 250, 242, 0.96), rgba(255, 250, 242, 0.86)),
++    var(--asset-meet) center / cover no-repeat,
++    #fffaf2 !important;
++}
++
++html body #planView .plan-command-card,
++html body #planView .plan-command-grid > div,
++html body #planView .cycle-setup-grid article,
++html body #planView .cycle-setup-card,
++html body #planView .plan-context-grid article,
++html body #planView .rpe-coach-card,
++html body #planView .rpe-coach-details,
++html body #planView .rpe-coach-summary,
++html body #planView .program-disclaimer,
++html body #planView .buddy-method-panel p,
++html body #planView .day-card,
++html body #planView details.plan-day,
++html body #planView .day-summary,
++html body #planView .plan-day .exercise-list {
++  background:
++    linear-gradient(90deg, rgba(180, 35, 24, 0.035), transparent 48%),
 +    #fffaf2 !important;
 +  border-color: #ded6c8 !important;
 +  color: #171717 !important;
++  box-shadow: 0 10px 22px rgba(51, 42, 29, 0.06) !important;
++  text-shadow: none !important;
 +}
 +
-+.meet-command-actions a:not(.primary) *,
-+.meet-command-actions button:not(.primary) *,
-+.home-shortcut-grid a:not(:first-child) *,
-+.home-shortcut-grid button:not(:first-child) * {
-+  color: inherit !important;
++html body #planView .plan-command-card::before,
++html body #planView .plan-command-card::after,
++html body #planView .day-card::before,
++html body #planView .day-card::after,
++html body #planView details.plan-day::before,
++html body #planView details.plan-day::after,
++html body #planView .cycle-setup-grid article::before,
++html body #planView .cycle-setup-grid article::after {
++  opacity: 0.08 !important;
++  filter: saturate(0.65) contrast(0.9) !important;
 +}
 +
-+.meet-command-actions a.primary,
-+.meet-command-actions button.primary,
-+.actual-save,
-+.actual-add-set,
-+.editable-exercise-footer .actual-save {
-+  background: #22272e !important;
-+  border-color: #22272e !important;
-+  color: #ffffff !important;
-+}
-+
-+.actual-save *,
-+.actual-add-set *,
-+.meet-command-actions a.primary *,
-+.meet-command-actions button.primary * {
-+  color: #ffffff !important;
-+}
-+
-+table,
-+.weekly-table,
-+.history-table,
-+.plan-table,
-+.data-table {
-+  background: #fffaf2 !important;
++html body #planView .plan-command-card :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body #planView .plan-command-grid :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body #planView .cycle-setup-grid article :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body #planView .cycle-setup-card :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body #planView .plan-context-grid article :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body #planView .rpe-coach-card :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body #planView .rpe-coach-details :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body #planView .program-disclaimer :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body #planView .buddy-method-panel :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body #planView .day-card :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body #planView details.plan-day :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body #planView .day-summary :is(h1, h2, h3, h4, strong, b, label, summary, li) {
 +  color: #171717 !important;
-+  border-color: #ded6c8 !important;
++  text-shadow: none !important;
 +}
 +
-+th,
-+td {
-+  border-color: rgba(23, 23, 23, 0.1) !important;
++html body #planView .plan-command-card :is(p, small, span, em),
++html body #planView .plan-command-grid :is(p, small, span, em),
++html body #planView .cycle-setup-grid article :is(p, small, span, em),
++html body #planView .cycle-setup-card :is(p, small, span, em),
++html body #planView .plan-context-grid article :is(p, small, span, em),
++html body #planView .rpe-coach-card :is(p, small, span, em),
++html body #planView .rpe-coach-details :is(p, small, span, em),
++html body #planView .program-disclaimer :is(p, small, span, em),
++html body #planView .buddy-method-panel :is(p, small, span, em),
++html body #planView .day-card :is(p, small, span, em),
++html body #planView details.plan-day :is(p, small, span, em),
++html body #planView .day-summary :is(p, small, span, em) {
++  color: #526179 !important;
++  text-shadow: none !important;
++}
++
++html body #planView .eyebrow,
++html body #planView .lift-badge,
++html body #planView .recommended-badge,
++html body #planView .plan-command-face,
++html body #planView .cycle-setup-grid article > span,
++html body #planView .plan-context-grid article > span,
++html body #planView .plan-command-grid span {
++  color: #7a271a !important;
++}
++
++html body .home-athlete-dashboard :is(h1, h2, h3, h4, strong, b, p, span, small, label),
++html body #homeView .section-title :is(h1, h2, h3, h4, strong, b, p, span, small),
++html body #homeView .home-card :is(h1, h2, h3, h4, strong, b, p, span, small, label) {
++  text-shadow: none !important;
++}
++
++html body .home-athlete-dashboard :is(h1, h2, h3, h4, strong, b, label),
++html body #homeView .section-title :is(h1, h2, h3, h4, strong, b, label),
++html body #homeView .home-card :is(h1, h2, h3, h4, strong, b, label) {
 +  color: #171717 !important;
 +}
 +
-+thead,
-+th {
-+  background: #f3eadc !important;
++html body .home-athlete-dashboard :is(p, small, span),
++html body #homeView .section-title :is(p, small, span),
++html body #homeView .home-card :is(p, small, span) {
++  color: #526179 !important;
 +}
-+
-+.meet-hero-card::after,
-+.log-command-panel::after,
-+.quiz-panel::after,
-+.editable-session-sheet::after,
-+.editable-exercise-sheet::after,
-+.home-card-detail-panel::after {
-+  opacity: 0.06 !important;
-+  filter: saturate(0.7) contrast(0.9);
-+}
-+
-+@media (max-width: 640px) {
-+  .editable-session-sheet,
-+  .editable-exercise-sheet,
-+  .plan-day-card,
-+  .day-details,
-+  details.plan-day,
-+  .meet-command-panel,
-+  .meet-main-panel,
-+  .log-command-panel,
-+  .quiz-question-card {
-+    background:
-+      linear-gradient(90deg, rgba(180, 35, 24, 0.035), transparent 48%),
-+      #fffaf2 !important;
-+  }
-+}
---- a/sw.js
-+++ b/sw.js
+--- v120/sw.js
++++ v121/sw.js
 @@ -1,12 +1,12 @@
--const CACHE_NAME = "platform-buddy-v118";
-+const CACHE_NAME = "platform-buddy-v119";
+-const CACHE_NAME = "platform-buddy-v120";
++const CACHE_NAME = "platform-buddy-v121";
  const CORE_ASSETS = [
    "./",
    "index.html",
--  "index.html?v=118",
-+  "index.html?v=119",
+-  "index.html?v=120",
++  "index.html?v=121",
    "styles.css",
--  "styles.css?v=118",
-+  "styles.css?v=119",
+-  "styles.css?v=120",
++  "styles.css?v=121",
    "app.js",
--  "app.js?v=118",
-+  "app.js?v=119",
+-  "app.js?v=120",
++  "app.js?v=121",
    "manifest.webmanifest",
    "icon.svg",
    "apple-touch-icon.png",
---- a/manifest.webmanifest
-+++ b/manifest.webmanifest
+--- v120/manifest.webmanifest
++++ v121/manifest.webmanifest
 @@ -2,7 +2,7 @@
    "name": "Platform Buddy",
    "short_name": "Buddy",
    "description": "BIG3の現在地と目標を見える化し、PRサイクル、記録、分析、大会準備までつなげて管理できるパワーリフティング向けPWAです。",
--  "start_url": "./index.html?v=118",
-+  "start_url": "./index.html?v=119",
+-  "start_url": "./index.html?v=120",
++  "start_url": "./index.html?v=121",
    "scope": "./",
    "display": "standalone",
    "background_color": "#06090d",

@@ -11790,3 +11790,529 @@ th {
       #fffaf2 !important;
   }
 }
+
+/* v120: IRON NOTE visible text cleanup */
+.topbar,
+body:not(.home-mode) .topbar {
+  background:
+    linear-gradient(90deg, rgba(180, 35, 24, 0.05), transparent 48%),
+    #fffaf2 !important;
+  color: #171717 !important;
+  border-top: 5px solid #b42318 !important;
+  border-color: #ded6c8 !important;
+  box-shadow: 0 12px 26px rgba(51, 42, 29, 0.08) !important;
+}
+
+.topbar :is(h1, h2, h3, strong, b, p, span, small, li),
+.brand-block :is(h1, h2, h3, strong, b, p, span, small, li),
+.brand-subtitle,
+.brand-tags span {
+  color: #171717 !important;
+  text-shadow: none !important;
+}
+
+.brand-subtitle,
+.topbar p,
+.brand-block p {
+  color: #526179 !important;
+}
+
+.topbar .text-button,
+.topbar button:not(.primary) {
+  background: #f3eadc !important;
+  border-color: #ded6c8 !important;
+  color: #171717 !important;
+}
+
+.app-tabs,
+.tab-nav,
+.main-tabs,
+.bottom-tabs {
+  background: rgba(255, 250, 242, 0.92) !important;
+  border-color: #ded6c8 !important;
+}
+
+.tab,
+.app-tab,
+.nav-tab {
+  color: #526179 !important;
+}
+
+.tab.active,
+.app-tab.active,
+.nav-tab.active,
+.tab[aria-selected="true"],
+.app-tab[aria-selected="true"],
+.nav-tab[aria-selected="true"] {
+  background: #22272e !important;
+  border-color: #b42318 !important;
+  color: #ffffff !important;
+}
+
+.section-hero,
+.page-hero,
+.view-hero,
+.screen-hero,
+.plan-hero,
+.log-hero,
+.data-hero,
+.meet-hero,
+.log-command-card,
+.meet-hero-card {
+  background:
+    linear-gradient(90deg, rgba(255, 250, 242, 0.96), rgba(255, 250, 242, 0.84)),
+    #fffaf2 !important;
+  border-color: #ded6c8 !important;
+  color: #171717 !important;
+  box-shadow: 0 12px 26px rgba(51, 42, 29, 0.08) !important;
+}
+
+.section-hero::before,
+.section-hero::after,
+.page-hero::before,
+.page-hero::after,
+.view-hero::before,
+.view-hero::after,
+.screen-hero::before,
+.screen-hero::after,
+.plan-hero::before,
+.plan-hero::after,
+.log-hero::before,
+.log-hero::after,
+.data-hero::before,
+.data-hero::after,
+.meet-hero::before,
+.meet-hero::after,
+.log-command-card::before,
+.log-command-card::after,
+.meet-hero-card::before,
+.meet-hero-card::after {
+  opacity: 0.08 !important;
+  filter: saturate(0.65) contrast(0.9) !important;
+}
+
+.section-hero :is(h1, h2, h3, strong, b, p, span, small),
+.page-hero :is(h1, h2, h3, strong, b, p, span, small),
+.view-hero :is(h1, h2, h3, strong, b, p, span, small),
+.screen-hero :is(h1, h2, h3, strong, b, p, span, small),
+.plan-hero :is(h1, h2, h3, strong, b, p, span, small),
+.log-hero :is(h1, h2, h3, strong, b, p, span, small),
+.data-hero :is(h1, h2, h3, strong, b, p, span, small),
+.meet-hero :is(h1, h2, h3, strong, b, p, span, small),
+.log-command-card :is(h1, h2, h3, strong, b, p, span, small),
+.meet-hero-card :is(h1, h2, h3, strong, b, p, span, small) {
+  color: #171717 !important;
+  text-shadow: none !important;
+}
+
+.section-hero :is(p, small),
+.page-hero :is(p, small),
+.view-hero :is(p, small),
+.screen-hero :is(p, small),
+.plan-hero :is(p, small),
+.log-hero :is(p, small),
+.data-hero :is(p, small),
+.meet-hero :is(p, small),
+.log-command-card :is(p, small),
+.meet-hero-card :is(p, small) {
+  color: #526179 !important;
+}
+
+.home-athlete-dashboard :is(h1, h2, h3, strong, b, label),
+.home-athlete-dashboard .section-title :is(h1, h2, h3, strong, b),
+.home-athlete-dashboard .dashboard-heading {
+  color: #171717 !important;
+  text-shadow: none !important;
+}
+
+.home-athlete-dashboard :is(p, small, span),
+.home-meet-card :is(p, small, span),
+.home-plan-card :is(p, small, span),
+.home-current-card :is(p, small, span),
+.home-goal-card :is(p, small, span) {
+  color: #526179 !important;
+  text-shadow: none !important;
+}
+
+.home-athlete-dashboard .eyebrow,
+.home-card .eyebrow,
+.home-card-label,
+.home-meet-card .meet-priority,
+.home-plan-card .plan-focus,
+.home-plan-card .plan-success {
+  color: #7a271a !important;
+}
+
+.dashboard-card,
+.achievement-card,
+.weekly-data-card,
+.quick-stats .stat-card,
+.metric-grid .stat-card,
+.log-command-grid article,
+.log-latest-card,
+.plan-context-grid article,
+.plan-context-item,
+.rpe-coach-card,
+.rpe-coach-details,
+.rpe-coach-summary,
+.program-disclaimer,
+.buddy-method-panel .program-disclaimer,
+.buddy-method-panel p,
+.cycle-setup-panel .dashboard-card,
+.cycle-setup-panel .stat-card,
+.data-status,
+.weekly-verdict {
+  background:
+    linear-gradient(90deg, rgba(180, 35, 24, 0.035), transparent 46%),
+    #fffaf2 !important;
+  border-color: #ded6c8 !important;
+  color: #171717 !important;
+  box-shadow: 0 10px 22px rgba(51, 42, 29, 0.06) !important;
+}
+
+.dashboard-card :is(h1, h2, h3, h4, strong, b, label),
+.achievement-card :is(h1, h2, h3, h4, strong, b, label),
+.weekly-data-card :is(h1, h2, h3, h4, strong, b, label),
+.quick-stats .stat-card :is(h1, h2, h3, h4, strong, b, label),
+.metric-grid .stat-card :is(h1, h2, h3, h4, strong, b, label),
+.log-command-grid article :is(h1, h2, h3, h4, strong, b, label),
+.log-latest-card :is(h1, h2, h3, h4, strong, b, label),
+.plan-context-grid article :is(h1, h2, h3, h4, strong, b, label),
+.rpe-coach-card :is(h1, h2, h3, h4, strong, b, label),
+.rpe-coach-details :is(h1, h2, h3, h4, strong, b, label),
+.cycle-setup-panel .dashboard-card :is(h1, h2, h3, h4, strong, b, label),
+.weekly-verdict :is(h1, h2, h3, h4, strong, b, label) {
+  color: #171717 !important;
+  text-shadow: none !important;
+}
+
+.dashboard-card :is(p, small, span, em),
+.achievement-card :is(p, small, span, em),
+.weekly-data-card :is(p, small, span, em),
+.quick-stats .stat-card :is(p, small, span, em),
+.metric-grid .stat-card :is(p, small, span, em),
+.log-command-grid article :is(p, small, span, em),
+.log-latest-card :is(p, small, span, em),
+.plan-context-grid article :is(p, small, span, em),
+.rpe-coach-card :is(p, small, span, em),
+.rpe-coach-details :is(p, small, span, em),
+.cycle-setup-panel .dashboard-card :is(p, small, span, em),
+.weekly-verdict :is(p, small, span, em) {
+  color: #526179 !important;
+  text-shadow: none !important;
+}
+
+.plan-day,
+.plan-day-card,
+.day-details,
+details.plan-day,
+.plan-day .day-summary,
+details.plan-day > summary,
+.day-summary {
+  background:
+    linear-gradient(90deg, rgba(180, 35, 24, 0.035), transparent 48%),
+    #fffaf2 !important;
+  border-color: #ded6c8 !important;
+  color: #171717 !important;
+}
+
+.plan-day .day-summary :is(h1, h2, h3, h4, strong, b, label),
+.plan-day-card :is(h1, h2, h3, h4, strong, b, label),
+.day-details :is(h1, h2, h3, h4, strong, b, label),
+details.plan-day :is(h1, h2, h3, h4, strong, b, label),
+.day-summary :is(h1, h2, h3, h4, strong, b, label) {
+  color: #171717 !important;
+  text-shadow: none !important;
+}
+
+.plan-day .day-summary :is(p, small, span, em),
+.plan-day-card :is(p, small, span, em),
+.day-details :is(p, small, span, em),
+details.plan-day :is(p, small, span, em),
+.day-summary :is(p, small, span, em) {
+  color: #526179 !important;
+  text-shadow: none !important;
+}
+
+.plan-day .exercise-list,
+.editable-session-sheet,
+.editable-exercise-sheet,
+.plan-prescription-block,
+.exercise-row,
+.actual-box,
+.set-row,
+.actual-set-row {
+  background: #fff7ed !important;
+  border-color: #ded6c8 !important;
+  color: #171717 !important;
+}
+
+.plan-day .exercise-list :is(h1, h2, h3, h4, strong, b, label),
+.editable-session-sheet :is(h1, h2, h3, h4, strong, b, label),
+.editable-exercise-sheet :is(h1, h2, h3, h4, strong, b, label),
+.plan-prescription-block :is(h1, h2, h3, h4, strong, b, label),
+.exercise-row :is(h1, h2, h3, h4, strong, b, label),
+.actual-box :is(h1, h2, h3, h4, strong, b, label),
+.set-row :is(h1, h2, h3, h4, strong, b, label),
+.actual-set-row :is(h1, h2, h3, h4, strong, b, label) {
+  color: #171717 !important;
+}
+
+.plan-day .exercise-list :is(p, small, span, em),
+.editable-session-sheet :is(p, small, span, em),
+.editable-exercise-sheet :is(p, small, span, em),
+.plan-prescription-block :is(p, small, span, em),
+.exercise-row :is(p, small, span, em),
+.actual-box :is(p, small, span, em),
+.set-row :is(p, small, span, em),
+.actual-set-row :is(p, small, span, em) {
+  color: #526179 !important;
+}
+
+.rule-links a,
+.official-rules-card a,
+.official-rules-card .text-button,
+.meet-rule-note a {
+  background: #f3eadc !important;
+  border-color: #ead1ca !important;
+  color: #7a271a !important;
+  text-shadow: none !important;
+}
+
+.rule-links a *,
+.official-rules-card a *,
+.official-rules-card .text-button *,
+.meet-rule-note a * {
+  color: inherit !important;
+}
+
+.rule-links a:focus-visible,
+.rule-links a:hover,
+.official-rules-card a:focus-visible,
+.official-rules-card a:hover,
+.official-rules-card .text-button:focus-visible,
+.official-rules-card .text-button:hover,
+.meet-rule-note a:focus-visible,
+.meet-rule-note a:hover {
+  background: #b42318 !important;
+  border-color: #b42318 !important;
+  color: #ffffff !important;
+}
+
+.primary,
+button.primary,
+.actual-save,
+.actual-add-set,
+.text-button.primary {
+  background: #22272e !important;
+  border-color: #22272e !important;
+  color: #ffffff !important;
+}
+
+.primary *,
+button.primary *,
+.actual-save *,
+.actual-add-set *,
+.text-button.primary * {
+  color: #ffffff !important;
+}
+
+#planView::before,
+#logView::before,
+#analysisView::before,
+#knowledgeView::before {
+  background:
+    linear-gradient(90deg, rgba(255, 250, 242, 0.94), rgba(255, 250, 242, 0.78)),
+    #fffaf2 !important;
+  border-color: #ded6c8 !important;
+  color: #171717 !important;
+  box-shadow: 0 12px 26px rgba(51, 42, 29, 0.08) !important;
+  text-shadow: none !important;
+}
+
+#planView::before {
+  background:
+    linear-gradient(90deg, rgba(255, 250, 242, 0.94), rgba(255, 250, 242, 0.78)),
+    var(--asset-plan) center / cover no-repeat,
+    #fffaf2 !important;
+}
+
+#logView::before {
+  background:
+    linear-gradient(90deg, rgba(255, 250, 242, 0.94), rgba(255, 250, 242, 0.78)),
+    var(--asset-log) center / cover no-repeat,
+    #fffaf2 !important;
+}
+
+#analysisView::before {
+  background:
+    linear-gradient(90deg, rgba(255, 250, 242, 0.94), rgba(255, 250, 242, 0.78)),
+    var(--asset-data) center / cover no-repeat,
+    #fffaf2 !important;
+}
+
+#knowledgeView::before {
+  background:
+    linear-gradient(90deg, rgba(255, 250, 242, 0.94), rgba(255, 250, 242, 0.78)),
+    var(--asset-meet) center / cover no-repeat,
+    #fffaf2 !important;
+}
+
+/* v121: force remaining dark plan surfaces and pale text into IRON NOTE */
+html body .topbar,
+html body:not(.home-mode) .topbar,
+html body[data-active-view] .topbar {
+  background:
+    linear-gradient(90deg, rgba(180, 35, 24, 0.045), transparent 48%),
+    #fffaf2 !important;
+  color: #171717 !important;
+  border-top: 5px solid #b42318 !important;
+  border-color: #ded6c8 !important;
+}
+
+html body .topbar :is(h1, h2, h3, strong, b, p, span, small, button, a),
+html body .brand-block :is(h1, h2, h3, strong, b, p, span, small) {
+  color: #171717 !important;
+  text-shadow: none !important;
+}
+
+html body .topbar :is(p, small),
+html body .brand-subtitle {
+  color: #526179 !important;
+}
+
+html body #planView::before,
+html body #logView::before,
+html body #analysisView::before,
+html body #knowledgeView::before {
+  background:
+    linear-gradient(90deg, rgba(255, 250, 242, 0.96), rgba(255, 250, 242, 0.86)),
+    #fffaf2 !important;
+  color: #171717 !important;
+  border-color: #ded6c8 !important;
+  box-shadow: 0 10px 22px rgba(51, 42, 29, 0.07) !important;
+  text-shadow: none !important;
+}
+
+html body #planView::before {
+  background:
+    linear-gradient(90deg, rgba(255, 250, 242, 0.96), rgba(255, 250, 242, 0.86)),
+    var(--asset-plan) center / cover no-repeat,
+    #fffaf2 !important;
+}
+
+html body #logView::before {
+  background:
+    linear-gradient(90deg, rgba(255, 250, 242, 0.96), rgba(255, 250, 242, 0.86)),
+    var(--asset-log) center / cover no-repeat,
+    #fffaf2 !important;
+}
+
+html body #analysisView::before {
+  background:
+    linear-gradient(90deg, rgba(255, 250, 242, 0.96), rgba(255, 250, 242, 0.86)),
+    var(--asset-data) center / cover no-repeat,
+    #fffaf2 !important;
+}
+
+html body #knowledgeView::before {
+  background:
+    linear-gradient(90deg, rgba(255, 250, 242, 0.96), rgba(255, 250, 242, 0.86)),
+    var(--asset-meet) center / cover no-repeat,
+    #fffaf2 !important;
+}
+
+html body #planView .plan-command-card,
+html body #planView .plan-command-grid > div,
+html body #planView .cycle-setup-grid article,
+html body #planView .cycle-setup-card,
+html body #planView .plan-context-grid article,
+html body #planView .rpe-coach-card,
+html body #planView .rpe-coach-details,
+html body #planView .rpe-coach-summary,
+html body #planView .program-disclaimer,
+html body #planView .buddy-method-panel p,
+html body #planView .day-card,
+html body #planView details.plan-day,
+html body #planView .day-summary,
+html body #planView .plan-day .exercise-list {
+  background:
+    linear-gradient(90deg, rgba(180, 35, 24, 0.035), transparent 48%),
+    #fffaf2 !important;
+  border-color: #ded6c8 !important;
+  color: #171717 !important;
+  box-shadow: 0 10px 22px rgba(51, 42, 29, 0.06) !important;
+  text-shadow: none !important;
+}
+
+html body #planView .plan-command-card::before,
+html body #planView .plan-command-card::after,
+html body #planView .day-card::before,
+html body #planView .day-card::after,
+html body #planView details.plan-day::before,
+html body #planView details.plan-day::after,
+html body #planView .cycle-setup-grid article::before,
+html body #planView .cycle-setup-grid article::after {
+  opacity: 0.08 !important;
+  filter: saturate(0.65) contrast(0.9) !important;
+}
+
+html body #planView .plan-command-card :is(h1, h2, h3, h4, strong, b, label, summary, li),
+html body #planView .plan-command-grid :is(h1, h2, h3, h4, strong, b, label, summary, li),
+html body #planView .cycle-setup-grid article :is(h1, h2, h3, h4, strong, b, label, summary, li),
+html body #planView .cycle-setup-card :is(h1, h2, h3, h4, strong, b, label, summary, li),
+html body #planView .plan-context-grid article :is(h1, h2, h3, h4, strong, b, label, summary, li),
+html body #planView .rpe-coach-card :is(h1, h2, h3, h4, strong, b, label, summary, li),
+html body #planView .rpe-coach-details :is(h1, h2, h3, h4, strong, b, label, summary, li),
+html body #planView .program-disclaimer :is(h1, h2, h3, h4, strong, b, label, summary, li),
+html body #planView .buddy-method-panel :is(h1, h2, h3, h4, strong, b, label, summary, li),
+html body #planView .day-card :is(h1, h2, h3, h4, strong, b, label, summary, li),
+html body #planView details.plan-day :is(h1, h2, h3, h4, strong, b, label, summary, li),
+html body #planView .day-summary :is(h1, h2, h3, h4, strong, b, label, summary, li) {
+  color: #171717 !important;
+  text-shadow: none !important;
+}
+
+html body #planView .plan-command-card :is(p, small, span, em),
+html body #planView .plan-command-grid :is(p, small, span, em),
+html body #planView .cycle-setup-grid article :is(p, small, span, em),
+html body #planView .cycle-setup-card :is(p, small, span, em),
+html body #planView .plan-context-grid article :is(p, small, span, em),
+html body #planView .rpe-coach-card :is(p, small, span, em),
+html body #planView .rpe-coach-details :is(p, small, span, em),
+html body #planView .program-disclaimer :is(p, small, span, em),
+html body #planView .buddy-method-panel :is(p, small, span, em),
+html body #planView .day-card :is(p, small, span, em),
+html body #planView details.plan-day :is(p, small, span, em),
+html body #planView .day-summary :is(p, small, span, em) {
+  color: #526179 !important;
+  text-shadow: none !important;
+}
+
+html body #planView .eyebrow,
+html body #planView .lift-badge,
+html body #planView .recommended-badge,
+html body #planView .plan-command-face,
+html body #planView .cycle-setup-grid article > span,
+html body #planView .plan-context-grid article > span,
+html body #planView .plan-command-grid span {
+  color: #7a271a !important;
+}
+
+html body .home-athlete-dashboard :is(h1, h2, h3, h4, strong, b, p, span, small, label),
+html body #homeView .section-title :is(h1, h2, h3, h4, strong, b, p, span, small),
+html body #homeView .home-card :is(h1, h2, h3, h4, strong, b, p, span, small, label) {
+  text-shadow: none !important;
+}
+
+html body .home-athlete-dashboard :is(h1, h2, h3, h4, strong, b, label),
+html body #homeView .section-title :is(h1, h2, h3, h4, strong, b, label),
+html body #homeView .home-card :is(h1, h2, h3, h4, strong, b, label) {
+  color: #171717 !important;
+}
+
+html body .home-athlete-dashboard :is(p, small, span),
+html body #homeView .section-title :is(p, small, span),
+html body #homeView .home-card :is(p, small, span) {
+  color: #526179 !important;
+}
