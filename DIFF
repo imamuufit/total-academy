@@ -1,11 +1,11 @@
---- v121/index.html
-+++ v122/index.html
+--- v122/index.html
++++ v123/index.html
 @@ -12,7 +12,7 @@
      <link rel="preload" as="image" href="home-bg-lite.jpg">
      <link rel="preload" as="image" href="icon-sheet-lite.jpg">
      <link rel="apple-touch-icon" href="apple-touch-icon.png">
--    <link rel="stylesheet" href="styles.css?v=121">
-+    <link rel="stylesheet" href="styles.css?v=122">
+-    <link rel="stylesheet" href="styles.css?v=122">
++    <link rel="stylesheet" href="styles.css?v=123">
    </head>
    <body>
      <div class="app-shell">
@@ -13,95 +13,184 @@
        </form>
      </dialog>
  
--    <script src="app.js?v=121"></script>
-+    <script src="app.js?v=122"></script>
+-    <script src="app.js?v=122"></script>
++    <script src="app.js?v=123"></script>
    </body>
  </html>
---- v121/styles.css
-+++ v122/styles.css
-@@ -12316,3 +12316,55 @@
- html body #homeView .home-card :is(p, small, span) {
-   color: #526179 !important;
+--- v122/styles.css
++++ v123/styles.css
+@@ -12368,3 +12368,144 @@
+     height: 118px !important;
+   }
  }
 +
-+/* v122: keep Buddy mascot on HOME wellness only, not DATA verdict cards */
-+html body #analysisView .weekly-verdict::after,
-+html body[data-active-view="analysis"] .weekly-verdict::after,
-+html body #analysisView .academy-evaluation-panel::after {
-+  content: none !important;
-+  display: none !important;
-+  background: none !important;
++/* v123: onboarding and daily wellness overlay follow IRON NOTE */
++html body .onboarding-screen {
++  background:
++    radial-gradient(circle at 18% 0, rgba(180, 35, 24, 0.14), transparent 34%),
++    radial-gradient(circle at 88% 8%, rgba(47, 111, 115, 0.10), transparent 28%),
++    repeating-linear-gradient(180deg, rgba(21, 23, 26, 0.035) 0 1px, transparent 1px 31px),
++    linear-gradient(180deg, rgba(247, 242, 232, 0.96), rgba(244, 239, 230, 0.98)) !important;
++  color: #171717 !important;
 +}
 +
-+html body[data-active-view="home"] .home-check-card {
-+  position: relative !important;
-+  overflow: visible !important;
-+  min-height: 132px;
-+  padding-right: clamp(128px, 20vw, 188px) !important;
++html body .onboarding-card {
++  background:
++    linear-gradient(90deg, rgba(180, 35, 24, 0.045), transparent 48%),
++    #fffaf2 !important;
++  border-color: #ded6c8 !important;
++  border-left-color: #b42318 !important;
++  color: #171717 !important;
++  box-shadow: 0 20px 46px rgba(51, 42, 29, 0.14) !important;
 +}
 +
-+html body[data-active-view="home"] .home-check-card::after {
-+  content: "" !important;
-+  position: absolute !important;
-+  right: clamp(8px, 2.4vw, 18px) !important;
-+  bottom: -8px !important;
-+  z-index: 1 !important;
-+  display: block !important;
-+  width: clamp(104px, 17vw, 168px) !important;
-+  height: clamp(118px, 19vw, 184px) !important;
-+  border-radius: 0 !important;
-+  background: var(--asset-buddy-normal) center bottom / contain no-repeat !important;
-+  opacity: 1 !important;
-+  filter: drop-shadow(0 14px 20px rgba(51, 42, 29, 0.20)) !important;
-+  pointer-events: none !important;
-+  mix-blend-mode: normal !important;
++html body .onboarding-card :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body .onboarding-step :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body .daily-entry-head strong,
++html body .wellness-check-card :is(h1, h2, h3, h4, strong, b, label, summary, li),
++html body .wellness-result :is(h1, h2, h3, h4, strong, b, label, summary, li) {
++  color: #171717 !important;
++  text-shadow: none !important;
 +}
 +
-+html body[data-active-view="home"] .home-check-card > * {
-+  position: relative;
-+  z-index: 2;
++html body .onboarding-card :is(p, small, span, em),
++html body .onboarding-step :is(p, small, span, em),
++html body .onboarding-value,
++html body .onboarding-hint,
++html body .daily-entry-head span,
++html body .wellness-check-card :is(p, small, span, em),
++html body .wellness-result :is(p, small, span, em) {
++  color: #526179 !important;
++  text-shadow: none !important;
++}
++
++html body .onboarding-card .eyebrow,
++html body .onboarding-step .eyebrow,
++html body .daily-entry-head span,
++html body .wellness-check-head span,
++html body .wellness-field > span,
++html body .wellness-result > span {
++  color: #7a271a !important;
++}
++
++html body .onboarding-value {
++  background: rgba(255, 255, 255, 0.50) !important;
++  border-left-color: #b42318 !important;
++}
++
++html body .onboarding-goals button,
++html body .daily-entry-grid button,
++html body .wellness-check-card,
++html body .wellness-result,
++html body .wellness-field,
++html body .daily-entry-head {
++  background:
++    linear-gradient(90deg, rgba(180, 35, 24, 0.035), transparent 48%),
++    #fff7ed !important;
++  border-color: #ded6c8 !important;
++  color: #171717 !important;
++  box-shadow: 0 10px 22px rgba(51, 42, 29, 0.06) !important;
++}
++
++html body .onboarding-goals button :is(strong, span),
++html body .daily-entry-grid button :is(strong, span) {
++  color: inherit !important;
++  text-shadow: none !important;
++}
++
++html body .onboarding-goals button span,
++html body .daily-entry-grid button span {
++  color: #7a271a !important;
++}
++
++html body .onboarding-goals button.active,
++html body .onboarding-goals button:hover,
++html body .daily-entry-grid button:hover {
++  background: #fffaf2 !important;
++  border-color: #b42318 !important;
++  box-shadow: inset 0 0 0 2px rgba(180, 35, 24, 0.16), 0 10px 22px rgba(51, 42, 29, 0.08) !important;
++}
++
++html body .wellness-options button {
++  background: #ffffff !important;
++  border-color: #cbd5e1 !important;
++  color: #171717 !important;
++  text-shadow: none !important;
++}
++
++html body .wellness-options button.active {
++  background: #22272e !important;
++  border-color: #22272e !important;
++  color: #ffffff !important;
++  box-shadow: 0 0 0 2px rgba(180, 35, 24, 0.18) !important;
++}
++
++html body .onboarding-card input,
++html body .onboarding-card select,
++html body .onboarding-card textarea {
++  background: #ffffff !important;
++  border-color: #cbd5e1 !important;
++  color: #111827 !important;
++}
++
++html body .onboarding-card input::placeholder,
++html body .onboarding-card textarea::placeholder {
++  color: #98a2b3 !important;
++}
++
++html body .onboarding-card .primary-button,
++html body .onboarding-card button.primary-button,
++html body .onboarding-card .text-button {
++  border-color: #22272e !important;
++}
++
++html body .onboarding-card .primary-button,
++html body .onboarding-card button.primary-button {
++  background: #22272e !important;
++  color: #ffffff !important;
++}
++
++html body .onboarding-card .text-button:not(.primary-button) {
++  background: #f3eadc !important;
++  color: #171717 !important;
++  border-color: #ded6c8 !important;
 +}
 +
 +@media (max-width: 640px) {
-+  html body[data-active-view="home"] .home-check-card {
-+    min-height: 124px;
-+    padding-right: 108px !important;
-+  }
-+
-+  html body[data-active-view="home"] .home-check-card::after {
-+    right: 4px !important;
-+    bottom: -6px !important;
-+    width: 104px !important;
-+    height: 118px !important;
++  html body .onboarding-screen {
++    background:
++      radial-gradient(circle at 12% 0, rgba(180, 35, 24, 0.12), transparent 36%),
++      repeating-linear-gradient(180deg, rgba(21, 23, 26, 0.035) 0 1px, transparent 1px 31px),
++      linear-gradient(180deg, rgba(247, 242, 232, 0.98), rgba(244, 239, 230, 0.98)) !important;
 +  }
 +}
---- v121/sw.js
-+++ v122/sw.js
+--- v122/sw.js
++++ v123/sw.js
 @@ -1,12 +1,12 @@
--const CACHE_NAME = "platform-buddy-v121";
-+const CACHE_NAME = "platform-buddy-v122";
+-const CACHE_NAME = "platform-buddy-v122";
++const CACHE_NAME = "platform-buddy-v123";
  const CORE_ASSETS = [
    "./",
    "index.html",
--  "index.html?v=121",
-+  "index.html?v=122",
+-  "index.html?v=122",
++  "index.html?v=123",
    "styles.css",
--  "styles.css?v=121",
-+  "styles.css?v=122",
+-  "styles.css?v=122",
++  "styles.css?v=123",
    "app.js",
--  "app.js?v=121",
-+  "app.js?v=122",
+-  "app.js?v=122",
++  "app.js?v=123",
    "manifest.webmanifest",
    "icon.svg",
    "apple-touch-icon.png",
---- v121/manifest.webmanifest
-+++ v122/manifest.webmanifest
+--- v122/manifest.webmanifest
++++ v123/manifest.webmanifest
 @@ -2,7 +2,7 @@
    "name": "Platform Buddy",
    "short_name": "Buddy",
    "description": "BIG3の現在地と目標を見える化し、PRサイクル、記録、分析、大会準備までつなげて管理できるパワーリフティング向けPWAです。",
--  "start_url": "./index.html?v=121",
-+  "start_url": "./index.html?v=122",
+-  "start_url": "./index.html?v=122",
++  "start_url": "./index.html?v=123",
    "scope": "./",
    "display": "standalone",
    "background_color": "#06090d",

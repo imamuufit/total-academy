@@ -12368,3 +12368,144 @@ html body[data-active-view="home"] .home-check-card > * {
     height: 118px !important;
   }
 }
+
+/* v123: onboarding and daily wellness overlay follow IRON NOTE */
+html body .onboarding-screen {
+  background:
+    radial-gradient(circle at 18% 0, rgba(180, 35, 24, 0.14), transparent 34%),
+    radial-gradient(circle at 88% 8%, rgba(47, 111, 115, 0.10), transparent 28%),
+    repeating-linear-gradient(180deg, rgba(21, 23, 26, 0.035) 0 1px, transparent 1px 31px),
+    linear-gradient(180deg, rgba(247, 242, 232, 0.96), rgba(244, 239, 230, 0.98)) !important;
+  color: #171717 !important;
+}
+
+html body .onboarding-card {
+  background:
+    linear-gradient(90deg, rgba(180, 35, 24, 0.045), transparent 48%),
+    #fffaf2 !important;
+  border-color: #ded6c8 !important;
+  border-left-color: #b42318 !important;
+  color: #171717 !important;
+  box-shadow: 0 20px 46px rgba(51, 42, 29, 0.14) !important;
+}
+
+html body .onboarding-card :is(h1, h2, h3, h4, strong, b, label, summary, li),
+html body .onboarding-step :is(h1, h2, h3, h4, strong, b, label, summary, li),
+html body .daily-entry-head strong,
+html body .wellness-check-card :is(h1, h2, h3, h4, strong, b, label, summary, li),
+html body .wellness-result :is(h1, h2, h3, h4, strong, b, label, summary, li) {
+  color: #171717 !important;
+  text-shadow: none !important;
+}
+
+html body .onboarding-card :is(p, small, span, em),
+html body .onboarding-step :is(p, small, span, em),
+html body .onboarding-value,
+html body .onboarding-hint,
+html body .daily-entry-head span,
+html body .wellness-check-card :is(p, small, span, em),
+html body .wellness-result :is(p, small, span, em) {
+  color: #526179 !important;
+  text-shadow: none !important;
+}
+
+html body .onboarding-card .eyebrow,
+html body .onboarding-step .eyebrow,
+html body .daily-entry-head span,
+html body .wellness-check-head span,
+html body .wellness-field > span,
+html body .wellness-result > span {
+  color: #7a271a !important;
+}
+
+html body .onboarding-value {
+  background: rgba(255, 255, 255, 0.50) !important;
+  border-left-color: #b42318 !important;
+}
+
+html body .onboarding-goals button,
+html body .daily-entry-grid button,
+html body .wellness-check-card,
+html body .wellness-result,
+html body .wellness-field,
+html body .daily-entry-head {
+  background:
+    linear-gradient(90deg, rgba(180, 35, 24, 0.035), transparent 48%),
+    #fff7ed !important;
+  border-color: #ded6c8 !important;
+  color: #171717 !important;
+  box-shadow: 0 10px 22px rgba(51, 42, 29, 0.06) !important;
+}
+
+html body .onboarding-goals button :is(strong, span),
+html body .daily-entry-grid button :is(strong, span) {
+  color: inherit !important;
+  text-shadow: none !important;
+}
+
+html body .onboarding-goals button span,
+html body .daily-entry-grid button span {
+  color: #7a271a !important;
+}
+
+html body .onboarding-goals button.active,
+html body .onboarding-goals button:hover,
+html body .daily-entry-grid button:hover {
+  background: #fffaf2 !important;
+  border-color: #b42318 !important;
+  box-shadow: inset 0 0 0 2px rgba(180, 35, 24, 0.16), 0 10px 22px rgba(51, 42, 29, 0.08) !important;
+}
+
+html body .wellness-options button {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #171717 !important;
+  text-shadow: none !important;
+}
+
+html body .wellness-options button.active {
+  background: #22272e !important;
+  border-color: #22272e !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 0 2px rgba(180, 35, 24, 0.18) !important;
+}
+
+html body .onboarding-card input,
+html body .onboarding-card select,
+html body .onboarding-card textarea {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #111827 !important;
+}
+
+html body .onboarding-card input::placeholder,
+html body .onboarding-card textarea::placeholder {
+  color: #98a2b3 !important;
+}
+
+html body .onboarding-card .primary-button,
+html body .onboarding-card button.primary-button,
+html body .onboarding-card .text-button {
+  border-color: #22272e !important;
+}
+
+html body .onboarding-card .primary-button,
+html body .onboarding-card button.primary-button {
+  background: #22272e !important;
+  color: #ffffff !important;
+}
+
+html body .onboarding-card .text-button:not(.primary-button) {
+  background: #f3eadc !important;
+  color: #171717 !important;
+  border-color: #ded6c8 !important;
+}
+
+@media (max-width: 640px) {
+  html body .onboarding-screen {
+    background:
+      radial-gradient(circle at 12% 0, rgba(180, 35, 24, 0.12), transparent 36%),
+      repeating-linear-gradient(180deg, rgba(21, 23, 26, 0.035) 0 1px, transparent 1px 31px),
+      linear-gradient(180deg, rgba(247, 242, 232, 0.98), rgba(244, 239, 230, 0.98)) !important;
+  }
+}
