@@ -12,7 +12,7 @@
     <link rel="preload" as="image" href="home-bg-lite.jpg">
     <link rel="preload" as="image" href="icon-sheet-lite.jpg">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <link rel="stylesheet" href="styles.css?v=131">
+    <link rel="stylesheet" href="styles.css?v=132">
   </head>
   <body>
     <div class="app-shell">
@@ -460,23 +460,12 @@
             <p class="collapse-summary" id="cycleSummary"></p>
             <div class="collapsible-content" id="cyclePanelContent">
               <p class="screen-note">方式、週数、頻度を選ぼう。</p>
-              <div class="cycle-grid">
+              <div class="cycle-grid cycle-basic-grid">
                 <label>
                   プラン対象
                   <select id="planTargetInput">
                     <option value="big3">BIG3</option>
                     <option value="bench_only">ベンチプレスのみ</option>
-                  </select>
-                </label>
-                <label>
-                  プラン方式
-                  <select id="programMethodInput">
-                    <option value="platform">Buddyメソッド Lv1（標準）</option>
-                    <option value="platform_level2">Buddyメソッド Lv2（実戦寄り）</option>
-                    <option value="rebuild16">Buddy Rebuild 16（大会後リビルド）</option>
-                    <option value="hps">HPS（BP向き）</option>
-                    <option value="531">5/3/1（長期型）</option>
-                    <option value="smolov_jr">Smolov Jr.（SQ/BP高負荷）</option>
                   </select>
                 </label>
                 <label>
@@ -498,37 +487,12 @@
                     <option value="5">週5回</option>
                   </select>
                 </label>
-                <label>
-                  補助種目量
-                  <select id="accessoryVolumeInput">
-                    <option value="low">少なめ</option>
-                    <option value="normal">普通</option>
-                    <option value="high">多め</option>
-                  </select>
-                </label>
-                <label>
-                  重点種目
-                  <select id="priorityLiftInput">
-                    <option value="total">トータル重視</option>
-                    <option value="squat">スクワット重視</option>
-                    <option value="bench">ベンチ重視</option>
-                    <option value="deadlift">デッドリフト重視</option>
-                  </select>
-                </label>
-                <label>
-                  経験レベル
-                  <select id="experienceLevelInput">
-                    <option value="beginner">初心者</option>
-                    <option value="intermediate">中級者</option>
-                    <option value="advanced">上級者</option>
-                  </select>
-                </label>
               </div>
-              <p class="cycle-method-note" id="cycleMethodNote"></p>
-              <section class="program-method-guide" id="programMethodGuide"></section>
-              <p class="program-disclaimer" id="programDisclaimer"></p>
-              <details class="cycle-advanced-details">
-                <summary>現在1RMをPRサイクル内でも修正する</summary>
+              <section class="cycle-basic-maxes">
+                <div>
+                  <h3>現在1RM</h3>
+                  <p>必要ならここで修正。</p>
+                </div>
                 <div class="max-grid">
                   <label>
                     SQ 現在1RM
@@ -543,18 +507,69 @@
                     <input id="deadliftMaxInput" inputmode="decimal" type="number" min="0" step="2.5" placeholder="kg">
                   </label>
                 </div>
-              </details>
-              <section class="facility-panel">
-                <div class="facility-head">
-                  <div>
-                    <h3>設備依存種目</h3>
-                    <p>使える設備だけチェック。</p>
-                  </div>
-                  <button class="collapse-toggle" id="facilityCollapseBtn" type="button" aria-label="設備依存種目を閉じる" aria-expanded="true">▴</button>
-                </div>
-                <p class="collapse-summary" id="facilitySummary"></p>
-                <div class="facility-grid collapsible-content" id="facilityGrid"></div>
               </section>
+              <details class="cycle-settings-details">
+                <summary>
+                  <span>
+                    <strong>詳しく設定する</strong>
+                    <small>方式・補助種目量・重点種目・経験レベル・設備</small>
+                  </span>
+                </summary>
+                <div class="cycle-settings-details-body">
+                  <div class="cycle-grid cycle-detail-grid">
+                    <label>
+                      プラン方式
+                      <select id="programMethodInput">
+                        <option value="platform">Buddyメソッド Lv1（標準）</option>
+                        <option value="platform_level2">Buddyメソッド Lv2（実戦寄り）</option>
+                        <option value="rebuild16">Buddy Rebuild 16（大会後リビルド）</option>
+                        <option value="hps">HPS（BP向き）</option>
+                        <option value="531">5/3/1（長期型）</option>
+                        <option value="smolov_jr">Smolov Jr.（SQ/BP高負荷）</option>
+                      </select>
+                    </label>
+                    <label>
+                      補助種目量
+                      <select id="accessoryVolumeInput">
+                        <option value="low">少なめ</option>
+                        <option value="normal">普通</option>
+                        <option value="high">多め</option>
+                      </select>
+                    </label>
+                    <label>
+                      重点種目
+                      <select id="priorityLiftInput">
+                        <option value="total">トータル重視</option>
+                        <option value="squat">スクワット重視</option>
+                        <option value="bench">ベンチ重視</option>
+                        <option value="deadlift">デッドリフト重視</option>
+                      </select>
+                    </label>
+                    <label>
+                      経験レベル
+                      <select id="experienceLevelInput">
+                        <option value="beginner">初心者</option>
+                        <option value="intermediate">中級者</option>
+                        <option value="advanced">上級者</option>
+                      </select>
+                    </label>
+                  </div>
+                  <p class="cycle-method-note" id="cycleMethodNote"></p>
+                  <section class="program-method-guide" id="programMethodGuide"></section>
+                  <p class="program-disclaimer" id="programDisclaimer"></p>
+                  <section class="facility-panel">
+                    <div class="facility-head">
+                      <div>
+                        <h3>設備依存種目</h3>
+                        <p>使える設備だけチェック。</p>
+                      </div>
+                      <button class="collapse-toggle" id="facilityCollapseBtn" type="button" aria-label="設備依存種目を閉じる" aria-expanded="true">▴</button>
+                    </div>
+                    <p class="collapse-summary" id="facilitySummary"></p>
+                    <div class="facility-grid collapsible-content" id="facilityGrid"></div>
+                  </section>
+                </div>
+              </details>
               <div class="projection-grid" id="projectionGrid"></div>
             </div>
           </section>
@@ -981,6 +996,6 @@
       </form>
     </dialog>
 
-    <script src="app.js?v=131"></script>
+    <script src="app.js?v=132"></script>
   </body>
 </html>

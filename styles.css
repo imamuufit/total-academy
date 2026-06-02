@@ -13680,3 +13680,125 @@ html body #knowledgeView .meet-note-form :is(input, select, textarea) {
   color: #111827 !important;
   border-color: #94a3b8 !important;
 }
+
+/* v132: show the essential PR cycle settings first */
+html body #planView .cycle-basic-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+html body #planView .cycle-basic-maxes {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+  border: 1px solid var(--line);
+  border-left: 4px solid rgba(47, 111, 115, 0.62);
+  border-radius: 10px;
+  background:
+    linear-gradient(90deg, rgba(47, 111, 115, 0.045), transparent 48%),
+    #fffaf2;
+  padding: 12px;
+}
+
+html body #planView .cycle-basic-maxes h3,
+html body #planView .cycle-basic-maxes p {
+  margin: 0;
+}
+
+html body #planView .cycle-basic-maxes h3 {
+  color: var(--text-main);
+  font-size: 0.98rem;
+}
+
+html body #planView .cycle-basic-maxes p {
+  color: var(--text-sub);
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+html body #planView .cycle-settings-details {
+  margin-top: 12px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fffaf2;
+}
+
+html body #planView .cycle-settings-details > summary {
+  display: flex;
+  min-height: 64px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 14px;
+  color: var(--text-main);
+  cursor: pointer;
+  list-style: none;
+}
+
+html body #planView .cycle-settings-details > summary::-webkit-details-marker {
+  display: none;
+}
+
+html body #planView .cycle-settings-details > summary::after {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: #ffffff;
+  color: var(--text-main);
+  content: "+";
+  font-size: 1.2rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+html body #planView .cycle-settings-details[open] > summary::after {
+  content: "-";
+}
+
+html body #planView .cycle-settings-details > summary span {
+  display: grid;
+  gap: 3px;
+}
+
+html body #planView .cycle-settings-details > summary strong {
+  color: var(--text-main);
+  font-size: 0.95rem;
+}
+
+html body #planView .cycle-settings-details > summary small {
+  color: var(--text-sub);
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+
+html body #planView .cycle-settings-details-body {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border-top: 1px solid var(--line);
+}
+
+html body #planView .cycle-detail-grid {
+  margin: 0;
+}
+
+html body #planView .cycle-settings-details .facility-panel {
+  margin-top: 0;
+}
+
+@media (max-width: 640px) {
+  html body #planView .cycle-basic-grid,
+  html body #planView .cycle-detail-grid,
+  html body #planView .cycle-basic-maxes .max-grid {
+    grid-template-columns: 1fr;
+  }
+
+  html body #planView .cycle-settings-details > summary {
+    min-height: 58px;
+    padding: 11px 12px;
+  }
+}
