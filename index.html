@@ -12,7 +12,7 @@
     <link rel="preload" as="image" href="home-bg-lite.jpg">
     <link rel="preload" as="image" href="icon-sheet-lite.jpg">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <link rel="stylesheet" href="styles.css?v=129">
+    <link rel="stylesheet" href="styles.css?v=130">
   </head>
   <body>
     <div class="app-shell">
@@ -666,13 +666,16 @@
                 <div id="quizApp"></div>
               </div>
             </section>
-            <div class="section-title knowledge-title">
-              <div>
-                <p class="eyebrow">Learn as you lift</p>
-                <h2>使いながら学ぶ基礎知識</h2>
-              </div>
-            </div>
-            <div class="knowledge-grid">
+            <details class="knowledge-library">
+              <summary class="knowledge-library-summary">
+                <span>
+                  <span class="eyebrow">Learn as you lift</span>
+                  <strong>用語を調べる</strong>
+                  <small>RPE、プログラム、大会用語</small>
+                </span>
+              </summary>
+              <div class="knowledge-library-body">
+                <div class="knowledge-grid">
               <article class="knowledge-card official-rules-card">
                 <span>公式情報</span>
                 <h3>公式ルール</h3>
@@ -927,7 +930,9 @@
                 <h3>アカデミー評価</h3>
                 <p>RPE、練習量、記録頻度、BIG3バランスから保守的にコメントします。診断ではなく、次の練習判断を助ける目安です。</p>
               </article>
-            </div>
+                </div>
+              </div>
+            </details>
           </section>
         </section>
 
@@ -976,6 +981,6 @@
       </form>
     </dialog>
 
-    <script src="app.js?v=129"></script>
+    <script src="app.js?v=130"></script>
   </body>
 </html>

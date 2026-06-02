@@ -1,432 +1,176 @@
-﻿--- v128/index.html
-+++ v129/index.html
+--- v129/index.html
++++ v130/index.html
 @@ -12,7 +12,7 @@
      <link rel="preload" as="image" href="home-bg-lite.jpg">
-
      <link rel="preload" as="image" href="icon-sheet-lite.jpg">
-
      <link rel="apple-touch-icon" href="apple-touch-icon.png">
-
--    <link rel="stylesheet" href="styles.css[removed]v=128">
-
-+    <link rel="stylesheet" href="styles.css[removed]v=129">
-
+-    <link rel="stylesheet" href="styles.css?v=129">
++    <link rel="stylesheet" href="styles.css?v=130">
    </head>
-
    <body>
-
      <div class="app-shell">
-
-@@ -976,6 +976,6 @@
+@@ -666,13 +666,16 @@
+                 <div id="quizApp"></div>
+               </div>
+             </section>
+-            <div class="section-title knowledge-title">
+-              <div>
+-                <p class="eyebrow">Learn as you lift</p>
+-                <h2>使いながら学ぶ基礎知識</h2>
+-              </div>
+-            </div>
+-            <div class="knowledge-grid">
++            <details class="knowledge-library">
++              <summary class="knowledge-library-summary">
++                <span>
++                  <span class="eyebrow">Learn as you lift</span>
++                  <strong>用語を調べる</strong>
++                  <small>RPE、プログラム、大会用語</small>
++                </span>
++              </summary>
++              <div class="knowledge-library-body">
++                <div class="knowledge-grid">
+               <article class="knowledge-card official-rules-card">
+                 <span>公式情報</span>
+                 <h3>公式ルール</h3>
+@@ -927,7 +930,9 @@
+                 <h3>アカデミー評価</h3>
+                 <p>RPE、練習量、記録頻度、BIG3バランスから保守的にコメントします。診断ではなく、次の練習判断を助ける目安です。</p>
+               </article>
+-            </div>
++                </div>
++              </div>
++            </details>
+           </section>
+         </section>
+ 
+@@ -976,6 +981,6 @@
        </form>
-
      </dialog>
-
  
-
--    <script src="app.js[removed]v=128"></script>
-
-+    <script src="app.js[removed]v=129"></script>
-
+-    <script src="app.js?v=129"></script>
++    <script src="app.js?v=130"></script>
    </body>
-
  </html>
-
-
-
---- v128/styles.css
-+++ v129/styles.css
-@@ -4688,30 +4688,28 @@
-   }
-
- 
-
-   .tabbar .tab::before {
-
--    display: block;
-
--    margin-bottom: 2px;
-
--    font-size: 1rem;
-
--    line-height: 1;
-
-+    content: none;
-
-+    display: none;
-
-   }
-
- 
-
-   .tabbar .tab[data-view="home"]::before {
-
--    content: "[removed]・;
-
-+    content: none;
-
-   }
-
- 
-
-   .tabbar .tab[data-view="plan"]::before {
-
--    content: "[removed]｣";
-
-+    content: none;
-
-   }
-
- 
-
-   .tabbar .tab[data-view="log"]::before {
-
--    content: "[removed]ｮ";
-
-+    content: none;
-
-   }
-
- 
-
-   .tabbar .tab[data-view="analysis"]::before {
-
--    content: "[removed]・;
-
-+    content: none;
-
-   }
-
- 
-
-   .tabbar .tab[data-view="knowledge"]::before {
-
--    content: "[removed]・;
-
-+    content: none;
-
-   }
-
- 
-
-   .actual-box {
-
-@@ -9744,13 +9742,8 @@
-   }
-
- 
-
-   .editable-set-sheet::before {
-
--    content: "[removed]ｪ[removed]ｫ[removed]ｹ[removed]ｯ[removed]､[removed]励＠[removed]ｦ[removed]･[removed]・竊・;
-
--    display: block;
-
--    padding: 6px 10px;
-
--    color: rgba(248, 250, 252, 0.52);
-
--    font-size: 0.72rem;
-
--    font-weight: 800;
-
--    text-align: right;
-
-+    content: none;
-
-+    display: none;
-
-   }
-
- 
-
-   .editable-set-row {
-
-@@ -10837,7 +10830,7 @@
- .topbar {
-
-   border-top: 5px solid var(--accent) !important;
-
-   background: #22272e !important;
-
--  color: #171717 !important;
-
-+  color: #fffaf2 !important;
-
+--- v129/styles.css
++++ v130/styles.css
+@@ -13494,3 +13494,89 @@
+ html body[data-active-view="home"] .home-shortcut-grid button span * {
+   color: #fffaf2 !important;
  }
-
- 
-
- .panel,
-
-@@ -11065,7 +11058,7 @@
- .home-shortcut-grid a:first-child,
-
- .home-shortcut-grid button:first-child {
-
-   background: #22272e !important;
-
--  color: #171717 !important;
-
-+  color: #fffaf2 !important;
-
-   border-color: #22272e !important;
-
- }
-
- 
-
-@@ -11154,7 +11147,7 @@
- 
-
-   .topbar {
-
-     background: #22272e !important;
-
--    color: #171717 !important;
-
-+    color: #fffaf2 !important;
-
-   }
-
- 
-
-   .home-hero-card {
-
-@@ -12538,7 +12531,7 @@
- html body .onboarding-card .primary-button,
-
- html body .onboarding-card button.primary-button {
-
-   background: #22272e !important;
-
--  color: #171717 !important;
-
-+  color: #fffaf2 !important;
-
- }
-
- 
-
- html body .onboarding-card .text-button:not(.primary-button) {
-
-@@ -13424,3 +13417,80 @@
-   }
-
- }
-
- 
-
-+/* v129: hotfix broken pseudo icons and dark-on-dark cards */
-
-+html body .tabbar .tab::before,
-
-+html body .tabbar .tab::after,
-
-+html body .tabbar .tab[data-view="home"]::before,
-
-+html body .tabbar .tab[data-view="plan"]::before,
-
-+html body .tabbar .tab[data-view="log"]::before,
-
-+html body .tabbar .tab[data-view="analysis"]::before,
-
-+html body .tabbar .tab[data-view="knowledge"]::before,
-
-+html body .editable-set-sheet::before {
-
-+  content: none !important;
-
-+  display: none !important;
-
-+}
-
 +
-
-+html body .tabbar .tab.active,
-
-+html body .tab.active,
-
-+html body .tabbar .tab[aria-selected="true"],
-
-+html body .tab[aria-selected="true"] {
-
-+  background: #22272e !important;
-
-+  border-color: #b42318 !important;
-
-+  color: #fffaf2 !important;
-
-+  text-shadow: none !important;
-
-+  opacity: 1 !important;
-
-+}
-
-+
-
-+html body .tabbar .tab.active *,
-
-+html body .tab.active *,
-
-+html body .tabbar .tab[aria-selected="true"] *,
-
-+html body .tab[aria-selected="true"] * {
-
-+  color: #fffaf2 !important;
-
-+  text-shadow: none !important;
-
-+}
-
-+
-
-+html body .tabbar .tab:not(.active),
-
-+html body .tab:not(.active):not([aria-selected="true"]) {
-
-+  background: transparent !important;
-
-+  color: #526179 !important;
-
-+  text-shadow: none !important;
-
-+  opacity: 1 !important;
-
-+}
-
-+
-
-+html body[data-active-view="home"] .home-action-grid button,
-
-+html body[data-active-view="home"] .home-shortcut-grid button {
-
++/* v130: keep the knowledge library available without loading the first view */
++html body .knowledge-library {
++  overflow: hidden;
++  border: 1px solid var(--line);
++  border-radius: 14px;
 +  background:
-
-+    linear-gradient(90deg, rgba(180, 35, 24, 0.035), transparent 46%),
-
-+    #fffaf2 !important;
-
-+  color: #171717 !important;
-
-+  border: 1px solid #ded6c8 !important;
-
-+  box-shadow: 0 8px 18px rgba(51, 42, 29, 0.06) !important;
-
++    linear-gradient(90deg, rgba(180, 35, 24, 0.035), transparent 48%),
++    var(--surface);
++  box-shadow: var(--shadow);
 +}
-
 +
-
-+html body[data-active-view="home"] .home-action-grid button *,
-
-+html body[data-active-view="home"] .home-shortcut-grid button * {
-
-+  color: #171717 !important;
-
-+  text-shadow: none !important;
-
++html body .knowledge-library-summary {
++  display: flex;
++  min-height: 76px;
++  align-items: center;
++  justify-content: space-between;
++  gap: 16px;
++  padding: 16px 18px;
++  color: var(--text-main);
++  cursor: pointer;
++  list-style: none;
 +}
-
 +
-
-+html body[data-active-view="home"] .home-action-grid button strong,
-
-+html body[data-active-view="home"] .home-shortcut-grid button strong {
-
-+  color: #171717 !important;
-
++html body .knowledge-library-summary::-webkit-details-marker {
++  display: none;
 +}
-
 +
-
-+html body[data-active-view="home"] .home-action-grid button small,
-
-+html body[data-active-view="home"] .home-shortcut-grid button small {
-
-+  color: #526179 !important;
-
++html body .knowledge-library-summary::after {
++  display: grid;
++  width: 34px;
++  height: 34px;
++  flex: 0 0 34px;
++  place-items: center;
++  border: 1px solid var(--line);
++  border-radius: 50%;
++  background: #ffffff;
++  color: var(--text-main);
++  content: "+";
++  font-size: 1.35rem;
++  font-weight: 900;
++  line-height: 1;
 +}
-
 +
-
-+html body[data-active-view="home"] .home-action-grid button span,
-
-+html body[data-active-view="home"] .home-shortcut-grid button span {
-
-+  background: #22272e !important;
-
-+  color: #fffaf2 !important;
-
-+  border-color: #22272e !important;
-
++html body .knowledge-library[open] .knowledge-library-summary::after {
++  content: "-";
 +}
-
 +
-
-+html body[data-active-view="home"] .home-action-grid button span *,
-
-+html body[data-active-view="home"] .home-shortcut-grid button span * {
-
-+  color: #fffaf2 !important;
-
++html body .knowledge-library-summary > span {
++  display: grid;
++  gap: 3px;
 +}
-
-
-
---- v128/sw.js
-+++ v129/sw.js
++
++html body .knowledge-library-summary .eyebrow {
++  color: var(--accent-dark);
++}
++
++html body .knowledge-library-summary strong {
++  color: var(--text-main);
++  font-size: 1.08rem;
++}
++
++html body .knowledge-library-summary small {
++  color: var(--text-sub);
++  font-size: 0.8rem;
++}
++
++html body .knowledge-library-body {
++  padding: 0 14px 14px;
++  border-top: 1px solid var(--line);
++}
++
++html body .knowledge-library-body .knowledge-grid {
++  margin-top: 14px;
++}
++
++@media (max-width: 640px) {
++  html body .knowledge-library-summary {
++    min-height: 68px;
++    padding: 13px 14px;
++  }
++
++  html body .knowledge-library-body {
++    padding: 0 10px 10px;
++  }
++}
+--- v129/sw.js
++++ v130/sw.js
 @@ -1,12 +1,12 @@
--const CACHE_NAME = "platform-buddy-v128";
-
-+const CACHE_NAME = "platform-buddy-v129";
-
+-const CACHE_NAME = "platform-buddy-v129";
++const CACHE_NAME = "platform-buddy-v130";
  const CORE_ASSETS = [
-
    "./",
-
    "index.html",
-
--  "index.html[removed]v=128",
-
-+  "index.html[removed]v=129",
-
+-  "index.html?v=129",
++  "index.html?v=130",
    "styles.css",
-
--  "styles.css[removed]v=128",
-
-+  "styles.css[removed]v=129",
-
+-  "styles.css?v=129",
++  "styles.css?v=130",
    "app.js",
-
--  "app.js[removed]v=128",
-
-+  "app.js[removed]v=129",
-
+-  "app.js?v=129",
++  "app.js?v=130",
    "manifest.webmanifest",
-
    "icon.svg",
-
    "apple-touch-icon.png",
-
-
-
---- v128/manifest.webmanifest
-+++ v129/manifest.webmanifest
+--- v129/manifest.webmanifest
++++ v130/manifest.webmanifest
 @@ -2,7 +2,7 @@
    "name": "Platform Buddy",
-
    "short_name": "Buddy",
-
    "description": "BIG3の現在地と目標を見える化し、PRサイクル、記録、分析、大会準備までつなげて管理できるパワーリフティング向けPWAです。",
-
--  "start_url": "./index.html[removed]v=128",
-
-+  "start_url": "./index.html[removed]v=129",
-
+-  "start_url": "./index.html?v=129",
++  "start_url": "./index.html?v=130",
    "scope": "./",
-
    "display": "standalone",
-
    "background_color": "#f4efe6",
-
-
