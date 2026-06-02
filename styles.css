@@ -13580,3 +13580,103 @@ html body .knowledge-library-body .knowledge-grid {
     padding: 0 10px 10px;
   }
 }
+
+/* v131: restore readable IRON NOTE contrast in PLAN and MEET */
+html body #planView :is(
+  .guide-note,
+  .program-disclaimer,
+  .cycle-method-note,
+  .method-check-note
+) {
+  border: 1px solid var(--line) !important;
+  border-left: 4px solid rgba(180, 35, 24, 0.42) !important;
+  background: #fff7ed !important;
+  color: var(--text-sub) !important;
+  text-shadow: none !important;
+}
+
+html body #planView :is(
+  .guide-note,
+  .program-disclaimer,
+  .cycle-method-note,
+  .method-check-note
+) * {
+  color: var(--text-sub) !important;
+  text-shadow: none !important;
+}
+
+html body #knowledgeView :is(
+  .meet-today-card,
+  .meet-command-actions a,
+  .meet-command-actions button,
+  .meet-action-grid .meet-shortcut,
+  .meet-prep-checklist,
+  .meet-check-group,
+  .meet-note-form .input-grid label,
+  .meet-attempt-lift
+) {
+  border-color: var(--line) !important;
+  background:
+    linear-gradient(90deg, rgba(180, 35, 24, 0.035), transparent 46%),
+    #fffaf2 !important;
+  color: var(--text-main) !important;
+  box-shadow: 0 8px 18px rgba(51, 42, 29, 0.06) !important;
+  text-shadow: none !important;
+}
+
+html body #knowledgeView :is(
+  .meet-today-card,
+  .meet-command-actions a,
+  .meet-command-actions button,
+  .meet-action-grid .meet-shortcut,
+  .meet-prep-checklist,
+  .meet-check-group,
+  .meet-note-form .input-grid label,
+  .meet-attempt-lift
+) :is(h1, h2, h3, h4, strong, b, label) {
+  color: var(--text-main) !important;
+  text-shadow: none !important;
+}
+
+html body #knowledgeView :is(
+  .meet-today-card,
+  .meet-action-grid .meet-shortcut,
+  .meet-prep-checklist,
+  .meet-check-group
+) :is(p, small) {
+  color: var(--text-sub) !important;
+  text-shadow: none !important;
+}
+
+html body #knowledgeView .meet-today-card a {
+  border: 1px solid rgba(21, 127, 59, 0.24) !important;
+  background: #eaf6ec !important;
+  color: #157f3b !important;
+}
+
+html body #knowledgeView .meet-action-grid .meet-shortcut > span,
+html body #knowledgeView .meet-command-actions span {
+  background: #22272e !important;
+  color: #fffaf2 !important;
+  border-color: #22272e !important;
+}
+
+html body #knowledgeView .meet-note-form .input-grid label {
+  display: grid;
+  gap: 5px;
+  padding: 8px;
+  color: var(--text-main) !important;
+}
+
+html body #knowledgeView .meet-attempt-row strong {
+  background: #22272e !important;
+  color: #fffaf2 !important;
+  text-shadow: none !important;
+}
+
+html body #knowledgeView .meet-attempt-row :is(input, select),
+html body #knowledgeView .meet-note-form :is(input, select, textarea) {
+  background: #ffffff !important;
+  color: #111827 !important;
+  border-color: #94a3b8 !important;
+}

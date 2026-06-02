@@ -1,176 +1,155 @@
---- v129/index.html
-+++ v130/index.html
+--- v130/index.html
++++ v131/index.html
 @@ -12,7 +12,7 @@
      <link rel="preload" as="image" href="home-bg-lite.jpg">
      <link rel="preload" as="image" href="icon-sheet-lite.jpg">
      <link rel="apple-touch-icon" href="apple-touch-icon.png">
--    <link rel="stylesheet" href="styles.css?v=129">
-+    <link rel="stylesheet" href="styles.css?v=130">
+-    <link rel="stylesheet" href="styles.css?v=130">
++    <link rel="stylesheet" href="styles.css?v=131">
    </head>
    <body>
      <div class="app-shell">
-@@ -666,13 +666,16 @@
-                 <div id="quizApp"></div>
-               </div>
-             </section>
--            <div class="section-title knowledge-title">
--              <div>
--                <p class="eyebrow">Learn as you lift</p>
--                <h2>使いながら学ぶ基礎知識</h2>
--              </div>
--            </div>
--            <div class="knowledge-grid">
-+            <details class="knowledge-library">
-+              <summary class="knowledge-library-summary">
-+                <span>
-+                  <span class="eyebrow">Learn as you lift</span>
-+                  <strong>用語を調べる</strong>
-+                  <small>RPE、プログラム、大会用語</small>
-+                </span>
-+              </summary>
-+              <div class="knowledge-library-body">
-+                <div class="knowledge-grid">
-               <article class="knowledge-card official-rules-card">
-                 <span>公式情報</span>
-                 <h3>公式ルール</h3>
-@@ -927,7 +930,9 @@
-                 <h3>アカデミー評価</h3>
-                 <p>RPE、練習量、記録頻度、BIG3バランスから保守的にコメントします。診断ではなく、次の練習判断を助ける目安です。</p>
-               </article>
--            </div>
-+                </div>
-+              </div>
-+            </details>
-           </section>
-         </section>
- 
-@@ -976,6 +981,6 @@
+@@ -981,6 +981,6 @@
        </form>
      </dialog>
  
--    <script src="app.js?v=129"></script>
-+    <script src="app.js?v=130"></script>
+-    <script src="app.js?v=130"></script>
++    <script src="app.js?v=131"></script>
    </body>
  </html>
---- v129/styles.css
-+++ v130/styles.css
-@@ -13494,3 +13494,89 @@
- html body[data-active-view="home"] .home-shortcut-grid button span * {
-   color: #fffaf2 !important;
+--- v130/styles.css
++++ v131/styles.css
+@@ -13580,3 +13580,103 @@
+     padding: 0 10px 10px;
+   }
  }
 +
-+/* v130: keep the knowledge library available without loading the first view */
-+html body .knowledge-library {
-+  overflow: hidden;
-+  border: 1px solid var(--line);
-+  border-radius: 14px;
++/* v131: restore readable IRON NOTE contrast in PLAN and MEET */
++html body #planView :is(
++  .guide-note,
++  .program-disclaimer,
++  .cycle-method-note,
++  .method-check-note
++) {
++  border: 1px solid var(--line) !important;
++  border-left: 4px solid rgba(180, 35, 24, 0.42) !important;
++  background: #fff7ed !important;
++  color: var(--text-sub) !important;
++  text-shadow: none !important;
++}
++
++html body #planView :is(
++  .guide-note,
++  .program-disclaimer,
++  .cycle-method-note,
++  .method-check-note
++) * {
++  color: var(--text-sub) !important;
++  text-shadow: none !important;
++}
++
++html body #knowledgeView :is(
++  .meet-today-card,
++  .meet-command-actions a,
++  .meet-command-actions button,
++  .meet-action-grid .meet-shortcut,
++  .meet-prep-checklist,
++  .meet-check-group,
++  .meet-note-form .input-grid label,
++  .meet-attempt-lift
++) {
++  border-color: var(--line) !important;
 +  background:
-+    linear-gradient(90deg, rgba(180, 35, 24, 0.035), transparent 48%),
-+    var(--surface);
-+  box-shadow: var(--shadow);
++    linear-gradient(90deg, rgba(180, 35, 24, 0.035), transparent 46%),
++    #fffaf2 !important;
++  color: var(--text-main) !important;
++  box-shadow: 0 8px 18px rgba(51, 42, 29, 0.06) !important;
++  text-shadow: none !important;
 +}
 +
-+html body .knowledge-library-summary {
-+  display: flex;
-+  min-height: 76px;
-+  align-items: center;
-+  justify-content: space-between;
-+  gap: 16px;
-+  padding: 16px 18px;
-+  color: var(--text-main);
-+  cursor: pointer;
-+  list-style: none;
++html body #knowledgeView :is(
++  .meet-today-card,
++  .meet-command-actions a,
++  .meet-command-actions button,
++  .meet-action-grid .meet-shortcut,
++  .meet-prep-checklist,
++  .meet-check-group,
++  .meet-note-form .input-grid label,
++  .meet-attempt-lift
++) :is(h1, h2, h3, h4, strong, b, label) {
++  color: var(--text-main) !important;
++  text-shadow: none !important;
 +}
 +
-+html body .knowledge-library-summary::-webkit-details-marker {
-+  display: none;
++html body #knowledgeView :is(
++  .meet-today-card,
++  .meet-action-grid .meet-shortcut,
++  .meet-prep-checklist,
++  .meet-check-group
++) :is(p, small) {
++  color: var(--text-sub) !important;
++  text-shadow: none !important;
 +}
 +
-+html body .knowledge-library-summary::after {
++html body #knowledgeView .meet-today-card a {
++  border: 1px solid rgba(21, 127, 59, 0.24) !important;
++  background: #eaf6ec !important;
++  color: #157f3b !important;
++}
++
++html body #knowledgeView .meet-action-grid .meet-shortcut > span,
++html body #knowledgeView .meet-command-actions span {
++  background: #22272e !important;
++  color: #fffaf2 !important;
++  border-color: #22272e !important;
++}
++
++html body #knowledgeView .meet-note-form .input-grid label {
 +  display: grid;
-+  width: 34px;
-+  height: 34px;
-+  flex: 0 0 34px;
-+  place-items: center;
-+  border: 1px solid var(--line);
-+  border-radius: 50%;
-+  background: #ffffff;
-+  color: var(--text-main);
-+  content: "+";
-+  font-size: 1.35rem;
-+  font-weight: 900;
-+  line-height: 1;
++  gap: 5px;
++  padding: 8px;
++  color: var(--text-main) !important;
 +}
 +
-+html body .knowledge-library[open] .knowledge-library-summary::after {
-+  content: "-";
++html body #knowledgeView .meet-attempt-row strong {
++  background: #22272e !important;
++  color: #fffaf2 !important;
++  text-shadow: none !important;
 +}
 +
-+html body .knowledge-library-summary > span {
-+  display: grid;
-+  gap: 3px;
++html body #knowledgeView .meet-attempt-row :is(input, select),
++html body #knowledgeView .meet-note-form :is(input, select, textarea) {
++  background: #ffffff !important;
++  color: #111827 !important;
++  border-color: #94a3b8 !important;
 +}
-+
-+html body .knowledge-library-summary .eyebrow {
-+  color: var(--accent-dark);
-+}
-+
-+html body .knowledge-library-summary strong {
-+  color: var(--text-main);
-+  font-size: 1.08rem;
-+}
-+
-+html body .knowledge-library-summary small {
-+  color: var(--text-sub);
-+  font-size: 0.8rem;
-+}
-+
-+html body .knowledge-library-body {
-+  padding: 0 14px 14px;
-+  border-top: 1px solid var(--line);
-+}
-+
-+html body .knowledge-library-body .knowledge-grid {
-+  margin-top: 14px;
-+}
-+
-+@media (max-width: 640px) {
-+  html body .knowledge-library-summary {
-+    min-height: 68px;
-+    padding: 13px 14px;
-+  }
-+
-+  html body .knowledge-library-body {
-+    padding: 0 10px 10px;
-+  }
-+}
---- v129/sw.js
-+++ v130/sw.js
+--- v130/sw.js
++++ v131/sw.js
 @@ -1,12 +1,12 @@
--const CACHE_NAME = "platform-buddy-v129";
-+const CACHE_NAME = "platform-buddy-v130";
+-const CACHE_NAME = "platform-buddy-v130";
++const CACHE_NAME = "platform-buddy-v131";
  const CORE_ASSETS = [
    "./",
    "index.html",
--  "index.html?v=129",
-+  "index.html?v=130",
+-  "index.html?v=130",
++  "index.html?v=131",
    "styles.css",
--  "styles.css?v=129",
-+  "styles.css?v=130",
+-  "styles.css?v=130",
++  "styles.css?v=131",
    "app.js",
--  "app.js?v=129",
-+  "app.js?v=130",
+-  "app.js?v=130",
++  "app.js?v=131",
    "manifest.webmanifest",
    "icon.svg",
    "apple-touch-icon.png",
---- v129/manifest.webmanifest
-+++ v130/manifest.webmanifest
+--- v130/manifest.webmanifest
++++ v131/manifest.webmanifest
 @@ -2,7 +2,7 @@
    "name": "Platform Buddy",
    "short_name": "Buddy",
    "description": "BIG3の現在地と目標を見える化し、PRサイクル、記録、分析、大会準備までつなげて管理できるパワーリフティング向けPWAです。",
--  "start_url": "./index.html?v=129",
-+  "start_url": "./index.html?v=130",
+-  "start_url": "./index.html?v=130",
++  "start_url": "./index.html?v=131",
    "scope": "./",
    "display": "standalone",
    "background_color": "#f4efe6",
