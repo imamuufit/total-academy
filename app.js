@@ -3159,20 +3159,20 @@ function weeklyDataVerdict(snapshot) {
     return {
       status: "warn",
       title: "やや注意",
-      message: "今週は少し疲労が見えます。重量更新より予定RPEとフォーム再現性を優先し、次回は中央〜下限寄りから入りましょう。"
+      message: "少し疲労あり。次回は下限寄りでOK。"
     };
   }
   if (snapshot.avgRpeDiff !== null && snapshot.avgRpeDiff <= -0.75 && snapshot.planDaysDone >= Math.min(snapshot.planTargetDays, 3)) {
     return {
       status: "info",
       title: "余力あり",
-      message: "予定RPEより軽く進んでいます。フォームが安定しているなら、次回は調整範囲の中央〜上限寄りを試す候補があります。"
+      message: "軽く進んでいます。安定なら少し上げてもOK。"
     };
   }
   return {
     status: "ok",
     title: "順調",
-    message: "体調とトレーニング負荷の釣り合いは大きく崩れていません。今の流れで、予定RPEを守りながら次の週へ進みましょう。"
+    message: "順調です。予定RPEを守って進もう。"
   };
 }
 
@@ -3243,7 +3243,7 @@ function academyEvaluations(athlete, cycle) {
       status: "info",
       label: "記録",
       title: "まずは記録を増やそう",
-      message: "分析の精度は記録量に左右されます。まずはBIG3と主要補助種目を、RPEつきで残していきましょう。"
+      message: "記録が増えるほど分析が育ちます。BIG3から残そう。"
     }];
   }
 
@@ -3262,14 +3262,14 @@ function academyEvaluations(athlete, cycle) {
       status: "danger",
       label: "疲労注意",
       title: "予定RPEより高く出ています",
-      message: `直近の${recentRpeIssue.name}で予定@${recentRpeIssue.planned}に対して実績@${recentRpeIssue.actual}でした。回復が追いついていないかも。次回は-2.5〜5kg候補。`
+      message: `${recentRpeIssue.name}が重め。次回は-2.5〜5kg候補。`
     });
   } else if (recentRpeIssue && recentRpeIssue.diff >= 0.75) {
     cards.push({
       status: "warn",
       label: "RPE管理",
       title: "やや重く感じています",
-      message: `直近の${recentRpeIssue.name}で予定よりRPEが高めです。重量を追いすぎず、次回は-2.5kg程度の調整も選択肢に入れましょう。`
+      message: `${recentRpeIssue.name}がやや重め。次回は-2.5kgも候補。`
     });
   } else if (rpeLogs.length >= 2 && avgRpe >= 8.5) {
     cards.push({
@@ -4212,7 +4212,7 @@ function weekLearningCard(cycle, phase) {
   if (!guideEnabled()) return "";
   const isPlatform = cycle.programMethod === "platform";
   const whiteNine = isPlatform && (cycle.week === cycle.length || (phase.name || "").includes("MAX"))
-    ? `<p class="white-nine-note"><strong>白9本:</strong> 第一を確実に、第二でトータルを作り、第三で挑戦する。成功試技を積み上げることも競技力です。</p>`
+    ? `<p class="white-nine-note"><strong>白9本:</strong> 第一は確実に。第三で挑戦。</p>`
     : "";
   const accumulationNote = isPlatform && ((phase.name || "").includes("蓄積") || (phase.name || "").includes("ブリッジ"))
     ? `<p class="guide-note">MAX更新週ではありません。フォームとRPE感覚を作る時期。</p>`
@@ -5189,11 +5189,11 @@ function findPreviousFeedback(cycle, item) {
 }
 
 function previousAdjustmentMessage(feedback) {
-  if (feedback.status === "deload") return "デロード候補です。次週へ進む前に重量上限を守る回復週を挟む判断も検討してください。";
-  if (feedback.status === "heavy") return "今週は -2.5〜5kg やバックオフ減を検討し、予定RPEを守ることを優先してください。";
-  if (feedback.status === "warn") return "今週は -2.5kg を検討してください。重量を下げる判断もプログラム成功の一部です。";
+  if (feedback.status === "deload") return "デロード候補。進む前に回復週も考えよう。";
+  if (feedback.status === "heavy") return "今週は-2.5〜5kg候補。RPE優先でOK。";
+  if (feedback.status === "warn") return "今週は-2.5kgも候補。下げる判断も成功です。";
   if (feedback.status === "light") return "軽めでした。+2.5kg候補。最大でも+5kgまで。";
-  return "今週も提案重量を基準に、予定RPEを守る感覚を育てましょう。";
+  return "提案重量を基準に、RPE感覚を育てよう。";
 }
 
 function recoverySignalForNextWeek(cycle) {

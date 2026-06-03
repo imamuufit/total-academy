@@ -1,2243 +1,2968 @@
-diff -- index.html
---- a/index.html
-+++ b/index.html
-@@ -10,993 +10,993 @@
-     <title>Platform Buddy</title>
-     <link rel="manifest" href="manifest.webmanifest">
-     <link rel="preload" as="image" href="home-bg-lite.jpg">
-     <link rel="preload" as="image" href="icon-sheet-lite.jpg">
-     <link rel="apple-touch-icon" href="apple-touch-icon.png">
--    <link rel="stylesheet" href="styles.css?v=135">
--  </head>
--  <body>
--    <div class="app-shell">
--      <header class="topbar">
--        <div class="brand-block">
--          <h1>Platform Buddy</h1>
--          <p class="brand-subtitle">強くなりたい気持ちを、計画に変える。<br>現在地を見て、MAX更新へ進もう。</p>
--          <div class="brand-tags" aria-label="アプリのテーマ">
--            <span>LOG</span>
--            <span>PLAN</span>
--            <span>DATA</span>
--            <span>MEET</span>
--          </div>
--        </div>
--        <div class="export-actions">
--          <button class="text-button compact" id="exportBtn" type="button" aria-label="記録Excelを書き出す" title="記録Excelを書き出す">Log</button>
--          <button class="text-button compact" id="exportPlanBtn" type="button" aria-label="12週プランExcelを書き出す" title="12週プランExcelを書き出す">Excel</button>
--        </div>
--      </header>
--
--      <section class="onboarding-screen hidden" id="onboardingScreen" aria-live="polite">
--        <div class="onboarding-card">
--          <p class="eyebrow">First Setup</p>
--          <h2>Platform Buddy</h2>
--          <p class="onboarding-subtitle">強くなりたい気持ちを、計画に変える。</p>
--          <p class="onboarding-value">1RMと目標を入れると、次にやる練習が見えます。</p>
--
--          <div class="onboarding-step" data-onboarding-step="intro">
--            <p>現在地を入れて、MAX更新までの道筋を見よう。</p>
--            <button class="primary-button" type="button" data-onboarding-action="start">はじめて設定を始める</button>
--          </div>
--
--          <div class="onboarding-step hidden" data-onboarding-step="goal">
--            <h3>まず目的を選んでください</h3>
--            <div class="onboarding-goals">
--              <button type="button" data-onboarding-goal="big3"><strong>BIG3のMAX更新を狙いたい</strong><span>スクワット・ベンチ・デッドを伸ばす標準ルート</span></button>
--              <button type="button" data-onboarding-goal="bench"><strong>ベンチプレスを伸ばしたい</strong><span>ベンチ中心でPRサイクルを始める</span></button>
--              <button type="button" data-onboarding-goal="meet"><strong>大会に出てみたい</strong><span>白判定と大会形式を意識して進める</span></button>
--              <button type="button" data-onboarding-goal="learn"><strong>まずはパワーリフティングを学びたい</strong><span>低めの頻度でRPEと基礎を覚える</span></button>
--            </div>
--          </div>
--
--          <div class="onboarding-step hidden" data-onboarding-step="profile">
--            <h3>現在地を入力</h3>
--            <div class="onboarding-grid">
--              <label>トレーニング経験<select id="onboardingExperience">
--                <option value="beginner">初心者</option>
--                <option value="intermediate">中級者</option>
--                <option value="advanced">上級者</option>
--              </select></label>
--              <label>週あたり練習回数<select id="onboardingDays">
--                <option value="3">週3回</option>
--                <option value="4" selected>週4回</option>
--                <option value="5">週5回</option>
--              </select></label>
--              <label>競技カテゴリー<select id="onboardingSex">
--                <option value="male">男性</option>
--                <option value="female">女性</option>
--                <option value="">未設定</option>
--              </select></label>
--              <label>体重<input id="onboardingBodyweight" inputmode="decimal" type="number" min="20" step="0.1" placeholder="例: 83"></label>
--              <label>RPE使用経験<select id="onboardingRpeExperience">
--                <option value="learning">ほぼ初めて</option>
--                <option value="unsure">少し使ったことがある</option>
--                <option value="solid">普段から使っている</option>
--              </select></label>
--              <label>スクワットMAX<input id="onboardingSquatMax" inputmode="decimal" type="number" min="0" step="0.5" placeholder="例: 140"></label>
--              <label>ベンチプレスMAX<input id="onboardingBenchMax" inputmode="decimal" type="number" min="0" step="0.5" placeholder="例: 100"></label>
--              <label>デッドリフトMAX<input id="onboardingDeadliftMax" inputmode="decimal" type="number" min="0" step="0.5" placeholder="例: 160"></label>
--            </div>
--            <p class="onboarding-hint">MAXが曖昧でもOK。後から直せます。</p>
--            <div class="onboarding-actions">
--              <button class="text-button" type="button" data-onboarding-action="back">戻る</button>
--              <button class="primary-button" type="button" data-onboarding-action="create">プランを作成</button>
--            </div>
--          </div>
--
--          <div class="onboarding-step hidden" data-onboarding-step="complete">
--            <h3>PRサイクルを作成しました</h3>
--            <p>まずはW1 Day1へ。実績を入れると、DATAとRPE補正に反映されます。</p>
--            <p class="onboarding-hint">終わったら、更新重量で次のプランへ。</p>
--            <button class="primary-button" type="button" data-onboarding-action="finish">W1 Day1へ進む</button>
--          </div>
--
--          <div class="onboarding-step hidden" data-onboarding-step="daily">
--            <p class="eyebrow">Today's Entry</p>
--            <h3>まず体調を見よう</h3>
--            <section class="wellness-check-card" id="dailyWellnessCard">
--              <div class="wellness-check-head">
--                <span>今日のウェルネスチェック</span>
--                <strong>今日の方針を決める</strong>
--              </div>
--              <p>今日の状態を見よう。重さ選びのヒントにします。</p>
--              <div class="wellness-grid" aria-label="今日の体調">
--                <div class="wellness-field" data-wellness-field="sleep">
--                  <span>睡眠</span>
--                  <div class="wellness-options">
--                    <button type="button" data-wellness-option data-wellness-field="sleep" data-wellness-value="good">良い</button>
--                    <button type="button" data-wellness-option data-wellness-field="sleep" data-wellness-value="normal">普通</button>
--                    <button type="button" data-wellness-option data-wellness-field="sleep" data-wellness-value="bad">悪い</button>
--                  </div>
--                </div>
--                <div class="wellness-field" data-wellness-field="nutrition">
--                  <span>食事・水分</span>
--                  <div class="wellness-options">
--                    <button type="button" data-wellness-option data-wellness-field="nutrition" data-wellness-value="good">十分</button>
--                    <button type="button" data-wellness-option data-wellness-field="nutrition" data-wellness-value="normal">普通</button>
--                    <button type="button" data-wellness-option data-wellness-field="nutrition" data-wellness-value="bad">不足</button>
--                  </div>
--                </div>
--                <div class="wellness-field" data-wellness-field="fatigue">
--                  <span>疲労・筋肉痛</span>
--                  <div class="wellness-options">
--                    <button type="button" data-wellness-option data-wellness-field="fatigue" data-wellness-value="good">軽い</button>
--                    <button type="button" data-wellness-option data-wellness-field="fatigue" data-wellness-value="normal">普通</button>
--                    <button type="button" data-wellness-option data-wellness-field="fatigue" data-wellness-value="bad">重い</button>
--                  </div>
--                </div>
--                <div class="wellness-field" data-wellness-field="pain">
--                  <span>関節・痛み</span>
--                  <div class="wellness-options">
--                    <button type="button" data-wellness-option data-wellness-field="pain" data-wellness-value="good">なし</button>
--                    <button type="button" data-wellness-option data-wellness-field="pain" data-wellness-value="normal">少し</button>
--                    <button type="button" data-wellness-option data-wellness-field="pain" data-wellness-value="bad">強い</button>
--                  </div>
--                </div>
--                <div class="wellness-field" data-wellness-field="mental">
--                  <span>集中・気持ち</span>
--                  <div class="wellness-options">
--                    <button type="button" data-wellness-option data-wellness-field="mental" data-wellness-value="good">高い</button>
--                    <button type="button" data-wellness-option data-wellness-field="mental" data-wellness-value="normal">普通</button>
--                    <button type="button" data-wellness-option data-wellness-field="mental" data-wellness-value="bad">低い</button>
--                  </div>
--                </div>
--              </div>
--              <div class="wellness-result" id="dailyWellnessResult" aria-live="polite"></div>
--              <div class="wellness-actions">
--                <button class="text-button compact" type="button" data-wellness-save>今日の状態を保存</button>
--              </div>
--            </section>
--            <div class="daily-entry-head">
--              <span>次の行動</span>
--              <strong>次に進む場所を選ぼう</strong>
--            </div>
--            <div class="daily-entry-grid">
--              <button type="button" data-onboarding-action="daily-plan"><strong>今日のプランへ</strong><span>今日のメニューへ</span></button>
--              <button type="button" data-onboarding-action="daily-log"><strong>トレーニングを記録</strong><span>自由トレもここ</span></button>
--              <button type="button" data-onboarding-action="daily-max"><strong>DATAを確認</strong><span>進み具合を見る</span></button>
--              <button type="button" data-onboarding-action="daily-meet"><strong>大会準備・ルール確認</strong><span>ルールと準備へ</span></button>
--            </div>
--            <div class="onboarding-actions">
--              <button class="text-button" type="button" data-onboarding-action="restart-first">初回ガイドをもう一度見る</button>
--              <button class="text-button" type="button" data-onboarding-action="daily-close">閉じる</button>
--            </div>
--          </div>
--        </div>
--      </section>
--
--      <main>
--        <section class="panel welcome-panel" id="welcomePanel">
--          <div class="section-title welcome-title">
--            <div class="welcome-copy">
--              <p class="eyebrow">Start</p>
--              <h2>はじめてガイド</h2>
--            </div>
--            <button class="collapse-toggle" id="welcomeCollapseBtn" type="button" aria-label="はじめてガイドを閉じる" aria-expanded="true">▴</button>
--          </div>
--          <p class="collapse-summary" id="welcomeSummary"></p>
--          <div class="collapsible-content" id="welcomePanelContent">
--            <div class="start-card-grid" aria-label="目的を選ぶ">
--              <button class="start-card recommended" type="button" data-start-action="plan">
--                <span>PLAN</span>
--                <strong>BIG3のMAX更新を狙いたい</strong>
--                <small>現在1RMからPRサイクルを作ります。</small>
--              </button>
--              <button class="start-card" type="button" data-start-action="log">
--                <span>LOG</span>
--                <strong>今日のトレーニングを記録したい</strong>
--                <small>今日の1セットを残そう。</small>
--              </button>
--              <button class="start-card" type="button" data-start-action="meet">
--                <span>MEET</span>
--                <strong>パワーリフティング大会に出てみたい</strong>
--                <small>白判定と準備を確認。</small>
--              </button>
--            </div>
--            <div class="start-guide" id="startGuide" aria-live="polite"></div>
--          </div>
--        </section>
--
--        <section class="meet-prep-announcement hidden" id="meetPrepAnnouncement" role="button" tabindex="0" data-view-target="knowledge" aria-label="大会準備へ進む"></section>
--
--        <section class="panel athlete-panel">
--          <div class="section-title">
--            <div>
--              <p class="eyebrow">Athlete</p>
--              <h2 id="currentAthleteName">自分</h2>
--            </div>
--            <div class="athlete-actions">
--              <button class="text-button" id="addAthleteBtn" type="button">選手追加</button>
--              <button class="text-button danger" id="deleteAthleteBtn" type="button">選手削除</button>
--              <button class="collapse-toggle" id="profileCollapseBtn" type="button" aria-label="プロフィールを閉じる" aria-expanded="true">▴</button>
--            </div>
--          </div>
--          <p class="collapse-summary" id="profileSummary"></p>
--          <section class="athlete-dashboard" id="athleteDashboard" aria-live="polite"></section>
--          <div class="collapsible-content" id="profilePanelContent">
--            <div class="athlete-strip" id="athleteStrip" aria-label="選手一覧"></div>
--            <div class="profile-grid">
--              <label>
--                性別
--                <select id="sexInput">
--                  <option value="">未設定</option>
--                  <option value="male">男性</option>
--                  <option value="female">女性</option>
--                </select>
--              </label>
--              <label>
--                体重
--                <input id="bodyweightInput" inputmode="decimal" type="number" min="0" step="0.1" placeholder="kg">
--              </label>
--              <label>
--                体重階級
--                <select id="weightClassInput"></select>
--              </label>
--              <label>
--                都道府県
--                <select id="prefectureInput"></select>
--              </label>
--              <label>
--                試合予定
--                <input id="meetDateInput" type="date">
--              </label>
--            </div>
--            <section class="association-guide" id="associationGuide"></section>
--          </div>
--        </section>
--
--        <section class="wellness-floating" id="wellnessFloating" aria-live="polite"></section>
--
--        <section class="guide-mode-bar" aria-label="表示モード">
--          <div>
--            <span>ガイド<br>モード</span>
--            <small id="guideModeDescription">短いガイドを表示</small>
--          </div>
--          <button class="guide-mode-toggle" id="guideModeBtn" type="button" aria-pressed="true">
--            オン
--          </button>
--        </section>
--
--        <nav class="tabbar" aria-label="メイン画面">
--          <button class="tab active" type="button" data-view="home">HOME</button>
--          <button class="tab" type="button" data-view="plan">PLAN</button>
--          <button class="tab" type="button" data-view="log">LOG</button>
--          <button class="tab" type="button" data-view="analysis">DATA</button>
--          <button class="tab" type="button" data-view="knowledge">MEET</button>
--        </nav>
--
--        <section class="view active" id="homeView">
--          <section class="home-dashboard" id="homeDashboard" aria-live="polite"></section>
--        </section>
--
--        <section class="view" id="logView">
--          <section class="log-command-panel" id="logCommandPanel"></section>
--          <form class="panel log-form" id="logForm">
--            <div class="section-title">
--              <div>
--                <p class="eyebrow">Free Log</p>
--                <h2>自由トレーニング記録</h2>
--              </div>
--              <input id="dateInput" type="date" required>
--            </div>
--            <p class="screen-note">自由トレや補助種目を残そう。</p>
--
--            <div class="form-row">
--              <label>
--                カテゴリ
--                <select id="categorySelect"></select>
--              </label>
--              <label>
--                種目
--                <select id="exerciseSelect"></select>
--              </label>
--            </div>
--
--            <label id="customExerciseLabel" class="hidden">
--              種目名
--              <input id="customExerciseInput" type="text" placeholder="例: スパニッシュスクワット">
--            </label>
--
--            <section id="alternativePanel" class="alternative-panel hidden" aria-live="polite"></section>
--
--            <label class="set-count-label">
--              セット数
--              <input id="setsInput" inputmode="numeric" type="number" min="1" max="20" step="1" value="1" required>
--            </label>
--
--            <section class="set-detail-panel" id="setDetailPanel">
--              <div class="set-detail-head">
--                <div>
--                  <h3>セット入力</h3>
--                  <p>Set1を下のセットへコピーできます。</p>
--                </div>
--                <button class="text-button compact" id="fillSetRowsBtn" type="button">Set1を下へコピー</button>
--              </div>
--              <div class="set-rows" id="setRows"></div>
--            </section>
--
--            <label>
--              メモ
--              <textarea id="noteInput" rows="3" placeholder="フォーム、痛み、疲労感、狙いなど"></textarea>
--            </label>
--
--            <button class="primary-button" type="submit">記録する</button>
--          </form>
--
--          <section class="quick-stats" id="quickStats"></section>
--          <section class="panel compact-panel">
--            <div class="section-title">
--              <div>
--                <p class="eyebrow">Log Archive</p>
--                <h2>履歴・データ管理</h2>
--              </div>
--              <button class="text-button" type="button" data-view-target="history">開く</button>
--            </div>
--            <p class="screen-note">履歴、バックアップ、Excelはここ。</p>
--          </section>
--        </section>
--
--        <section class="view" id="analysisView">
--          <section class="panel">
--            <div class="section-title">
--              <div>
--                <p class="eyebrow">Trend</p>
--                <h2>種目別 e1RM</h2>
--              </div>
--              <select id="chartLiftSelect" aria-label="グラフ種目"></select>
--            </div>
--            <canvas id="trendChart" width="720" height="360" aria-label="推定1RMグラフ"></canvas>
--          </section>
--
--          <section class="panel weekly-data-panel">
--            <div class="section-title">
--              <div>
--                <p class="eyebrow">Weekly Data</p>
--                <h2>今週の進捗</h2>
--              </div>
--            </div>
--            <p class="screen-note">直近7日の流れをまとめて見よう。</p>
--            <div class="weekly-data-summary" id="weeklyDataSummary"></div>
--            <canvas id="weeklyDataChart" width="720" height="320" aria-label="週間の体調とトレーニング負荷グラフ"></canvas>
--          </section>
--
--          <section class="panel academy-evaluation-panel">
--            <div class="section-title">
--              <div>
--                <p class="eyebrow">Buddy Review</p>
--                <h2>Buddyコメント</h2>
--              </div>
--            </div>
--            <p class="screen-note">伸び方を見て、次の一手を決めよう。</p>
--            <div class="academy-evaluation-list" id="academyEvaluation"></div>
--          </section>
--
--          <section class="metric-grid" id="metricGrid"></section>
--        </section>
--
--        <section class="view" id="planView">
--          <section class="panel">
--            <div class="section-title">
--              <div>
--                <p class="eyebrow">This Week</p>
--                <h2 id="cyclePhaseTitle">今週の目的</h2>
--              </div>
--              <div class="week-actions">
--                <button class="text-button" id="prevWeekBtn" type="button">前週へ</button>
--                <button class="text-button" id="nextWeekBtn" type="button">次週へ</button>
--              </div>
--            </div>
--            <p class="cycle-note" id="cyclePhaseNote"></p>
--            <section class="rpe-coach-card" id="rpeCoachCard"></section>
--            <div class="plan-list" id="planList"></div>
--          </section>
--
--          <section class="panel plan-context-panel" id="planContextPanel">
--            <div class="section-title">
--              <div>
--                <p class="eyebrow">This Week</p>
--                <h2 id="planContextTitle">今週の文脈</h2>
--              </div>
--              <button class="collapse-toggle" id="planContextCollapseBtn"
--                type="button"
--                aria-label="今週の文脈を開く"
--                aria-expanded="false">⌄</button>
--            </div>
--            <p class="collapse-summary" id="planContextSummary"></p>
--            <div class="collapsible-content collapsed" id="planContextContent">
--              <div class="plan-context-grid" id="planContextGrid"></div>
--            </div>
--          </section>
--
--          <section class="panel buddy-method-panel hidden">
--            <div class="section-title">
--              <div>
--                <p class="eyebrow">Buddy Method</p>
--                <h2>Buddyメソッドとは？</h2>
--              </div>
--              <button class="collapse-toggle" id="buddyMethodCollapseBtn" type="button" aria-label="Buddyメソッドとは？を開く" aria-expanded="false">▾</button>
--            </div>
--            <p class="collapse-summary" id="buddyMethodSummary"></p>
--            <div class="collapsible-content" id="buddyMethodPanelContent">
--              <p class="screen-note">RPEと疲労を見ながら、PRへ進むサイクルです。</p>
--              <p class="program-disclaimer">万能メニューではありません。体調とRPEで調整します。</p>
--              <div class="method-level-grid">
--                <article>
--                  <span>Lv1</span>
--                  <strong>標準 / 初中級者向け</strong>
--                  <p>RPE感覚と完走を重視。後半の成功率を作ります。</p>
--                </article>
--                <article>
--                  <span>Lv2</span>
--                  <strong>実戦寄り / 中級者向け</strong>
--                  <p>RPEと%1RMを併用。週内に強弱を作ります。</p>
--                </article>
--                <article>
--                  <span>Rebuild</span>
--                  <strong>大会後リビルド16週</strong>
--                  <p>大会後・高疲労・停滞・ブランク明けに、Lv1 Resetで整えてからLv2へ進む再準備プランです。</p>
--                </article>
--              </div>
--            </div>
--          </section>
--          <section class="panel cycle-setup-panel" id="cycleSetupPanel"></section>
--          <section class="panel cycle-panel">
--            <div class="section-title">
--              <div>
--                <p class="eyebrow">PR Cycle</p>
--                <h2>PRサイクル設計</h2>
--              </div>
--              <div class="plan-actions">
--                <button class="collapse-toggle" id="cycleCollapseBtn" type="button" aria-label="PRサイクル設計を閉じる" aria-expanded="true">▴</button>
--                <button class="text-button" id="saveCycleBtn" type="button">保存</button>
--              </div>
--            </div>
--            <p class="collapse-summary" id="cycleSummary"></p>
--            <div class="collapsible-content" id="cyclePanelContent">
--              <p class="screen-note">方式、週数、頻度を選ぼう。</p>
--              <div class="cycle-grid cycle-basic-grid">
--                <label>
--                  プラン対象
--                  <select id="planTargetInput">
--                    <option value="big3">BIG3</option>
--                    <option value="bench_only">ベンチプレスのみ</option>
--                  </select>
--                </label>
--                <label>
--                  週数
--                  <select id="cycleLengthInput">
--                    <option value="3">3週</option>
--                    <option value="4">4週</option>
--                    <option value="6">6週</option>
--                    <option value="8">8週</option>
--                    <option value="10">10週</option>
--                    <option value="12">12週</option>
--                  </select>
--                </label>
--                <label>
--                  週あたり
--                  <select id="daysPerWeekInput">
--                    <option value="3">週3回</option>
--                    <option value="4">週4回</option>
--                    <option value="5">週5回</option>
--                  </select>
--                </label>
--              </div>
--              <section class="cycle-basic-maxes">
--                <div>
--                  <h3>現在1RM</h3>
--                  <p>必要ならここで修正。</p>
--                </div>
--                <div class="max-grid">
--                  <label>
--                    SQ 現在1RM
--                    <input id="squatMaxInput" inputmode="decimal" type="number" min="0" step="2.5" placeholder="kg">
--                  </label>
--                  <label>
--                    BP 現在1RM
--                    <input id="benchMaxInput" inputmode="decimal" type="number" min="0" step="2.5" placeholder="kg">
--                  </label>
--                  <label>
--                    DL 現在1RM
--                    <input id="deadliftMaxInput" inputmode="decimal" type="number" min="0" step="2.5" placeholder="kg">
--                  </label>
--                </div>
--              </section>
--              <details class="cycle-settings-details">
--                <summary>
--                  <span>
--                    <strong>詳しく設定する</strong>
--                    <small>方式・補助種目量・重点種目・経験レベル・設備</small>
--                  </span>
--                </summary>
--                <div class="cycle-settings-details-body">
--                  <div class="cycle-grid cycle-detail-grid">
--                    <label>
--                      プラン方式
--                      <select id="programMethodInput">
--                        <option value="platform">Buddyメソッド Lv1（標準）</option>
--                        <option value="platform_level2">Buddyメソッド Lv2（実戦寄り）</option>
--                        <option value="rebuild16">Buddy Rebuild 16（大会後リビルド）</option>
--                        <option value="hps">HPS（BP向き）</option>
--                        <option value="531">5/3/1（長期型）</option>
--                        <option value="smolov_jr">Smolov Jr.（SQ/BP高負荷）</option>
--                      </select>
--                    </label>
--                    <label>
--                      補助種目量
--                      <select id="accessoryVolumeInput">
--                        <option value="low">少なめ</option>
--                        <option value="normal">普通</option>
--                        <option value="high">多め</option>
--                      </select>
--                    </label>
--                    <label>
--                      重点種目
--                      <select id="priorityLiftInput">
--                        <option value="total">トータル重視</option>
--                        <option value="squat">スクワット重視</option>
--                        <option value="bench">ベンチ重視</option>
--                        <option value="deadlift">デッドリフト重視</option>
--                      </select>
--                    </label>
--                    <label>
--                      経験レベル
--                      <select id="experienceLevelInput">
--                        <option value="beginner">初心者</option>
--                        <option value="intermediate">中級者</option>
--                        <option value="advanced">上級者</option>
--                      </select>
--                    </label>
--                  </div>
--                  <p class="cycle-method-note" id="cycleMethodNote"></p>
--                  <section class="program-method-guide" id="programMethodGuide"></section>
--                  <p class="program-disclaimer" id="programDisclaimer"></p>
--                  <section class="facility-panel">
--                    <div class="facility-head">
--                      <div>
--                        <h3>設備依存種目</h3>
--                        <p>使える設備だけチェック。</p>
--                      </div>
--                      <button class="collapse-toggle" id="facilityCollapseBtn" type="button" aria-label="設備依存種目を閉じる" aria-expanded="true">▴</button>
--                    </div>
--                    <p class="collapse-summary" id="facilitySummary"></p>
--                    <div class="facility-grid collapsible-content" id="facilityGrid"></div>
--                  </section>
--                </div>
--              </details>
--              <div class="projection-grid" id="projectionGrid"></div>
--            </div>
--          </section>
--        </section>
--
--        <section class="view" id="knowledgeView">
--          <section class="meet-command-panel" id="meetCommandPanel" aria-label="MEET大会準備サマリー"></section>
--          <section class="panel meet-main-panel">
--            <div class="section-title">
--              <div>
--                <p class="eyebrow">Meet Tools</p>
--                <h2>大会準備ツール</h2>
--              </div>
--            </div>
--            <p class="screen-note meet-screen-note">大会準備、ルール、ノートをここで確認。</p>
--            <section class="meet-prep-checklist" id="meetPrepChecklist" aria-labelledby="meetPrepChecklistTitle">
--              <div class="section-title">
--                <div>
--                  <p class="eyebrow">Meet Checklist</p>
--                  <h3 id="meetPrepChecklistTitle">大会準備チェックリスト</h3>
--                </div>
--              </div>
--              <p class="meet-rule-note">終わったものから潰そう。</p>
--              <div class="meet-checklist-grid"></div>
--            </section>
--            <div class="meet-shortcut-grid meet-action-grid">
--              <article class="meet-shortcut meet-strategy-card">
--                <span>1st/2nd/3rd</span>
--                <strong>試技戦略</strong>
--                <small>第一は確実に白、第二でトータル、第三で挑戦。成功試技を積み上げる準備をします。</small>
--              </article>
--              <button class="meet-shortcut quiz-shortcut-card" type="button" data-meet-action="quiz">
--                <span>白判定</span>
--                <strong>白判定クイズ</strong>
--                <small>ジャッジの視点を鍛えて、本番の自信に変えましょう。</small>
--              </button>
--              <a class="meet-shortcut meet-note-shortcut" href="#meetNoteTitle">
--                <span>NOTE</span>
--                <strong>大会ノート</strong>
--                <small>試技結果、赤判定の理由、気づきを残して次の大会につなげます。</small>
--              </a>
--            </div>
--            <section class="meet-note-panel" aria-labelledby="meetNoteTitle">
--              <div class="section-title">
--                <div>
--                  <p class="eyebrow">Meet Notebook</p>
--                  <h3 id="meetNoteTitle">大会ノート</h3>
--                </div>
--                <button class="collapse-toggle" id="meetNoteCollapseBtn" type="button" aria-label="大会ノートを開く" aria-expanded="false">▾</button>
--              </div>
--              <p class="collapse-summary" id="meetNoteSummary"></p>
--              <div class="collapsible-content" id="meetNotePanelContent">
--                <p class="screen-note">9本の結果、赤、次回課題を残そう。</p>
--                <form class="meet-note-form" id="meetNoteForm">
--                  <div class="input-grid">
--                    <label>
--                      大会名
--                      <input id="meetNameInput" type="text" maxlength="60" placeholder="例：春季県大会">
--                    </label>
--                    <label>
--                      大会日
--                      <input id="meetReviewDateInput" type="date">
--                    </label>
--                    <label>
--                      階級
--                      <input id="meetReviewWeightClassInput" type="text" maxlength="20" placeholder="例：83kg級">
--                    </label>
--                    <label>
--                      検量体重
--                      <input id="meetReviewBodyweightInput" inputmode="decimal" type="number" min="0" step="0.1" placeholder="kg">
--                    </label>
--                    <label>
--                      トータル
--                      <input id="meetReviewTotalInput" inputmode="decimal" type="number" min="0" step="2.5" placeholder="kg">
--                    </label>
--                  </div>
--                  <p class="meet-rule-note">赤判定は赤1〜3で記録。最終判断は公式と当日の説明を優先。</p>
--                  <div class="meet-attempt-grid" id="meetAttemptGrid"></div>
--                  <div class="input-grid">
--                    <label>
--                      自己感想
--                      <textarea id="meetSelfInput" rows="3" placeholder="例：初出場で緊張したが、第二試技から落ち着けた"></textarea>
--                    </label>
--                    <label>
--                      良かった点
--                      <textarea id="meetGoodInput" rows="3" placeholder="例：第一試技は落ち着いて白を取れた"></textarea>
--                    </label>
--                    <label>
--                      次回への課題
--                      <textarea id="meetIssueInput" rows="3" placeholder="例：スクワットの深さ、ベンチの静止を練習する"></textarea>
--                    </label>
--                  </div>
--                  <button class="primary-button" type="submit">大会ノートを保存</button>
--                </form>
--                <div class="meet-review-preview" id="meetReviewPreview"></div>
--                <div class="meet-note-list" id="meetNoteList"></div>
--              </div>
--            </section>
--            <section class="quiz-panel" aria-labelledby="quizTitle">
--              <div class="quiz-head">
--                <div>
--                  <p class="eyebrow">White Lights</p>
--                  <h3 id="quizTitle">白判定クイズ｜3択で覚えるルール</h3>
--                </div>
--                <button class="collapse-toggle" id="quizCollapseBtn" type="button" aria-label="白判定クイズを閉じる" aria-expanded="true">▴</button>
--              </div>
--              <p class="collapse-summary" id="quizSummary"></p>
--              <div class="collapsible-content" id="quizPanelContent">
--                <div id="quizApp"></div>
--              </div>
--            </section>
--            <details class="knowledge-library">
--              <summary class="knowledge-library-summary">
--                <span>
--                  <span class="eyebrow">Learn as you lift</span>
--                  <strong>用語を調べる</strong>
--                  <small>RPE、プログラム、大会用語</small>
--                </span>
--              </summary>
--              <div class="knowledge-library-body">
--                <div class="knowledge-grid">
--              <article class="knowledge-card official-rules-card">
--                <span>公式情報</span>
--                <h3>公式ルール</h3>
--                <p>本アプリは学習・記録補助です。最終判断は公式ルール、大会要項、当日の指示を優先してください。</p>
--                <div class="rule-links">
--                  <a href="https://www.powerlifting.sport/rules/codes/info/technical-rules" target="_blank" rel="noopener">IPF技術規則ページを見る</a>
--                  <a href="https://www.jpa-powerlifting.or.jp/rules-members.php" target="_blank" rel="noopener">JPAルール関連ページを見る</a>
--                </div>
--              </article>
--              <article class="knowledge-card">
--                <span>強度管理</span>
--                <h3>RPE</h3>
--                <p>そのセットがどれくらい限界に近かったかを表す主観指標です。最初から正確に当てるものではなく、記録と動画確認を通して育てる感覚として扱います。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>強度管理</span>
--                <h3>RIR</h3>
--                <p>Platform Buddyでは「競技フォームを保ったまま、あと何回できそうか」と定義します。深さ、止め、ロックアウト、バー軌道が崩れる余力は多く数えません。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>強度管理</span>
--                <h3>RPE自信度</h3>
--                <p>実績RPEにどれくらい自信があるかの自己申告です。迷うこと自体が悪いのではなく、次回の観察ポイントを作るための学習メモです。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>強度管理</span>
--                <h3>e1RM</h3>
--                <p>実施重量と回数から推定する1RMです。日々の調子やフォーム差もあるため、絶対値ではなく傾向として見ます。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>強度管理</span>
--                <h3>オーバーシュート</h3>
--                <p>予定より重く、またはRPEが高くなりすぎることです。強くなった証拠ではなく、疲労管理を崩す原因になることがあります。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>強度管理</span>
--                <h3>アンダーシュート</h3>
--                <p>予定より軽すぎる、またはRPEが低すぎることです。回復が良い日は次回以降に少しだけ重量を足す判断材料になります。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>強度管理</span>
--                <h3>主観強度</h3>
--                <p>重量そのものではなく、その日の体感で見た重さです。同じ180kgでも、睡眠や疲労でRPEは変わります。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>強度管理</span>
--                <h3>絶対強度</h3>
--                <p>実際に持った重量そのものです。競技では大切ですが、毎回これだけを追うと疲労管理が難しくなります。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>強度管理</span>
--                <h3>%1RM</h3>
--                <p>現在の1RMに対する割合です。80%なら1RMの8割。RPEと合わせると、重さと体感のズレを見やすくなります。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>強度管理</span>
--                <h3>レップPR</h3>
--                <p>同じ重量で過去より多く挙げる、または同じ回数を重くする更新です。MAX挑戦前の成長確認として役立ちます。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>プログラム</span>
--                <h3>トップセット</h3>
--                <p>その日の中心になる一番重いセットです。重さを確認しつつ、予定RPEを超えないことが大切です。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>プログラム</span>
--                <h3>バックオフ</h3>
--                <p>トップセット後に少し重量を落として行う反復です。フォームと必要な練習量を積む役割があります。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>プログラム</span>
--                <h3>Training Max</h3>
--                <p>実際のMAXより低めに設定するトレーニング用MAXです。5/3/1系では安全に積むための基準になります。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>プログラム</span>
--                <h3>ボリューム</h3>
--                <p>練習量のことです。重量、回数、セット数で決まり、伸びる刺激にも疲労にもなるため、増やしすぎない管理が重要です。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>プログラム</span>
--                <h3>強度</h3>
--                <p>最大重量に対してどれくらい重いかを表します。高強度は競技動作に近い一方、疲労が大きくなりやすいです。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>プログラム</span>
--                <h3>頻度</h3>
--                <p>週あたりの練習回数です。増やす時は回復も見よう。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>プログラム</span>
--                <h3>特異性</h3>
--                <p>伸ばしたい動作に近い練習ほど、その競技力に直結しやすいという考え方です。BIG3はBIG3で練習する意味があります。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>プログラム</span>
--                <h3>バリエーション種目</h3>
--                <p>ポーズ、テンポ、ハイバーなど、競技種目に近い派生種目です。弱点補強やフォーム修正に使います。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>プログラム</span>
--                <h3>アクセサリー種目</h3>
--                <p>BIG3を支える筋量や弱点を補う補助種目です。主役ではなく、競技練習を助ける脇役として量を調整します。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>プログラム</span>
--                <h3>テクニック練習</h3>
--                <p>限界まで追い込む練習ではなく、同じフォームを再現するための練習です。軽めの日にも大きな意味があります。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>周期化</span>
--                <h3>蓄積期</h3>
--                <p>フォーム再現性、練習量、RPE感覚を作る時期です。表示重量を追うより、予定RPEに合わせる練習をします。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>周期化</span>
--                <h3>強化期</h3>
--                <p>蓄積期で作った土台を、より競技重量に近い練習へつなげる時期です。重さを上げつつ、失敗を増やさないことが大切です。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>周期化</span>
--                <h3>ピーキング</h3>
--                <p>PRや試合に向けて疲労を抑えながら重さに慣れる時期です。量を減らし、成功率と精度を高めます。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>周期化</span>
--                <h3>デロード</h3>
--                <p>意図的に練習量や強度を落として回復する週です。サボりではなく、次の高重量練習を成立させる準備です。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>周期化</span>
--                <h3>現在地チェック</h3>
--                <p>蓄積期後に疲労を抜いて行う確認週です。限界MAXを狙うのではなく、後半へ進むための再現性とRPE感覚を確認します。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>周期化</span>
--                <h3>休養ブロック</h3>
--                <p>現在地チェックや大会想定前に3日程度の休養を入れる考え方です。疲労を抜き、重い重量の成功率を高めます。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>周期化</span>
--                <h3>テーパリング</h3>
--                <p>大会やMAX測定前に練習量を落として疲労を抜く調整です。強くなる練習ではなく、強さを出す準備です。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>周期化</span>
--                <h3>フィットネスと疲労</h3>
--                <p>練習で体力は上がりますが、同時に疲労も溜まります。ピーキングでは体力を残しながら疲労を減らすことを狙います。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>周期化</span>
--                <h3>非線形</h3>
--                <p>毎回まっすぐ重くするのではなく、週内で重い日・軽い日を作る考え方です。中級者以降の疲労管理に役立ちます。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>周期化</span>
--                <h3>オートレギュレーション</h3>
--                <p>その日の体調やRPEに合わせて重量や量を微調整する考え方です。予定を守るために、あえて重量を下げる判断も含みます。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>試合</span>
--                <h3>試技形式</h3>
--                <p>スクワット、ベンチプレス、デッドリフトを大会と同じ順番で確認する形式です。最終週は通常練習ではなく試技練習として扱います。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>試合</span>
--                <h3>白9本</h3>
--                <p>スクワット、ベンチ、デッドリフトの全試技を成功させる考え方です。Platform BuddyのPR週も成功率を重視します。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>試合</span>
--                <h3>第一試技</h3>
--                <p>必ず成功させたい入りの重量です。練習で何度も安定して挙がる重量を選び、試合の流れを作ります。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>試合</span>
--                <h3>第二試技</h3>
--                <p>トータルを作るための重量です。第三試技に挑戦を残せるよう、欲張りすぎない設定が基本になります。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>試合</span>
--                <h3>第三試技</h3>
--                <p>PRや順位を狙う試技です。第一、第二を成功させたうえで、その日の状態に合わせて攻めます。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>試合</span>
--                <h3>オープナー</h3>
--                <p>第一試技のことです。緊張しても成功できる重量を選び、白判定で試合を始めるための入口になります。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>試合</span>
--                <h3>コール</h3>
--                <p>主審の合図です。スクワット、ベンチ、デッドリフトで必要な合図が違うため、普段から待つ練習が必要です。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>試合</span>
--                <h3>赤判定</h3>
--                <p>試技が失敗と判定されることです。力不足だけでなく、深さ、静止、コール無視、下ろし方でも起こります。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>試合</span>
--                <h3>検量</h3>
--                <p>大会当日に体重階級を確認する手続きです。時間や方法は大会要項で確認し、補給計画も含めて準備します。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>試合</span>
--                <h3>ラック高</h3>
--                <p>スクワットやベンチで使うラックの高さです。大会当日に迷わないよう、普段から自分の高さを記録しておくと安心です。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>試合</span>
--                <h3>セコンド</h3>
--                <p>大会中に重量選択や準備を助けるサポート役です。個人参加でも、事前に流れを決めておくと落ち着きます。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>試合</span>
--                <h3>アップ計画</h3>
--                <p>第一試技へ向けたウォームアップ重量と時間配分です。早すぎても遅すぎても焦るため、事前に流れを作ります。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>試合</span>
--                <h3>試技申請</h3>
--                <p>次に挑戦する重量を大会側へ出すことです。時間制限があるため、第二・第三の候補を事前に考えておきます。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>コンディション</span>
--                <h3>回復</h3>
--                <p>睡眠、食事、ストレス管理によって練習の成果を出せる状態に戻すことです。強くなる時間は練習外にもあります。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>コンディション</span>
--                <h3>疲労</h3>
--                <p>練習や生活でパフォーマンスが一時的に落ちる状態です。疲労がある日は、重量よりフォームと予定RPEを優先します。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>コンディション</span>
--                <h3>違和感</h3>
--                <p>痛み未満でも、いつもと違う感覚です。記録に残しておくと、疲労やフォーム変化を早めに見直せます。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>コンディション</span>
--                <h3>ピークアウト</h3>
--                <p>疲労や調整のズレで、本番前に調子の山を過ぎてしまうことです。重い練習を増やしすぎない判断が大切です。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>方式</span>
--                <h3>HPS / 5/3/1 / Smolov Jr.</h3>
--                <p>アプリ内では各方式の考え方を参考にした簡略テンプレートです。公式プログラムの完全再現ではありません。</p>
--              </article>
--              <article class="knowledge-card">
--                <span>評価</span>
--                <h3>アカデミー評価</h3>
--                <p>RPE、練習量、記録頻度、BIG3バランスから保守的にコメントします。診断ではなく、次の練習判断を助ける目安です。</p>
--              </article>
--                </div>
--              </div>
--            </details>
--          </section>
--        </section>
--
--        <section class="view" id="historyView">
--          <section class="panel data-panel">
--            <div class="section-title">
--              <div>
--                <p class="eyebrow">Data</p>
--                <h2>データ管理</h2>
--              </div>
--            </div>
--            <p class="data-note">大きな更新前はバックアップしておこう。</p>
--            <div class="data-actions">
--              <button class="text-button" id="backupExportBtn" type="button">バックアップを書き出す</button>
--              <button class="primary-button inline" id="backupImportBtn" type="button">バックアップを読み込む</button>
--              <button class="text-button" id="restartOnboardingBtn" type="button">初回ガイドをもう一度見る</button>
--              <input class="hidden" id="backupFileInput" type="file" accept="application/json,.json">
--            </div>
--            <div class="data-status" id="dataStatus"></div>
--          </section>
--          <section class="panel">
--            <div class="section-title">
--              <div>
--                <p class="eyebrow">History</p>
--                <h2>履歴</h2>
--              </div>
--              <button class="text-button danger" id="clearBtn" type="button">削除</button>
--            </div>
--            <div class="history-list" id="historyList"></div>
--          </section>
--        </section>
--      </main>
--    </div>
--
--    <dialog id="athleteDialog">
--      <form method="dialog" class="dialog-card" id="athleteForm">
--        <h2>選手を追加</h2>
--        <label>
--          名前
--          <input id="athleteNameInput" type="text" maxlength="32" required>
--        </label>
--        <div class="dialog-actions">
--          <button class="text-button" value="cancel" type="button" id="cancelAthleteBtn">キャンセル</button>
--          <button class="primary-button" value="default" type="submit">追加</button>
--        </div>
--      </form>
--    </dialog>
--
--    <script src="app.js?v=135"></script>
-+    <link rel="stylesheet" href="styles.css?v=136">
-+  </head>
-+  <body>
-+    <div class="app-shell">
-+      <header class="topbar">
-+        <div class="brand-block">
-+          <h1>Platform Buddy</h1>
-+          <p class="brand-subtitle">強くなりたい気持ちを、計画に変える。<br>現在地を見て、MAX更新へ進もう。</p>
-+          <div class="brand-tags" aria-label="アプリのテーマ">
-+            <span>LOG</span>
-+            <span>PLAN</span>
-+            <span>DATA</span>
-+            <span>MEET</span>
-+          </div>
-+        </div>
-+        <div class="export-actions">
-+          <button class="text-button compact" id="exportBtn" type="button" aria-label="記録Excelを書き出す" title="記録Excelを書き出す">Log</button>
-+          <button class="text-button compact" id="exportPlanBtn" type="button" aria-label="12週プランExcelを書き出す" title="12週プランExcelを書き出す">Excel</button>
-+        </div>
-+      </header>
-+
-+      <section class="onboarding-screen hidden" id="onboardingScreen" aria-live="polite">
-+        <div class="onboarding-card">
-+          <p class="eyebrow">First Setup</p>
-+          <h2>Platform Buddy</h2>
-+          <p class="onboarding-subtitle">強くなりたい気持ちを、計画に変える。</p>
-+          <p class="onboarding-value">1RMと目標を入れると、次にやる練習が見えます。</p>
-+
-+          <div class="onboarding-step" data-onboarding-step="intro">
-+            <p>現在地を入れて、MAX更新までの道筋を見よう。</p>
-+            <button class="primary-button" type="button" data-onboarding-action="start">はじめて設定を始める</button>
-+          </div>
-+
-+          <div class="onboarding-step hidden" data-onboarding-step="goal">
-+            <h3>まず目的を選んでください</h3>
-+            <div class="onboarding-goals">
-+              <button type="button" data-onboarding-goal="big3"><strong>BIG3のMAX更新を狙いたい</strong><span>スクワット・ベンチ・デッドを伸ばす標準ルート</span></button>
-+              <button type="button" data-onboarding-goal="bench"><strong>ベンチプレスを伸ばしたい</strong><span>ベンチ中心でPRサイクルを始める</span></button>
-+              <button type="button" data-onboarding-goal="meet"><strong>大会に出てみたい</strong><span>白判定と大会形式を意識して進める</span></button>
-+              <button type="button" data-onboarding-goal="learn"><strong>まずはパワーリフティングを学びたい</strong><span>低めの頻度でRPEと基礎を覚える</span></button>
-+            </div>
-+          </div>
-+
-+          <div class="onboarding-step hidden" data-onboarding-step="profile">
-+            <h3>現在地を入力</h3>
-+            <div class="onboarding-grid">
-+              <label>トレーニング経験<select id="onboardingExperience">
-+                <option value="beginner">初心者</option>
-+                <option value="intermediate">中級者</option>
-+                <option value="advanced">上級者</option>
-+              </select></label>
-+              <label>週あたり練習回数<select id="onboardingDays">
-+                <option value="3">週3回</option>
-+                <option value="4" selected>週4回</option>
-+                <option value="5">週5回</option>
-+              </select></label>
-+              <label>競技カテゴリー<select id="onboardingSex">
-+                <option value="male">男性</option>
-+                <option value="female">女性</option>
-+                <option value="">未設定</option>
-+              </select></label>
-+              <label>体重<input id="onboardingBodyweight" inputmode="decimal" type="number" min="20" step="0.1" placeholder="例: 83"></label>
-+              <label>RPE使用経験<select id="onboardingRpeExperience">
-+                <option value="learning">ほぼ初めて</option>
-+                <option value="unsure">少し使ったことがある</option>
-+                <option value="solid">普段から使っている</option>
-+              </select></label>
-+              <label>スクワットMAX<input id="onboardingSquatMax" inputmode="decimal" type="number" min="0" step="0.5" placeholder="例: 140"></label>
-+              <label>ベンチプレスMAX<input id="onboardingBenchMax" inputmode="decimal" type="number" min="0" step="0.5" placeholder="例: 100"></label>
-+              <label>デッドリフトMAX<input id="onboardingDeadliftMax" inputmode="decimal" type="number" min="0" step="0.5" placeholder="例: 160"></label>
-+            </div>
-+            <p class="onboarding-hint">MAXが曖昧でもOK。後から直せます。</p>
-+            <div class="onboarding-actions">
-+              <button class="text-button" type="button" data-onboarding-action="back">戻る</button>
-+              <button class="primary-button" type="button" data-onboarding-action="create">プランを作成</button>
-+            </div>
-+          </div>
-+
-+          <div class="onboarding-step hidden" data-onboarding-step="complete">
-+            <h3>PRサイクルを作成しました</h3>
-+            <p>まずはW1 Day1へ。実績を入れると、DATAとRPE補正に反映されます。</p>
-+            <p class="onboarding-hint">終わったら、更新重量で次のプランへ。</p>
-+            <button class="primary-button" type="button" data-onboarding-action="finish">W1 Day1へ進む</button>
-+          </div>
-+
-+          <div class="onboarding-step hidden" data-onboarding-step="daily">
-+            <p class="eyebrow">Today's Entry</p>
-+            <h3>まず体調を見よう</h3>
-+            <section class="wellness-check-card" id="dailyWellnessCard">
-+              <div class="wellness-check-head">
-+                <span>今日のウェルネスチェック</span>
-+                <strong>今日の方針を決める</strong>
-+              </div>
-+              <p>今日の状態を見よう。重さ選びのヒントにします。</p>
-+              <div class="wellness-grid" aria-label="今日の体調">
-+                <div class="wellness-field" data-wellness-field="sleep">
-+                  <span>睡眠</span>
-+                  <div class="wellness-options">
-+                    <button type="button" data-wellness-option data-wellness-field="sleep" data-wellness-value="good">良い</button>
-+                    <button type="button" data-wellness-option data-wellness-field="sleep" data-wellness-value="normal">普通</button>
-+                    <button type="button" data-wellness-option data-wellness-field="sleep" data-wellness-value="bad">悪い</button>
-+                  </div>
-+                </div>
-+                <div class="wellness-field" data-wellness-field="nutrition">
-+                  <span>食事・水分</span>
-+                  <div class="wellness-options">
-+                    <button type="button" data-wellness-option data-wellness-field="nutrition" data-wellness-value="good">十分</button>
-+                    <button type="button" data-wellness-option data-wellness-field="nutrition" data-wellness-value="normal">普通</button>
-+                    <button type="button" data-wellness-option data-wellness-field="nutrition" data-wellness-value="bad">不足</button>
-+                  </div>
-+                </div>
-+                <div class="wellness-field" data-wellness-field="fatigue">
-+                  <span>疲労・筋肉痛</span>
-+                  <div class="wellness-options">
-+                    <button type="button" data-wellness-option data-wellness-field="fatigue" data-wellness-value="good">軽い</button>
-+                    <button type="button" data-wellness-option data-wellness-field="fatigue" data-wellness-value="normal">普通</button>
-+                    <button type="button" data-wellness-option data-wellness-field="fatigue" data-wellness-value="bad">重い</button>
-+                  </div>
-+                </div>
-+                <div class="wellness-field" data-wellness-field="pain">
-+                  <span>関節・痛み</span>
-+                  <div class="wellness-options">
-+                    <button type="button" data-wellness-option data-wellness-field="pain" data-wellness-value="good">なし</button>
-+                    <button type="button" data-wellness-option data-wellness-field="pain" data-wellness-value="normal">少し</button>
-+                    <button type="button" data-wellness-option data-wellness-field="pain" data-wellness-value="bad">強い</button>
-+                  </div>
-+                </div>
-+                <div class="wellness-field" data-wellness-field="mental">
-+                  <span>集中・気持ち</span>
-+                  <div class="wellness-options">
-+                    <button type="button" data-wellness-option data-wellness-field="mental" data-wellness-value="good">高い</button>
-+                    <button type="button" data-wellness-option data-wellness-field="mental" data-wellness-value="normal">普通</button>
-+                    <button type="button" data-wellness-option data-wellness-field="mental" data-wellness-value="bad">低い</button>
-+                  </div>
-+                </div>
-+              </div>
-+              <div class="wellness-result" id="dailyWellnessResult" aria-live="polite"></div>
-+              <div class="wellness-actions">
-+                <button class="text-button compact" type="button" data-wellness-save>今日の状態を保存</button>
-+              </div>
-+            </section>
-+            <div class="daily-entry-head">
-+              <span>次の行動</span>
-+              <strong>次に進む場所を選ぼう</strong>
-+            </div>
-+            <div class="daily-entry-grid">
-+              <button type="button" data-onboarding-action="daily-plan"><strong>今日のプランへ</strong><span>今日のメニューへ</span></button>
-+              <button type="button" data-onboarding-action="daily-log"><strong>トレーニングを記録</strong><span>自由トレもここ</span></button>
-+              <button type="button" data-onboarding-action="daily-max"><strong>DATAを確認</strong><span>進み具合を見る</span></button>
-+              <button type="button" data-onboarding-action="daily-meet"><strong>大会準備・ルール確認</strong><span>ルールと準備へ</span></button>
-+            </div>
-+            <div class="onboarding-actions">
-+              <button class="text-button" type="button" data-onboarding-action="restart-first">初回ガイドをもう一度見る</button>
-+              <button class="text-button" type="button" data-onboarding-action="daily-close">閉じる</button>
-+            </div>
-+          </div>
-+        </div>
-+      </section>
-+
-+      <main>
-+        <section class="panel welcome-panel" id="welcomePanel">
-+          <div class="section-title welcome-title">
-+            <div class="welcome-copy">
-+              <p class="eyebrow">Start</p>
-+              <h2>はじめてガイド</h2>
-+            </div>
-+            <button class="collapse-toggle" id="welcomeCollapseBtn" type="button" aria-label="はじめてガイドを閉じる" aria-expanded="true">▴</button>
-+          </div>
-+          <p class="collapse-summary" id="welcomeSummary"></p>
-+          <div class="collapsible-content" id="welcomePanelContent">
-+            <div class="start-card-grid" aria-label="目的を選ぶ">
-+              <button class="start-card recommended" type="button" data-start-action="plan">
-+                <span>PLAN</span>
-+                <strong>BIG3のMAX更新を狙いたい</strong>
-+                <small>現在1RMからPRサイクルを作ります。</small>
-+              </button>
-+              <button class="start-card" type="button" data-start-action="log">
-+                <span>LOG</span>
-+                <strong>今日のトレーニングを記録したい</strong>
-+                <small>今日の1セットを残そう。</small>
-+              </button>
-+              <button class="start-card" type="button" data-start-action="meet">
-+                <span>MEET</span>
-+                <strong>パワーリフティング大会に出てみたい</strong>
-+                <small>白判定と準備を確認。</small>
-+              </button>
-+            </div>
-+            <div class="start-guide" id="startGuide" aria-live="polite"></div>
-+          </div>
-+        </section>
-+
-+        <section class="meet-prep-announcement hidden" id="meetPrepAnnouncement" role="button" tabindex="0" data-view-target="knowledge" aria-label="大会準備へ進む"></section>
-+
-+        <section class="panel athlete-panel">
-+          <div class="section-title">
-+            <div>
-+              <p class="eyebrow">Athlete</p>
-+              <h2 id="currentAthleteName">自分</h2>
-+            </div>
-+            <div class="athlete-actions">
-+              <button class="text-button" id="addAthleteBtn" type="button">選手追加</button>
-+              <button class="text-button danger" id="deleteAthleteBtn" type="button">選手削除</button>
-+              <button class="collapse-toggle" id="profileCollapseBtn" type="button" aria-label="プロフィールを閉じる" aria-expanded="true">▴</button>
-+            </div>
-+          </div>
-+          <p class="collapse-summary" id="profileSummary"></p>
-+          <section class="athlete-dashboard" id="athleteDashboard" aria-live="polite"></section>
-+          <div class="collapsible-content" id="profilePanelContent">
-+            <div class="athlete-strip" id="athleteStrip" aria-label="選手一覧"></div>
-+            <div class="profile-grid">
-+              <label>
-+                性別
-+                <select id="sexInput">
-+                  <option value="">未設定</option>
-+                  <option value="male">男性</option>
-+                  <option value="female">女性</option>
-+                </select>
-+              </label>
-+              <label>
-+                体重
-+                <input id="bodyweightInput" inputmode="decimal" type="number" min="0" step="0.1" placeholder="kg">
-+              </label>
-+              <label>
-+                体重階級
-+                <select id="weightClassInput"></select>
-+              </label>
-+              <label>
-+                都道府県
-+                <select id="prefectureInput"></select>
-+              </label>
-+              <label>
-+                試合予定
-+                <input id="meetDateInput" type="date">
-+              </label>
-+            </div>
-+            <section class="association-guide" id="associationGuide"></section>
-+          </div>
-+        </section>
-+
-+        <section class="wellness-floating" id="wellnessFloating" aria-live="polite"></section>
-+
-+        <section class="guide-mode-bar" aria-label="表示モード">
-+          <div>
-+            <span>ガイド<br>モード</span>
-+            <small id="guideModeDescription">短いガイドを表示</small>
-+          </div>
-+          <button class="guide-mode-toggle" id="guideModeBtn" type="button" aria-pressed="true">
-+            オン
-+          </button>
-+        </section>
-+
-+        <nav class="tabbar" aria-label="メイン画面">
-+          <button class="tab active" type="button" data-view="home">HOME</button>
-+          <button class="tab" type="button" data-view="plan">PLAN</button>
-+          <button class="tab" type="button" data-view="log">LOG</button>
-+          <button class="tab" type="button" data-view="analysis">DATA</button>
-+          <button class="tab" type="button" data-view="knowledge">MEET</button>
-+        </nav>
-+
-+        <section class="view active" id="homeView">
-+          <section class="home-dashboard" id="homeDashboard" aria-live="polite"></section>
-+        </section>
-+
-+        <section class="view" id="logView">
-+          <section class="log-command-panel" id="logCommandPanel"></section>
-+          <form class="panel log-form" id="logForm">
-+            <div class="section-title">
-+              <div>
-+                <p class="eyebrow">Free Log</p>
-+                <h2>自由トレーニング記録</h2>
-+              </div>
-+              <input id="dateInput" type="date" required>
-+            </div>
-+            <p class="screen-note">自由トレや補助種目を残そう。</p>
-+
-+            <div class="form-row">
-+              <label>
-+                カテゴリ
-+                <select id="categorySelect"></select>
-+              </label>
-+              <label>
-+                種目
-+                <select id="exerciseSelect"></select>
-+              </label>
-+            </div>
-+
-+            <label id="customExerciseLabel" class="hidden">
-+              種目名
-+              <input id="customExerciseInput" type="text" placeholder="例: スパニッシュスクワット">
-+            </label>
-+
-+            <section id="alternativePanel" class="alternative-panel hidden" aria-live="polite"></section>
-+
-+            <label class="set-count-label">
-+              セット数
-+              <input id="setsInput" inputmode="numeric" type="number" min="1" max="20" step="1" value="1" required>
-+            </label>
-+
-+            <section class="set-detail-panel" id="setDetailPanel">
-+              <div class="set-detail-head">
-+                <div>
-+                  <h3>セット入力</h3>
-+                  <p>Set1を下のセットへコピーできます。</p>
-+                </div>
-+                <button class="text-button compact" id="fillSetRowsBtn" type="button">Set1を下へコピー</button>
-+              </div>
-+              <div class="set-rows" id="setRows"></div>
-+            </section>
-+
-+            <label>
-+              メモ
-+              <textarea id="noteInput" rows="3" placeholder="フォーム、痛み、疲労感、狙いなど"></textarea>
-+            </label>
-+
-+            <button class="primary-button" type="submit">記録する</button>
-+          </form>
-+
-+          <section class="quick-stats" id="quickStats"></section>
-+          <section class="panel compact-panel">
-+            <div class="section-title">
-+              <div>
-+                <p class="eyebrow">Log Archive</p>
-+                <h2>履歴・データ管理</h2>
-+              </div>
-+              <button class="text-button" type="button" data-view-target="history">開く</button>
-+            </div>
-+            <p class="screen-note">履歴、バックアップ、Excelはここ。</p>
-+          </section>
-+        </section>
-+
-+        <section class="view" id="analysisView">
-+          <section class="panel">
-+            <div class="section-title">
-+              <div>
-+                <p class="eyebrow">Trend</p>
-+                <h2>種目別 e1RM</h2>
-+              </div>
-+              <select id="chartLiftSelect" aria-label="グラフ種目"></select>
-+            </div>
-+            <canvas id="trendChart" width="720" height="360" aria-label="推定1RMグラフ"></canvas>
-+          </section>
-+
-+          <section class="panel weekly-data-panel">
-+            <div class="section-title">
-+              <div>
-+                <p class="eyebrow">Weekly Data</p>
-+                <h2>今週の進捗</h2>
-+              </div>
-+            </div>
-+            <p class="screen-note">直近7日の流れをまとめて見よう。</p>
-+            <div class="weekly-data-summary" id="weeklyDataSummary"></div>
-+            <canvas id="weeklyDataChart" width="720" height="320" aria-label="週間の体調とトレーニング負荷グラフ"></canvas>
-+          </section>
-+
-+          <section class="panel academy-evaluation-panel">
-+            <div class="section-title">
-+              <div>
-+                <p class="eyebrow">Buddy Review</p>
-+                <h2>Buddyコメント</h2>
-+              </div>
-+            </div>
-+            <p class="screen-note">伸び方を見て、次の一手を決めよう。</p>
-+            <div class="academy-evaluation-list" id="academyEvaluation"></div>
-+          </section>
-+
-+          <section class="metric-grid" id="metricGrid"></section>
-+        </section>
-+
-+        <section class="view" id="planView">
-+          <section class="panel">
-+            <div class="section-title">
-+              <div>
-+                <p class="eyebrow">This Week</p>
-+                <h2 id="cyclePhaseTitle">今週の目的</h2>
-+              </div>
-+              <div class="week-actions">
-+                <button class="text-button" id="prevWeekBtn" type="button">前週へ</button>
-+                <button class="text-button" id="nextWeekBtn" type="button">次週へ</button>
-+              </div>
-+            </div>
-+            <p class="cycle-note" id="cyclePhaseNote"></p>
-+            <section class="rpe-coach-card" id="rpeCoachCard"></section>
-+            <div class="plan-list" id="planList"></div>
-+          </section>
-+
-+          <section class="panel plan-context-panel" id="planContextPanel">
-+            <div class="section-title">
-+              <div>
-+                <p class="eyebrow">This Week</p>
-+                <h2 id="planContextTitle">今週の文脈</h2>
-+              </div>
-+              <button class="collapse-toggle" id="planContextCollapseBtn"
-+                type="button"
-+                aria-label="今週の文脈を開く"
-+                aria-expanded="false">⌄</button>
-+            </div>
-+            <p class="collapse-summary" id="planContextSummary"></p>
-+            <div class="collapsible-content collapsed" id="planContextContent">
-+              <div class="plan-context-grid" id="planContextGrid"></div>
-+            </div>
-+          </section>
-+
-+          <section class="panel buddy-method-panel hidden">
-+            <div class="section-title">
-+              <div>
-+                <p class="eyebrow">Buddy Method</p>
-+                <h2>Buddyメソッドとは？</h2>
-+              </div>
-+              <button class="collapse-toggle" id="buddyMethodCollapseBtn" type="button" aria-label="Buddyメソッドとは？を開く" aria-expanded="false">▾</button>
-+            </div>
-+            <p class="collapse-summary" id="buddyMethodSummary"></p>
-+            <div class="collapsible-content" id="buddyMethodPanelContent">
-+              <p class="screen-note">RPEと疲労を見ながら、PRへ進むサイクルです。</p>
-+              <p class="program-disclaimer">万能メニューではありません。体調とRPEで調整します。</p>
-+              <div class="method-level-grid">
-+                <article>
-+                  <span>Lv1</span>
-+                  <strong>標準 / 初中級者向け</strong>
-+                  <p>RPE感覚と完走を重視。後半の成功率を作ります。</p>
-+                </article>
-+                <article>
-+                  <span>Lv2</span>
-+                  <strong>実戦寄り / 中級者向け</strong>
-+                  <p>RPEと%1RMを併用。週内に強弱を作ります。</p>
-+                </article>
-+                <article>
-+                  <span>Rebuild</span>
-+                  <strong>大会後リビルド16週</strong>
-+                  <p>大会後・高疲労・停滞・ブランク明けに、Lv1 Resetで整えてからLv2へ進む再準備プランです。</p>
-+                </article>
-+              </div>
-+            </div>
-+          </section>
-+          <section class="panel cycle-setup-panel" id="cycleSetupPanel"></section>
-+          <section class="panel cycle-panel">
-+            <div class="section-title">
-+              <div>
-+                <p class="eyebrow">PR Cycle</p>
-+                <h2>PRサイクル設計</h2>
-+              </div>
-+              <div class="plan-actions">
-+                <button class="collapse-toggle" id="cycleCollapseBtn" type="button" aria-label="PRサイクル設計を閉じる" aria-expanded="true">▴</button>
-+                <button class="text-button" id="saveCycleBtn" type="button">保存</button>
-+              </div>
-+            </div>
-+            <p class="collapse-summary" id="cycleSummary"></p>
-+            <div class="collapsible-content" id="cyclePanelContent">
-+              <p class="screen-note">方式、週数、頻度を選ぼう。</p>
-+              <div class="cycle-grid cycle-basic-grid">
-+                <label>
-+                  プラン対象
-+                  <select id="planTargetInput">
-+                    <option value="big3">BIG3</option>
-+                    <option value="bench_only">ベンチプレスのみ</option>
-+                  </select>
-+                </label>
-+                <label>
-+                  週数
-+                  <select id="cycleLengthInput">
-+                    <option value="3">3週</option>
-+                    <option value="4">4週</option>
-+                    <option value="6">6週</option>
-+                    <option value="8">8週</option>
-+                    <option value="10">10週</option>
-+                    <option value="12">12週</option>
-+                  </select>
-+                </label>
-+                <label>
-+                  週あたり
-+                  <select id="daysPerWeekInput">
-+                    <option value="3">週3回</option>
-+                    <option value="4">週4回</option>
-+                    <option value="5">週5回</option>
-+                  </select>
-+                </label>
-+              </div>
-+              <section class="cycle-basic-maxes">
-+                <div>
-+                  <h3>現在1RM</h3>
-+                  <p>必要ならここで修正。</p>
-+                </div>
-+                <div class="max-grid">
-+                  <label>
-+                    SQ 現在1RM
-+                    <input id="squatMaxInput" inputmode="decimal" type="number" min="0" step="2.5" placeholder="kg">
-+                  </label>
-+                  <label>
-+                    BP 現在1RM
-+                    <input id="benchMaxInput" inputmode="decimal" type="number" min="0" step="2.5" placeholder="kg">
-+                  </label>
-+                  <label>
-+                    DL 現在1RM
-+                    <input id="deadliftMaxInput" inputmode="decimal" type="number" min="0" step="2.5" placeholder="kg">
-+                  </label>
-+                </div>
-+              </section>
-+              <details class="cycle-settings-details">
-+                <summary>
-+                  <span>
-+                    <strong>詳しく設定する</strong>
-+                    <small>方式・補助種目量・重点種目・経験レベル・設備</small>
-+                  </span>
-+                </summary>
-+                <div class="cycle-settings-details-body">
-+                  <div class="cycle-grid cycle-detail-grid">
-+                    <label>
-+                      プラン方式
-+                      <select id="programMethodInput">
-+                        <option value="platform">Buddyメソッド Lv1（標準）</option>
-+                        <option value="platform_level2">Buddyメソッド Lv2（実戦寄り）</option>
-+                        <option value="rebuild16">Buddy Rebuild 16（大会後リビルド）</option>
-+                        <option value="hps">HPS（BP向き）</option>
-+                        <option value="531">5/3/1（長期型）</option>
-+                        <option value="smolov_jr">Smolov Jr.（SQ/BP高負荷）</option>
-+                      </select>
-+                    </label>
-+                    <label>
-+                      補助種目量
-+                      <select id="accessoryVolumeInput">
-+                        <option value="low">少なめ</option>
-+                        <option value="normal">普通</option>
-+                        <option value="high">多め</option>
-+                      </select>
-+                    </label>
-+                    <label>
-+                      重点種目
-+                      <select id="priorityLiftInput">
-+                        <option value="total">トータル重視</option>
-+                        <option value="squat">スクワット重視</option>
-+                        <option value="bench">ベンチ重視</option>
-+                        <option value="deadlift">デッドリフト重視</option>
-+                      </select>
-+                    </label>
-+                    <label>
-+                      経験レベル
-+                      <select id="experienceLevelInput">
-+                        <option value="beginner">初心者</option>
-+                        <option value="intermediate">中級者</option>
-+                        <option value="advanced">上級者</option>
-+                      </select>
-+                    </label>
-+                  </div>
-+                  <p class="cycle-method-note" id="cycleMethodNote"></p>
-+                  <section class="program-method-guide" id="programMethodGuide"></section>
-+                  <p class="program-disclaimer" id="programDisclaimer"></p>
-+                  <section class="facility-panel">
-+                    <div class="facility-head">
-+                      <div>
-+                        <h3>設備依存種目</h3>
-+                        <p>使える設備だけチェック。</p>
-+                      </div>
-+                      <button class="collapse-toggle" id="facilityCollapseBtn" type="button" aria-label="設備依存種目を閉じる" aria-expanded="true">▴</button>
-+                    </div>
-+                    <p class="collapse-summary" id="facilitySummary"></p>
-+                    <div class="facility-grid collapsible-content" id="facilityGrid"></div>
-+                  </section>
-+                </div>
-+              </details>
-+              <div class="projection-grid" id="projectionGrid"></div>
-+            </div>
-+          </section>
-+        </section>
-+
-+        <section class="view" id="knowledgeView">
-+          <section class="meet-command-panel" id="meetCommandPanel" aria-label="MEET大会準備サマリー"></section>
-+          <section class="panel meet-main-panel">
-+            <div class="section-title">
-+              <div>
-+                <p class="eyebrow">Meet Tools</p>
-+                <h2>大会準備ツール</h2>
-+              </div>
-+            </div>
-+            <p class="screen-note meet-screen-note">大会準備、ルール、ノートをここで確認。</p>
-+            <section class="meet-prep-checklist" id="meetPrepChecklist" aria-labelledby="meetPrepChecklistTitle">
-+              <div class="section-title">
-+                <div>
-+                  <p class="eyebrow">Meet Checklist</p>
-+                  <h3 id="meetPrepChecklistTitle">大会準備チェックリスト</h3>
-+                </div>
-+              </div>
-+              <p class="meet-rule-note">終わったものから潰そう。</p>
-+              <div class="meet-checklist-grid"></div>
-+            </section>
-+            <div class="meet-shortcut-grid meet-action-grid">
-+              <article class="meet-shortcut meet-strategy-card">
-+                <span>1st/2nd/3rd</span>
-+                <strong>試技戦略</strong>
-+                <small>第一は確実に白、第二でトータル、第三で挑戦。成功試技を積み上げる準備をします。</small>
-+              </article>
-+              <button class="meet-shortcut quiz-shortcut-card" type="button" data-meet-action="quiz">
-+                <span>白判定</span>
-+                <strong>白判定クイズ</strong>
-+                <small>ジャッジの視点を鍛えて、本番の自信に変えましょう。</small>
-+              </button>
-+              <a class="meet-shortcut meet-note-shortcut" href="#meetNoteTitle">
-+                <span>NOTE</span>
-+                <strong>大会ノート</strong>
-+                <small>試技結果、赤判定の理由、気づきを残して次の大会につなげます。</small>
-+              </a>
-+            </div>
-+            <section class="meet-note-panel" aria-labelledby="meetNoteTitle">
-+              <div class="section-title">
-+                <div>
-+                  <p class="eyebrow">Meet Notebook</p>
-+                  <h3 id="meetNoteTitle">大会ノート</h3>
-+                </div>
-+                <button class="collapse-toggle" id="meetNoteCollapseBtn" type="button" aria-label="大会ノートを開く" aria-expanded="false">▾</button>
-+              </div>
-+              <p class="collapse-summary" id="meetNoteSummary"></p>
-+              <div class="collapsible-content" id="meetNotePanelContent">
-+                <p class="screen-note">9本の結果、赤、次回課題を残そう。</p>
-+                <form class="meet-note-form" id="meetNoteForm">
-+                  <div class="input-grid">
-+                    <label>
-+                      大会名
-+                      <input id="meetNameInput" type="text" maxlength="60" placeholder="例：春季県大会">
-+                    </label>
-+                    <label>
-+                      大会日
-+                      <input id="meetReviewDateInput" type="date">
-+                    </label>
-+                    <label>
-+                      階級
-+                      <input id="meetReviewWeightClassInput" type="text" maxlength="20" placeholder="例：83kg級">
-+                    </label>
-+                    <label>
-+                      検量体重
-+                      <input id="meetReviewBodyweightInput" inputmode="decimal" type="number" min="0" step="0.1" placeholder="kg">
-+                    </label>
-+                    <label>
-+                      トータル
-+                      <input id="meetReviewTotalInput" inputmode="decimal" type="number" min="0" step="2.5" placeholder="kg">
-+                    </label>
-+                  </div>
-+                  <p class="meet-rule-note">赤判定は赤1〜3で記録。最終判断は公式と当日の説明を優先。</p>
-+                  <div class="meet-attempt-grid" id="meetAttemptGrid"></div>
-+                  <div class="input-grid">
-+                    <label>
-+                      自己感想
-+                      <textarea id="meetSelfInput" rows="3" placeholder="例：初出場で緊張したが、第二試技から落ち着けた"></textarea>
-+                    </label>
-+                    <label>
-+                      良かった点
-+                      <textarea id="meetGoodInput" rows="3" placeholder="例：第一試技は落ち着いて白を取れた"></textarea>
-+                    </label>
-+                    <label>
-+                      次回への課題
-+                      <textarea id="meetIssueInput" rows="3" placeholder="例：スクワットの深さ、ベンチの静止を練習する"></textarea>
-+                    </label>
-+                  </div>
-+                  <button class="primary-button" type="submit">大会ノートを保存</button>
-+                </form>
-+                <div class="meet-review-preview" id="meetReviewPreview"></div>
-+                <div class="meet-note-list" id="meetNoteList"></div>
-+              </div>
-+            </section>
-+            <section class="quiz-panel" aria-labelledby="quizTitle">
-+              <div class="quiz-head">
-+                <div>
-+                  <p class="eyebrow">White Lights</p>
-+                  <h3 id="quizTitle">白判定クイズ｜3択で覚えるルール</h3>
-+                </div>
-+                <button class="collapse-toggle" id="quizCollapseBtn" type="button" aria-label="白判定クイズを閉じる" aria-expanded="true">▴</button>
-+              </div>
-+              <p class="collapse-summary" id="quizSummary"></p>
-+              <div class="collapsible-content" id="quizPanelContent">
-+                <div id="quizApp"></div>
-+              </div>
-+            </section>
-+            <details class="knowledge-library">
-+              <summary class="knowledge-library-summary">
-+                <span>
-+                  <span class="eyebrow">Learn as you lift</span>
-+                  <strong>用語を調べる</strong>
-+                  <small>RPE、プログラム、大会用語</small>
-+                </span>
-+              </summary>
-+              <div class="knowledge-library-body">
-+                <div class="knowledge-grid">
-+              <article class="knowledge-card official-rules-card">
-+                <span>公式情報</span>
-+                <h3>公式ルール</h3>
-+                <p>本アプリは学習・記録補助です。最終判断は公式ルール、大会要項、当日の指示を優先してください。</p>
-+                <div class="rule-links">
-+                  <a href="https://www.powerlifting.sport/rules/codes/info/technical-rules" target="_blank" rel="noopener">IPF技術規則ページを見る</a>
-+                  <a href="https://www.jpa-powerlifting.or.jp/rules-members.php" target="_blank" rel="noopener">JPAルール関連ページを見る</a>
-+                </div>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>強度管理</span>
-+                <h3>RPE</h3>
-+                <p>そのセットがどれくらい限界に近かったかを表す主観指標です。最初から正確に当てるものではなく、記録と動画確認を通して育てる感覚として扱います。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>強度管理</span>
-+                <h3>RIR</h3>
-+                <p>Platform Buddyでは「競技フォームを保ったまま、あと何回できそうか」と定義します。深さ、止め、ロックアウト、バー軌道が崩れる余力は多く数えません。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>強度管理</span>
-+                <h3>RPE自信度</h3>
-+                <p>実績RPEにどれくらい自信があるかの自己申告です。迷うこと自体が悪いのではなく、次回の観察ポイントを作るための学習メモです。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>強度管理</span>
-+                <h3>e1RM</h3>
-+                <p>実施重量と回数から推定する1RMです。日々の調子やフォーム差もあるため、絶対値ではなく傾向として見ます。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>強度管理</span>
-+                <h3>オーバーシュート</h3>
-+                <p>予定より重く、またはRPEが高くなりすぎることです。強くなった証拠ではなく、疲労管理を崩す原因になることがあります。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>強度管理</span>
-+                <h3>アンダーシュート</h3>
-+                <p>予定より軽すぎる、またはRPEが低すぎることです。回復が良い日は次回以降に少しだけ重量を足す判断材料になります。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>強度管理</span>
-+                <h3>主観強度</h3>
-+                <p>重量そのものではなく、その日の体感で見た重さです。同じ180kgでも、睡眠や疲労でRPEは変わります。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>強度管理</span>
-+                <h3>絶対強度</h3>
-+                <p>実際に持った重量そのものです。競技では大切ですが、毎回これだけを追うと疲労管理が難しくなります。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>強度管理</span>
-+                <h3>%1RM</h3>
-+                <p>現在の1RMに対する割合です。80%なら1RMの8割。RPEと合わせると、重さと体感のズレを見やすくなります。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>強度管理</span>
-+                <h3>レップPR</h3>
-+                <p>同じ重量で過去より多く挙げる、または同じ回数を重くする更新です。MAX挑戦前の成長確認として役立ちます。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>プログラム</span>
-+                <h3>トップセット</h3>
-+                <p>その日の中心になる一番重いセットです。重さを確認しつつ、予定RPEを超えないことが大切です。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>プログラム</span>
-+                <h3>バックオフ</h3>
-+                <p>トップセット後に少し重量を落として行う反復です。フォームと必要な練習量を積む役割があります。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>プログラム</span>
-+                <h3>Training Max</h3>
-+                <p>実際のMAXより低めに設定するトレーニング用MAXです。5/3/1系では安全に積むための基準になります。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>プログラム</span>
-+                <h3>ボリューム</h3>
-+                <p>練習量のことです。重量、回数、セット数で決まり、伸びる刺激にも疲労にもなるため、増やしすぎない管理が重要です。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>プログラム</span>
-+                <h3>強度</h3>
-+                <p>最大重量に対してどれくらい重いかを表します。高強度は競技動作に近い一方、疲労が大きくなりやすいです。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>プログラム</span>
-+                <h3>頻度</h3>
-+                <p>週あたりの練習回数です。増やす時は回復も見よう。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>プログラム</span>
-+                <h3>特異性</h3>
-+                <p>伸ばしたい動作に近い練習ほど、その競技力に直結しやすいという考え方です。BIG3はBIG3で練習する意味があります。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>プログラム</span>
-+                <h3>バリエーション種目</h3>
-+                <p>ポーズ、テンポ、ハイバーなど、競技種目に近い派生種目です。弱点補強やフォーム修正に使います。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>プログラム</span>
-+                <h3>アクセサリー種目</h3>
-+                <p>BIG3を支える筋量や弱点を補う補助種目です。主役ではなく、競技練習を助ける脇役として量を調整します。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>プログラム</span>
-+                <h3>テクニック練習</h3>
-+                <p>限界まで追い込む練習ではなく、同じフォームを再現するための練習です。軽めの日にも大きな意味があります。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>周期化</span>
-+                <h3>蓄積期</h3>
-+                <p>フォーム再現性、練習量、RPE感覚を作る時期です。表示重量を追うより、予定RPEに合わせる練習をします。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>周期化</span>
-+                <h3>強化期</h3>
-+                <p>蓄積期で作った土台を、より競技重量に近い練習へつなげる時期です。重さを上げつつ、失敗を増やさないことが大切です。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>周期化</span>
-+                <h3>ピーキング</h3>
-+                <p>PRや試合に向けて疲労を抑えながら重さに慣れる時期です。量を減らし、成功率と精度を高めます。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>周期化</span>
-+                <h3>デロード</h3>
-+                <p>意図的に練習量や強度を落として回復する週です。サボりではなく、次の高重量練習を成立させる準備です。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>周期化</span>
-+                <h3>現在地チェック</h3>
-+                <p>蓄積期後に疲労を抜いて行う確認週です。限界MAXを狙うのではなく、後半へ進むための再現性とRPE感覚を確認します。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>周期化</span>
-+                <h3>休養ブロック</h3>
-+                <p>現在地チェックや大会想定前に3日程度の休養を入れる考え方です。疲労を抜き、重い重量の成功率を高めます。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>周期化</span>
-+                <h3>テーパリング</h3>
-+                <p>大会やMAX測定前に練習量を落として疲労を抜く調整です。強くなる練習ではなく、強さを出す準備です。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>周期化</span>
-+                <h3>フィットネスと疲労</h3>
-+                <p>練習で体力は上がりますが、同時に疲労も溜まります。ピーキングでは体力を残しながら疲労を減らすことを狙います。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>周期化</span>
-+                <h3>非線形</h3>
-+                <p>毎回まっすぐ重くするのではなく、週内で重い日・軽い日を作る考え方です。中級者以降の疲労管理に役立ちます。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>周期化</span>
-+                <h3>オートレギュレーション</h3>
-+                <p>その日の体調やRPEに合わせて重量や量を微調整する考え方です。予定を守るために、あえて重量を下げる判断も含みます。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>試合</span>
-+                <h3>試技形式</h3>
-+                <p>スクワット、ベンチプレス、デッドリフトを大会と同じ順番で確認する形式です。最終週は通常練習ではなく試技練習として扱います。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>試合</span>
-+                <h3>白9本</h3>
-+                <p>スクワット、ベンチ、デッドリフトの全試技を成功させる考え方です。Platform BuddyのPR週も成功率を重視します。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>試合</span>
-+                <h3>第一試技</h3>
-+                <p>必ず成功させたい入りの重量です。練習で何度も安定して挙がる重量を選び、試合の流れを作ります。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>試合</span>
-+                <h3>第二試技</h3>
-+                <p>トータルを作るための重量です。第三試技に挑戦を残せるよう、欲張りすぎない設定が基本になります。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>試合</span>
-+                <h3>第三試技</h3>
-+                <p>PRや順位を狙う試技です。第一、第二を成功させたうえで、その日の状態に合わせて攻めます。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>試合</span>
-+                <h3>オープナー</h3>
-+                <p>第一試技のことです。緊張しても成功できる重量を選び、白判定で試合を始めるための入口になります。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>試合</span>
-+                <h3>コール</h3>
-+                <p>主審の合図です。スクワット、ベンチ、デッドリフトで必要な合図が違うため、普段から待つ練習が必要です。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>試合</span>
-+                <h3>赤判定</h3>
-+                <p>試技が失敗と判定されることです。力不足だけでなく、深さ、静止、コール無視、下ろし方でも起こります。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>試合</span>
-+                <h3>検量</h3>
-+                <p>大会当日に体重階級を確認する手続きです。時間や方法は大会要項で確認し、補給計画も含めて準備します。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>試合</span>
-+                <h3>ラック高</h3>
-+                <p>スクワットやベンチで使うラックの高さです。大会当日に迷わないよう、普段から自分の高さを記録しておくと安心です。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>試合</span>
-+                <h3>セコンド</h3>
-+                <p>大会中に重量選択や準備を助けるサポート役です。個人参加でも、事前に流れを決めておくと落ち着きます。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>試合</span>
-+                <h3>アップ計画</h3>
-+                <p>第一試技へ向けたウォームアップ重量と時間配分です。早すぎても遅すぎても焦るため、事前に流れを作ります。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>試合</span>
-+                <h3>試技申請</h3>
-+                <p>次に挑戦する重量を大会側へ出すことです。時間制限があるため、第二・第三の候補を事前に考えておきます。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>コンディション</span>
-+                <h3>回復</h3>
-+                <p>睡眠、食事、ストレス管理によって練習の成果を出せる状態に戻すことです。強くなる時間は練習外にもあります。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>コンディション</span>
-+                <h3>疲労</h3>
-+                <p>練習や生活でパフォーマンスが一時的に落ちる状態です。疲労がある日は、重量よりフォームと予定RPEを優先します。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>コンディション</span>
-+                <h3>違和感</h3>
-+                <p>痛み未満でも、いつもと違う感覚です。記録に残しておくと、疲労やフォーム変化を早めに見直せます。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>コンディション</span>
-+                <h3>ピークアウト</h3>
-+                <p>疲労や調整のズレで、本番前に調子の山を過ぎてしまうことです。重い練習を増やしすぎない判断が大切です。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>方式</span>
-+                <h3>HPS / 5/3/1 / Smolov Jr.</h3>
-+                <p>アプリ内では各方式の考え方を参考にした簡略テンプレートです。公式プログラムの完全再現ではありません。</p>
-+              </article>
-+              <article class="knowledge-card">
-+                <span>評価</span>
-+                <h3>アカデミー評価</h3>
-+                <p>RPE、練習量、記録頻度、BIG3バランスから保守的にコメントします。診断ではなく、次の練習判断を助ける目安です。</p>
-+              </article>
-+                </div>
-+              </div>
-+            </details>
-+          </section>
-+        </section>
-+
-+        <section class="view" id="historyView">
-+          <section class="panel data-panel">
-+            <div class="section-title">
-+              <div>
-+                <p class="eyebrow">Data</p>
-+                <h2>データ管理</h2>
-+              </div>
-+            </div>
-+            <p class="data-note">大きな更新前はバックアップしておこう。</p>
-+            <div class="data-actions">
-+              <button class="text-button" id="backupExportBtn" type="button">バックアップを書き出す</button>
-+              <button class="primary-button inline" id="backupImportBtn" type="button">バックアップを読み込む</button>
-+              <button class="text-button" id="restartOnboardingBtn" type="button">初回ガイドをもう一度見る</button>
-+              <input class="hidden" id="backupFileInput" type="file" accept="application/json,.json">
-+            </div>
-+            <div class="data-status" id="dataStatus"></div>
-+          </section>
-+          <section class="panel">
-+            <div class="section-title">
-+              <div>
-+                <p class="eyebrow">History</p>
-+                <h2>履歴</h2>
-+              </div>
-+              <button class="text-button danger" id="clearBtn" type="button">削除</button>
-+            </div>
-+            <div class="history-list" id="historyList"></div>
-+          </section>
-+        </section>
-+      </main>
-+    </div>
-+
-+    <dialog id="athleteDialog">
-+      <form method="dialog" class="dialog-card" id="athleteForm">
-+        <h2>選手を追加</h2>
-+        <label>
-+          名前
-+          <input id="athleteNameInput" type="text" maxlength="32" required>
-+        </label>
-+        <div class="dialog-actions">
-+          <button class="text-button" value="cancel" type="button" id="cancelAthleteBtn">キャンセル</button>
-+          <button class="primary-button" value="default" type="submit">追加</button>
-+        </div>
-+      </form>
-+    </dialog>
-+
-+    <script src="app.js?v=136"></script>
-   </body>
- </html>
- 
-
-diff -- styles.css
---- a/styles.css
-+++ b/styles.css
-@@ -14249,5 +14249,211 @@
-   background: #22c55e !important;
-   color: #052e16 !important;
-   -webkit-text-fill-color: #052e16 !important;
- }
- 
-+/* v136: mobile UI design-token baseline */
-+:root {
-+  --pb-text-xs: 0.7rem;
-+  --pb-text-sm: 0.8rem;
-+  --pb-text-md: 0.9rem;
-+  --pb-text-lg: 1.05rem;
-+  --pb-text-xl: 1.25rem;
-+  --pb-text-display: clamp(2.2rem, 8vw, 3.6rem);
-+  --pb-line-tight: 1.15;
-+  --pb-line-normal: 1.45;
-+  --pb-line-loose: 1.65;
-+  --pb-radius-sm: 6px;
-+  --pb-radius-md: 10px;
-+  --pb-radius-lg: 16px;
-+  --pb-radius-pill: 999px;
-+  --pb-pad-card: 16px;
-+  --pb-pad-card-sm: 12px;
-+  --pb-gap-sm: 6px;
-+  --pb-gap-md: 10px;
-+  --pb-gap-lg: 16px;
-+  --pb-tap-target: 44px;
-+  --pb-tap-target-sm: 40px;
-+}
-+
-+html body :is(
-+  .eyebrow,
-+  .section-kicker,
-+  .home-card-label,
-+  .lift-badge,
-+  .recommended-badge,
-+  .badge,
-+  .chip,
-+  .pill,
-+  .set-kind,
-+  .set-kind-top,
-+  .set-kind-back,
-+  .set-kind-accessory,
-+  .set-kind-check,
-+  .set-kind-attempt
-+) {
-+  border-radius: var(--pb-radius-pill) !important;
-+  font-size: var(--pb-text-xs) !important;
-+  line-height: var(--pb-line-tight) !important;
-+  white-space: nowrap !important;
-+}
-+
-+html body :is(
-+  p,
-+  small,
-+  .description,
-+  .helper-text,
-+  .note-text,
-+  .screen-note,
-+  .guide-note,
-+  .data-note,
-+  .planned-summary,
-+  .prescription-summary,
-+  .planned-method-label,
-+  .exercise-prescription-summary,
-+  .exercise-rpe-hint
-+) {
-+  font-size: var(--pb-text-sm);
-+  line-height: var(--pb-line-normal);
-+  overflow-wrap: anywhere;
-+}
-+
-+html body :is(
-+  h1,
-+  h2,
-+  h3,
-+  .card-title,
-+  .section-title,
-+  .exercise-title,
-+  .day-title
-+) {
-+  line-height: var(--pb-line-tight) !important;
-+  word-break: keep-all;
-+  overflow-wrap: anywhere;
-+}
-+
-+html body .section-title h2 {
-+  text-decoration: none !important;
-+}
-+
-+html body :is(
-+  input,
-+  textarea,
-+  select,
-+  button
-+) {
-+  font: inherit;
-+}
-+
-+html body :is(
-+  input,
-+  textarea,
-+  select
-+) {
-+  min-height: var(--pb-tap-target) !important;
-+  border-radius: var(--pb-radius-md) !important;
-+  font-size: var(--pb-text-md) !important;
-+  line-height: 1.2 !important;
-+}
-+
-+html body :is(
-+  button,
-+  .action-button,
-+  .primary-button,
-+  .text-button,
-+  .actual-save,
-+  .save-button,
-+  .actual-add-set,
-+  .add-set-button,
-+  .secondary-button
-+) {
-+  min-height: var(--pb-tap-target) !important;
-+  border-radius: var(--pb-radius-md) !important;
-+  font-weight: 800 !important;
-+}
-+
-+html body :is(
-+  .card,
-+  .panel,
-+  .compact-panel,
-+  .home-card,
-+  .plan-card,
-+  .meet-card,
-+  .dashboard-card,
-+  .analysis-card,
-+  .data-card,
-+  .log-card,
-+  .knowledge-card,
-+  .quiz-card,
-+  .editable-exercise-sheet
-+) {
-+  border-radius: var(--pb-radius-lg) !important;
-+  padding: var(--pb-pad-card) !important;
-+}
-+
-+html body :is(
-+  .editable-set-sheet,
-+  .editable-set-row,
-+  .actual-set-row,
-+  .meet-attempt-row
-+) {
-+  max-width: 100%;
-+}
-+
-+html body .editable-set-sheet {
-+  overflow-x: auto;
-+  -webkit-overflow-scrolling: touch;
-+}
-+
-+@media (max-width: 640px) {
-+  html body :is(
-+    input,
-+    textarea,
-+    select
-+  ) {
-+    min-height: var(--pb-tap-target) !important;
-+    font-size: 16px !important;
-+  }
-+
-+  html body :is(
-+    .editable-set-row input,
-+    .editable-set-row select,
-+    .actual-set-row input,
-+    .actual-set-row select
-+  ) {
-+    min-height: var(--pb-tap-target-sm) !important;
-+    font-size: 16px !important;
-+  }
-+
-+  html body :is(
-+    .card,
-+    .panel,
-+    .compact-panel,
-+    .home-card,
-+    .plan-card,
-+    .meet-card,
-+    .dashboard-card,
-+    .analysis-card,
-+    .data-card,
-+    .log-card,
-+    .knowledge-card,
-+    .quiz-card,
-+    .editable-exercise-sheet
-+  ) {
-+    border-radius: var(--pb-radius-lg) !important;
-+    padding: var(--pb-pad-card-sm) !important;
-+  }
-+
-+  html body :is(
-+    .prescription-summary,
-+    .planned-method-label,
-+    .exercise-prescription-summary
-+  ) {
-+    display: -webkit-box;
-+    overflow: hidden;
-+    -webkit-box-orient: vertical;
-+    -webkit-line-clamp: 2;
-+    font-size: var(--pb-text-xs) !important;
-+    line-height: 1.3 !important;
-+  }
-+}
-+
-
-diff -- sw.js
---- a/sw.js
-+++ b/sw.js
-@@ -1,14 +1,14 @@
--const CACHE_NAME = "platform-buddy-v135";
--const CORE_ASSETS = [
--  "./",
--  "index.html",
--  "index.html?v=135",
--  "styles.css",
--  "styles.css?v=135",
--  "app.js",
--  "app.js?v=135",
-+const CACHE_NAME = "platform-buddy-v136";
-+const CORE_ASSETS = [
-+  "./",
-+  "index.html",
-+  "index.html?v=136",
-+  "styles.css",
-+  "styles.css?v=136",
-+  "app.js",
-+  "app.js?v=136",
-   "manifest.webmanifest",
-   "icon.svg",
-   "apple-touch-icon.png",
-   "home-bg-lite.jpg",
-   "icon-sheet-lite.jpg",
-
-diff -- manifest.webmanifest
---- a/manifest.webmanifest
-+++ b/manifest.webmanifest
-@@ -1,10 +1,10 @@
- {
-   "name": "Platform Buddy",
-   "short_name": "Buddy",
-   "description": "BIG3の現在地と目標を見える化し、PRサイクル、記録、分析、大会準備までつなげて管理できるパワーリフティング向けPWAです。",
--  "start_url": "./index.html?v=135",
-+  "start_url": "./index.html?v=136",
-   "scope": "./",
-   "display": "standalone",
-   "background_color": "#f4efe6",
-   "theme_color": "#f4efe6",
-   "icons": [
-
+﻿--- index.html
++++ index.html
+@@ line 15 @@
+-     <link rel="stylesheet" href="styles.css?v=136">
++     <link rel="stylesheet" href="styles.css?v=137">
+@@ line 999 @@
+-     <script src="app.js?v=136"></script>
++     <script src="app.js?v=137"></script>
+--- styles.css
++++ styles.css
+@@ line 13584 @@
+- /* v131: restore readable IRON NOTE contrast in PLAN and MEET */
++ /* v137: compact explanatory copy and swipeable PLAN overflow */
+@@ line 13585 @@
+- html body #planView :is(
++ html body :is(
+@@ line 13587 @@
+-   .program-disclaimer,
++   .screen-note,
+@@ line 13588 @@
+-   .cycle-method-note,
++   .data-note,
+@@ line 13589 @@
+-   .method-check-note
++   .cycle-method-note,
+@@ line 13590 @@
+- ) {
++   .program-disclaimer,
+@@ line 13591 @@
+-   border: 1px solid var(--line) !important;
++   .white-nine-note,
+@@ line 13592 @@
+-   border-left: 4px solid rgba(180, 35, 24, 0.42) !important;
++   .method-check-note,
+@@ line 13593 @@
+-   background: #fff7ed !important;
++   .exercise-rpe-hint,
+@@ line 13594 @@
+-   color: var(--text-sub) !important;
++   .planned-summary,
+@@ line 13595 @@
+-   text-shadow: none !important;
++   .planned-method-label,
+@@ line 13596 @@
+- }
++   .program-method-guide p,
+@@ line 13597 @@
+- 
++   .program-card-mini p,
+@@ line 13598 @@
+- html body #planView :is(
++   .cycle-setup-grid p,
+@@ line 13599 @@
+-   .guide-note,
++   .cycle-setup-card p,
+@@ line 13600 @@
+-   .program-disclaimer,
++   .home-card-note,
+@@ line 13601 @@
+-   .cycle-method-note,
++   .collapse-summary,
+@@ line 13602 @@
+-   .method-check-note
++   .rpe-feedback,
+@@ line 13603 @@
+- ) * {
++   .academy-evaluation-card p,
+@@ line 13604 @@
+-   color: var(--text-sub) !important;
++   .weekly-verdict p
+@@ line 13605 @@
+-   text-shadow: none !important;
++ ) {
+@@ line 13606 @@
+- }
++   max-width: 100%;
+@@ line 13607 @@
+- 
++   line-height: 1.35 !important;
+@@ line 13608 @@
+- html body #knowledgeView :is(
++ }
+@@ line 13609 @@
+-   .meet-today-card,
++ 
+@@ line 13610 @@
+-   .meet-command-actions a,
++ html body #planView :is(
+@@ line 13611 @@
+-   .meet-command-actions button,
++   .exercise-row,
+@@ line 13612 @@
+-   .meet-action-grid .meet-shortcut,
++   .plan-prescription,
+@@ line 13613 @@
+-   .meet-prep-checklist,
++   .editable-set-sheet,
+@@ line 13614 @@
+-   .meet-check-group,
++   .actual-set-list,
+@@ line 13615 @@
+-   .meet-note-form .input-grid label,
++   .program-method-guide,
+@@ line 13616 @@
+-   .meet-attempt-lift
++   .program-card-mini,
+@@ line 13617 @@
+- ) {
++   .cycle-setup-grid,
+@@ line 13618 @@
+-   border-color: var(--line) !important;
++   .cycle-detail-grid,
+@@ line 13619 @@
+-   background:
++   .cycle-basic-grid,
+@@ line 13620 @@
+-     linear-gradient(90deg, rgba(180, 35, 24, 0.035), transparent 46%),
++   .cycle-settings-details-body
+@@ line 13621 @@
+-     #fffaf2 !important;
++ ) {
+@@ line 13622 @@
+-   color: var(--text-main) !important;
++   max-width: 100%;
+@@ line 13623 @@
+-   box-shadow: 0 8px 18px rgba(51, 42, 29, 0.06) !important;
++   overflow-x: auto;
+@@ line 13624 @@
+-   text-shadow: none !important;
++   -webkit-overflow-scrolling: touch;
+@@ line 13627 @@
+- html body #knowledgeView :is(
++ html body #planView .plan-set-table {
+@@ line 13628 @@
+-   .meet-today-card,
++   min-width: 560px;
+@@ line 13629 @@
+-   .meet-command-actions a,
++   width: max-content;
+@@ line 13630 @@
+-   .meet-command-actions button,
++ }
+@@ line 13631 @@
+-   .meet-action-grid .meet-shortcut,
++ 
+@@ line 13632 @@
+-   .meet-prep-checklist,
++ html body #planView :is(
+@@ line 13633 @@
+-   .meet-check-group,
++   .editable-set-row,
+@@ line 13634 @@
+-   .meet-note-form .input-grid label,
++   .actual-set-row
+@@ line 13635 @@
+-   .meet-attempt-lift
++ ) {
+@@ line 13636 @@
+- ) :is(h1, h2, h3, h4, strong, b, label) {
++   min-width: 620px;
+@@ line 13637 @@
+-   color: var(--text-main) !important;
++ }
+@@ line 13638 @@
+-   text-shadow: none !important;
++ 
+@@ line 13639 @@
+- }
++ html body #planView :is(
+@@ line 13640 @@
+- 
++   .exercise-row,
+@@ line 13641 @@
+- html body #knowledgeView :is(
++   .editable-set-sheet,
+@@ line 13642 @@
+-   .meet-today-card,
++   .program-method-guide,
+@@ line 13643 @@
+-   .meet-action-grid .meet-shortcut,
++   .cycle-settings-details-body
+@@ line 13644 @@
+-   .meet-prep-checklist,
++ ) {
+@@ line 13645 @@
+-   .meet-check-group
++   scrollbar-width: thin;
+@@ line 13646 @@
+- ) :is(p, small) {
++ }
+@@ line 13647 @@
+-   color: var(--text-sub) !important;
++ 
+@@ line 13648 @@
+-   text-shadow: none !important;
++ @media (max-width: 640px) {
+@@ line 13649 @@
+- }
++   html body :is(
+@@ line 13650 @@
+- 
++     .guide-note,
+@@ line 13651 @@
+- html body #knowledgeView .meet-today-card a {
++     .screen-note,
+@@ line 13652 @@
+-   border: 1px solid rgba(21, 127, 59, 0.24) !important;
++     .data-note,
+@@ line 13653 @@
+-   background: #eaf6ec !important;
++     .cycle-method-note,
+@@ line 13654 @@
+-   color: #157f3b !important;
++     .program-disclaimer,
+@@ line 13655 @@
+- }
++     .white-nine-note,
+@@ line 13656 @@
+- 
++     .method-check-note,
+@@ line 13657 @@
+- html body #knowledgeView .meet-action-grid .meet-shortcut > span,
++     .program-method-guide p,
+@@ line 13658 @@
+- html body #knowledgeView .meet-command-actions span {
++     .program-card-mini p,
+@@ line 13659 @@
+-   background: #22272e !important;
++     .cycle-setup-grid p,
+@@ line 13660 @@
+-   color: #fffaf2 !important;
++     .cycle-setup-card p,
+@@ line 13661 @@
+-   border-color: #22272e !important;
++     .home-card-note,
+@@ line 13662 @@
+- }
++     .collapse-summary,
+@@ line 13663 @@
+- 
++     .rpe-feedback,
+@@ line 13664 @@
+- html body #knowledgeView .meet-note-form .input-grid label {
++     .academy-evaluation-card p,
+@@ line 13665 @@
+-   display: grid;
++     .weekly-verdict p
+@@ line 13666 @@
+-   gap: 5px;
++   ) {
+@@ line 13667 @@
+-   padding: 8px;
++     display: -webkit-box;
+@@ line 13668 @@
+-   color: var(--text-main) !important;
++     overflow: hidden;
+@@ line 13669 @@
+- }
++     -webkit-box-orient: vertical;
+@@ line 13670 @@
+- 
++     -webkit-line-clamp: 2;
+@@ line 13671 @@
+- html body #knowledgeView .meet-attempt-row strong {
++     font-size: var(--pb-text-xs) !important;
+@@ line 13672 @@
+-   background: #22272e !important;
++   }
+@@ line 13673 @@
+-   color: #fffaf2 !important;
++ 
+@@ line 13674 @@
+-   text-shadow: none !important;
++   html body :is(
+@@ line 13675 @@
+- }
++     .exercise-rpe-hint,
+@@ line 13676 @@
+- 
++     .planned-summary,
+@@ line 13677 @@
+- html body #knowledgeView .meet-attempt-row :is(input, select),
++     .planned-method-label,
+@@ line 13678 @@
+- html body #knowledgeView .meet-note-form :is(input, select, textarea) {
++     .prescription-summary,
+@@ line 13679 @@
+-   background: #ffffff !important;
++     .exercise-prescription-summary
+@@ line 13680 @@
+-   color: #111827 !important;
++   ) {
+@@ line 13681 @@
+-   border-color: #94a3b8 !important;
++     display: block !important;
+@@ line 13682 @@
+- }
++     overflow: hidden !important;
+@@ line 13683 @@
+- 
++     text-overflow: ellipsis;
+@@ line 13684 @@
+- /* v132: show the essential PR cycle settings first */
++     white-space: nowrap;
+@@ line 13685 @@
+- html body #planView .cycle-basic-grid {
++     font-size: var(--pb-text-xs) !important;
+@@ line 13686 @@
+-   grid-template-columns: repeat(3, minmax(0, 1fr));
++     line-height: 1.3 !important;
+@@ line 13687 @@
+- }
++   }
+@@ line 13689 @@
+- html body #planView .cycle-basic-maxes {
++   html body #planView .plan-set-table {
+@@ line 13690 @@
+-   display: grid;
++     min-width: 540px;
+@@ line 13691 @@
+-   gap: 10px;
++   }
+@@ line 13692 @@
+-   margin-top: 12px;
++ 
+@@ line 13693 @@
+-   border: 1px solid var(--line);
++   html body #planView :is(
+@@ line 13694 @@
+-   border-left: 4px solid rgba(47, 111, 115, 0.62);
++     .editable-set-row,
+@@ line 13695 @@
+-   border-radius: 10px;
++     .actual-set-row
+@@ line 13696 @@
+-   background:
++   ) {
+@@ line 13697 @@
+-     linear-gradient(90deg, rgba(47, 111, 115, 0.045), transparent 48%),
++     min-width: 590px;
+@@ line 13698 @@
+-     #fffaf2;
++   }
+@@ line 13699 @@
+-   padding: 12px;
++ }
+@@ line 13700 @@
+- }
++ 
+@@ line 13701 @@
+- 
++ /* v131: restore readable IRON NOTE contrast in PLAN and MEET */
+@@ line 13702 @@
+- html body #planView .cycle-basic-maxes h3,
++ html body #planView :is(
+@@ line 13703 @@
+- html body #planView .cycle-basic-maxes p {
++   .guide-note,
+@@ line 13704 @@
+-   margin: 0;
++   .program-disclaimer,
+@@ line 13705 @@
+- }
++   .cycle-method-note,
+@@ line 13706 @@
+- 
++   .method-check-note
+@@ line 13707 @@
+- html body #planView .cycle-basic-maxes h3 {
++ ) {
+@@ line 13708 @@
+-   color: var(--text-main);
++   border: 1px solid var(--line) !important;
+@@ line 13709 @@
+-   font-size: 0.98rem;
++   border-left: 4px solid rgba(180, 35, 24, 0.42) !important;
+@@ line 13710 @@
+- }
++   background: #fff7ed !important;
+@@ line 13711 @@
+- 
++   color: var(--text-sub) !important;
+@@ line 13712 @@
+- html body #planView .cycle-basic-maxes p {
++   text-shadow: none !important;
+@@ line 13713 @@
+-   color: var(--text-sub);
++ }
+@@ line 13714 @@
+-   font-size: 0.8rem;
++ 
+@@ line 13715 @@
+-   font-weight: 800;
++ html body #planView :is(
+@@ line 13716 @@
+- }
++   .guide-note,
+@@ line 13717 @@
+- 
++   .program-disclaimer,
+@@ line 13718 @@
+- html body #planView .cycle-settings-details {
++   .cycle-method-note,
+@@ line 13719 @@
+-   margin-top: 12px;
++   .method-check-note
+@@ line 13720 @@
+-   overflow: hidden;
++ ) * {
+@@ line 13721 @@
+-   border: 1px solid var(--line);
++   color: var(--text-sub) !important;
+@@ line 13722 @@
+-   border-radius: 10px;
++   text-shadow: none !important;
+@@ line 13723 @@
+-   background: #fffaf2;
++ }
+@@ line 13724 @@
+- }
++ 
+@@ line 13725 @@
+- 
++ html body #knowledgeView :is(
+@@ line 13726 @@
+- html body #planView .cycle-settings-details > summary {
++   .meet-today-card,
+@@ line 13727 @@
+-   display: flex;
++   .meet-command-actions a,
+@@ line 13728 @@
+-   min-height: 64px;
++   .meet-command-actions button,
+@@ line 13729 @@
+-   align-items: center;
++   .meet-action-grid .meet-shortcut,
+@@ line 13730 @@
+-   justify-content: space-between;
++   .meet-prep-checklist,
+@@ line 13731 @@
+-   gap: 14px;
++   .meet-check-group,
+@@ line 13732 @@
+-   padding: 12px 14px;
++   .meet-note-form .input-grid label,
+@@ line 13733 @@
+-   color: var(--text-main);
++   .meet-attempt-lift
+@@ line 13734 @@
+-   cursor: pointer;
++ ) {
+@@ line 13735 @@
+-   list-style: none;
++   border-color: var(--line) !important;
+@@ line 13736 @@
+- }
++   background:
+@@ line 13737 @@
+- 
++     linear-gradient(90deg, rgba(180, 35, 24, 0.035), transparent 46%),
+@@ line 13738 @@
+- html body #planView .cycle-settings-details > summary::-webkit-details-marker {
++     #fffaf2 !important;
+@@ line 13739 @@
+-   display: none;
++   color: var(--text-main) !important;
+@@ line 13740 @@
+- }
++   box-shadow: 0 8px 18px rgba(51, 42, 29, 0.06) !important;
+@@ line 13741 @@
+- 
++   text-shadow: none !important;
+@@ line 13742 @@
+- html body #planView .cycle-settings-details > summary::after {
++ }
+@@ line 13743 @@
+-   display: grid;
++ 
+@@ line 13744 @@
+-   width: 32px;
++ html body #knowledgeView :is(
+@@ line 13745 @@
+-   height: 32px;
++   .meet-today-card,
+@@ line 13746 @@
+-   flex: 0 0 32px;
++   .meet-command-actions a,
+@@ line 13747 @@
+-   place-items: center;
++   .meet-command-actions button,
+@@ line 13748 @@
+-   border: 1px solid var(--line);
++   .meet-action-grid .meet-shortcut,
+@@ line 13749 @@
+-   border-radius: 50%;
++   .meet-prep-checklist,
+@@ line 13750 @@
+-   background: #ffffff;
++   .meet-check-group,
+@@ line 13751 @@
+-   color: var(--text-main);
++   .meet-note-form .input-grid label,
+@@ line 13752 @@
+-   content: "+";
++   .meet-attempt-lift
+@@ line 13753 @@
+-   font-size: 1.2rem;
++ ) :is(h1, h2, h3, h4, strong, b, label) {
+@@ line 13754 @@
+-   font-weight: 900;
++   color: var(--text-main) !important;
+@@ line 13755 @@
+-   line-height: 1;
++   text-shadow: none !important;
+@@ line 13758 @@
+- html body #planView .cycle-settings-details[open] > summary::after {
++ html body #knowledgeView :is(
+@@ line 13759 @@
+-   content: "-";
++   .meet-today-card,
+@@ line 13760 @@
+- }
++   .meet-action-grid .meet-shortcut,
+@@ line 13761 @@
+- 
++   .meet-prep-checklist,
+@@ line 13762 @@
+- html body #planView .cycle-settings-details > summary span {
++   .meet-check-group
+@@ line 13763 @@
+-   display: grid;
++ ) :is(p, small) {
+@@ line 13764 @@
+-   gap: 3px;
++   color: var(--text-sub) !important;
+@@ line 13765 @@
+- }
++   text-shadow: none !important;
+@@ line 13766 @@
+- 
++ }
+@@ line 13767 @@
+- html body #planView .cycle-settings-details > summary strong {
++ 
+@@ line 13768 @@
+-   color: var(--text-main);
++ html body #knowledgeView .meet-today-card a {
+@@ line 13769 @@
+-   font-size: 0.95rem;
++   border: 1px solid rgba(21, 127, 59, 0.24) !important;
+@@ line 13770 @@
+- }
++   background: #eaf6ec !important;
+@@ line 13771 @@
+- 
++   color: #157f3b !important;
+@@ line 13772 @@
+- html body #planView .cycle-settings-details > summary small {
++ }
+@@ line 13773 @@
+-   color: var(--text-sub);
++ 
+@@ line 13774 @@
+-   font-size: 0.76rem;
++ html body #knowledgeView .meet-action-grid .meet-shortcut > span,
+@@ line 13775 @@
+-   line-height: 1.35;
++ html body #knowledgeView .meet-command-actions span {
+@@ line 13776 @@
+- }
++   background: #22272e !important;
+@@ line 13777 @@
+- 
++   color: #fffaf2 !important;
+@@ line 13778 @@
+- html body #planView .cycle-settings-details-body {
++   border-color: #22272e !important;
+@@ line 13779 @@
+-   display: grid;
++ }
+@@ line 13780 @@
+-   gap: 10px;
++ 
+@@ line 13781 @@
+-   padding: 12px;
++ html body #knowledgeView .meet-note-form .input-grid label {
+@@ line 13782 @@
+-   border-top: 1px solid var(--line);
++   display: grid;
+@@ line 13783 @@
+- }
++   gap: 5px;
+@@ line 13784 @@
+- 
++   padding: 8px;
+@@ line 13785 @@
+- html body #planView .cycle-detail-grid {
++   color: var(--text-main) !important;
+@@ line 13786 @@
+-   margin: 0;
++ }
+@@ line 13787 @@
+- }
++ 
+@@ line 13788 @@
+- 
++ html body #knowledgeView .meet-attempt-row strong {
+@@ line 13789 @@
+- html body #planView .cycle-settings-details .facility-panel {
++   background: #22272e !important;
+@@ line 13790 @@
+-   margin-top: 0;
++   color: #fffaf2 !important;
+@@ line 13791 @@
+- }
++   text-shadow: none !important;
+@@ line 13792 @@
+- 
++ }
+@@ line 13793 @@
+- @media (max-width: 640px) {
++ 
+@@ line 13794 @@
+-   html body #planView .cycle-basic-grid,
++ html body #knowledgeView .meet-attempt-row :is(input, select),
+@@ line 13795 @@
+-   html body #planView .cycle-detail-grid,
++ html body #knowledgeView .meet-note-form :is(input, select, textarea) {
+@@ line 13796 @@
+-   html body #planView .cycle-basic-maxes .max-grid {
++   background: #ffffff !important;
+@@ line 13797 @@
+-     grid-template-columns: 1fr;
++   color: #111827 !important;
+@@ line 13798 @@
+-   }
++   border-color: #94a3b8 !important;
+@@ line 13799 @@
+- 
++ }
+@@ line 13800 @@
+-   html body #planView .cycle-settings-details > summary {
++ 
+@@ line 13801 @@
+-     min-height: 58px;
++ /* v132: show the essential PR cycle settings first */
+@@ line 13802 @@
+-     padding: 11px 12px;
++ html body #planView .cycle-basic-grid {
+@@ line 13803 @@
+-   }
++   grid-template-columns: repeat(3, minmax(0, 1fr));
+@@ line 13806 @@
+- /* v134: shared contrast contract for buttons, inputs, badges, set rows and meet notes */
++ html body #planView .cycle-basic-maxes {
+@@ line 13807 @@
+- :root {
++   display: grid;
+@@ line 13808 @@
+-   --pb-bg: #f6f1e8;
++   gap: 10px;
+@@ line 13809 @@
+-   --pb-surface: #fffaf0;
++   margin-top: 12px;
+@@ line 13810 @@
+-   --pb-surface-2: #f1eadf;
++   border: 1px solid var(--line);
+@@ line 13811 @@
+-   --pb-border: rgba(30, 41, 59, 0.18);
++   border-left: 4px solid rgba(47, 111, 115, 0.62);
+@@ line 13812 @@
+-   --pb-text: #111827;
++   border-radius: 10px;
+@@ line 13813 @@
+-   --pb-text-muted: #475569;
++   background:
+@@ line 13814 @@
+-   --pb-text-soft: #64748b;
++     linear-gradient(90deg, rgba(47, 111, 115, 0.045), transparent 48%),
+@@ line 13815 @@
+-   --pb-text-inverse: #ffffff;
++     #fffaf2;
+@@ line 13816 @@
+-   --pb-ink: #17202a;
++   padding: 12px;
+@@ line 13817 @@
+-   --pb-ink-2: #0f172a;
++ }
+@@ line 13818 @@
+-   --pb-ink-border: rgba(255, 255, 255, 0.18);
++ 
+@@ line 13819 @@
+-   --pb-red: #dc2626;
++ html body #planView .cycle-basic-maxes h3,
+@@ line 13820 @@
+-   --pb-red-dark: #991b1b;
++ html body #planView .cycle-basic-maxes p {
+@@ line 13821 @@
+-   --pb-green: #22c55e;
++   margin: 0;
+@@ line 13822 @@
+-   --pb-green-dark: #15803d;
++ }
+@@ line 13823 @@
+-   --pb-yellow: #eab308;
++ 
+@@ line 13824 @@
+-   --pb-yellow-dark: #854d0e;
++ html body #planView .cycle-basic-maxes h3 {
+@@ line 13825 @@
+-   --pb-blue: #2563eb;
++   color: var(--text-main);
+@@ line 13826 @@
+-   --pb-input-bg: #ffffff;
++   font-size: 0.98rem;
+@@ line 13827 @@
+-   --pb-input-text: #111827;
++ }
+@@ line 13828 @@
+-   --pb-input-border: #cbd5e1;
++ 
+@@ line 13829 @@
+-   --pb-input-placeholder: #94a3b8;
++ html body #planView .cycle-basic-maxes p {
+@@ line 13830 @@
+-   --pb-button-bg: #17202a;
++   color: var(--text-sub);
+@@ line 13831 @@
+-   --pb-button-text: #ffffff;
++   font-size: 0.8rem;
+@@ line 13832 @@
+-   --pb-button-muted-bg: #e5e7eb;
++   font-weight: 800;
+@@ line 13833 @@
+-   --pb-button-muted-text: #111827;
++ }
+@@ line 13834 @@
+- }
++ 
+@@ line 13835 @@
+- 
++ html body #planView .cycle-settings-details {
+@@ line 13836 @@
+- html body button,
++   margin-top: 12px;
+@@ line 13837 @@
+- html body .action-button,
++   overflow: hidden;
+@@ line 13838 @@
+- html body .primary-button,
++   border: 1px solid var(--line);
+@@ line 13839 @@
+- html body .actual-save,
++   border-radius: 10px;
+@@ line 13840 @@
+- html body .save-button,
++   background: #fffaf2;
+@@ line 13841 @@
+- html body .actual-add-set,
++ }
+@@ line 13842 @@
+- html body .add-set-button,
++ 
+@@ line 13843 @@
+- html body .secondary-button,
++ html body #planView .cycle-settings-details > summary {
+@@ line 13844 @@
+- html body .meet-command-actions button.primary,
++   display: flex;
+@@ line 13845 @@
+- html body .editable-exercise-footer .actual-save,
++   min-height: 64px;
+@@ line 13846 @@
+- html body .editable-exercise-footer .actual-add-set {
++   align-items: center;
+@@ line 13847 @@
+-   border-color: var(--pb-button-bg) !important;
++   justify-content: space-between;
+@@ line 13848 @@
+-   background: var(--pb-button-bg) !important;
++   gap: 14px;
+@@ line 13849 @@
+-   color: var(--pb-button-text) !important;
++   padding: 12px 14px;
+@@ line 13850 @@
+-   text-shadow: none !important;
++   color: var(--text-main);
+@@ line 13851 @@
+- }
++   cursor: pointer;
+@@ line 13852 @@
+- 
++   list-style: none;
+@@ line 13853 @@
+- html body :is(
++ }
+@@ line 13854 @@
+-   button,
++ 
+@@ line 13855 @@
+-   .action-button,
++ html body #planView .cycle-settings-details > summary::-webkit-details-marker {
+@@ line 13856 @@
+-   .primary-button,
++   display: none;
+@@ line 13857 @@
+-   .actual-save,
++ }
+@@ line 13858 @@
+-   .save-button,
++ 
+@@ line 13859 @@
+-   .actual-add-set,
++ html body #planView .cycle-settings-details > summary::after {
+@@ line 13860 @@
+-   .add-set-button,
++   display: grid;
+@@ line 13861 @@
+-   .secondary-button,
++   width: 32px;
+@@ line 13862 @@
+-   .meet-command-actions button.primary,
++   height: 32px;
+@@ line 13863 @@
+-   .editable-exercise-footer .actual-save,
++   flex: 0 0 32px;
+@@ line 13864 @@
+-   .editable-exercise-footer .actual-add-set
++   place-items: center;
+@@ line 13865 @@
+- ) * {
++   border: 1px solid var(--line);
+@@ line 13866 @@
+-   color: inherit !important;
++   border-radius: 50%;
+@@ line 13867 @@
+-   text-shadow: none !important;
++   background: #ffffff;
+@@ line 13868 @@
+- }
++   color: var(--text-main);
+@@ line 13869 @@
+- 
++   content: "+";
+@@ line 13870 @@
+- html body :is(
++   font-size: 1.2rem;
+@@ line 13871 @@
+-   button,
++   font-weight: 900;
+@@ line 13872 @@
+-   .action-button,
++   line-height: 1;
+@@ line 13873 @@
+-   .primary-button,
++ }
+@@ line 13874 @@
+-   .actual-save,
++ 
+@@ line 13875 @@
+-   .save-button,
++ html body #planView .cycle-settings-details[open] > summary::after {
+@@ line 13876 @@
+-   .actual-add-set,
++   content: "-";
+@@ line 13877 @@
+-   .add-set-button,
++ }
+@@ line 13878 @@
+-   .secondary-button
++ 
+@@ line 13879 @@
+- ):disabled {
++ html body #planView .cycle-settings-details > summary span {
+@@ line 13880 @@
+-   border-color: #d1d5db !important;
++   display: grid;
+@@ line 13881 @@
+-   background: #d1d5db !important;
++   gap: 3px;
+@@ line 13882 @@
+-   color: #4b5563 !important;
++ }
+@@ line 13883 @@
+-   opacity: 0.78 !important;
++ 
+@@ line 13884 @@
+- }
++ html body #planView .cycle-settings-details > summary strong {
+@@ line 13885 @@
+- 
++   color: var(--text-main);
+@@ line 13886 @@
+- html body input,
++   font-size: 0.95rem;
+@@ line 13887 @@
+- html body textarea,
++ }
+@@ line 13888 @@
+- html body select,
++ 
+@@ line 13889 @@
+- html body .actual-weight,
++ html body #planView .cycle-settings-details > summary small {
+@@ line 13890 @@
+- html body .actual-reps,
++   color: var(--text-sub);
+@@ line 13891 @@
+- html body .actual-rpe,
++   font-size: 0.76rem;
+@@ line 13892 @@
+- html body .meet-attempt-row input,
++   line-height: 1.35;
+@@ line 13893 @@
+- html body .meet-attempt-row select,
++ }
+@@ line 13894 @@
+- html body .meet-note-form :is(input, select, textarea) {
++ 
+@@ line 13895 @@
+-   border-color: var(--pb-input-border) !important;
++ html body #planView .cycle-settings-details-body {
+@@ line 13896 @@
+-   background: var(--pb-input-bg) !important;
++   display: grid;
+@@ line 13897 @@
+-   color: var(--pb-input-text) !important;
++   gap: 10px;
+@@ line 13898 @@
+-   text-shadow: none !important;
++   padding: 12px;
+@@ line 13899 @@
+-   -webkit-text-fill-color: var(--pb-input-text);
++   border-top: 1px solid var(--line);
+@@ line 13902 @@
+- html body input::placeholder,
++ html body #planView .cycle-detail-grid {
+@@ line 13903 @@
+- html body textarea::placeholder,
++   margin: 0;
+@@ line 13904 @@
+- html body .actual-weight::placeholder,
++ }
+@@ line 13905 @@
+- html body .actual-reps::placeholder,
++ 
+@@ line 13906 @@
+- html body .actual-rpe::placeholder {
++ html body #planView .cycle-settings-details .facility-panel {
+@@ line 13907 @@
+-   color: var(--pb-input-placeholder) !important;
++   margin-top: 0;
+@@ line 13908 @@
+-   opacity: 1 !important;
++ }
+@@ line 13909 @@
+- }
++ 
+@@ line 13910 @@
+- 
++ @media (max-width: 640px) {
+@@ line 13911 @@
+- html body select option {
++   html body #planView .cycle-basic-grid,
+@@ line 13912 @@
+-   background: var(--pb-input-bg) !important;
++   html body #planView .cycle-detail-grid,
+@@ line 13913 @@
+-   color: var(--pb-input-text) !important;
++   html body #planView .cycle-basic-maxes .max-grid {
+@@ line 13914 @@
+- }
++     grid-template-columns: 1fr;
+@@ line 13915 @@
+- 
++   }
+@@ line 13916 @@
+- html body :is(
++ 
+@@ line 13917 @@
+-   .set-meta,
++   html body #planView .cycle-settings-details > summary {
+@@ line 13918 @@
+-   .set-label,
++     min-height: 58px;
+@@ line 13919 @@
+-   .set-cell,
++     padding: 11px 12px;
+@@ line 13920 @@
+-   .set-number,
++   }
+@@ line 13921 @@
+-   .editable-set-row .set-meta,
++ }
+@@ line 13922 @@
+-   .actual-set-row .set-meta
++ 
+@@ line 13923 @@
+- ) {
++ /* v134: shared contrast contract for buttons, inputs, badges, set rows and meet notes */
+@@ line 13924 @@
+-   overflow: visible !important;
++ :root {
+@@ line 13925 @@
+-   color: var(--pb-text) !important;
++   --pb-bg: #f6f1e8;
+@@ line 13926 @@
+-   text-shadow: none !important;
++   --pb-surface: #fffaf0;
+@@ line 13927 @@
+- }
++   --pb-surface-2: #f1eadf;
+@@ line 13928 @@
+- 
++   --pb-border: rgba(30, 41, 59, 0.18);
+@@ line 13929 @@
+- html body :is(
++   --pb-text: #111827;
+@@ line 13930 @@
+-   .set-meta,
++   --pb-text-muted: #475569;
+@@ line 13931 @@
+-   .set-label,
++   --pb-text-soft: #64748b;
+@@ line 13932 @@
+-   .set-cell,
++   --pb-text-inverse: #ffffff;
+@@ line 13933 @@
+-   .set-number
++   --pb-ink: #17202a;
+@@ line 13934 @@
+- ) :is(strong, b, span) {
++   --pb-ink-2: #0f172a;
+@@ line 13935 @@
+-   position: relative !important;
++   --pb-ink-border: rgba(255, 255, 255, 0.18);
+@@ line 13936 @@
+-   z-index: 2 !important;
++   --pb-red: #dc2626;
+@@ line 13937 @@
+-   color: var(--pb-text) !important;
++   --pb-red-dark: #991b1b;
+@@ line 13938 @@
+-   text-shadow: none !important;
++   --pb-green: #22c55e;
+@@ line 13939 @@
+- }
++   --pb-green-dark: #15803d;
+@@ line 13940 @@
+- 
++   --pb-yellow: #eab308;
+@@ line 13941 @@
+- html body .editable-set-row .set-meta small,
++   --pb-yellow-dark: #854d0e;
+@@ line 13942 @@
+- html body .actual-set-row .set-meta small,
++   --pb-blue: #2563eb;
+@@ line 13943 @@
+- html body .set-kind,
++   --pb-input-bg: #ffffff;
+@@ line 13944 @@
+- html body .set-kind-default {
++   --pb-input-text: #111827;
+@@ line 13945 @@
+-   position: relative !important;
++   --pb-input-border: #cbd5e1;
+@@ line 13946 @@
+-   z-index: 2 !important;
++   --pb-input-placeholder: #94a3b8;
+@@ line 13947 @@
+-   color: var(--pb-text-inverse) !important;
++   --pb-button-bg: #17202a;
+@@ line 13948 @@
+-   text-shadow: none !important;
++   --pb-button-text: #ffffff;
+@@ line 13949 @@
+- }
++   --pb-button-muted-bg: #e5e7eb;
+@@ line 13950 @@
+- 
++   --pb-button-muted-text: #111827;
+@@ line 13951 @@
+- html body :is(.set-kind-top, .kind-top, .badge-top) {
++ }
+@@ line 13952 @@
+-   background: #ef4444 !important;
++ 
+@@ line 13953 @@
+-   color: #ffffff !important;
++ html body button,
+@@ line 13954 @@
+-   border-color: #ef4444 !important;
++ html body .action-button,
+@@ line 13955 @@
+- }
++ html body .primary-button,
+@@ line 13956 @@
+- 
++ html body .actual-save,
+@@ line 13957 @@
+- html body :is(.set-kind-back, .kind-back, .badge-back) {
++ html body .save-button,
+@@ line 13958 @@
+-   background: #22c55e !important;
++ html body .actual-add-set,
+@@ line 13959 @@
+-   color: #052e16 !important;
++ html body .add-set-button,
+@@ line 13960 @@
+-   border-color: #22c55e !important;
++ html body .secondary-button,
+@@ line 13961 @@
+- }
++ html body .meet-command-actions button.primary,
+@@ line 13962 @@
+- 
++ html body .editable-exercise-footer .actual-save,
+@@ line 13963 @@
+- html body :is(.set-kind-accessory, .kind-accessory, .badge-accessory) {
++ html body .editable-exercise-footer .actual-add-set {
+@@ line 13964 @@
+-   background: #eab308 !important;
++   border-color: var(--pb-button-bg) !important;
+@@ line 13965 @@
+-   color: #422006 !important;
++   background: var(--pb-button-bg) !important;
+@@ line 13966 @@
+-   border-color: #eab308 !important;
++   color: var(--pb-button-text) !important;
+@@ line 13967 @@
+- }
++   text-shadow: none !important;
+@@ line 13968 @@
+- 
++ }
+@@ line 13969 @@
+- html body :is(.set-kind-check, .set-kind-attempt) {
++ 
+@@ line 13970 @@
+-   background: var(--pb-ink) !important;
++ html body :is(
+@@ line 13971 @@
+-   color: var(--pb-text-inverse) !important;
++   button,
+@@ line 13972 @@
+-   border-color: var(--pb-ink) !important;
++   .action-button,
+@@ line 13973 @@
+- }
++   .primary-button,
+@@ line 13974 @@
+- 
++   .actual-save,
+@@ line 13975 @@
+- html body #planView :is(
++   .save-button,
+@@ line 13976 @@
+-   .guide-note,
++   .actual-add-set,
+@@ line 13977 @@
+-   .program-disclaimer,
++   .add-set-button,
+@@ line 13978 @@
+-   .cycle-method-note,
++   .secondary-button,
+@@ line 13979 @@
+-   .method-check-note,
++   .meet-command-actions button.primary,
+@@ line 13980 @@
+-   .planned-method-label,
++   .editable-exercise-footer .actual-save,
+@@ line 13981 @@
+-   .exercise-rpe-hint
++   .editable-exercise-footer .actual-add-set
+@@ line 13982 @@
+- ) {
++ ) * {
+@@ line 13983 @@
+-   background: #fff7ed !important;
++   color: inherit !important;
+@@ line 13984 @@
+-   color: var(--pb-text-muted) !important;
++   text-shadow: none !important;
+@@ line 13985 @@
+-   text-shadow: none !important;
++ }
+@@ line 13986 @@
+- }
++ 
+@@ line 13987 @@
+- 
++ html body :is(
+@@ line 13988 @@
+- html body #planView :is(
++   button,
+@@ line 13989 @@
+-   .guide-note,
++   .action-button,
+@@ line 13990 @@
+-   .program-disclaimer,
++   .primary-button,
+@@ line 13991 @@
+-   .cycle-method-note,
++   .actual-save,
+@@ line 13992 @@
+-   .method-check-note,
++   .save-button,
+@@ line 13993 @@
+-   .planned-method-label,
++   .actual-add-set,
+@@ line 13994 @@
+-   .exercise-rpe-hint
++   .add-set-button,
+@@ line 13995 @@
+- ) * {
++   .secondary-button
+@@ line 13996 @@
+-   color: inherit !important;
++ ):disabled {
+@@ line 13997 @@
+-   text-shadow: none !important;
++   border-color: #d1d5db !important;
+@@ line 13998 @@
+- }
++   background: #d1d5db !important;
+@@ line 13999 @@
+- 
++   color: #4b5563 !important;
+@@ line 14000 @@
+- html body :is(
++   opacity: 0.78 !important;
+@@ line 14001 @@
+-   .meet-attempt-number,
++ }
+@@ line 14002 @@
+-   .attempt-number,
++ 
+@@ line 14003 @@
+-   .lift-attempt-number,
++ html body input,
+@@ line 14004 @@
+-   .meet-note-attempt-index,
++ html body textarea,
+@@ line 14005 @@
+-   .meet-attempt-row strong
++ html body select,
+@@ line 14006 @@
+- ) {
++ html body .actual-weight,
+@@ line 14007 @@
+-   border-color: var(--pb-ink) !important;
++ html body .actual-reps,
+@@ line 14008 @@
+-   background: var(--pb-ink) !important;
++ html body .actual-rpe,
+@@ line 14009 @@
+-   color: var(--pb-text-inverse) !important;
++ html body .meet-attempt-row input,
+@@ line 14010 @@
+-   font-weight: 900 !important;
++ html body .meet-attempt-row select,
+@@ line 14011 @@
+-   text-shadow: none !important;
++ html body .meet-note-form :is(input, select, textarea) {
+@@ line 14012 @@
+- }
++   border-color: var(--pb-input-border) !important;
+@@ line 14013 @@
+- 
++   background: var(--pb-input-bg) !important;
+@@ line 14014 @@
+- html body :is(
++   color: var(--pb-input-text) !important;
+@@ line 14015 @@
+-   .meet-attempt-number,
++   text-shadow: none !important;
+@@ line 14016 @@
+-   .attempt-number,
++   -webkit-text-fill-color: var(--pb-input-text);
+@@ line 14017 @@
+-   .lift-attempt-number,
++ }
+@@ line 14018 @@
+-   .meet-note-attempt-index,
++ 
+@@ line 14019 @@
+-   .meet-attempt-row strong
++ html body input::placeholder,
+@@ line 14020 @@
+- ) * {
++ html body textarea::placeholder,
+@@ line 14021 @@
+-   color: inherit !important;
++ html body .actual-weight::placeholder,
+@@ line 14022 @@
+-   text-shadow: none !important;
++ html body .actual-reps::placeholder,
+@@ line 14023 @@
+- }
++ html body .actual-rpe::placeholder {
+@@ line 14024 @@
+- 
++   color: var(--pb-input-placeholder) !important;
+@@ line 14025 @@
+- html body :is(
++   opacity: 1 !important;
+@@ line 14026 @@
+-   .meet-note-form .input-grid label,
++ }
+@@ line 14027 @@
+-   .meet-attempt-lift,
++ 
+@@ line 14028 @@
+-   .meet-attempt-row,
++ html body select option {
+@@ line 14029 @@
+-   .dashboard-input-grid label,
++   background: var(--pb-input-bg) !important;
+@@ line 14030 @@
+-   .input-grid label,
++   color: var(--pb-input-text) !important;
+@@ line 14031 @@
+-   .cycle-grid label,
++ }
+@@ line 14032 @@
+-   .max-grid label
++ 
+@@ line 14033 @@
+- ) {
++ html body :is(
+@@ line 14034 @@
+-   border-color: var(--pb-border) !important;
++   .set-meta,
+@@ line 14035 @@
+-   background:
++   .set-label,
+@@ line 14036 @@
+-     linear-gradient(90deg, rgba(180, 35, 24, 0.026), transparent 48%),
++   .set-cell,
+@@ line 14037 @@
+-     var(--pb-surface) !important;
++   .set-number,
+@@ line 14038 @@
+-   color: var(--pb-text) !important;
++   .editable-set-row .set-meta,
+@@ line 14039 @@
+-   text-shadow: none !important;
++   .actual-set-row .set-meta
+@@ line 14040 @@
+- }
++ ) {
+@@ line 14041 @@
+- 
++   overflow: visible !important;
+@@ line 14042 @@
+- html body :is(
++   color: var(--pb-text) !important;
+@@ line 14043 @@
+-   .meet-note-form .input-grid label,
++   text-shadow: none !important;
+@@ line 14044 @@
+-   .meet-attempt-lift,
++ }
+@@ line 14045 @@
+-   .meet-attempt-row,
++ 
+@@ line 14046 @@
+-   .dashboard-input-grid label,
++ html body :is(
+@@ line 14047 @@
+-   .input-grid label,
++   .set-meta,
+@@ line 14048 @@
+-   .cycle-grid label,
++   .set-label,
+@@ line 14049 @@
+-   .max-grid label
++   .set-cell,
+@@ line 14050 @@
+- ) :is(strong, b, span, label) {
++   .set-number
+@@ line 14051 @@
+-   color: var(--pb-text) !important;
++ ) :is(strong, b, span) {
+@@ line 14052 @@
+-   text-shadow: none !important;
++   position: relative !important;
+@@ line 14053 @@
+- }
++   z-index: 2 !important;
+@@ line 14054 @@
+- 
++   color: var(--pb-text) !important;
+@@ line 14055 @@
+- html body :is(
++   text-shadow: none !important;
+@@ line 14056 @@
+-   .meet-note-form .input-grid label,
++ }
+@@ line 14057 @@
+-   .meet-attempt-lift,
++ 
+@@ line 14058 @@
+-   .meet-attempt-row,
++ html body .editable-set-row .set-meta small,
+@@ line 14059 @@
+-   .dashboard-input-grid label,
++ html body .actual-set-row .set-meta small,
+@@ line 14060 @@
+-   .input-grid label,
++ html body .set-kind,
+@@ line 14061 @@
+-   .cycle-grid label,
++ html body .set-kind-default {
+@@ line 14062 @@
+-   .max-grid label
++   position: relative !important;
+@@ line 14063 @@
+- ) :is(p, small, em) {
++   z-index: 2 !important;
+@@ line 14064 @@
+-   color: var(--pb-text-muted) !important;
++   color: var(--pb-text-inverse) !important;
+@@ line 14068 @@
+- html body :is(.chip, .status-chip, .info-chip, .badge, .pill) {
++ html body :is(.set-kind-top, .kind-top, .badge-top) {
+@@ line 14069 @@
+-   border-color: var(--pb-border) !important;
++   background: #ef4444 !important;
+@@ line 14070 @@
+-   background: #ffffff !important;
++   color: #ffffff !important;
+@@ line 14071 @@
+-   color: var(--pb-text) !important;
++   border-color: #ef4444 !important;
+@@ line 14072 @@
+-   text-shadow: none !important;
++ }
+@@ line 14073 @@
+- }
++ 
+@@ line 14074 @@
+- 
++ html body :is(.set-kind-back, .kind-back, .badge-back) {
+@@ line 14075 @@
+- html body :is(.chip.dark, .status-chip.dark, .badge.dark, .pill.dark, .quiz-badge) {
++   background: #22c55e !important;
+@@ line 14076 @@
+-   background: var(--pb-ink) !important;
++   color: #052e16 !important;
+@@ line 14077 @@
+-   color: var(--pb-text-inverse) !important;
++   border-color: #22c55e !important;
+@@ line 14078 @@
+-   border-color: var(--pb-ink) !important;
++ }
+@@ line 14079 @@
+- }
++ 
+@@ line 14080 @@
+- 
++ html body :is(.set-kind-accessory, .kind-accessory, .badge-accessory) {
+@@ line 14081 @@
+- html body :is(.chip.red, .status-chip.red, .badge.red, .pill.red, .recommended-badge) {
++   background: #eab308 !important;
+@@ line 14082 @@
+-   background: var(--pb-red) !important;
++   color: #422006 !important;
+@@ line 14083 @@
+-   color: #ffffff !important;
++   border-color: #eab308 !important;
+@@ line 14084 @@
+-   border-color: var(--pb-red) !important;
++ }
+@@ line 14085 @@
+- }
++ 
+@@ line 14086 @@
+- 
++ html body :is(.set-kind-check, .set-kind-attempt) {
+@@ line 14087 @@
+- html body :is(.chip.green, .status-chip.green, .badge.green, .pill.green) {
++   background: var(--pb-ink) !important;
+@@ line 14088 @@
+-   background: var(--pb-green) !important;
++   color: var(--pb-text-inverse) !important;
+@@ line 14089 @@
+-   color: #052e16 !important;
++   border-color: var(--pb-ink) !important;
+@@ line 14090 @@
+-   border-color: var(--pb-green) !important;
++ }
+@@ line 14091 @@
+- }
++ 
+@@ line 14092 @@
+- 
++ html body #planView :is(
+@@ line 14093 @@
+- html body :is(.chip.yellow, .status-chip.yellow, .badge.yellow, .pill.yellow) {
++   .guide-note,
+@@ line 14094 @@
+-   background: var(--pb-yellow) !important;
++   .program-disclaimer,
+@@ line 14095 @@
+-   color: #422006 !important;
++   .cycle-method-note,
+@@ line 14096 @@
+-   border-color: var(--pb-yellow) !important;
++   .method-check-note,
+@@ line 14097 @@
+- }
++   .planned-method-label,
+@@ line 14098 @@
+- 
++   .exercise-rpe-hint
+@@ line 14099 @@
+- html body .tabbar .tab.active,
++ ) {
+@@ line 14100 @@
+- html body .bottom-nav .active,
++   background: #fff7ed !important;
+@@ line 14101 @@
+- html body .nav-item.active,
++   color: var(--pb-text-muted) !important;
+@@ line 14102 @@
+- html body .guide-toggle,
++   text-shadow: none !important;
+@@ line 14103 @@
+- html body .guide-button,
++ }
+@@ line 14104 @@
+- html body .floating-guide-panel button {
++ 
+@@ line 14105 @@
+-   background: var(--pb-ink) !important;
++ html body #planView :is(
+@@ line 14106 @@
+-   color: var(--pb-text-inverse) !important;
++   .guide-note,
+@@ line 14107 @@
+-   border-color: var(--pb-ink) !important;
++   .program-disclaimer,
+@@ line 14108 @@
+-   text-shadow: none !important;
++   .cycle-method-note,
+@@ line 14109 @@
+- }
++   .method-check-note,
+@@ line 14110 @@
+- 
++   .planned-method-label,
+@@ line 14111 @@
+- html body :is(
++   .exercise-rpe-hint
+@@ line 14112 @@
+-   .tabbar .tab.active,
++ ) * {
+@@ line 14113 @@
+-   .bottom-nav .active,
++   color: inherit !important;
+@@ line 14114 @@
+-   .nav-item.active,
++   text-shadow: none !important;
+@@ line 14115 @@
+-   .guide-toggle,
++ }
+@@ line 14116 @@
+-   .guide-button,
++ 
+@@ line 14117 @@
+-   .floating-guide-panel button
++ html body :is(
+@@ line 14118 @@
+- ) * {
++   .meet-attempt-number,
+@@ line 14119 @@
+-   color: inherit !important;
++   .attempt-number,
+@@ line 14120 @@
+-   text-shadow: none !important;
++   .lift-attempt-number,
+@@ line 14121 @@
+- }
++   .meet-note-attempt-index,
+@@ line 14122 @@
+- 
++   .meet-attempt-row strong
+@@ line 14123 @@
+- html body .tabbar .tab:not(.active),
++ ) {
+@@ line 14124 @@
+- html body .bottom-nav > :not(.active),
++   border-color: var(--pb-ink) !important;
+@@ line 14125 @@
+- html body .nav-item:not(.active) {
++   background: var(--pb-ink) !important;
+@@ line 14126 @@
+-   color: var(--pb-text-muted) !important;
++   color: var(--pb-text-inverse) !important;
+@@ line 14127 @@
+-   text-shadow: none !important;
++   font-weight: 900 !important;
+@@ line 14128 @@
+- }
++   text-shadow: none !important;
+@@ line 14129 @@
+- 
++ }
+@@ line 14130 @@
+- html body :is(
++ 
+@@ line 14131 @@
+-   .readiness-floating,
++ html body :is(
+@@ line 14132 @@
+-   .floating-condition-panel,
++   .meet-attempt-number,
+@@ line 14133 @@
+-   .guide-floating,
++   .attempt-number,
+@@ line 14134 @@
+-   .floating-guide-panel
++   .lift-attempt-number,
+@@ line 14135 @@
+- ) {
++   .meet-note-attempt-index,
+@@ line 14136 @@
+-   border-color: var(--pb-border) !important;
++   .meet-attempt-row strong
+@@ line 14137 @@
+-   background: rgba(255, 250, 240, 0.96) !important;
++ ) * {
+@@ line 14138 @@
+-   color: var(--pb-text) !important;
++   color: inherit !important;
+@@ line 14143 @@
+-   .readiness-floating,
++   .meet-note-form .input-grid label,
+@@ line 14144 @@
+-   .floating-condition-panel,
++   .meet-attempt-lift,
+@@ line 14145 @@
+-   .guide-floating,
++   .meet-attempt-row,
+@@ line 14146 @@
+-   .floating-guide-panel
++   .dashboard-input-grid label,
+@@ line 14147 @@
+- ) :is(strong, b, span, p, small) {
++   .input-grid label,
+@@ line 14148 @@
+-   color: inherit !important;
++   .cycle-grid label,
+@@ line 14149 @@
+-   text-shadow: none !important;
++   .max-grid label
+@@ line 14150 @@
+- }
++ ) {
+@@ line 14151 @@
+- 
++   border-color: var(--pb-border) !important;
+@@ line 14152 @@
+- /* v134 addendum: round number tags must never be dark-on-dark */
++   background:
+@@ line 14153 @@
+- html body :is(
++     linear-gradient(90deg, rgba(180, 35, 24, 0.026), transparent 48%),
+@@ line 14154 @@
+-   .set-index,
++     var(--pb-surface) !important;
+@@ line 14155 @@
+-   .set-number,
++   color: var(--pb-text) !important;
+@@ line 14156 @@
+-   .set-badge,
++   text-shadow: none !important;
+@@ line 14157 @@
+-   .attempt-index,
++ }
+@@ line 14158 @@
+-   .attempt-number,
++ 
+@@ line 14159 @@
+-   .meet-attempt-number,
++ html body :is(
+@@ line 14160 @@
+-   .meet-note-attempt-index,
++   .meet-note-form .input-grid label,
+@@ line 14161 @@
+-   .lift-attempt-number,
++   .meet-attempt-lift,
+@@ line 14162 @@
+-   .round-index,
++   .meet-attempt-row,
+@@ line 14163 @@
+-   .round-number,
++   .dashboard-input-grid label,
+@@ line 14164 @@
+-   .meet-attempt-row strong,
++   .input-grid label,
+@@ line 14165 @@
+-   .meet-note-form .meet-attempt-row strong
++   .cycle-grid label,
+@@ line 14166 @@
+- ) {
++   .max-grid label
+@@ line 14167 @@
+-   border-color: var(--pb-ink, #17202a) !important;
++ ) :is(strong, b, span, label) {
+@@ line 14168 @@
+-   background: var(--pb-ink, #17202a) !important;
++   color: var(--pb-text) !important;
+@@ line 14169 @@
+-   color: var(--pb-text-inverse, #ffffff) !important;
++   text-shadow: none !important;
+@@ line 14170 @@
+-   font-weight: 900 !important;
++ }
+@@ line 14171 @@
+-   text-shadow: none !important;
++ 
+@@ line 14172 @@
+-   -webkit-text-fill-color: var(--pb-text-inverse, #ffffff) !important;
++ html body :is(
+@@ line 14173 @@
+- }
++   .meet-note-form .input-grid label,
+@@ line 14174 @@
+- 
++   .meet-attempt-lift,
+@@ line 14175 @@
+- html body :is(
++   .meet-attempt-row,
+@@ line 14176 @@
+-   .set-index,
++   .dashboard-input-grid label,
+@@ line 14177 @@
+-   .set-number,
++   .input-grid label,
+@@ line 14178 @@
+-   .set-badge,
++   .cycle-grid label,
+@@ line 14179 @@
+-   .attempt-index,
++   .max-grid label
+@@ line 14180 @@
+-   .attempt-number,
++ ) :is(p, small, em) {
+@@ line 14181 @@
+-   .meet-attempt-number,
++   color: var(--pb-text-muted) !important;
+@@ line 14182 @@
+-   .meet-note-attempt-index,
++   text-shadow: none !important;
+@@ line 14183 @@
+-   .lift-attempt-number,
++ }
+@@ line 14184 @@
+-   .round-index,
++ 
+@@ line 14185 @@
+-   .round-number,
++ html body :is(.chip, .status-chip, .info-chip, .badge, .pill) {
+@@ line 14186 @@
+-   .meet-attempt-row strong,
++   border-color: var(--pb-border) !important;
+@@ line 14187 @@
+-   .meet-note-form .meet-attempt-row strong
++   background: #ffffff !important;
+@@ line 14188 @@
+- ) * {
++   color: var(--pb-text) !important;
+@@ line 14189 @@
+-   color: inherit !important;
++   text-shadow: none !important;
+@@ line 14190 @@
+-   text-shadow: none !important;
++ }
+@@ line 14191 @@
+-   -webkit-text-fill-color: inherit !important;
++ 
+@@ line 14192 @@
+- }
++ html body :is(.chip.dark, .status-chip.dark, .badge.dark, .pill.dark, .quiz-badge) {
+@@ line 14193 @@
+- 
++   background: var(--pb-ink) !important;
+@@ line 14194 @@
+- html body :is(
++   color: var(--pb-text-inverse) !important;
+@@ line 14195 @@
+-   .set-index.light,
++   border-color: var(--pb-ink) !important;
+@@ line 14196 @@
+-   .set-number.light,
++ }
+@@ line 14197 @@
+-   .set-badge.light,
++ 
+@@ line 14198 @@
+-   .attempt-index.light,
++ html body :is(.chip.red, .status-chip.red, .badge.red, .pill.red, .recommended-badge) {
+@@ line 14199 @@
+-   .attempt-number.light,
++   background: var(--pb-red) !important;
+@@ line 14200 @@
+-   .round-index.light,
++   color: #ffffff !important;
+@@ line 14201 @@
+-   .round-number.light
++   border-color: var(--pb-red) !important;
+@@ line 14202 @@
+- ) {
++ }
+@@ line 14203 @@
+-   border-color: var(--pb-border, rgba(30, 41, 59, 0.18)) !important;
++ 
+@@ line 14204 @@
+-   background: #ffffff !important;
++ html body :is(.chip.green, .status-chip.green, .badge.green, .pill.green) {
+@@ line 14205 @@
+-   color: var(--pb-text, #111827) !important;
++   background: var(--pb-green) !important;
+@@ line 14206 @@
+-   -webkit-text-fill-color: var(--pb-text, #111827) !important;
++   color: #052e16 !important;
+@@ line 14207 @@
+- }
++   border-color: var(--pb-green) !important;
+@@ line 14208 @@
+- 
++ }
+@@ line 14209 @@
+- /* v135: PLAN mobile set label column should stay paper-colored, not black */
++ 
+@@ line 14210 @@
+- html body #planView .editable-set-row > .set-meta,
++ html body :is(.chip.yellow, .status-chip.yellow, .badge.yellow, .pill.yellow) {
+@@ line 14211 @@
+- html body #planView .actual-set-row > .set-meta {
++   background: var(--pb-yellow) !important;
+@@ line 14212 @@
+-   position: sticky !important;
++   color: #422006 !important;
+@@ line 14213 @@
+-   left: 0 !important;
++   border-color: var(--pb-yellow) !important;
+@@ line 14214 @@
+-   z-index: 3 !important;
++ }
+@@ line 14215 @@
+-   border-right: 1px solid rgba(203, 189, 168, 0.78) !important;
++ 
+@@ line 14216 @@
+-   background:
++ html body .tabbar .tab.active,
+@@ line 14217 @@
+-     linear-gradient(90deg, rgba(180, 35, 24, 0.045), transparent 64%),
++ html body .bottom-nav .active,
+@@ line 14218 @@
+-     #fffaf0 !important;
++ html body .nav-item.active,
+@@ line 14219 @@
+-   color: var(--pb-text, #111827) !important;
++ html body .guide-toggle,
+@@ line 14220 @@
+-   text-shadow: none !important;
++ html body .guide-button,
+@@ line 14221 @@
+- }
++ html body .floating-guide-panel button {
+@@ line 14222 @@
+- 
++   background: var(--pb-ink) !important;
+@@ line 14223 @@
+- html body #planView .editable-set-row > .set-meta strong,
++   color: var(--pb-text-inverse) !important;
+@@ line 14224 @@
+- html body #planView .actual-set-row > .set-meta strong {
++   border-color: var(--pb-ink) !important;
+@@ line 14225 @@
+-   color: var(--pb-text, #111827) !important;
++   text-shadow: none !important;
+@@ line 14226 @@
+-   -webkit-text-fill-color: var(--pb-text, #111827) !important;
++ }
+@@ line 14227 @@
+-   text-shadow: none !important;
++ 
+@@ line 14228 @@
+- }
++ html body :is(
+@@ line 14229 @@
+- 
++   .tabbar .tab.active,
+@@ line 14230 @@
+- html body #planView .editable-set-row > .set-meta small,
++   .bottom-nav .active,
+@@ line 14231 @@
+- html body #planView .actual-set-row > .set-meta small {
++   .nav-item.active,
+@@ line 14232 @@
+-   width: fit-content;
++   .guide-toggle,
+@@ line 14233 @@
+-   min-width: 42px;
++   .guide-button,
+@@ line 14234 @@
+-   border-radius: 999px;
++   .floating-guide-panel button
+@@ line 14235 @@
+-   padding: 2px 7px;
++ ) * {
+@@ line 14236 @@
+-   text-align: center;
++   color: inherit !important;
+@@ line 14237 @@
+-   line-height: 1.05;
++   text-shadow: none !important;
+@@ line 14240 @@
+- html body #planView .editable-set-row > .set-meta .set-kind-top,
++ html body .tabbar .tab:not(.active),
+@@ line 14241 @@
+- html body #planView .actual-set-row > .set-meta .set-kind-top {
++ html body .bottom-nav > :not(.active),
+@@ line 14242 @@
+-   background: #ef4444 !important;
++ html body .nav-item:not(.active) {
+@@ line 14243 @@
+-   color: #ffffff !important;
++   color: var(--pb-text-muted) !important;
+@@ line 14244 @@
+-   -webkit-text-fill-color: #ffffff !important;
++   text-shadow: none !important;
+@@ line 14247 @@
+- html body #planView .editable-set-row > .set-meta .set-kind-back,
++ html body :is(
+@@ line 14248 @@
+- html body #planView .actual-set-row > .set-meta .set-kind-back {
++   .readiness-floating,
+@@ line 14249 @@
+-   background: #22c55e !important;
++   .floating-condition-panel,
+@@ line 14250 @@
+-   color: #052e16 !important;
++   .guide-floating,
+@@ line 14251 @@
+-   -webkit-text-fill-color: #052e16 !important;
++   .floating-guide-panel
+@@ line 14252 @@
+- }
++ ) {
+@@ line 14253 @@
+- 
++   border-color: var(--pb-border) !important;
+@@ line 14254 @@
+- /* v136: mobile UI design-token baseline */
++   background: rgba(255, 250, 240, 0.96) !important;
+@@ line 14255 @@
+- :root {
++   color: var(--pb-text) !important;
+@@ line 14256 @@
+-   --pb-text-xs: 0.7rem;
++   text-shadow: none !important;
+@@ line 14257 @@
+-   --pb-text-sm: 0.8rem;
++ }
+@@ line 14258 @@
+-   --pb-text-md: 0.9rem;
++ 
+@@ line 14259 @@
+-   --pb-text-lg: 1.05rem;
++ html body :is(
+@@ line 14260 @@
+-   --pb-text-xl: 1.25rem;
++   .readiness-floating,
+@@ line 14261 @@
+-   --pb-text-display: clamp(2.2rem, 8vw, 3.6rem);
++   .floating-condition-panel,
+@@ line 14262 @@
+-   --pb-line-tight: 1.15;
++   .guide-floating,
+@@ line 14263 @@
+-   --pb-line-normal: 1.45;
++   .floating-guide-panel
+@@ line 14264 @@
+-   --pb-line-loose: 1.65;
++ ) :is(strong, b, span, p, small) {
+@@ line 14265 @@
+-   --pb-radius-sm: 6px;
++   color: inherit !important;
+@@ line 14266 @@
+-   --pb-radius-md: 10px;
++   text-shadow: none !important;
+@@ line 14267 @@
+-   --pb-radius-lg: 16px;
++ }
+@@ line 14268 @@
+-   --pb-radius-pill: 999px;
++ 
+@@ line 14269 @@
+-   --pb-pad-card: 16px;
++ /* v134 addendum: round number tags must never be dark-on-dark */
+@@ line 14270 @@
+-   --pb-pad-card-sm: 12px;
++ html body :is(
+@@ line 14271 @@
+-   --pb-gap-sm: 6px;
++   .set-index,
+@@ line 14272 @@
+-   --pb-gap-md: 10px;
++   .set-number,
+@@ line 14273 @@
+-   --pb-gap-lg: 16px;
++   .set-badge,
+@@ line 14274 @@
+-   --pb-tap-target: 44px;
++   .attempt-index,
+@@ line 14275 @@
+-   --pb-tap-target-sm: 40px;
++   .attempt-number,
+@@ line 14276 @@
+- }
++   .meet-attempt-number,
+@@ line 14277 @@
+- 
++   .meet-note-attempt-index,
+@@ line 14278 @@
+- html body :is(
++   .lift-attempt-number,
+@@ line 14279 @@
+-   .eyebrow,
++   .round-index,
+@@ line 14280 @@
+-   .section-kicker,
++   .round-number,
+@@ line 14281 @@
+-   .home-card-label,
++   .meet-attempt-row strong,
+@@ line 14282 @@
+-   .lift-badge,
++   .meet-note-form .meet-attempt-row strong
+@@ line 14283 @@
+-   .recommended-badge,
++ ) {
+@@ line 14284 @@
+-   .badge,
++   border-color: var(--pb-ink, #17202a) !important;
+@@ line 14285 @@
+-   .chip,
++   background: var(--pb-ink, #17202a) !important;
+@@ line 14286 @@
+-   .pill,
++   color: var(--pb-text-inverse, #ffffff) !important;
+@@ line 14287 @@
+-   .set-kind,
++   font-weight: 900 !important;
+@@ line 14288 @@
+-   .set-kind-top,
++   text-shadow: none !important;
+@@ line 14289 @@
+-   .set-kind-back,
++   -webkit-text-fill-color: var(--pb-text-inverse, #ffffff) !important;
+@@ line 14290 @@
+-   .set-kind-accessory,
++ }
+@@ line 14291 @@
+-   .set-kind-check,
++ 
+@@ line 14292 @@
+-   .set-kind-attempt
++ html body :is(
+@@ line 14293 @@
+- ) {
++   .set-index,
+@@ line 14294 @@
+-   border-radius: var(--pb-radius-pill) !important;
++   .set-number,
+@@ line 14295 @@
+-   font-size: var(--pb-text-xs) !important;
++   .set-badge,
+@@ line 14296 @@
+-   line-height: var(--pb-line-tight) !important;
++   .attempt-index,
+@@ line 14297 @@
+-   white-space: nowrap !important;
++   .attempt-number,
+@@ line 14298 @@
+- }
++   .meet-attempt-number,
+@@ line 14299 @@
+- 
++   .meet-note-attempt-index,
+@@ line 14300 @@
+- html body :is(
++   .lift-attempt-number,
+@@ line 14301 @@
+-   p,
++   .round-index,
+@@ line 14302 @@
+-   small,
++   .round-number,
+@@ line 14303 @@
+-   .description,
++   .meet-attempt-row strong,
+@@ line 14304 @@
+-   .helper-text,
++   .meet-note-form .meet-attempt-row strong
+@@ line 14305 @@
+-   .note-text,
++ ) * {
+@@ line 14306 @@
+-   .screen-note,
++   color: inherit !important;
+@@ line 14307 @@
+-   .guide-note,
++   text-shadow: none !important;
+@@ line 14308 @@
+-   .data-note,
++   -webkit-text-fill-color: inherit !important;
+@@ line 14309 @@
+-   .planned-summary,
++ }
+@@ line 14310 @@
+-   .prescription-summary,
++ 
+@@ line 14311 @@
+-   .planned-method-label,
++ html body :is(
+@@ line 14312 @@
+-   .exercise-prescription-summary,
++   .set-index.light,
+@@ line 14313 @@
+-   .exercise-rpe-hint
++   .set-number.light,
+@@ line 14314 @@
+- ) {
++   .set-badge.light,
+@@ line 14315 @@
+-   font-size: var(--pb-text-sm);
++   .attempt-index.light,
+@@ line 14316 @@
+-   line-height: var(--pb-line-normal);
++   .attempt-number.light,
+@@ line 14317 @@
+-   overflow-wrap: anywhere;
++   .round-index.light,
+@@ line 14318 @@
+- }
++   .round-number.light
+@@ line 14319 @@
+- 
++ ) {
+@@ line 14320 @@
+- html body :is(
++   border-color: var(--pb-border, rgba(30, 41, 59, 0.18)) !important;
+@@ line 14321 @@
+-   h1,
++   background: #ffffff !important;
+@@ line 14322 @@
+-   h2,
++   color: var(--pb-text, #111827) !important;
+@@ line 14323 @@
+-   h3,
++   -webkit-text-fill-color: var(--pb-text, #111827) !important;
+@@ line 14324 @@
+-   .card-title,
++ }
+@@ line 14325 @@
+-   .section-title,
++ 
+@@ line 14326 @@
+-   .exercise-title,
++ /* v135: PLAN mobile set label column should stay paper-colored, not black */
+@@ line 14327 @@
+-   .day-title
++ html body #planView .editable-set-row > .set-meta,
+@@ line 14328 @@
+- ) {
++ html body #planView .actual-set-row > .set-meta {
+@@ line 14329 @@
+-   line-height: var(--pb-line-tight) !important;
++   position: sticky !important;
+@@ line 14330 @@
+-   word-break: keep-all;
++   left: 0 !important;
+@@ line 14331 @@
+-   overflow-wrap: anywhere;
++   z-index: 3 !important;
+@@ line 14332 @@
+- }
++   border-right: 1px solid rgba(203, 189, 168, 0.78) !important;
+@@ line 14333 @@
+- 
++   background:
+@@ line 14334 @@
+- html body .section-title h2 {
++     linear-gradient(90deg, rgba(180, 35, 24, 0.045), transparent 64%),
+@@ line 14335 @@
+-   text-decoration: none !important;
++     #fffaf0 !important;
+@@ line 14336 @@
+- }
++   color: var(--pb-text, #111827) !important;
+@@ line 14337 @@
+- 
++   text-shadow: none !important;
+@@ line 14338 @@
+- html body :is(
++ }
+@@ line 14339 @@
+-   input,
++ 
+@@ line 14340 @@
+-   textarea,
++ html body #planView .editable-set-row > .set-meta strong,
+@@ line 14341 @@
+-   select,
++ html body #planView .actual-set-row > .set-meta strong {
+@@ line 14342 @@
+-   button
++   color: var(--pb-text, #111827) !important;
+@@ line 14343 @@
+- ) {
++   -webkit-text-fill-color: var(--pb-text, #111827) !important;
+@@ line 14344 @@
+-   font: inherit;
++   text-shadow: none !important;
+@@ line 14347 @@
+- html body :is(
++ html body #planView .editable-set-row > .set-meta small,
+@@ line 14348 @@
+-   input,
++ html body #planView .actual-set-row > .set-meta small {
+@@ line 14349 @@
+-   textarea,
++   width: fit-content;
+@@ line 14350 @@
+-   select
++   min-width: 42px;
+@@ line 14351 @@
+- ) {
++   border-radius: 999px;
+@@ line 14352 @@
+-   min-height: var(--pb-tap-target) !important;
++   padding: 2px 7px;
+@@ line 14353 @@
+-   border-radius: var(--pb-radius-md) !important;
++   text-align: center;
+@@ line 14354 @@
+-   font-size: var(--pb-text-md) !important;
++   line-height: 1.05;
+@@ line 14355 @@
+-   line-height: 1.2 !important;
++ }
+@@ line 14356 @@
+- }
++ 
+@@ line 14357 @@
+- 
++ html body #planView .editable-set-row > .set-meta .set-kind-top,
+@@ line 14358 @@
+- html body :is(
++ html body #planView .actual-set-row > .set-meta .set-kind-top {
+@@ line 14359 @@
+-   button,
++   background: #ef4444 !important;
+@@ line 14360 @@
+-   .action-button,
++   color: #ffffff !important;
+@@ line 14361 @@
+-   .primary-button,
++   -webkit-text-fill-color: #ffffff !important;
+@@ line 14362 @@
+-   .text-button,
++ }
+@@ line 14363 @@
+-   .actual-save,
++ 
+@@ line 14364 @@
+-   .save-button,
++ html body #planView .editable-set-row > .set-meta .set-kind-back,
+@@ line 14365 @@
+-   .actual-add-set,
++ html body #planView .actual-set-row > .set-meta .set-kind-back {
+@@ line 14366 @@
+-   .add-set-button,
++   background: #22c55e !important;
+@@ line 14367 @@
+-   .secondary-button
++   color: #052e16 !important;
+@@ line 14368 @@
+- ) {
++   -webkit-text-fill-color: #052e16 !important;
+@@ line 14369 @@
+-   min-height: var(--pb-tap-target) !important;
++ }
+@@ line 14370 @@
+-   border-radius: var(--pb-radius-md) !important;
++ 
+@@ line 14371 @@
+-   font-weight: 800 !important;
++ /* v136: mobile UI design-token baseline */
+@@ line 14372 @@
+- }
++ :root {
+@@ line 14373 @@
+- 
++   --pb-text-xs: 0.7rem;
+@@ line 14374 @@
+- html body :is(
++   --pb-text-sm: 0.8rem;
+@@ line 14375 @@
+-   .card,
++   --pb-text-md: 0.9rem;
+@@ line 14376 @@
+-   .panel,
++   --pb-text-lg: 1.05rem;
+@@ line 14377 @@
+-   .compact-panel,
++   --pb-text-xl: 1.25rem;
+@@ line 14378 @@
+-   .home-card,
++   --pb-text-display: clamp(2.2rem, 8vw, 3.6rem);
+@@ line 14379 @@
+-   .plan-card,
++   --pb-line-tight: 1.15;
+@@ line 14380 @@
+-   .meet-card,
++   --pb-line-normal: 1.45;
+@@ line 14381 @@
+-   .dashboard-card,
++   --pb-line-loose: 1.65;
+@@ line 14382 @@
+-   .analysis-card,
++   --pb-radius-sm: 6px;
+@@ line 14383 @@
+-   .data-card,
++   --pb-radius-md: 10px;
+@@ line 14384 @@
+-   .log-card,
++   --pb-radius-lg: 16px;
+@@ line 14385 @@
+-   .knowledge-card,
++   --pb-radius-pill: 999px;
+@@ line 14386 @@
+-   .quiz-card,
++   --pb-pad-card: 16px;
+@@ line 14387 @@
+-   .editable-exercise-sheet
++   --pb-pad-card-sm: 12px;
+@@ line 14388 @@
+- ) {
++   --pb-gap-sm: 6px;
+@@ line 14389 @@
+-   border-radius: var(--pb-radius-lg) !important;
++   --pb-gap-md: 10px;
+@@ line 14390 @@
+-   padding: var(--pb-pad-card) !important;
++   --pb-gap-lg: 16px;
+@@ line 14391 @@
+- }
++   --pb-tap-target: 44px;
+@@ line 14392 @@
+- 
++   --pb-tap-target-sm: 40px;
+@@ line 14393 @@
+- html body :is(
++ }
+@@ line 14394 @@
+-   .editable-set-sheet,
++ 
+@@ line 14395 @@
+-   .editable-set-row,
++ html body :is(
+@@ line 14396 @@
+-   .actual-set-row,
++   .eyebrow,
+@@ line 14397 @@
+-   .meet-attempt-row
++   .section-kicker,
+@@ line 14398 @@
+- ) {
++   .home-card-label,
+@@ line 14399 @@
+-   max-width: 100%;
++   .lift-badge,
+@@ line 14400 @@
+- }
++   .recommended-badge,
+@@ line 14401 @@
+- 
++   .badge,
+@@ line 14402 @@
+- html body .editable-set-sheet {
++   .chip,
+@@ line 14403 @@
+-   overflow-x: auto;
++   .pill,
+@@ line 14404 @@
+-   -webkit-overflow-scrolling: touch;
++   .set-kind,
+@@ line 14405 @@
+- }
++   .set-kind-top,
+@@ line 14406 @@
+- 
++   .set-kind-back,
+@@ line 14407 @@
+- @media (max-width: 640px) {
++   .set-kind-accessory,
+@@ line 14408 @@
+-   html body :is(
++   .set-kind-check,
+@@ line 14409 @@
+-     input,
++   .set-kind-attempt
+@@ line 14410 @@
+-     textarea,
++ ) {
+@@ line 14411 @@
+-     select
++   border-radius: var(--pb-radius-pill) !important;
+@@ line 14412 @@
+-   ) {
++   font-size: var(--pb-text-xs) !important;
+@@ line 14413 @@
+-     min-height: var(--pb-tap-target) !important;
++   line-height: var(--pb-line-tight) !important;
+@@ line 14414 @@
+-     font-size: 16px !important;
++   white-space: nowrap !important;
+@@ line 14415 @@
+-   }
++ }
+@@ line 14417 @@
+-   html body :is(
++ html body :is(
+@@ line 14418 @@
+-     .editable-set-row input,
++   p,
+@@ line 14419 @@
+-     .editable-set-row select,
++   small,
+@@ line 14420 @@
+-     .actual-set-row input,
++   .description,
+@@ line 14421 @@
+-     .actual-set-row select
++   .helper-text,
+@@ line 14422 @@
+-   ) {
++   .note-text,
+@@ line 14423 @@
+-     min-height: var(--pb-tap-target-sm) !important;
++   .screen-note,
+@@ line 14424 @@
+-     font-size: 16px !important;
++   .guide-note,
+@@ line 14425 @@
+-   }
++   .data-note,
+@@ line 14426 @@
+- 
++   .planned-summary,
+@@ line 14427 @@
+-   html body :is(
++   .prescription-summary,
+@@ line 14428 @@
+-     .card,
++   .planned-method-label,
+@@ line 14429 @@
+-     .panel,
++   .exercise-prescription-summary,
+@@ line 14430 @@
+-     .compact-panel,
++   .exercise-rpe-hint
+@@ line 14431 @@
+-     .home-card,
++ ) {
+@@ line 14432 @@
+-     .plan-card,
++   font-size: var(--pb-text-sm);
+@@ line 14433 @@
+-     .meet-card,
++   line-height: var(--pb-line-normal);
+@@ line 14434 @@
+-     .dashboard-card,
++   overflow-wrap: anywhere;
+@@ line 14435 @@
+-     .analysis-card,
++ }
+@@ line 14436 @@
+-     .data-card,
++ 
+@@ line 14437 @@
+-     .log-card,
++ html body :is(
+@@ line 14438 @@
+-     .knowledge-card,
++   h1,
+@@ line 14439 @@
+-     .quiz-card,
++   h2,
+@@ line 14440 @@
+-     .editable-exercise-sheet
++   h3,
+@@ line 14441 @@
+-   ) {
++   .card-title,
+@@ line 14442 @@
+-     border-radius: var(--pb-radius-lg) !important;
++   .section-title,
+@@ line 14443 @@
+-     padding: var(--pb-pad-card-sm) !important;
++   .exercise-title,
+@@ line 14444 @@
+-   }
++   .day-title
+@@ line 14445 @@
+- 
++ ) {
+@@ line 14446 @@
+-   html body :is(
++   line-height: var(--pb-line-tight) !important;
+@@ line 14447 @@
+-     .prescription-summary,
++   word-break: keep-all;
+@@ line 14448 @@
+-     .planned-method-label,
++   overflow-wrap: anywhere;
+@@ line 14449 @@
+-     .exercise-prescription-summary
++ }
+@@ line 14450 @@
+-   ) {
++ 
+@@ line 14451 @@
+-     display: -webkit-box;
++ html body .section-title h2 {
+@@ line 14452 @@
+-     overflow: hidden;
++   text-decoration: none !important;
+@@ line 14453 @@
+-     -webkit-box-orient: vertical;
++ }
+@@ line 14454 @@
+-     -webkit-line-clamp: 2;
++ 
+@@ line 14455 @@
+-     font-size: var(--pb-text-xs) !important;
++ html body :is(
+@@ line 14456 @@
+-     line-height: 1.3 !important;
++   input,
+@@ line 14457 @@
+-   }
++   textarea,
+@@ line 14458 @@
+- }
++   select,
+@@ line 14459 @@
+- <EOF>
++   button
+@@ line 14460 @@
+- <EOF>
++ ) {
+@@ line 14461 @@
+- <EOF>
++   font: inherit;
+@@ line 14462 @@
+- <EOF>
++ }
+@@ line 14463 @@
+- <EOF>
++ 
+@@ line 14464 @@
+- <EOF>
++ html body :is(
+@@ line 14465 @@
+- <EOF>
++   input,
+@@ line 14466 @@
+- <EOF>
++   textarea,
+@@ line 14467 @@
+- <EOF>
++   select
+@@ line 14468 @@
+- <EOF>
++ ) {
+@@ line 14469 @@
+- <EOF>
++   min-height: var(--pb-tap-target) !important;
+@@ line 14470 @@
+- <EOF>
++   border-radius: var(--pb-radius-md) !important;
+@@ line 14471 @@
+- <EOF>
++   font-size: var(--pb-text-md) !important;
+@@ line 14472 @@
+- <EOF>
++   line-height: 1.2 !important;
+@@ line 14473 @@
+- <EOF>
++ }
+@@ line 14474 @@
+- <EOF>
++ 
+@@ line 14475 @@
+- <EOF>
++ html body :is(
+@@ line 14476 @@
+- <EOF>
++   button,
+@@ line 14477 @@
+- <EOF>
++   .action-button,
+@@ line 14478 @@
+- <EOF>
++   .primary-button,
+@@ line 14479 @@
+- <EOF>
++   .text-button,
+@@ line 14480 @@
+- <EOF>
++   .actual-save,
+@@ line 14481 @@
+- <EOF>
++   .save-button,
+@@ line 14482 @@
+- <EOF>
++   .actual-add-set,
+@@ line 14483 @@
+- <EOF>
++   .add-set-button,
+@@ line 14484 @@
+- <EOF>
++   .secondary-button
+@@ line 14485 @@
+- <EOF>
++ ) {
+@@ line 14486 @@
+- <EOF>
++   min-height: var(--pb-tap-target) !important;
+@@ line 14487 @@
+- <EOF>
++   border-radius: var(--pb-radius-md) !important;
+@@ line 14488 @@
+- <EOF>
++   font-weight: 800 !important;
+@@ line 14489 @@
+- <EOF>
++ }
+@@ line 14490 @@
+- <EOF>
++ 
+@@ line 14491 @@
+- <EOF>
++ html body :is(
+@@ line 14492 @@
+- <EOF>
++   .card,
+@@ line 14493 @@
+- <EOF>
++   .panel,
+@@ line 14494 @@
+- <EOF>
++   .compact-panel,
+@@ line 14495 @@
+- <EOF>
++   .home-card,
+@@ line 14496 @@
+- <EOF>
++   .plan-card,
+@@ line 14497 @@
+- <EOF>
++   .meet-card,
+@@ line 14498 @@
+- <EOF>
++   .dashboard-card,
+@@ line 14499 @@
+- <EOF>
++   .analysis-card,
+@@ line 14500 @@
+- <EOF>
++   .data-card,
+@@ line 14501 @@
+- <EOF>
++   .log-card,
+@@ line 14502 @@
+- <EOF>
++   .knowledge-card,
+@@ line 14503 @@
+- <EOF>
++   .quiz-card,
+@@ line 14504 @@
+- <EOF>
++   .editable-exercise-sheet
+@@ line 14505 @@
+- <EOF>
++ ) {
+@@ line 14506 @@
+- <EOF>
++   border-radius: var(--pb-radius-lg) !important;
+@@ line 14507 @@
+- <EOF>
++   padding: var(--pb-pad-card) !important;
+@@ line 14508 @@
+- <EOF>
++ }
+@@ line 14509 @@
+- <EOF>
++ 
+@@ line 14510 @@
+- <EOF>
++ html body :is(
+@@ line 14511 @@
+- <EOF>
++   .editable-set-sheet,
+@@ line 14512 @@
+- <EOF>
++   .editable-set-row,
+@@ line 14513 @@
+- <EOF>
++   .actual-set-row,
+@@ line 14514 @@
+- <EOF>
++   .meet-attempt-row
+@@ line 14515 @@
+- <EOF>
++ ) {
+@@ line 14516 @@
+- <EOF>
++   max-width: 100%;
+@@ line 14517 @@
+- <EOF>
++ }
+@@ line 14518 @@
+- <EOF>
++ 
+@@ line 14519 @@
+- <EOF>
++ html body .editable-set-sheet {
+@@ line 14520 @@
+- <EOF>
++   overflow-x: auto;
+@@ line 14521 @@
+- <EOF>
++   -webkit-overflow-scrolling: touch;
+@@ line 14522 @@
+- <EOF>
++ }
+@@ line 14523 @@
+- <EOF>
++ 
+@@ line 14524 @@
+- <EOF>
++ @media (max-width: 640px) {
+@@ line 14525 @@
+- <EOF>
++   html body :is(
+@@ line 14526 @@
+- <EOF>
++     input,
+@@ line 14527 @@
+- <EOF>
++     textarea,
+@@ line 14528 @@
+- <EOF>
++     select
+@@ line 14529 @@
+- <EOF>
++   ) {
+@@ line 14530 @@
+- <EOF>
++     min-height: var(--pb-tap-target) !important;
+@@ line 14531 @@
+- <EOF>
++     font-size: 16px !important;
+@@ line 14532 @@
+- <EOF>
++   }
+@@ line 14533 @@
+- <EOF>
++ 
+@@ line 14534 @@
+- <EOF>
++   html body :is(
+@@ line 14535 @@
+- <EOF>
++     .editable-set-row input,
+@@ line 14536 @@
+- <EOF>
++     .editable-set-row select,
+@@ line 14537 @@
+- <EOF>
++     .actual-set-row input,
+@@ line 14538 @@
+- <EOF>
++     .actual-set-row select
+@@ line 14539 @@
+- <EOF>
++   ) {
+@@ line 14540 @@
+- <EOF>
++     min-height: var(--pb-tap-target-sm) !important;
+@@ line 14541 @@
+- <EOF>
++     font-size: 16px !important;
+@@ line 14542 @@
+- <EOF>
++   }
+@@ line 14543 @@
+- <EOF>
++ 
+@@ line 14544 @@
+- <EOF>
++   html body :is(
+@@ line 14545 @@
+- <EOF>
++     .card,
+@@ line 14546 @@
+- <EOF>
++     .panel,
+@@ line 14547 @@
+- <EOF>
++     .compact-panel,
+@@ line 14548 @@
+- <EOF>
++     .home-card,
+@@ line 14549 @@
+- <EOF>
++     .plan-card,
+@@ line 14550 @@
+- <EOF>
++     .meet-card,
+@@ line 14551 @@
+- <EOF>
++     .dashboard-card,
+@@ line 14552 @@
+- <EOF>
++     .analysis-card,
+@@ line 14553 @@
+- <EOF>
++     .data-card,
+@@ line 14554 @@
+- <EOF>
++     .log-card,
+@@ line 14555 @@
+- <EOF>
++     .knowledge-card,
+@@ line 14556 @@
+- <EOF>
++     .quiz-card,
+@@ line 14557 @@
+- <EOF>
++     .editable-exercise-sheet
+@@ line 14558 @@
+- <EOF>
++   ) {
+@@ line 14559 @@
+- <EOF>
++     border-radius: var(--pb-radius-lg) !important;
+@@ line 14560 @@
+- <EOF>
++     padding: var(--pb-pad-card-sm) !important;
+@@ line 14561 @@
+- <EOF>
++   }
+@@ line 14562 @@
+- <EOF>
++ 
+@@ line 14563 @@
+- <EOF>
++   html body :is(
+@@ line 14564 @@
+- <EOF>
++     .prescription-summary,
+@@ line 14565 @@
+- <EOF>
++     .planned-method-label,
+@@ line 14566 @@
+- <EOF>
++     .exercise-prescription-summary
+@@ line 14567 @@
+- <EOF>
++   ) {
+@@ line 14568 @@
+- <EOF>
++     display: -webkit-box;
+@@ line 14569 @@
+- <EOF>
++     overflow: hidden;
+@@ line 14570 @@
+- <EOF>
++     -webkit-box-orient: vertical;
+@@ line 14571 @@
+- <EOF>
++     -webkit-line-clamp: 2;
+@@ line 14572 @@
+- <EOF>
++     font-size: var(--pb-text-xs) !important;
+@@ line 14573 @@
+- <EOF>
++     line-height: 1.3 !important;
+@@ line 14574 @@
+- <EOF>
++   }
+@@ line 14575 @@
+- <EOF>
++ }
+--- app.js
++++ app.js
+@@ line 3162 @@
+-       message: "今週は少し疲労が見えます。重量更新より予定RPEとフォーム再現性を優先し、次回は中央〜下限寄りから入りましょう。"
++       message: "少し疲労あり。次回は下限寄りでOK。"
+@@ line 3169 @@
+-       message: "予定RPEより軽く進んでいます。フォームが安定しているなら、次回は調整範囲の中央〜上限寄りを試す候補があります。"
++       message: "軽く進んでいます。安定なら少し上げてもOK。"
+@@ line 3175 @@
+-     message: "体調とトレーニング負荷の釣り合いは大きく崩れていません。今の流れで、予定RPEを守りながら次の週へ進みましょう。"
++     message: "順調です。予定RPEを守って進もう。"
+@@ line 3246 @@
+-       message: "分析の精度は記録量に左右されます。まずはBIG3と主要補助種目を、RPEつきで残していきましょう。"
++       message: "記録が増えるほど分析が育ちます。BIG3から残そう。"
+@@ line 3265 @@
+-       message: `直近の${recentRpeIssue.name}で予定@${recentRpeIssue.planned}に対して実績@${recentRpeIssue.actual}でした。回復が追いついていないかも。次回は-2.5〜5kg候補。`
++       message: `${recentRpeIssue.name}が重め。次回は-2.5〜5kg候補。`
+@@ line 3272 @@
+-       message: `直近の${recentRpeIssue.name}で予定よりRPEが高めです。重量を追いすぎず、次回は-2.5kg程度の調整も選択肢に入れましょう。`
++       message: `${recentRpeIssue.name}がやや重め。次回は-2.5kgも候補。`
+@@ line 4215 @@
+-     ? `<p class="white-nine-note"><strong>白9本:</strong> 第一を確実に、第二でトータルを作り、第三で挑戦する。成功試技を積み上げることも競技力です。</p>`
++     ? `<p class="white-nine-note"><strong>白9本:</strong> 第一は確実に。第三で挑戦。</p>`
+@@ line 5192 @@
+-   if (feedback.status === "deload") return "デロード候補です。次週へ進む前に重量上限を守る回復週を挟む判断も検討してください。";
++   if (feedback.status === "deload") return "デロード候補。進む前に回復週も考えよう。";
+@@ line 5193 @@
+-   if (feedback.status === "heavy") return "今週は -2.5〜5kg やバックオフ減を検討し、予定RPEを守ることを優先してください。";
++   if (feedback.status === "heavy") return "今週は-2.5〜5kg候補。RPE優先でOK。";
+@@ line 5194 @@
+-   if (feedback.status === "warn") return "今週は -2.5kg を検討してください。重量を下げる判断もプログラム成功の一部です。";
++   if (feedback.status === "warn") return "今週は-2.5kgも候補。下げる判断も成功です。";
+@@ line 5196 @@
+-   return "今週も提案重量を基準に、予定RPEを守る感覚を育てましょう。";
++   return "提案重量を基準に、RPE感覚を育てよう。";
+--- sw.js
++++ sw.js
+@@ line 1 @@
+- const CACHE_NAME = "platform-buddy-v136";
++ const CACHE_NAME = "platform-buddy-v137";
+@@ line 5 @@
+-   "index.html?v=136",
++   "index.html?v=137",
+@@ line 7 @@
+-   "styles.css?v=136",
++   "styles.css?v=137",
+@@ line 9 @@
+-   "app.js?v=136",
++   "app.js?v=137",
+--- manifest.webmanifest
++++ manifest.webmanifest
+@@ line 5 @@
+-   "start_url": "./index.html?v=136",
++   "start_url": "./index.html?v=137",
