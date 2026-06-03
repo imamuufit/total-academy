@@ -1984,7 +1984,7 @@ diff -- index.html
 diff -- styles.css
 --- a/styles.css
 +++ b/styles.css
-@@ -13801,5 +13801,351 @@
+@@ -13801,5 +13801,408 @@
      min-height: 58px;
      padding: 11px 12px;
    }
@@ -2334,6 +2334,63 @@ diff -- styles.css
 +) :is(strong, b, span, p, small) {
 +  color: inherit !important;
 +  text-shadow: none !important;
++}
++
++/* v134 addendum: round number tags must never be dark-on-dark */
++html body :is(
++  .set-index,
++  .set-number,
++  .set-badge,
++  .attempt-index,
++  .attempt-number,
++  .meet-attempt-number,
++  .meet-note-attempt-index,
++  .lift-attempt-number,
++  .round-index,
++  .round-number,
++  .meet-attempt-row strong,
++  .meet-note-form .meet-attempt-row strong
++) {
++  border-color: var(--pb-ink, #17202a) !important;
++  background: var(--pb-ink, #17202a) !important;
++  color: var(--pb-text-inverse, #ffffff) !important;
++  font-weight: 900 !important;
++  text-shadow: none !important;
++  -webkit-text-fill-color: var(--pb-text-inverse, #ffffff) !important;
++}
++
++html body :is(
++  .set-index,
++  .set-number,
++  .set-badge,
++  .attempt-index,
++  .attempt-number,
++  .meet-attempt-number,
++  .meet-note-attempt-index,
++  .lift-attempt-number,
++  .round-index,
++  .round-number,
++  .meet-attempt-row strong,
++  .meet-note-form .meet-attempt-row strong
++) * {
++  color: inherit !important;
++  text-shadow: none !important;
++  -webkit-text-fill-color: inherit !important;
++}
++
++html body :is(
++  .set-index.light,
++  .set-number.light,
++  .set-badge.light,
++  .attempt-index.light,
++  .attempt-number.light,
++  .round-index.light,
++  .round-number.light
++) {
++  border-color: var(--pb-border, rgba(30, 41, 59, 0.18)) !important;
++  background: #ffffff !important;
++  color: var(--pb-text, #111827) !important;
++  -webkit-text-fill-color: var(--pb-text, #111827) !important;
 +}
 +
 
