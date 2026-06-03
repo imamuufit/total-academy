@@ -7,7 +7,7 @@ diff -- index.html
      <link rel="preload" as="image" href="home-bg-lite.jpg">
      <link rel="preload" as="image" href="icon-sheet-lite.jpg">
      <link rel="apple-touch-icon" href="apple-touch-icon.png">
--    <link rel="stylesheet" href="styles.css?v=132">
+-    <link rel="stylesheet" href="styles.css?v=133">
 -  </head>
 -  <body>
 -    <div class="app-shell">
@@ -991,8 +991,8 @@ diff -- index.html
 -      </form>
 -    </dialog>
 -
--    <script src="app.js?v=132"></script>
-+    <link rel="stylesheet" href="styles.css?v=133">
+-    <script src="app.js?v=133"></script>
++    <link rel="stylesheet" href="styles.css?v=134">
 +  </head>
 +  <body>
 +    <div class="app-shell">
@@ -1976,3131 +1976,389 @@ diff -- index.html
 +      </form>
 +    </dialog>
 +
-+    <script src="app.js?v=133"></script>
++    <script src="app.js?v=134"></script>
    </body>
  </html>
  
 
-diff -- app.js
---- a/app.js
-+++ b/app.js
-@@ -3575,1543 +3575,1560 @@
-         detail: item.note || ""
-       }];
-     }
-     return blocks.map((block, rowIndex) => ({
-       name: item.name,
--      label: block.type === "topset" ? "Top" : "Back",
--      type: block.type,
--      weight: `${block.weight}kg`,
--      reps: block.reps,
--      sets: block.sets || "1",
--      rpe: block.rpe,
--      sourceItem: item,
--      itemIndex,
--      rowIndex,
--      planText: item.work || "",
--      detail: item.note || ""
--    }));
--  }
--
--  const max = Number(cycle.maxes[item.lift] || bestE1rm(item.lift) || 0);
--  const prescription = prescriptionForWeek(
--    item.lift,
--    max,
--    cycle.week,
--    cycle.length,
--    cycle.daysPerWeek,
--    item.variant,
--    cycle.priorityLift,
--    cycle.buddyLevel
--  );
--  const blocks = parsePrescriptionBlocks(prescription.title);
--  return blocks.map((block, rowIndex) => ({
--    name: item.name,
--    label: block.type === "topset" ? "Top" : "Back",
--    type: block.type,
--    weight: `${block.weight}kg`,
--    reps: block.reps,
--    sets: block.sets || "1",
--    rpe: block.rpe,
--    sourceItem: item,
--    itemIndex,
--    rowIndex,
--    planText: prescription.title,
--    detail: prescription.detail
--  }));
--}
--
--function renderEditableExerciseSheet(item, cycle, dayIndex, itemIndex) {
--  const key = planFeedbackKey(cycle, dayIndex, itemIndex, item.lift || item.exerciseId || "custom", item.name);
--  const saved = currentAthlete().rpeFeedback?.[key];
--  const confidence = saved?.rpeConfidence || "learning";
--  const prescribedRows = prescribedSetRows(item, cycle);
--  const savedRows = Array.isArray(saved?.setDetails) ? saved.setDetails : [];
--  const rowCount = Math.max(prescribedRows.length, savedRows.length);
--  const inputRows = Array.from({ length: rowCount }, (_, index) => {
--    const planned = prescribedRows[index] || {};
--    const savedRow = savedRows[index] || {};
--    return {
--      ...planned,
--      ...savedRow,
--      kind: planned.kind || savedRow.kind || "",
--      displayLabel: planned.displayLabel || savedRow.displayLabel || "",
--      plannedWeight: planned.plannedWeight ?? savedRow.plannedWeight ?? planned.weight ?? "",
--      plannedWeightLabel: planned.plannedWeightLabel ?? savedRow.plannedWeightLabel ?? "",
--      weightLow: planned.weightLow ?? savedRow.weightLow ?? "",
--      weightHigh: planned.weightHigh ?? savedRow.weightHigh ?? "",
--      plannedReps: planned.plannedReps ?? savedRow.plannedReps ?? planned.reps ?? "",
--      plannedRepsLabel: planned.plannedRepsLabel ?? savedRow.plannedRepsLabel ?? "",
--      plannedRpe: planned.plannedRpe ?? savedRow.plannedRpe ?? "",
--      plannedRpeLabel: planned.plannedRpeLabel ?? savedRow.plannedRpeLabel ?? "",
--      plannedLabel: planned.plannedLabel ?? savedRow.plannedLabel ?? "",
--      weight: savedRow.weight ?? planned.weight ?? planned.plannedWeight ?? "",
--      reps: savedRow.reps ?? planned.reps ?? planned.plannedReps ?? "",
--      rpe: savedRow.rpe ?? ""
--    };
--  });
--  const planSummary = prescriptionSummaryLabel(item, cycle);
--  const feedback = saved ? feedbackMarkup(saved) : "";
--  const plannedRpe = prescribedRows.length ? (prescribedRows[0].plannedRpe || "") : "";
--  const planText = planTextForActualItem(item, cycle);
--  const checkNote = item.kind === "method" && isCurrentCheckItem(item)
--    ? `<p class="method-check-note">3〜5回@8で現在地を確認。5回やり切るより、RPE8で止めることが目的です。</p>`
--    : "";
--  return `
--    <section class="editable-exercise-sheet actual-box"
--      data-plan-key="${escapeHtml(key)}"
--      data-lift="${escapeHtml(item.lift || item.exerciseId || "custom")}"
--      data-source="plan"
--      data-exercise="${escapeHtml(item.name)}"
--      data-planned-rpe="${escapeHtml(plannedRpe)}"
--      data-plan-text="${escapeHtml(planText)}">
--      <div class="editable-exercise-head">
--        <div>
--          <strong>${escapeHtml(item.name)}</strong>
--          ${planSummary ? `<span class="exercise-rpe-hint">${escapeHtml(planSummary)}</span>` : ""}
--        </div>
--      </div>
--      ${checkNote}
--      <div class="editable-set-sheet actual-set-list">
--        <div class="editable-set-header-row">
--          <span>set</span>
--          <span>kg</span>
--          <span>回</span>
--          <span>RPE</span>
--          <span></span>
--        </div>
--        ${inputRows.map((row, index) => editableActualSetRowMarkup(row, index)).join("")}
--      </div>
--      <div class="editable-exercise-footer">
--        <select class="actual-rpe-confidence visually-hidden" aria-hidden="true" tabindex="-1">
--          <option value="solid"${confidence === "solid" ? " selected" : ""}>自信あり</option>
--          <option value="unsure"${confidence === "unsure" ? " selected" : ""}>少し迷う</option>
--          <option value="learning"${confidence === "learning" ? " selected" : ""}>感覚練習中</option>
--        </select>
--        <button class="text-button compact actual-add-set" type="button">＋セット</button>
--        <button class="primary-button inline actual-save" type="button">記録</button>
--      </div>
--      ${feedback}
--    </section>
--  `;
--}
--
--function normalizeRangeText(value = "") {
--  return String(value || "")
--    .replace(/～/g, "〜")
--    .replace(/~/g, "〜")
--    .replace(/-/g, "〜")
--    .trim();
--}
--
--function cleanRpeValue(value = "") {
--  return String(value || "")
--    .replace(/@/g, "")
--    .replace(/RPE/gi, "")
--    .trim();
--}
--
--function plannedRpeNumberFromLabel(label = "") {
--  const text = cleanRpeValue(label);
--  const range = text.match(/^([\d.]+)\s*[〜~\-]\s*([\d.]+)/);
--  if (range) return range[2];
--  const single = text.match(/^([\d.]+)/);
--  return single ? single[1] : "";
--}
--
--function isCurrentCheckItem(item = {}) {
--  const text = `${item.name || ""} ${item.title || ""} ${item.work || ""}`;
--  return /現在地|確認|チェック/.test(text) && !/第一|第二|第三/.test(text);
--}
--
--function prescribedAccessoryRows(item) {
--  const acc = parseAccessoryWork(item.work);
--  const setCount = Math.max(1, Math.min(8, Number(acc.sets) || 1));
--  const targetReps = accessoryTargetReps(acc.reps);
--  const plannedRpe = acc.rpe ? cleanRpeValue(acc.rpe) : "";
--  const plannedLabel = [
--    targetReps ? `${targetReps}回` : "",
--    acc.sets ? `${acc.sets}set` : "",
--    acc.rpe ? acc.rpe.replace("@RPE", "@") : ""
--  ].filter(Boolean).join(" × ");
--  return Array.from({ length: setCount }, () => ({
--    kind: "補助",
--    plannedWeight: "",
--    plannedReps: targetReps,
--    plannedSets: acc.sets,
--    plannedRpe,
--    plannedLabel,
--    weight: "",
--    reps: targetReps,
--    rpe: ""
--  }));
--}
--
--function prescribedMethodRows(item, cycle) {
--  const blocks = parsePrescriptionBlocks(item.work || "");
--  if (!blocks.length) {
--    return [{
--      kind: "確認",
--      displayLabel: "確認セット",
--      plannedWeight: "",
--      plannedWeightLabel: "",
--      plannedReps: "",
--      plannedRepsLabel: "",
--      plannedRpe: "",
--      plannedRpeLabel: "",
--      plannedLabel: item.work || "",
--      weight: "",
--      reps: "",
--      rpe: ""
--    }];
--  }
--  return blocks.flatMap((block) => {
--    const isAttempt = block.type === "attempt";
--    const setCount = Math.max(1, Math.min(8, Number(block.sets) || 1));
--    const plannedRpe = plannedRpeNumberFromLabel(block.rpeLabel || block.rpe);
--    if (isAttempt) {
--      return [{
--        kind: "試技",
--        displayLabel: block.displayLabel || block.label,
--        plannedWeight: "",
--        plannedWeightLabel: block.weightLabel || "",
--        weightLow: block.weightLow || "",
--        weightHigh: block.weightHigh || "",
--        plannedReps: "1",
--        plannedRepsLabel: "1",
--        plannedRpe,
--        plannedRpeLabel: block.rpeLabel || "",
--        plannedLabel: block.goal || "",
--        weight: "",
--        reps: "1",
--        rpe: ""
--      }];
--    }
--    return Array.from({ length: setCount }, (_, index) => ({
--      kind: "確認",
--      displayLabel: isCurrentCheckItem(item) ? "確認セット" : (block.label || `S${index + 1}`),
--      plannedWeight: block.weight,
--      plannedWeightLabel: block.weight ? `${block.weight}kg` : "",
--      plannedReps: "",
--      plannedRepsLabel: block.reps || "",
--      plannedSets: block.sets || "",
--      plannedRpe,
--      plannedRpeLabel: block.rpeLabel || "",
--      plannedLabel: [block.weight ? `${block.weight}kg` : "", block.goal || ""].filter(Boolean).join(" / "),
--      weight: block.weight,
--      reps: "",
--      rpe: ""
--    }));
--  });
--}
--
--function prescribedSetRows(item, cycle) {
--  if (item.kind === "method") {
--    return prescribedMethodRows(item, cycle);
--  }
--
--  if (item.kind === "accessory") {
--    return prescribedAccessoryRows(item);
--  }
--
--  const blocks = parsePrescriptionBlocks(planTextForActualItem(item, cycle));
--  const rows = [];
--  blocks.forEach((block) => {
--    const setCount = Math.max(1, Math.min(8, Number(block.sets) || 1));
--    const rpeNum = cleanRpeValue(block.rpeLabel || block.rpe);
--    const kind = block.type === "topset" ? "Top" : "Back";
--    for (let index = 0; index < setCount; index += 1) {
--      rows.push({
--        kind,
--        plannedWeight: block.weight,
--        plannedReps: block.reps,
--        plannedRpe: rpeNum,
--        weight: block.weight,
--        reps: block.reps,
--        rpe: "",
--      });
--    }
--  });
--  return rows.length ? rows : [{ kind: "", plannedWeight: "", plannedReps: "", plannedRpe: "", weight: "", reps: "", rpe: "" }];
--}
--
--function prescriptionSummaryLabel(item, cycle) {
--  const blocks = parsePrescriptionBlocks(planTextForActualItem(item, cycle));
--  const labels = blocks.map((block) => block.rpe).filter(Boolean);
--  return labels.length ? `予定 ${labels.join(" / ")}` : "";
--}
--
--function planTextForActualItem(item, cycle) {
--  if (item.kind === "method" || item.kind === "accessory") return item.work || "";
--  const max = Number(cycle.maxes[item.lift] || bestE1rm(item.lift) || 0);
--  return prescriptionForWeek(
--    item.lift,
--    max,
--    cycle.week,
--    cycle.length,
--    cycle.daysPerWeek,
--    item.variant,
--    cycle.priorityLift,
--    cycle.buddyLevel
--  ).title;
--}
--
--function renderDayActualBlock(item, cycle, dayIndex, itemIndex) {
--  if (!shouldShowActualInput(item)) return "";
--  if (item.kind === "method") return actualInputBlock(item, cycle, item.work, item.note, dayIndex, itemIndex);
--  if (item.kind === "accessory") return actualInputBlock(item, cycle, item.work, item.note, dayIndex, itemIndex);
--  const max = Number(cycle.maxes[item.lift] || bestE1rm(item.lift) || 0);
--  const prescription = prescriptionForWeek(item.lift, max, cycle.week, cycle.length, cycle.daysPerWeek, item.variant, cycle.priorityLift, cycle.buddyLevel);
--  return actualInputBlock(item, cycle, prescription.title, prescription.detail, dayIndex, itemIndex);
--}
--
--function renderDayNotes(day, cycle) {
--  const notes = [];
--  day.items.forEach((item) => {
--    if (item.note) notes.push(`<li><strong>${escapeHtml(item.name)}</strong>：${escapeHtml(item.note)}</li>`);
--    if (item.lift) {
--      const max = Number(cycle.maxes[item.lift] || bestE1rm(item.lift) || 0);
--      const prescription = prescriptionForWeek(item.lift, max, cycle.week, cycle.length, cycle.daysPerWeek, item.variant, cycle.priorityLift, cycle.buddyLevel);
--      if (prescription.detail) notes.push(`<li><strong>${escapeHtml(item.name)}</strong>：${escapeHtml(prescription.detail)}</li>`);
--    }
--  });
--  if (!notes.length) return `<p class="muted">補足はありません。</p>`;
--  return `<ul class="day-notes-list">${notes.join("")}</ul>`;
--}
--
--function extractRepsFromWork(work = "") {
--  const text = String(work || "").replace(/×/g, "x");
--  const repsMatch =
--    text.match(/(\d+(?:[〜~\-]\d+)?\+?)\s*回/) ||
--    text.match(/^(\d+(?:[〜~\-]\d+)?\+?)\s*x/i);
--  return repsMatch ? repsMatch[1] : "";
--}
--
--function extractSetsFromWork(work = "") {
--  const text = String(work || "").replace(/×/g, "x");
--  const setMatch =
--    text.match(/(\d+)\s*(?:set|セット)/i) ||
--    text.match(/回\s*x\s*(\d+)/i) ||
--    text.match(/x\s*(\d+)\s*$/i);
--  return setMatch ? setMatch[1] : "";
--}
--
--function extractRpeFromWork(work = "") {
--  const match = String(work).match(/@?\s*RPE\s*([\d.]+(?:\s*[〜~-]\s*[\d.]+)?)/i) || String(work).match(/@([\d.]+(?:\s*[〜~-]\s*[\d.]+)?)/);
--  return match ? `@RPE${match[1].replace(/\s+/g, "")}` : "";
--}
--
--function parseAccessoryWork(work = "") {
--  const reps = extractRepsFromWork(work);
--  const sets = extractSetsFromWork(work);
--  const rpe = extractRpeFromWork(work);
--  const label = [
--    reps ? `${reps}回` : "",
--    sets ? `${sets}set` : "",
--    rpe ? rpe.replace("@RPE", "@") : ""
--  ].filter(Boolean).join(" × ");
--  return { reps, sets, rpe, label };
--}
--
--function accessoryTargetReps(reps = "") {
--  const text = String(reps || "").trim();
--  const range = text.match(/^(\d+)\s*[〜~-]\s*\d+/);
--  if (range) return range[1];
--  const plus = text.match(/^(\d+)\+/);
--  if (plus) return plus[1];
--  const single = text.match(/^(\d+)/);
--  if (single) return single[1];
--  return "";
--}
--
--function renderPlanContext() {
--  const cycle = normalizedCycle();
--  const phase = cyclePhase(cycle.week, cycle.length, cycle.programMethod);
--  const milestone = nextCycleMilestone(cycle);
--  const purpose = phasePurpose(phase, cycle);
--
--  const contextTitle = document.querySelector("#planContextTitle");
--  const contextSummary = document.querySelector("#planContextSummary");
--  const contextGrid = document.querySelector("#planContextGrid");
--
--  if (!contextTitle || !contextGrid) return;
--
--  contextTitle.textContent = `今週の文脈 / W${cycle.week} / ${cycle.length}週中`;
--  if (contextSummary) {
--    contextSummary.textContent = `${phase.name} / 次の節目: ${milestone}`;
--  }
--
--  contextGrid.innerHTML = `
--    <article>
--      <span>現在週</span>
--      <strong>W${cycle.week} / ${cycle.length}週</strong>
--      <p>${escapeHtml(phase.name)}</p>
--    </article>
--    <article>
--      <span>今週のテーマ</span>
--      <strong>${escapeHtml(phase.name)}</strong>
--      <p>${escapeHtml(purpose || phase.note || "")}</p>
--    </article>
--    <article>
--      <span>次の節目</span>
--      <strong>${escapeHtml(milestone)}</strong>
--      <p>このまま進めましょう。</p>
--    </article>
--  `;
--}
--
--function planCommandCard(cycle, phase, weekDays = weeklyTemplate(cycle)) {
--  const athlete = currentAthlete();
--  const wellness = wellnessEvaluation(todayWellnessEntry(athlete));
--  const firstDay = weekDays[0] || { title: "Day 1", items: [] };
--  const mainItems = firstDay.items.filter((item) => item.lift || item.kind === "accessory").slice(0, 3);
--  const mainLine = mainItems.map((item) => item.name).join(" / ") || "今日のメニューを確認";
--  const progress = planWeekCompletion(cycle, weekDays);
--  const progressPct = progress.planned ? Math.min(100, Math.round((progress.completed / progress.planned) * 100)) : 0;
--  const method = programMethodInfo(cycle).label
--    .replace(" / BIG3", "")
--    .replace(" / ベンチプレスのみ", "");
--  const phaseName = phase?.name || "今週";
--  return `
--    <article class="plan-command-card wellness-${escapeHtml(wellness.status)}">
--      <div class="plan-command-status">
--        <span class="plan-command-face">${wellness.status === "good" ? "✓" : wellness.status === "unset" ? "?" : "!"}</span>
--        <div>
--          <p class="eyebrow">Today's Plan</p>
--          <h2>${escapeHtml(method)} / W${cycle.week} Day1</h2>
--          <p>${escapeHtml(phaseName)} / ${escapeHtml(mainLine)}</p>
--        </div>
--      </div>
--      <div class="plan-command-grid">
--        <div>
--          <span>今日の体調</span>
--          <strong>${escapeHtml(wellness.label)}</strong>
--          <small>${wellness.score !== null ? `${wellness.score}点` : "未入力"}</small>
--        </div>
--        <div>
--          <span>今日の方針</span>
--          <strong>${escapeHtml(wellness.short)}</strong>
--          <small>${escapeHtml(wellness.recommendation)}</small>
--        </div>
--        <div>
--          <span>今週の進捗</span>
--          <strong>${progress.completed}/${progress.planned || weekDays.length}</strong>
--          <small>${progress.planned ? `${progressPct}% 完了` : "Dayを開いて確認"}</small>
--        </div>
--      </div>
--      <div class="plan-command-progress" aria-label="今週の進捗">
--        <span style="width:${progressPct}%"></span>
--      </div>
--    </article>
--  `;
--}
--
--function planWeekCompletion(cycle, weekDays = weeklyTemplate(cycle)) {
--  const feedback = currentAthlete().rpeFeedback || {};
--  const prefix = [cycle.programMethod, cycle.buddyLevel || "level1", cycle.planTarget, `w${cycle.week}`].join("|");
--  const completed = Object.keys(feedback).filter((key) => key.startsWith(prefix)).length;
--  const planned = weekDays.reduce((sum, day) => {
--    return sum + day.items.filter((item) => shouldShowActualInput(item)).length;
--  }, 0);
--  return { completed: Math.min(completed, planned), planned };
--}
--
--function rpeCalibrationCard(cycle) {
--  if (cycle.programMethod !== "platform" || cycle.week !== 1) return "";
--  const key = rpeCalibrationKey(cycle);
--  const saved = currentAthlete().rpeCalibration?.[key] || {};
--  const status = saved.status || "";
--  const confidence = saved.rpeConfidence || "learning";
--  const outcome = rpeCalibrationOutcome(saved);
--  return `
--    <details class="plan-card rpe-calibration-card" ${saved.status ? "" : ""}>
--      <summary class="day-summary">
--        <div>
--          <span class="lift-badge">W0</span>
--          <h2>プラン開始前チェック</h2>
--          <p>${saved.status === "done" ? `RPEものさしセット記録済み${outcome ? ` / ${outcome}` : ""}` : saved.status === "skipped" ? "RPEものさしセットはスキップ記録済み" : "RPEものさしセットで余力予測の基準を作る"}</p>
--        </div>
--        <span class="history-open">▾</span>
--      </summary>
--      <div class="rpe-calibration-body" data-calibration-key="${escapeHtml(key)}">
--        <p class="recommended-badge">任意ドリル</p>
--        <h3>RPEものさしセット</h3>
--        <p>安全な補助種目で、RIR0 / RPE10の感覚を確認する学習ドリルです。目的は追い込みではなく、PRサイクルで使うRPE/RIRの校正です。</p>
--        <ul>
--          <li>BIG3本体・高重量フリーウェイトでは行いません。</li>
--          <li>マシン、ケーブル、安全性の高い補助種目で行います。</li>
--          <li>「もう無理そう」で止めず、安全な実施フォームを保ったまま次の1回を完遂できないところまで確認します。</li>
--          <li>最後の1回が途中で止まってもOK。痛み、反動、危険な姿勢崩れ、強い疲労がある日はスキップしてください。</li>
--        </ul>
--        <div class="calibration-status">
--          <button class="text-button compact calibration-status-btn ${status === "done" ? "active" : ""}" type="button" data-calibration-status="done">実施した</button>
--          <button class="text-button compact calibration-status-btn ${status === "skipped" ? "active" : ""}" type="button" data-calibration-status="skipped">スキップ</button>
--        </div>
--        <div class="calibration-grid">
--          <label>使用種目<input class="calibration-exercise" type="text" value="${escapeHtml(saved.exercise || "")}" placeholder="例: レッグカール"></label>
--          <label>重量<input class="calibration-weight" inputmode="decimal" type="number" min="0" step="0.5" value="${escapeHtml(saved.weight ?? "")}"></label>
--          <label>回数<input class="calibration-reps" inputmode="numeric" type="number" min="0" step="1" value="${escapeHtml(saved.reps ?? "")}"></label>
--          <label>予想RIR<input class="calibration-predicted-rir" inputmode="numeric" type="number" min="0" max="10" step="1" value="${escapeHtml(saved.predictedRir ?? "")}"></label>
--          <label>実際の追加回数<input class="calibration-actual-extra" inputmode="numeric" type="number" min="0" max="30" step="1" value="${escapeHtml(saved.actualExtraReps ?? "")}"></label>
--          <label>感じたRPE<input class="calibration-rpe" inputmode="decimal" type="number" min="5" max="10" step="0.5" value="${escapeHtml(saved.feltRpe ?? "")}"></label>
--          <label class="calibration-confidence">RPE自信度<select class="calibration-rpe-confidence">
--            <option value="solid"${confidence === "solid" ? " selected" : ""}>自信あり</option>
--            <option value="unsure"${confidence === "unsure" ? " selected" : ""}>少し迷う</option>
--            <option value="learning"${confidence === "learning" ? " selected" : ""}>感覚練習中</option>
--          </select></label>
--        </div>
--        <label>メモ<textarea class="calibration-note" rows="2" placeholder="予想より何回多くできたか、どこで限界が来たか">${escapeHtml(saved.note || "")}</textarea></label>
--        ${outcome ? `<p class="rpe-calibration-result">${escapeHtml(outcome)}</p>` : ""}
--        <div class="actual-actions">
--          <button class="text-button compact calibration-save" type="button">W0チェックを保存</button>
--        </div>
--      </div>
--    </details>
--  `;
--}
--
--function rpeCalibrationKey(cycle) {
--  return [cycle.programMethod, cycle.buddyLevel || "level1", cycle.planTarget, cycle.length, cycle.daysPerWeek, cycle.priorityLift || "total"].join("|");
--}
--
--function rpeCalibrationOutcome(saved = {}) {
--  if (saved.status === "skipped") return "スキップ。疲労や不安がある日の判断として問題ありません。";
--  const predicted = Number(saved.predictedRir);
--  const actual = Number(saved.actualExtraReps);
--  if (Number.isNaN(predicted) || Number.isNaN(actual)) return "";
--  const diff = actual - predicted;
--  if (diff >= 2) return `予想より${diff}回多くできました。きつさを早めに限界と判断しやすい可能性があります。`;
--  if (diff <= -2) return `予想より${Math.abs(diff)}回少なく限界でした。思ったより限界に近い状態だった可能性があります。`;
--  return "予想RIRは近いです。この感覚をRPE判断の基準に。";
--}
--
--function saveRpeCalibration(body) {
--  if (!body) return;
--  const athlete = currentAthlete();
--  const activeStatus = body.dataset.status || body.querySelector(".calibration-status-btn.active")?.dataset.calibrationStatus || "done";
--  const record = {
--    status: activeStatus,
--    exercise: body.querySelector(".calibration-exercise")?.value.trim() || "",
--    weight: body.querySelector(".calibration-weight")?.value ? Number(body.querySelector(".calibration-weight").value) : "",
--    reps: body.querySelector(".calibration-reps")?.value ? Number(body.querySelector(".calibration-reps").value) : "",
--    predictedRir: body.querySelector(".calibration-predicted-rir")?.value ? Number(body.querySelector(".calibration-predicted-rir").value) : "",
--    actualExtraReps: body.querySelector(".calibration-actual-extra")?.value ? Number(body.querySelector(".calibration-actual-extra").value) : "",
--    feltRpe: body.querySelector(".calibration-rpe")?.value ? Number(body.querySelector(".calibration-rpe").value) : "",
--    rpeConfidence: body.querySelector(".calibration-rpe-confidence")?.value || "learning",
--    note: body.querySelector(".calibration-note")?.value.trim() || "",
--    updatedAt: new Date().toISOString()
--  };
--  athlete.rpeCalibration = athlete.rpeCalibration || {};
--  athlete.rpeCalibration[body.dataset.calibrationKey] = record;
--  saveState();
--  render();
--}
--
--function renderRpeCoach(cycle, phase) {
--  if (!guideEnabled()) {
--    els.rpeCoachCard.innerHTML = "";
--    return;
--  }
--  const isAccumulation = phase.name === "蓄積期";
--  const isBridge = phase.name === "ブリッジ週";
--  const guide = cycle.programMethod === "platform" && cycle.buddyLevel === "level2"
--    ? "Lv2はRPEと%1RMを併用。@8超えなら下げよう。"
--    : isAccumulation || isBridge
--    ? "蓄積期は土台作り。迷ったらRPEを優先。"
--    : "表示重量は提案。予定RPEを超えそうなら下げよう。";
--  els.rpeCoachCard.innerHTML = `
--    <details class="rpe-coach-details">
--      <summary class="rpe-coach-summary">
--        <span class="eyebrow">RPE Coach</span>
--        <strong>${escapeHtml(rpeCoachHeadline(phase, cycle))}</strong>
--      </summary>
--      <p>${guide}</p>
--      <p class="rpe-principle">RPEは育てる感覚。競技フォームが崩れる余力は数えません。</p>
--      <div class="rpe-scale">
--        <span><strong>RPE 6</strong> RIR 4目安</span>
--        <span><strong>RPE 7</strong> RIR 3目安</span>
--        <span><strong>RPE 8</strong> RIR 2目安</span>
--        <span><strong>RPE 9</strong> RIR 1目安</span>
--      </div>
--    </details>
--  `;
--}
--
--function rpeCoachHeadline(phase, cycle) {
--  if (cycle.buddyLevel === "level2") return "Lv2：RPEと%1RM併用";
--  if ((phase.name || "").includes("蓄積") || (phase.name || "").includes("ブリッジ")) return "蓄積期：MAX更新週ではない";
--  return "予定RPEを守ることを最優先に";
--}
--
--function phasePurpose(phase, cycle = normalizedCycle()) {
--  const name = phase?.name || "";
--  if (name.includes("Reset 蓄積")) return "フォームとRPE感覚を戻す。";
--  if (name.includes("移行")) return "疲労を抜き、Lv2へ備える。";
--  if (name.includes("蓄積")) return "フォームとRPE感覚を作る。";
--  if (name.includes("ブリッジ")) return "疲労を増やさずW5へ。";
--  if (name.includes("現在地")) return "後半の設定材料を確認。";
--  if (name.includes("強化")) return "重さへつなげる。";
--  if (name.includes("ピーキング")) return "強さを出す準備。";
--  if (name.includes("MAX") || name.includes("PR") || cycle.week === cycle.length) return "成功試技を積み上げる。";
--  if (cycle.recoveryMode || name.includes("デロード") || name.includes("休養")) return "疲労を抜いて次へ。";
--  return "予定RPEを守って積む。";
--}
--
--function liftTargetRangeText(cycle = normalizedCycle(), low = 0.75, high = 0.82) {
--  return activePlanLiftIds(cycle).map((liftId) => {
--    const max = Number(cycle.maxes[liftId] || bestE1rm(liftId) || 0);
--    if (!max) return `${mainLiftNames[liftId]} 未設定`;
--    const lower = roundToIncrement(max * low, 2.5);
--    const upper = roundToIncrement(max * high, 2.5);
--    return `${mainLiftNames[liftId]} ${formatNumber(lower)}〜${formatNumber(upper)}kg`;
--  }).join(" / ");
--}
--
--function finalTargetText(cycle = normalizedCycle()) {
--  const athlete = currentAthlete();
--  athlete.goals = normalizeGoals(athlete.goals);
--  return activePlanLiftIds(cycle).map((liftId) => {
--    const max = Number(cycle.maxes[liftId] || bestE1rm(liftId) || 0);
--    const goal = dashboardGoalValue(liftId, athlete);
--    if (goal) return `${mainLiftNames[liftId]} ${formatNumber(goal)}kg`;
--    if (!max) return `${mainLiftNames[liftId]} 目標未設定`;
--    const range = projectedPrRange(liftId, max, cycle.length, cycle.daysPerWeek, cycle.priorityLift, athlete);
--    return `${mainLiftNames[liftId]} ${formatNumber(range.low)}〜${formatNumber(range.high)}kg`;
--  }).join(" / ");
--}
--
--function phaseGoalText(cycle = normalizedCycle(), phase = cyclePhase(cycle.week, cycle.length, cycle.programMethod)) {
--  const name = phase?.name || "";
--  if (cycle.programMethod === "rebuild16") {
--    if (cycle.week <= 4) return `W5で${liftTargetRangeText(cycle, 0.72, 0.8)}をRPE8以内で確認。`;
--    if (cycle.week === 5) return "3〜5回@8で現在地を見る。限界MAXではありません。";
--    if (cycle.week === 6) return "疲労を抜き、Lv2用TMを整える週。";
--  }
--  if (name.includes("蓄積") || name.includes("ブリッジ")) {
--    const checkLabel = cycle.week < 4 ? "4週間後のW5現在地チェック" : cycle.week === 4 ? "来週のW5現在地チェック" : "W5現在地チェック";
--    return `${checkLabel}で、${liftTargetRangeText(cycle, 0.75, 0.82)}を3〜5回@8以内。`;
--  }
--  if (name.includes("現在地")) {
--    return "3〜5回@8で確認。やり切りよりRPE優先。";
--  }
--  if (name.includes("強化")) {
--    return `${liftTargetRangeText(cycle, 0.82, 0.9)}付近へ慣れる。`;
--  }
--  if (name.includes("ピーキング")) {
--    return "疲労を抜き、成功率を上げる。";
--  }
--  if (name.includes("MAX") || name.includes("PR") || cycle.week === cycle.length) {
--    return `第一を確実に。第三で${finalTargetText(cycle)}付近へ。`;
--  }
--  if (cycle.recoveryMode || name.includes("デロード") || name.includes("休養")) {
--    return "上限を超えず、RPE6以下で整える。";
--  }
--  return "予定RPEを守って次へ。";
--}
--
--function weekLearningCard(cycle, phase) {
--  if (!guideEnabled()) return "";
--  const isPlatform = cycle.programMethod === "platform";
--  const whiteNine = isPlatform && (cycle.week === cycle.length || (phase.name || "").includes("MAX"))
--    ? `<p class="white-nine-note"><strong>白9本:</strong> 第一を確実に、第二でトータルを作り、第三で挑戦する。成功試技を積み上げることも競技力です。</p>`
--    : "";
--  const accumulationNote = isPlatform && ((phase.name || "").includes("蓄積") || (phase.name || "").includes("ブリッジ"))
--    ? `<p class="guide-note">MAX更新週ではありません。フォームとRPE感覚を作る時期。</p>`
--    : "";
--  const purpose = phasePurpose(phase, cycle);
--  const fullGoal = phaseGoalText(cycle, phase);
--  return `
--    <article class="plan-card week-learning-card">
--      <span class="recommended-badge">短期目標</span>
--      <h2>${escapeHtml(phase.name)}</h2>
--      <p>${escapeHtml(purpose)}</p>
--      <details>
--        <summary>詳しく見る</summary>
--        <p>${escapeHtml(fullGoal)}</p>
--        ${accumulationNote}
--        ${whiteNine}
--      </details>
--    </article>
--  `;
--}
--
--function currentCheckCarryoverCard(cycle) {
--  if (!guideEnabled()) return "";
--  if (cycle.programMethod === "rebuild16") return rebuild16CarryoverCard(cycle);
--  if (cycle.programMethod !== "platform" || cycle.week <= 5) return "";
--  const entries = planFeedbackEntriesForWeek(cycle, 5);
--  if (!entries.length && cycle.length !== 10) return "";
--  const heavy = entries.filter((entry) => rpeDiff(entry) >= 1);
--  const light = entries.filter((entry) => rpeDiff(entry) <= -1);
--  let message = "W6以降は表示重量よりRPE優先。";
--  if (cycle.length === 10) {
--    message = cycle.buddyLevel === "level2"
--      ? "W5が@8なら予定通り。@9ならW6は控えめに。"
--      : "W5が@8なら予定通り。重ければW6は-2.5kg候補。";
--  }
--  if (heavy.length) {
--    message = "予定より重め。後半は-2.5〜5kgも候補。";
--  } else if (light.length) {
--    message = "余裕あり。+2.5kg候補、でもRPE優先。";
--  }
--  return `
--    <article class="plan-card week-learning-card">
--      <span class="recommended-badge">現在地チェック反映</span>
--      <h2>後半ブロックの入り方</h2>
--      <p>${message}</p>
--    </article>
--  `;
--}
--
--function rebuild16CarryoverCard(cycle) {
--  if (!guideEnabled()) return "";
--  if (cycle.week >= 7 && cycle.week <= 10) {
--    return `
--      <article class="plan-card week-learning-card">
--        <span class="recommended-badge">Reset結果の反映</span>
--        <h2>Lv2へ入る前の判断</h2>
--        <p>W5が@8なら予定通り。@9ならW7は控えめに。</p>
--      </article>
--    `;
--  }
--  if (cycle.week >= 12 && cycle.week <= 15) {
--    return `
--      <article class="plan-card week-learning-card">
--        <span class="recommended-badge">Lv2現在地チェック反映</span>
--        <h2>後半ブロックの入り方</h2>
--        <p>W11が@8なら予定通り。@9ならW12は控えめに。</p>
--      </article>
--    `;
--  }
--  return "";
--}
--
--function tenWeekBenchCareCard(cycle) {
--  if (!guideEnabled()) return "";
--  const show = cycle.programMethod === "platform"
--    && cycle.length === 10
--    && cycle.buddyLevel === "level2"
--    && cycle.daysPerWeek === 5
--    && cycle.priorityLift === "bench"
--    && [6, 7].includes(Number(cycle.week));
--  if (!show) return "";
--  return `
--    <article class="plan-card week-learning-card">
--      <span class="recommended-badge">ベンチ頻度の調整</span>
--      <h2>押せる状態を保つ</h2>
--      <p>違和感があれば補助を減らそう。押せる状態を優先。</p>
--    </article>
--  `;
--}
--
--function renderRecoveryAlert(cycle) {
--  const alert = cycle.pendingRecoveryAlert;
--  const nextWeek = alert.nextWeek || Math.min(cycle.week + 1, cycle.length);
--  els.cyclePhaseTitle.textContent = `Buddy Alert / W${nextWeek}前の進行判断`;
--  els.cyclePhaseNote.textContent = "";
--  els.rpeCoachCard.innerHTML = "";
--  renderProjections(cycle);
--  els.planList.innerHTML = `
--    <article class="plan-card recovery-alert-card">
--      <span class="recommended-badge">進行を止める候補</span>
--      <h2>W${nextWeek}へ進む前に、回復週も候補です。</h2>
--      <p>RPE高めが続いています。止まる判断も強くなる一部です。</p>
--      <div class="recovery-reasons">
--        ${(alert.reasons || []).map((reason) => `<span>${escapeHtml(reason)}</span>`).join("")}
--      </div>
--      <div class="recovery-actions">
--        <button class="primary-button inline" type="button" data-recovery-action="start">回復週へ</button>
--        <button class="text-button" type="button" data-recovery-action="skip">通常通りW${nextWeek}へ進む</button>
--      </div>
--    </article>
--  `;
--}
--
--function renderRecoveryWeek(cycle) {
--  const targetWeek = cycle.recoveryForWeek || Math.min(cycle.week + 1, cycle.length);
--  els.cyclePhaseTitle.textContent = `W${targetWeek}前のデロード週`;
--  els.cyclePhaseNote.textContent = guideEnabled()
--    ? "回復週です。上限を超えず、RPE6以下でフォーム確認。"
--    : "";
--  els.rpeCoachCard.innerHTML = "";
--  renderProjections(cycle);
--  els.planList.innerHTML = `
--    <article class="plan-card recovery-alert-card">
--      <span class="recommended-badge">デロード中</span>
--      <h2>今日は上限重量を超えないでください。</h2>
--      <p>目的は疲労を抜く、フォームを確認する、痛みや違和感を見直すことです。補助種目は通常の半分、痛みがあれば中止してください。</p>
--      <button class="primary-button inline" type="button" data-recovery-action="finish">デロードを終えてW${targetWeek}へ進む</button>
--    </article>
--    ${recoveryWeekTemplate(cycle).map((day, index) => `
--      <details class="day-card plan-day" ${index === 0 ? "open" : ""}>
--        <summary class="day-summary">
--          <div>
--            <span class="lift-badge">Day ${index + 1}</span>
--            <h2>${day.title}</h2>
--            <p>${day.summary}</p>
--          </div>
--          <span class="history-open">▾</span>
--        </summary>
--        <div class="exercise-list">
--          ${day.items.map((item) => `
--            <div class="exercise-row recovery-row">
--              <strong>${escapeHtml(item.name)}</strong>
--              <span>${escapeHtml(item.work)}</span>
--              <p class="guide-note">${escapeHtml(item.note)}</p>
--            </div>
--          `).join("")}
--        </div>
--      </details>
--    `).join("")}
--  `;
--}
--
--function recoveryWeekTemplate(cycle) {
--  const max = (lift, percent) => {
--    const base = Number(cycle.maxes[lift] || bestE1rm(lift) || 0);
--    return base ? `${roundToIncrement(base * percent, 2.5)}kg` : "1RM未設定";
--  };
--  if (cycle.planTarget === "bench_only") {
--    return [
--      {
--        title: "BP フォーム確認",
--        summary: "止め、コール、尻の接地を確認。RPE6以下。",
--        items: [
--          { name: "ベンチプレス", work: `上限 ${max("bench", 0.65)}まで / 3回 x 3セット`, note: "この重量を超えない。Start / Press / Rack を待つ練習。" },
--          { name: "上背部補助", work: "通常の半分 / RPE6以下", note: "追い込まず、肩甲骨の動きだけ確認。" }
--        ]
--      },
--      {
--        title: "BP 軽めボリューム",
--        summary: "速く、軽く、フォーム再現。",
--        items: [
--          { name: "ベンチプレス", work: `上限 ${max("bench", 0.6)}まで / 5回 x 2セット`, note: "軽く感じても上限を超えない。" },
--          { name: "腕・肩補助", work: "通常の半分 / RPE6以下", note: "痛みや違和感があれば中止。" }
--        ]
--      }
--    ];
--  }
--  return [
--    {
--      title: "SQ / BP フォーム確認",
--      summary: "しゃがみ、止め、コールを確認。RPE6以下。",
--      items: [
--        { name: "スクワット", work: `上限 ${max("squat", 0.65)}まで / 3回 x 3セット`, note: "この重量を超えない。深さとラック動作を確認。" },
--        { name: "ベンチプレス", work: `上限 ${max("bench", 0.65)}まで / 3回 x 3セット`, note: "Start / Press / Rack を待つ練習。尻浮きに注意。" }
--      ]
--    },
--    {
--      title: "DL / BP 軽め",
--      summary: "引き切りと下ろし方を確認。デッドは低め上限。",
--      items: [
--        { name: "デッドリフト", work: `上限 ${max("deadlift", 0.6)}まで / 3回 x 2セット`, note: "Down合図後までコントロール。床に落とさない。" },
--        { name: "ベンチプレス", work: `上限 ${max("bench", 0.6)}まで / 5回 x 2セット`, note: "軽く、速く、フォームだけ確認。" }
--      ]
--    },
--    {
--      title: "全身軽め / 可動域確認",
--      summary: "通常の半分。追い込まない。",
--      items: [
--        { name: "BIG3 テクニック", work: "50〜60% / 3回 x 2セット", note: "痛みや違和感があれば中止。疲労を抜くことが目的。" },
--        { name: "補助種目", work: "通常の半分 / RPE6以下", note: "パンプ狙いで追い込まない。動きの確認だけ。" }
--      ]
--    }
--  ];
--}
--
--function activePlanLiftIds(cycle = normalizedCycle()) {
--  if (cycle.planTarget === "bench_only") return ["bench"];
--  if (cycle.programMethod === "smolov_jr") return [cycle.priorityLift === "squat" ? "squat" : "bench"];
--  return mainLiftIds;
--}
--
--function programMethodInfo(cycle = normalizedCycle()) {
--  const target = cycle.planTarget === "bench_only" ? "ベンチプレスのみ" : "BIG3";
--  const platformLabel = cycle.buddyLevel === "level2" ? "Buddy式 Lv2（実戦寄り）" : "Buddy式 Lv1（標準）";
--  const platformNote = cycle.buddyLevel === "level2"
--    ? "週内に強弱を作る実戦寄りプラン。"
--    : "完走とRPE感覚を重視する標準プラン。";
--  const info = {
--    platform: [platformLabel, platformNote],
--    rebuild16: ["Buddy Rebuild 16（大会後リビルド）", "疲労や停滞を整えてLv2へ戻るプラン。"],
--    hps: ["HPS（BP向き）", "肥大、パワー、筋力を回すBP向き方式。"],
--    "531": ["5/3/1（長期型）", "Training Maxで堅実に積む長期型。"],
--    smolov_jr: ["Smolov Jr.（SQ/BP高負荷）", "3週・週4固定。SQ/BP向け高負荷方式。"]
--  }[cycle.programMethod] || ["Platform Buddy", ""];
--  return { label: `${info[0]} / ${target}`, note: info[1] };
--}
--
--function methodDefaults(programMethod, planTarget = "big3") {
--  const defaults = {
--    platform: { length: 12, daysPerWeek: 4, accessoryVolume: "normal", locked: [] },
--    rebuild16: { length: 16, daysPerWeek: 4, accessoryVolume: "normal", locked: ["length"] },
--    hps: { length: 6, daysPerWeek: 3, accessoryVolume: "normal", locked: ["length", "daysPerWeek"] },
--    "531": { length: 12, daysPerWeek: planTarget === "bench_only" ? 2 : 4, accessoryVolume: "normal", locked: [] },
--    smolov_jr: { length: 3, daysPerWeek: 4, accessoryVolume: "low", locked: ["length", "daysPerWeek", "accessoryVolume"] }
--  };
--  return defaults[programMethod] || defaults.platform;
--}
--
--function allowedCycleLengths(cycle) {
--  if (cycle.programMethod === "platform") return [10, 12];
--  if (cycle.programMethod === "rebuild16") return [16];
--  if (cycle.programMethod === "hps") return [6];
--  if (cycle.programMethod === "531") return [4, 8, 12];
--  if (cycle.programMethod === "smolov_jr") return [3];
--  return [10, 12];
--}
--
--function allowedDaysPerWeek(cycle) {
--  if (cycle.programMethod === "platform") return [3, 4, 5];
--  if (cycle.programMethod === "rebuild16") return [3, 4, 5];
--  if (cycle.programMethod === "hps") return [3];
--  if (cycle.programMethod === "531") return cycle.planTarget === "bench_only" ? [1, 2, 3] : [3, 4];
--  if (cycle.programMethod === "smolov_jr") return [4];
--  return [3, 4, 5];
--}
--
--function applyProgramRules(cycle, previousMethod = cycle.programMethod, previousTarget = cycle.planTarget) {
--  const changed = previousMethod !== cycle.programMethod || previousTarget !== cycle.planTarget;
--  const defaults = methodDefaults(cycle.programMethod, cycle.planTarget);
--  if (changed) {
--    cycle.length = defaults.length;
--    cycle.daysPerWeek = defaults.daysPerWeek;
--    cycle.accessoryVolume = defaults.accessoryVolume;
--  }
--
--  const lengths = allowedCycleLengths(cycle);
--  const days = allowedDaysPerWeek(cycle);
--  if (!lengths.includes(Number(cycle.length))) cycle.length = lengths.at(-1);
--  if (!days.includes(Number(cycle.daysPerWeek))) cycle.daysPerWeek = days.at(-1);
--  if (cycle.programMethod === "smolov_jr") cycle.accessoryVolume = "low";
--  cycle.week = Math.min(Number(cycle.week || 1), Number(cycle.length));
--  if (cycle.planTarget === "bench_only") cycle.priorityLift = "bench";
--  if (cycle.programMethod === "smolov_jr" && !["squat", "bench"].includes(cycle.priorityLift)) cycle.priorityLift = "bench";
--  if (!["platform", "rebuild16"].includes(cycle.programMethod)) cycle.buddyLevel = "level1";
--  return cycle;
--}
--
--function planInsight(cycle) {
--  const showGuide = guideEnabled();
--  const athlete = currentAthlete();
--  const method = programMethodInfo(cycle);
--  const balance = liftBalance(cycle, athlete);
--  const levelWarning = cycle.programMethod === "platform" && cycle.buddyLevel === "level2" && cycle.experienceLevel === "beginner"
--    ? `<p class="safety-note"><strong>注意:</strong> Lv2は中級者向け。迷ったらLv1でOK。</p>`
--    : "";
--  const rebuildNote = cycle.programMethod === "rebuild16"
--    ? `<p class="safety-note"><strong>推奨:</strong> 大会後や停滞時の再準備ブロック。</p>`
--    : "";
--  const levelActiveNote = cycle.programMethod === "platform" && cycle.buddyLevel === "level2"
--    ? `<p class="guide-note"><strong>Lv2適用中:</strong> 強度日・量の日・技術日を分けます。</p>`
--    : "";
--  if (!showGuide && !levelWarning) return "";
--  if (!balance && cycle.planTarget === "bench_only") {
--    const recommended = cycle.programMethod === "platform" ? `<span class="recommended-badge">迷ったらこれ</span>` : "";
--    return `<article class="plan-card ${["platform", "rebuild16"].includes(cycle.programMethod) ? "recommended-plan" : ""}">${recommended}<h2>${method.label}</h2>${showGuide ? `<p class="guide-note">${method.note}</p>${levelActiveNote}` : ""}${levelWarning}${rebuildNote}</article>`;
--  }
--  if (!balance) return "";
--  const classLabel = weightClassMeta(athlete.sex, athlete.weightClass)[1];
--  const recommendedName = mainLiftNames[balance.recommended];
--  const selectedName = cycle.priorityLift === "total" ? "トータル" : mainLiftNames[cycle.priorityLift];
--  const note = cycle.priorityLift === "total"
--    ? `${recommendedName}が低め。迷ったら${recommendedName}重視も候補。`
--    : cycle.priorityLift === balance.recommended
--      ? `${selectedName}重視は今のバランスに合っています。`
--      : `${recommendedName}が低め。目的が明確なら${selectedName}重視でOK。`;
--
--  return `
--    <article class="plan-card ${["platform", "rebuild16"].includes(cycle.programMethod) ? "recommended-plan" : ""}">
--      ${cycle.programMethod === "platform" ? `<span class="recommended-badge">迷ったらこれ</span>` : cycle.programMethod === "rebuild16" ? `<span class="recommended-badge">リビルド型</span>` : ""}
--      <h2>${method.label} / ${athlete.sex === "female" ? "女性" : athlete.sex === "male" ? "男性" : "未設定"} ${classLabel} / 現在トータル ${balance.total}kg</h2>
--      ${showGuide ? `<p class="guide-note">${method.note} ${note}</p>${levelActiveNote}` : ""}
--      ${levelWarning}
--      ${rebuildNote}
--    </article>
--  `;
--}
--
--function recommendedProgramLabel(athlete = currentAthlete(), cycle = normalizedCycle()) {
--  if (cycle.programMethod === "rebuild16") return "Buddy Rebuild 16";
--  if (cycle.programMethod !== "platform") return programMethodInfo(cycle).label.replace(" / BIG3", "").replace(" / ベンチプレスのみ", "");
--  if (cycle.experienceLevel === "beginner") return "Buddyメソッド Lv1";
--  return "Buddyメソッド Lv2";
--}
--
--function renderCycleSetupCard(athlete = currentAthlete(), cycle = normalizedCycle()) {
--  if (!els.cycleSetupPanel) return;
--  if (Number(cycle.week) >= 2) {
--    els.cycleSetupPanel.innerHTML = "";
--    els.cycleSetupPanel.classList.add("hidden");
--    return;
--  }
--  els.cycleSetupPanel.classList.remove("hidden");
--  const liftIds = activePlanLiftIds(cycle);
--  const maxReady = liftIds.filter((liftId) => Number(cycle.maxes[liftId] || bestE1rm(liftId) || 0));
--  const currentTotalValue = liftIds.reduce((sum, liftId) => sum + Number(cycle.maxes[liftId] || bestE1rm(liftId) || 0), 0);
--  const goalTargetValue = cycle.planTarget === "bench_only" ? dashboardGoalValue("bench", athlete) : dashboardGoalTotal(athlete);
--  const remaining = goalTargetValue ? goalTargetValue - currentTotalValue : null;
--  const maxStatus = maxReady.length === liftIds.length
--    ? "入力済み"
--    : `${maxReady.length}/${liftIds.length} 種目`;
--  const goalStatus = goalTargetValue ? `${formatNumber(goalTargetValue)}kg` : "未設定";
--  const gapText = goalTargetValue
--    ? remaining > 0
--      ? `目標まであと ${formatNumber(remaining)}kg`
--      : "目標到達圏内"
--    : "目標を入れると距離が見えます";
--  const selected = programMethodInfo(cycle).label.replace(" / BIG3", "").replace(" / ベンチプレスのみ", "");
--  const ready = maxReady.length === liftIds.length;
--  els.cycleSetupPanel.innerHTML = `
--    <div class="section-title">
--      <div>
--        <p class="eyebrow">Cycle Setup</p>
--        <h2>PRサイクル準備</h2>
--      </div>
--      <button class="primary-button inline" type="button" data-cycle-setup-action="open">${ready ? "PRサイクル設定へ進む" : "現在1RMを確認する"}</button>
--    </div>
--    <p class="screen-note">現在1RMと目標から、PRサイクルへ進もう。</p>
--    <div class="cycle-setup-grid">
--      <article>
--        <span>現在1RM</span>
--        <strong>${escapeHtml(maxStatus)}</strong>
--        <p>${ready ? `${liftIds.map((liftId) => `${mainLiftNames[liftId]} ${formatNumber(Number(cycle.maxes[liftId] || bestE1rm(liftId) || 0))}kg`).join(" / ")}` : "ダッシュボードで1RMを入力。"}</p>
--      </article>
--      <article>
--        <span>目標</span>
--        <strong>${escapeHtml(goalStatus)}</strong>
--        <p>${escapeHtml(gapText)}</p>
--      </article>
--      <article>
--        <span>推奨の入口</span>
--        <strong>${escapeHtml(recommendedProgramLabel(athlete, cycle))}</strong>
--        <p>現在の選択: ${escapeHtml(selected)}。迷ったら、まず完走できる強度から始めます。</p>
--      </article>
--    </div>
--  `;
--}
--
--function renderCycleInputs() {
--  const cycle = normalizedCycle();
--  els.planTargetInput.value = cycle.planTarget;
--  els.programMethodInput.value = programMethodSelectValue(cycle);
--  updateCycleOptionControls(cycle);
--  els.cycleLengthInput.value = String(cycle.length);
--  els.daysPerWeekInput.value = String(cycle.daysPerWeek);
--  els.accessoryVolumeInput.value = cycle.accessoryVolume;
--  els.priorityLiftInput.value = cycle.priorityLift;
--  els.experienceLevelInput.value = cycle.experienceLevel;
--  els.cycleMethodNote.textContent = methodControlNote(cycle);
--  renderProgramMethodGuide(cycle);
--  els.programDisclaimer.textContent = programDisclaimerText(cycle);
--  els.programDisclaimer.classList.toggle("hidden", ["platform", "rebuild16"].includes(cycle.programMethod));
--  if (els.cycleWeekInput) {
--    els.cycleWeekInput.max = String(cycle.length);
--    els.cycleWeekInput.value = String(cycle.week);
--  }
--  els.squatMaxInput.value = cycle.maxes.squat || "";
--  els.benchMaxInput.value = cycle.maxes.bench || "";
--  els.deadliftMaxInput.value = cycle.maxes.deadlift || "";
--  renderFacilityOptions(cycle);
--}
--
--function renderProgramMethodGuide(cycle = normalizedCycle()) {
--  if (!els.programMethodGuide) return;
--  const method = programMethodInfo(cycle);
--  const current = method.label.replace(" / BIG3", "").replace(" / ベンチプレスのみ", "");
--  const cards = [
--    ["Buddy Lv1", "完走とRPE感覚を作る標準ルート。"],
--    ["Buddy Lv2", "週内に強弱を作る実戦寄り。"],
--    ["Rebuild 16", "大会後や停滞時に整え直すルート。"]
--  ];
--  const showBuddyCards = ["platform", "rebuild16"].includes(cycle.programMethod);
--  els.programMethodGuide.innerHTML = `
--    <div class="method-guide-head">
--      <span>選択中プラン</span>
--      <strong>${escapeHtml(current)}</strong>
--      <p>${escapeHtml(method.note)}</p>
--    </div>
--    ${showBuddyCards ? `
--      <div class="method-guide-grid">
--        ${cards.map(([title, body]) => `
--          <article>
--            <strong>${escapeHtml(title)}</strong>
--            <p>${escapeHtml(body)}</p>
--          </article>
--        `).join("")}
--      </div>
--    ` : `
--      <p class="program-disclaimer inline">参考テンプレートです。完全再現ではありません。</p>
--    `}
--  `;
--}
--
--function updateCycleOptionControls(cycle) {
--  const lengthLabels = { 3: "3週", 4: "4週", 6: "6週", 8: "8週", 10: "10週", 12: "12週", 16: "16週" };
--  const dayLabels = { 1: "週1回", 2: "週2回", 3: "週3回", 4: "週4回", 5: "週5回" };
--  els.cycleLengthInput.innerHTML = allowedCycleLengths(cycle).map((value) => `<option value="${value}">${lengthLabels[value]}</option>`).join("");
--  els.daysPerWeekInput.innerHTML = allowedDaysPerWeek(cycle).map((value) => `<option value="${value}">${dayLabels[value]}</option>`).join("");
--  const defaults = methodDefaults(cycle.programMethod, cycle.planTarget);
--  els.cycleLengthInput.disabled = defaults.locked.includes("length");
--  els.daysPerWeekInput.disabled = defaults.locked.includes("daysPerWeek");
--  els.accessoryVolumeInput.disabled = defaults.locked.includes("accessoryVolume");
--}
--
--function programMethodSelectValue(cycle) {
--  if (cycle.programMethod === "platform") {
--    return cycle.buddyLevel === "level2" ? "platform_level2" : "platform";
--  }
--  return cycle.programMethod;
--}
--
--function applyProgramMethodSelectValue(cycle, value) {
--  if (value === "platform_level2") {
--    cycle.programMethod = "platform";
--    cycle.buddyLevel = "level2";
--    return;
--  }
--  if (value === "platform_level1" || value === "platform") {
--    cycle.programMethod = "platform";
--    cycle.buddyLevel = "level1";
--    return;
--  }
--  cycle.programMethod = value;
--  cycle.buddyLevel = "level1";
--}
--
--function methodControlNote(cycle) {
--  const locked = methodDefaults(cycle.programMethod, cycle.planTarget).locked;
--  if (cycle.programMethod === "platform") {
--    const levelNote = cycle.buddyLevel === "level2"
--      ? "Lv2は中級者以上向け。週内でRPEと%1RMに波を作り、重点種目に高重量シングルを少量入れます。"
--      : "Lv1はRPE習得とフォーム再現を優先する標準プランです。";
--    return `トレーニング週数は${cycle.length}週。現在地チェック前の休養ブロックを含むため、想定完了期間は約${cycle.length + 1}週です。${levelNote}`;
--  }
--  if (cycle.programMethod === "rebuild16") return "Buddy Rebuild 16は16週固定。W1〜W5でLv1 Reset、W6で移行、W7〜W16でLv2 10週へ進む大会後・高疲労向けの再準備プランです。";
--  if (!locked.length) return "週数・頻度を選べます。";
--  if (cycle.programMethod === "hps") return "HPSは6週・週3回固定です。Hypertrophy → Power → Strengthの順で回します。";
--  if (cycle.programMethod === "smolov_jr") return "Smolov Jr.は3週・週4回・補助少なめ固定です。SQ/BP向けで、DLには適用しません。";
--  return "この方式では一部の設定が固定されます。";
--}
--
--function programDisclaimerText(cycle) {
--  if (["platform", "rebuild16"].includes(cycle.programMethod)) return "";
--  return "注記: HPS、5/3/1、Smolov Jr.は各メソッドの考え方を参考にしたPlatform Buddy用の簡略テンプレートです。公式プログラムの完全再現、公式提携、公式承認を示すものではありません。";
--}
--
--function renderFacilityOptions(cycle) {
--  els.facilityGrid.innerHTML = facilityExerciseOptions.map((exerciseId) => {
--    const meta = exerciseMeta(exerciseId);
--    const checked = cycle.availableFacilityExercises.includes(exerciseId) ? "checked" : "";
--    return `
--      <label class="facility-option">
--        <input type="checkbox" value="${exerciseId}" ${checked}>
--        <span>${escapeHtml(meta.name)}</span>
--      </label>
--    `;
--  }).join("");
--}
--
--function normalizedCycle() {
--  const athlete = currentAthlete();
--  athlete.cycle = athlete.cycle || defaultCycle();
--  athlete.cycle.length = Number(athlete.cycle.length || 12);
--  athlete.cycle.daysPerWeek = Number(athlete.cycle.daysPerWeek || 4);
--  athlete.cycle.planTarget = ["big3", "bench_only"].includes(athlete.cycle.planTarget) ? athlete.cycle.planTarget : "big3";
--  athlete.cycle.programMethod = ["platform", "rebuild16", "hps", "531", "smolov_jr"].includes(athlete.cycle.programMethod) ? athlete.cycle.programMethod : "platform";
--  athlete.cycle.buddyLevel = ["level1", "level2"].includes(athlete.cycle.buddyLevel) ? athlete.cycle.buddyLevel : "level1";
--  athlete.cycle.accessoryVolume = athlete.cycle.accessoryVolume || "normal";
--  athlete.cycle.priorityLift = ["total", "squat", "bench", "deadlift"].includes(athlete.cycle.priorityLift)
--    ? athlete.cycle.priorityLift
--    : "total";
--  athlete.cycle.experienceLevel = ["beginner", "intermediate", "advanced"].includes(athlete.cycle.experienceLevel)
--    ? athlete.cycle.experienceLevel
--    : "beginner";
--  athlete.cycle.week = Math.min(Number(athlete.cycle.week || 1), athlete.cycle.length);
--  athlete.cycle.recoveryMode = athlete.cycle.recoveryMode === true;
--  athlete.cycle.recoveryForWeek = athlete.cycle.recoveryForWeek ? Number(athlete.cycle.recoveryForWeek) : null;
--  athlete.cycle.recoveryFromWeek = athlete.cycle.recoveryFromWeek ? Number(athlete.cycle.recoveryFromWeek) : null;
--  athlete.cycle.pendingRecoveryAlert = athlete.cycle.pendingRecoveryAlert || null;
--  athlete.cycle.availableFacilityExercises = Array.isArray(athlete.cycle.availableFacilityExercises)
--    ? athlete.cycle.availableFacilityExercises.filter((id) => facilityExerciseOptions.includes(id))
--    : [];
--  athlete.cycle.maxes = { ...defaultCycle().maxes, ...(athlete.cycle.maxes || {}) };
--  applyProgramRules(athlete.cycle);
--  return athlete.cycle;
--}
--
--function updateCycleFromInputs() {
--  const cycle = normalizedCycle();
--  const previousMethod = cycle.programMethod;
--  const previousTarget = cycle.planTarget;
--  cycle.length = Number(els.cycleLengthInput.value);
--  cycle.daysPerWeek = Number(els.daysPerWeekInput.value);
--  cycle.planTarget = els.planTargetInput.value;
--  applyProgramMethodSelectValue(cycle, els.programMethodInput.value);
--  cycle.accessoryVolume = els.accessoryVolumeInput.value;
--  cycle.priorityLift = els.priorityLiftInput.value;
--  cycle.experienceLevel = els.experienceLevelInput.value;
--  cycle.week = Math.min(Math.max(Number(cycle.week || 1), 1), cycle.length);
--  cycle.availableFacilityExercises = [...els.facilityGrid.querySelectorAll("input:checked")].map((input) => input.value);
--  cycle.maxes = {
--    squat: els.squatMaxInput.value,
--    bench: els.benchMaxInput.value,
--    deadlift: els.deadliftMaxInput.value
--  };
--  if (previousMethod !== cycle.programMethod || previousTarget !== cycle.planTarget) {
--    cycle.recoveryMode = false;
--    cycle.recoveryForWeek = null;
--    cycle.recoveryFromWeek = null;
--    cycle.pendingRecoveryAlert = null;
--  }
--  applyProgramRules(cycle, previousMethod, previousTarget);
--  saveState();
--  render();
--}
--
--function cyclePhase(week, length, programMethod = "platform") {
--  if (programMethod === "rebuild16") return rebuild16Phase(week);
--  if (programMethod === "platform" && length >= 10 && week === 5) {
--    return {
--      name: "現在地チェック",
--      note: "疲労を抜いて、RPE8前後で現在地を確認。"
--    };
--  }
--  if (programMethod === "platform" && [10, 12].includes(Number(length)) && week === 4) {
--    return {
--      name: "ブリッジ週",
--      note: "W5へつなぐ週。重さより疲労を残さない。"
--    };
--  }
--  if (programMethod === "platform" && week === length) {
--    return {
--      name: "大会想定MAXチェック",
--      note: "SQ→BP→DLを試技形式で確認。第三だけ挑戦。"
--    };
--  }
--  const ratio = week / length;
--  if (ratio <= 0.34) {
--    return {
--      name: "蓄積期",
--      note: "フォームとRPE感覚を作る週。"
--    };
--  }
--  if (ratio <= 0.67) {
--    return {
--      name: "強化期",
--      note: "重さへ移行。トップで確認、バックオフで積む。"
--    };
--  }
--  if (week < length) {
--    return {
--      name: "ピーキング期",
--      note: "量を落として、重さの精度を上げる。"
--    };
--  }
--  return { name: "大会想定MAXチェック", note: "SQ→BP→DLの順で確認する週。" };
--}
--
--function rebuild16Phase(week) {
--  if (week <= 4) {
--    return {
--      name: "Lv1 Reset 蓄積期",
--      note: "フォームとRPE感覚を戻す週。"
--    };
--  }
--  if (week === 5) {
--    return {
--      name: "Reset 現在地チェック",
--      note: "Lv2へ入る前の現在地確認。"
--    };
--  }
--  if (week === 6) {
--    return {
--      name: "移行週",
--      note: "疲労を抜き、Lv2用TMを決める週。"
--    };
--  }
--  const lv2Week = week - 6;
--  const lv2Phase = cyclePhase(lv2Week, 10, "platform");
--  const label = lv2Phase.name === "大会想定MAXチェック" ? "大会想定MAXチェック" : `Lv2 ${lv2Phase.name}`;
--  return {
--    name: label,
--    note: lv2Phase.note
--  };
--}
--
--function renderProjections(cycle) {
--  const athlete = currentAthlete();
--  els.projectionGrid.innerHTML = activePlanLiftIds(cycle).map((liftId) => {
--    const max = Number(cycle.maxes[liftId] || bestE1rm(liftId) || 0);
--    if (!max) {
--      return `<article class="projection-card"><span>${mainLiftNames[liftId]}</span><strong>-</strong><p>現在1RMを入力</p></article>`;
--    }
--    const range = projectedPrRange(liftId, max, cycle.length, cycle.daysPerWeek, cycle.priorityLift, athlete);
--    return `<article class="projection-card"><span>${mainLiftNames[liftId]} 予測PR</span><strong>${range.low}〜${range.high}kg</strong><p>現在1RM ${max}kgから</p></article>`;
--  }).join("");
--}
--
--function projectedPrRange(liftId, max, length, daysPerWeek, priorityLift = "total", athlete = currentAthlete()) {
--  const presets = {
--    squat: { ten: [0.025, 0.055], twelve: [0.035, 0.07], cap: 22.5 },
--    bench: { ten: [0.035, 0.075], twelve: [0.05, 0.09], cap: 12.5 },
--    deadlift: { ten: [0.025, 0.055], twelve: [0.035, 0.07], cap: 25 }
--  };
--  const preset = presets[liftId];
--  const base = length === 10 ? preset.ten : preset.twelve;
--  const priorityScore = priorityLift === liftId ? 1.08 : priorityLift === "total" ? 1 : 0.96;
--  const volumeScore = ({ 3: 1.02, 4: 1.06, 5: 1.08 }[daysPerWeek] || 1.06) * priorityScore * contextProgressMultiplier(athlete);
--  const fatigueDiscount = { 3: 0, 4: 0.005, 5: 0.0125 }[daysPerWeek] || 0.005;
--  const lowGain = Math.min(max * base[0] * volumeScore, preset.cap);
--  const highGain = Math.min(max * Math.max(base[1] * volumeScore - fatigueDiscount, base[0]), preset.cap);
--  return {
--    low: roundToIncrement(max + lowGain, 2.5),
--    high: roundToIncrement(max + highGain, 2.5)
--  };
--}
--
--function currentTotal(cycle = normalizedCycle()) {
--  return mainLiftIds.reduce((sum, liftId) => sum + Number(cycle.maxes[liftId] || bestE1rm(liftId) || 0), 0);
--}
--
--function contextProgressMultiplier(athlete = currentAthlete()) {
--  const total = currentTotal();
--  const bodyweight = Number(athlete.bodyweight);
--  if (!total || !bodyweight) return 1;
--
--  const ratio = total / bodyweight;
--  const thresholds = athlete.sex === "female"
--    ? { intermediate: 3.2, advanced: 4.6, high: 5.8 }
--    : { intermediate: 4.0, advanced: 5.5, high: 7.0 };
--  const levelMultiplier = ratio < thresholds.intermediate ? 1.08
--    : ratio < thresholds.advanced ? 1
--    : ratio < thresholds.high ? 0.86
--    : 0.72;
--  const classUpper = weightClassMeta(athlete.sex, athlete.weightClass)[2];
--  const classMultiplier = !Number.isFinite(classUpper) ? 0.92
--    : classUpper <= (athlete.sex === "female" ? 57 : 66) ? 1.03
--    : classUpper >= (athlete.sex === "female" ? 84 : 105) ? 0.96
--    : 1;
--
--  return levelMultiplier * classMultiplier;
--}
--
--function liftBalance(cycle = normalizedCycle(), athlete = currentAthlete()) {
--  const lifts = Object.fromEntries(mainLiftIds.map((liftId) => [liftId, Number(cycle.maxes[liftId] || bestE1rm(liftId) || 0)]));
--  const total = lifts.squat + lifts.bench + lifts.deadlift;
--  if (!total) return null;
--
--  const expected = athlete.sex === "female"
--    ? { squat: 0.35, bench: 0.2, deadlift: 0.45 }
--    : { squat: 0.36, bench: 0.24, deadlift: 0.4 };
--  const gaps = mainLiftIds.map((liftId) => ({
--    liftId,
--    value: lifts[liftId],
--    gap: lifts[liftId] / total - expected[liftId]
--  })).sort((a, b) => a.gap - b.gap);
--
--  return { lifts, total, recommended: gaps[0].liftId, gap: gaps[0].gap };
--}
--
--function exerciseLine(item, cycle, dayIndex = 0, itemIndex = 0) {
--  if (item.kind === "method") {
--    const note = guideEnabled() && item.note ? `<p class="guide-note">${escapeHtml(item.note)}</p>` : "";
--    const actual = shouldShowActualInput(item) ? actualInputBlock(item, cycle, item.work, item.note, dayIndex, itemIndex) : "";
--    return `<div class="exercise-row method-row"><strong>${escapeHtml(item.name)}</strong>${planPrescriptionMarkup(item.work)}${note}${actual}</div>`;
--  }
--  if (item.kind === "accessory") {
--    const badge = item.exerciseId && equipmentLabel(item.exerciseId)
--      ? `<em class="equipment-tag">${equipmentLabel(item.exerciseId)}</em>`
--      : "";
--    const note = guideEnabled() && item.note ? `<p class="guide-note">${escapeHtml(item.note)}</p>` : "";
--    const actual = shouldShowActualInput(item) ? actualInputBlock(item, cycle, item.work, item.note, dayIndex, itemIndex) : "";
--    return `<div class="exercise-row accessory-row"><strong>${escapeHtml(item.name)}${badge}</strong><span>${escapeHtml(item.work)}</span>${note}${actual}</div>`;
--  }
--  const max = Number(cycle.maxes[item.lift] || bestE1rm(item.lift) || 0);
--  const prescription = prescriptionForWeek(item.lift, max, cycle.week, cycle.length, cycle.daysPerWeek, item.variant, cycle.priorityLift, cycle.buddyLevel);
--  const phase = cyclePhase(cycle.week, cycle.length, cycle.programMethod);
--  const detailMarkup = guideEnabled() && prescription.detail
--    ? `<details class="set-detail-note">
--        <summary>${escapeHtml(rpeCoachHeadline(phase, cycle))}</summary>
--        <p>${escapeHtml(prescription.detail)}</p>
--      </details>`
--    : "";
--  return `
--    <div class="exercise-row main-row">
--      <div class="exercise-row-header">
--        <strong>${escapeHtml(item.name)}</strong>
--        ${detailMarkup}
--      </div>
--      ${planPrescriptionMarkup(prescription.title)}
--      ${actualInputBlock(item, cycle, prescription.title, prescription.detail, dayIndex, itemIndex)}
--    </div>
--  `;
--}
--
--function planPrescriptionMarkup(title = "") {
--  const blocks = parsePrescriptionBlocks(title);
--  if (!blocks.length) return `<span>${escapeHtml(title)}</span>`;
--  return `
--    <table class="plan-set-table" aria-label="セット予定">
--      <thead>
--        <tr>
--          <th></th>
--          <th>重量</th>
--          <th>回数</th>
--          <th>セット</th>
--          <th>RPE目標</th>
--        </tr>
--      </thead>
--      <tbody>
--        ${blocks.map((block) => `
--          <tr class="plan-set-row ${escapeHtml(block.type)}">
--            <td class="set-label">${block.type === "topset" ? "Top" : "Back"}</td>
--            <td class="set-weight"><strong>${escapeHtml(block.weight)}<small>kg</small></strong></td>
--            <td class="set-reps">${escapeHtml(block.reps)}</td>
--            <td class="set-sets">${block.sets ? `×${escapeHtml(block.sets)}` : "—"}</td>
--            <td class="set-rpe">${escapeHtml(block.rpe)}</td>
--          </tr>
--        `).join("")}
--      </tbody>
--    </table>
--  `;
--}
--
--function parsePrescriptionBlocks(title = "") {
--  const text = String(title || "").replace(/×/g, "x");
--  const attemptMatches = [...text.matchAll(/(第一|第二|第三)\s*([\d.]+)(?:\s*[〜~\-]\s*([\d.]+))?\s*kg\s*@?\s*(?:RPE)?\s*([\d.]+(?:[〜~\-][\d.]+)?)/g)];
--  if (attemptMatches.length) {
--    return attemptMatches.map((match) => {
--      const name = match[1];
--      const low = match[2];
--      const high = match[3] || "";
--      const rpeLabel = normalizeRangeText(match[4]);
--      const weightLabel = high ? `${low}〜${high}kg` : `${low}kg`;
--      return {
--        label: `${name}試技`,
--        displayLabel: `${name}試技`,
--        type: "attempt",
--        weight: high ? "" : formatNumber(Number(low)),
--        weightLow: low,
--        weightHigh: high,
--        weightLabel,
--        reps: "1",
--        sets: "",
--        rpe: `@RPE${rpeLabel}`,
--        rpeLabel,
--        goal: `${name} ${weightLabel} @${rpeLabel}`
--      };
--    });
--  }
--
--  const matches = [...text.matchAll(/([\d.]+)\s*kg\s*x\s*(\d+(?:[〜~\-]\d+)?)\s*(?:x\s*(\d+))?(?:\s*@?\s*(?:RPE)?\s*([\d.]+(?:[〜~\-][\d.]+)?))?/g)];
--  return matches.map((match, index) => {
--    const weight = Number(match[1]);
--    const reps = normalizeRangeText(match[2]);
--    const sets = match[3] || "";
--    const rpeLabel = normalizeRangeText(match[4] || "");
--    return {
--      label: index === 0 ? "トップセット" : "バックオフセット",
--      type: index === 0 ? "topset" : "backoff",
--      weight: formatNumber(weight),
--      range: recommendationRange(weight),
--      reps,
--      sets,
--      rpe: rpeLabel ? `@RPE${rpeLabel}` : "",
--      rpeLabel,
--      goal: `${reps}回${sets ? ` × ${sets}set` : ""}${rpeLabel ? ` @${rpeLabel}` : ""}`
--    };
--  });
--}
--
--function recommendationRange(weight) {
--  const step = weight >= 100 ? 5 : 2.5;
--  return `${formatNumber(roundToIncrement(Math.max(0, weight - step), 2.5))}〜${formatNumber(roundToIncrement(weight + step, 2.5))}`;
--}
--
--function formatNumber(value) {
--  return Number(value).toFixed(1).replace(/\.0$/, "");
--}
--
--function shouldShowActualInput(item) {
--  const text = `${item.name || ""} ${item.work || ""} ${item.note || ""}`;
--  return !/(完全休養|休む|散歩|ストレッチ|コンディショニング)/.test(text);
--}
--
--function actualInputBlock(item, cycle, planText, detail, dayIndex, itemIndex) {
--  const target = plannedTopSet(planText, detail);
--  const key = planFeedbackKey(cycle, dayIndex, itemIndex, item.lift || item.exerciseId || "custom", item.name);
--  const saved = currentAthlete().rpeFeedback?.[key];
--  const previous = previousFeedbackMarkup(cycle, item);
--  const feedback = saved ? feedbackMarkup(saved) : "";
--  const confidence = saved?.rpeConfidence || "learning";
--  const rows = saved?.setDetails?.length ? saved.setDetails : [{ weight: saved?.weight ?? target.weight ?? "", reps: saved?.reps ?? target.reps ?? "", rpe: saved?.rpe ?? "" }];
--  return `
--    <div class="actual-box" data-plan-key="${escapeHtml(key)}" data-lift="${escapeHtml(item.lift || item.exerciseId || "custom")}" data-source="plan" data-exercise="${escapeHtml(item.name)}" data-planned-rpe="${target.rpe || ""}" data-plan-text="${escapeHtml(planText)}">
--      <div class="actual-title">
--        <strong>実績入力</strong>
--        <span>${target.rpe ? `予定 @${target.rpe}` : "RPE判定"}</span>
--      </div>
--      ${previous}
--      <div class="actual-set-list">
--        ${rows.map((row, index) => actualSetRowMarkup(row, index)).join("")}
--      </div>
--      <label class="rpe-confidence">
--        <span>RPE自信度</span>
--        <select class="actual-rpe-confidence">
--          <option value="solid"${confidence === "solid" ? " selected" : ""}>自信あり</option>
--          <option value="unsure"${confidence === "unsure" ? " selected" : ""}>少し迷う</option>
--          <option value="learning"${confidence === "learning" ? " selected" : ""}>感覚練習中</option>
--        </select>
--      </label>
--      <div class="actual-actions">
--        <button class="text-button compact actual-add-set" type="button">セット追加</button>
--        <button class="text-button compact actual-save" type="button">記録</button>
--      </div>
--      ${feedback}
--    </div>
--  `;
--}
--
--function actualSetRowMarkup(row = {}, index = 0) {
--  return editableActualSetRowMarkup(row, index);
--}
--
--function editableActualSetRowMarkup(row = {}, index = 0) {
--  const kind = row.kind || row.label || "";
--  const setLabel = row.displayLabel || `S${index + 1}`;
--  const isAttempt = /第一試技|第二試技|第三試技/.test(setLabel);
--  const isCheck = /確認セット/.test(setLabel);
--  const isAccessory = String(kind).includes("補助");
--  const plannedKg = isAttempt || isAccessory ? "" : String(row.plannedWeight ?? row.weight ?? "");
--  const plannedWeightHint = String(row.plannedWeightLabel ?? (row.plannedWeight ? `${row.plannedWeight}kg` : ""));
--  const plannedReps = String(row.plannedReps ?? row.reps ?? "");
--  const plannedRepsLabel = String(row.plannedRepsLabel ?? plannedReps);
--  const plannedRpeRaw = cleanRpeValue(row.plannedRpeLabel || row.plannedRpe || "");
--  const rawActualKg = String(row.weight ?? (isAccessory || isAttempt ? "" : plannedKg) ?? "");
--  const actualKg = isAccessory && rawActualKg && !/^\d+(?:\.\d+)?$/.test(rawActualKg.trim()) ? "" : rawActualKg;
--  const actualReps = String(row.reps ?? (isAttempt ? "1" : plannedReps) ?? "");
--  const actualRpe = String(row.rpe ?? "");
--  const kindLower = String(kind).toLowerCase();
--  const kindClass = isAttempt
--    ? "set-kind-attempt"
--    : isCheck
--      ? "set-kind-check"
--      : kindLower.includes("top")
--        ? "set-kind-top"
--        : kindLower.includes("back")
--          ? "set-kind-back"
--          : isAccessory
--            ? "set-kind-accessory"
--            : "set-kind-default";
--  const rowClass = isAttempt ? " attempt-row" : isCheck ? " check-row" : isAccessory ? " accessory-row" : "";
--  const plannedLabel = row.plannedLabel || [
--    plannedWeightHint,
--    plannedRepsLabel ? `${plannedRepsLabel}回` : "",
--    plannedRpeRaw ? `@${plannedRpeRaw}` : ""
--  ].filter(Boolean).join(" / ");
--  const showPlanLabel = isAttempt || isCheck || isAccessory;
--  const placeholderKg = isAttempt ? (row.weightLow || "kg") : (plannedKg || "kg");
-+      label: prescriptionBlockLabel(block, item),
-+      type: block.type,
-+      weight: prescriptionBlockWeightLabel(block),
-+      reps: block.reps,
-+      sets: block.sets || "1",
-+      rpe: block.rpe,
-+      sourceItem: item,
-+      itemIndex,
-+      rowIndex,
-+      planText: item.work || "",
-+      detail: item.note || ""
-+    }));
-+  }
-+
-+  const max = Number(cycle.maxes[item.lift] || bestE1rm(item.lift) || 0);
-+  const prescription = prescriptionForWeek(
-+    item.lift,
-+    max,
-+    cycle.week,
-+    cycle.length,
-+    cycle.daysPerWeek,
-+    item.variant,
-+    cycle.priorityLift,
-+    cycle.buddyLevel
-+  );
-+  const blocks = parsePrescriptionBlocks(prescription.title);
-+  return blocks.map((block, rowIndex) => ({
-+    name: item.name,
-+    label: block.type === "topset" ? "Top" : "Back",
-+    type: block.type,
-+    weight: `${block.weight}kg`,
-+    reps: block.reps,
-+    sets: block.sets || "1",
-+    rpe: block.rpe,
-+    sourceItem: item,
-+    itemIndex,
-+    rowIndex,
-+    planText: prescription.title,
-+    detail: prescription.detail
-+  }));
-+}
-+
-+function renderEditableExerciseSheet(item, cycle, dayIndex, itemIndex) {
-+  const key = planFeedbackKey(cycle, dayIndex, itemIndex, item.lift || item.exerciseId || "custom", item.name);
-+  const saved = currentAthlete().rpeFeedback?.[key];
-+  const confidence = saved?.rpeConfidence || "learning";
-+  const prescribedRows = prescribedSetRows(item, cycle);
-+  const savedRows = Array.isArray(saved?.setDetails) ? saved.setDetails : [];
-+  const rowCount = Math.max(prescribedRows.length, savedRows.length);
-+  const inputRows = Array.from({ length: rowCount }, (_, index) => {
-+    const planned = prescribedRows[index] || {};
-+    const savedRow = savedRows[index] || {};
-+    return {
-+      ...planned,
-+      ...savedRow,
-+      kind: planned.kind || savedRow.kind || "",
-+      displayLabel: planned.displayLabel || savedRow.displayLabel || "",
-+      plannedWeight: planned.plannedWeight ?? savedRow.plannedWeight ?? planned.weight ?? "",
-+      plannedWeightLabel: planned.plannedWeightLabel ?? savedRow.plannedWeightLabel ?? "",
-+      weightLow: planned.weightLow ?? savedRow.weightLow ?? "",
-+      weightHigh: planned.weightHigh ?? savedRow.weightHigh ?? "",
-+      plannedReps: planned.plannedReps ?? savedRow.plannedReps ?? planned.reps ?? "",
-+      plannedRepsLabel: planned.plannedRepsLabel ?? savedRow.plannedRepsLabel ?? "",
-+      plannedRpe: planned.plannedRpe ?? savedRow.plannedRpe ?? "",
-+      plannedRpeLabel: planned.plannedRpeLabel ?? savedRow.plannedRpeLabel ?? "",
-+      plannedLabel: planned.plannedLabel ?? savedRow.plannedLabel ?? "",
-+      weight: savedRow.weight ?? planned.weight ?? planned.plannedWeight ?? "",
-+      reps: savedRow.reps ?? planned.reps ?? planned.plannedReps ?? "",
-+      rpe: savedRow.rpe ?? ""
-+    };
-+  });
-+  const planSummary = prescriptionSummaryLabel(item, cycle);
-+  const feedback = saved ? feedbackMarkup(saved) : "";
-+  const plannedRpe = prescribedRows.length ? (prescribedRows[0].plannedRpe || "") : "";
-+  const planText = planTextForActualItem(item, cycle);
-+  const checkNote = item.kind === "method" && isCurrentCheckItem(item)
-+    ? `<p class="method-check-note">3〜5回@8で現在地を確認。5回やり切るより、RPE8で止めることが目的です。</p>`
-+    : "";
-+  return `
-+    <section class="editable-exercise-sheet actual-box"
-+      data-plan-key="${escapeHtml(key)}"
-+      data-lift="${escapeHtml(item.lift || item.exerciseId || "custom")}"
-+      data-source="plan"
-+      data-exercise="${escapeHtml(item.name)}"
-+      data-planned-rpe="${escapeHtml(plannedRpe)}"
-+      data-plan-text="${escapeHtml(planText)}">
-+      <div class="editable-exercise-head">
-+        <div>
-+          <strong>${escapeHtml(item.name)}</strong>
-+          ${planSummary ? `<span class="exercise-rpe-hint">${escapeHtml(planSummary)}</span>` : ""}
-+        </div>
-+      </div>
-+      ${checkNote}
-+      <div class="editable-set-sheet actual-set-list">
-+        <div class="editable-set-header-row">
-+          <span>set</span>
-+          <span>kg</span>
-+          <span>回</span>
-+          <span>RPE</span>
-+          <span></span>
-+        </div>
-+        ${inputRows.map((row, index) => editableActualSetRowMarkup(row, index)).join("")}
-+      </div>
-+      <div class="editable-exercise-footer">
-+        <select class="actual-rpe-confidence visually-hidden" aria-hidden="true" tabindex="-1">
-+          <option value="solid"${confidence === "solid" ? " selected" : ""}>自信あり</option>
-+          <option value="unsure"${confidence === "unsure" ? " selected" : ""}>少し迷う</option>
-+          <option value="learning"${confidence === "learning" ? " selected" : ""}>感覚練習中</option>
-+        </select>
-+        <button class="text-button compact actual-add-set" type="button">＋セット</button>
-+        <button class="primary-button inline actual-save" type="button">記録</button>
-+      </div>
-+      ${feedback}
-+    </section>
-+  `;
-+}
-+
-+function normalizeRangeText(value = "") {
-+  return String(value || "")
-+    .replace(/～/g, "〜")
-+    .replace(/~/g, "〜")
-+    .replace(/-/g, "〜")
-+    .replace(/\s*〜\s*/g, "〜")
-+    .trim();
-+}
-+
-+function cleanRpeValue(value = "") {
-+  return String(value || "")
-+    .replace(/@/g, "")
-+    .replace(/RPE/gi, "")
-+    .trim();
-+}
-+
-+function plannedRpeNumberFromLabel(label = "") {
-+  const text = cleanRpeValue(label);
-+  const range = text.match(/^([\d.]+)\s*[〜~\-]\s*([\d.]+)/);
-+  if (range) return range[2];
-+  const single = text.match(/^([\d.]+)/);
-+  return single ? single[1] : "";
-+}
-+
-+function isCurrentCheckItem(item = {}) {
-+  const text = `${item.name || ""} ${item.title || ""} ${item.work || ""}`;
-+  return /現在地|確認|チェック/.test(text) && !/第一|第二|第三/.test(text);
-+}
-+
-+function prescribedAccessoryRows(item) {
-+  const acc = parseAccessoryWork(item.work);
-+  const setCount = Math.max(1, Math.min(8, Number(acc.sets) || 1));
-+  const targetReps = accessoryTargetReps(acc.reps);
-+  const plannedRpe = acc.rpe ? cleanRpeValue(acc.rpe) : "";
-+  const plannedLabel = [
-+    targetReps ? `${targetReps}回` : "",
-+    acc.sets ? `${acc.sets}set` : "",
-+    acc.rpe ? acc.rpe.replace("@RPE", "@") : ""
-+  ].filter(Boolean).join(" × ");
-+  return Array.from({ length: setCount }, () => ({
-+    kind: "補助",
-+    plannedWeight: "",
-+    plannedReps: targetReps,
-+    plannedSets: acc.sets,
-+    plannedRpe,
-+    plannedLabel,
-+    weight: "",
-+    reps: targetReps,
-+    rpe: ""
-+  }));
-+}
-+
-+function prescribedMethodRows(item, cycle) {
-+  const blocks = parsePrescriptionBlocks(item.work || "");
-+  if (!blocks.length) {
-+    return [{
-+      kind: "確認",
-+      displayLabel: "確認セット",
-+      plannedWeight: "",
-+      plannedWeightLabel: "",
-+      plannedReps: "",
-+      plannedRepsLabel: "",
-+      plannedRpe: "",
-+      plannedRpeLabel: "",
-+      plannedLabel: item.work || "",
-+      weight: "",
-+      reps: "",
-+      rpe: ""
-+    }];
-+  }
-+  return blocks.flatMap((block) => {
-+    const isAttempt = block.type === "attempt";
-+    const setCount = Math.max(1, Math.min(8, Number(block.sets) || 1));
-+    const plannedRpe = plannedRpeNumberFromLabel(block.rpeLabel || block.rpe);
-+    if (isAttempt) {
-+      return [{
-+        kind: "試技",
-+        displayLabel: block.displayLabel || block.label,
-+        plannedWeight: "",
-+        plannedWeightLabel: block.weightLabel || "",
-+        weightLow: block.weightLow || "",
-+        weightHigh: block.weightHigh || "",
-+        plannedReps: "1",
-+        plannedRepsLabel: "1",
-+        plannedRpe,
-+        plannedRpeLabel: block.rpeLabel || "",
-+        plannedLabel: block.goal || "",
-+        weight: "",
-+        reps: "1",
-+        rpe: ""
-+      }];
-+    }
-+    return Array.from({ length: setCount }, (_, index) => ({
-+      kind: "確認",
-+      displayLabel: isCurrentCheckItem(item) ? "確認セット" : (block.label || `S${index + 1}`),
-+      plannedWeight: block.weight,
-+      plannedWeightLabel: block.weight ? `${block.weight}kg` : "",
-+      plannedReps: "",
-+      plannedRepsLabel: block.reps || "",
-+      plannedSets: block.sets || "",
-+      plannedRpe,
-+      plannedRpeLabel: block.rpeLabel || "",
-+      plannedLabel: [block.weight ? `${block.weight}kg` : "", block.goal || ""].filter(Boolean).join(" / "),
-+      weight: block.weight,
-+      reps: "",
-+      rpe: ""
-+    }));
-+  });
-+}
-+
-+function prescribedSetRows(item, cycle) {
-+  if (item.kind === "method") {
-+    return prescribedMethodRows(item, cycle);
-+  }
-+
-+  if (item.kind === "accessory") {
-+    return prescribedAccessoryRows(item);
-+  }
-+
-+  const blocks = parsePrescriptionBlocks(planTextForActualItem(item, cycle));
-+  const rows = [];
-+  blocks.forEach((block) => {
-+    const setCount = Math.max(1, Math.min(8, Number(block.sets) || 1));
-+    const rpeNum = cleanRpeValue(block.rpeLabel || block.rpe);
-+    const kind = block.type === "topset" ? "Top" : "Back";
-+    for (let index = 0; index < setCount; index += 1) {
-+      rows.push({
-+        kind,
-+        plannedWeight: block.weight,
-+        plannedReps: block.reps,
-+        plannedRpe: rpeNum,
-+        weight: block.weight,
-+        reps: block.reps,
-+        rpe: "",
-+      });
-+    }
-+  });
-+  return rows.length ? rows : [{ kind: "", plannedWeight: "", plannedReps: "", plannedRpe: "", weight: "", reps: "", rpe: "" }];
-+}
-+
-+function prescriptionSummaryLabel(item, cycle) {
-+  const blocks = parsePrescriptionBlocks(planTextForActualItem(item, cycle));
-+  const labels = blocks.map((block) => block.rpe).filter(Boolean);
-+  return labels.length ? `予定 ${labels.join(" / ")}` : "";
-+}
-+
-+function planTextForActualItem(item, cycle) {
-+  if (item.kind === "method" || item.kind === "accessory") return item.work || "";
-+  const max = Number(cycle.maxes[item.lift] || bestE1rm(item.lift) || 0);
-+  return prescriptionForWeek(
-+    item.lift,
-+    max,
-+    cycle.week,
-+    cycle.length,
-+    cycle.daysPerWeek,
-+    item.variant,
-+    cycle.priorityLift,
-+    cycle.buddyLevel
-+  ).title;
-+}
-+
-+function renderDayActualBlock(item, cycle, dayIndex, itemIndex) {
-+  if (!shouldShowActualInput(item)) return "";
-+  if (item.kind === "method") return actualInputBlock(item, cycle, item.work, item.note, dayIndex, itemIndex);
-+  if (item.kind === "accessory") return actualInputBlock(item, cycle, item.work, item.note, dayIndex, itemIndex);
-+  const max = Number(cycle.maxes[item.lift] || bestE1rm(item.lift) || 0);
-+  const prescription = prescriptionForWeek(item.lift, max, cycle.week, cycle.length, cycle.daysPerWeek, item.variant, cycle.priorityLift, cycle.buddyLevel);
-+  return actualInputBlock(item, cycle, prescription.title, prescription.detail, dayIndex, itemIndex);
-+}
-+
-+function renderDayNotes(day, cycle) {
-+  const notes = [];
-+  day.items.forEach((item) => {
-+    if (item.note) notes.push(`<li><strong>${escapeHtml(item.name)}</strong>：${escapeHtml(item.note)}</li>`);
-+    if (item.lift) {
-+      const max = Number(cycle.maxes[item.lift] || bestE1rm(item.lift) || 0);
-+      const prescription = prescriptionForWeek(item.lift, max, cycle.week, cycle.length, cycle.daysPerWeek, item.variant, cycle.priorityLift, cycle.buddyLevel);
-+      if (prescription.detail) notes.push(`<li><strong>${escapeHtml(item.name)}</strong>：${escapeHtml(prescription.detail)}</li>`);
-+    }
-+  });
-+  if (!notes.length) return `<p class="muted">補足はありません。</p>`;
-+  return `<ul class="day-notes-list">${notes.join("")}</ul>`;
-+}
-+
-+function extractRepsFromWork(work = "") {
-+  const text = String(work || "").replace(/×/g, "x");
-+  const repsMatch =
-+    text.match(/(\d+(?:[〜~\-]\d+)?\+?)\s*回/) ||
-+    text.match(/^(\d+(?:[〜~\-]\d+)?\+?)\s*x/i);
-+  return repsMatch ? repsMatch[1] : "";
-+}
-+
-+function extractSetsFromWork(work = "") {
-+  const text = String(work || "").replace(/×/g, "x");
-+  const setMatch =
-+    text.match(/(\d+)\s*(?:set|セット)/i) ||
-+    text.match(/回\s*x\s*(\d+)/i) ||
-+    text.match(/x\s*(\d+)\s*$/i);
-+  return setMatch ? setMatch[1] : "";
-+}
-+
-+function extractRpeFromWork(work = "") {
-+  const match = String(work).match(/@?\s*RPE\s*([\d.]+(?:\s*[〜~-]\s*[\d.]+)?)/i) || String(work).match(/@([\d.]+(?:\s*[〜~-]\s*[\d.]+)?)/);
-+  return match ? `@RPE${match[1].replace(/\s+/g, "")}` : "";
-+}
-+
-+function parseAccessoryWork(work = "") {
-+  const reps = extractRepsFromWork(work);
-+  const sets = extractSetsFromWork(work);
-+  const rpe = extractRpeFromWork(work);
-+  const label = [
-+    reps ? `${reps}回` : "",
-+    sets ? `${sets}set` : "",
-+    rpe ? rpe.replace("@RPE", "@") : ""
-+  ].filter(Boolean).join(" × ");
-+  return { reps, sets, rpe, label };
-+}
-+
-+function accessoryTargetReps(reps = "") {
-+  const text = String(reps || "").trim();
-+  const range = text.match(/^(\d+)\s*[〜~-]\s*\d+/);
-+  if (range) return range[1];
-+  const plus = text.match(/^(\d+)\+/);
-+  if (plus) return plus[1];
-+  const single = text.match(/^(\d+)/);
-+  if (single) return single[1];
-+  return "";
-+}
-+
-+function renderPlanContext() {
-+  const cycle = normalizedCycle();
-+  const phase = cyclePhase(cycle.week, cycle.length, cycle.programMethod);
-+  const milestone = nextCycleMilestone(cycle);
-+  const purpose = phasePurpose(phase, cycle);
-+
-+  const contextTitle = document.querySelector("#planContextTitle");
-+  const contextSummary = document.querySelector("#planContextSummary");
-+  const contextGrid = document.querySelector("#planContextGrid");
-+
-+  if (!contextTitle || !contextGrid) return;
-+
-+  contextTitle.textContent = `今週の文脈 / W${cycle.week} / ${cycle.length}週中`;
-+  if (contextSummary) {
-+    contextSummary.textContent = `${phase.name} / 次の節目: ${milestone}`;
-+  }
-+
-+  contextGrid.innerHTML = `
-+    <article>
-+      <span>現在週</span>
-+      <strong>W${cycle.week} / ${cycle.length}週</strong>
-+      <p>${escapeHtml(phase.name)}</p>
-+    </article>
-+    <article>
-+      <span>今週のテーマ</span>
-+      <strong>${escapeHtml(phase.name)}</strong>
-+      <p>${escapeHtml(purpose || phase.note || "")}</p>
-+    </article>
-+    <article>
-+      <span>次の節目</span>
-+      <strong>${escapeHtml(milestone)}</strong>
-+      <p>このまま進めましょう。</p>
-+    </article>
-+  `;
-+}
-+
-+function planCommandCard(cycle, phase, weekDays = weeklyTemplate(cycle)) {
-+  const athlete = currentAthlete();
-+  const wellness = wellnessEvaluation(todayWellnessEntry(athlete));
-+  const firstDay = weekDays[0] || { title: "Day 1", items: [] };
-+  const mainItems = firstDay.items.filter((item) => item.lift || item.kind === "accessory").slice(0, 3);
-+  const mainLine = mainItems.map((item) => item.name).join(" / ") || "今日のメニューを確認";
-+  const progress = planWeekCompletion(cycle, weekDays);
-+  const progressPct = progress.planned ? Math.min(100, Math.round((progress.completed / progress.planned) * 100)) : 0;
-+  const method = programMethodInfo(cycle).label
-+    .replace(" / BIG3", "")
-+    .replace(" / ベンチプレスのみ", "");
-+  const phaseName = phase?.name || "今週";
-+  return `
-+    <article class="plan-command-card wellness-${escapeHtml(wellness.status)}">
-+      <div class="plan-command-status">
-+        <span class="plan-command-face">${wellness.status === "good" ? "✓" : wellness.status === "unset" ? "?" : "!"}</span>
-+        <div>
-+          <p class="eyebrow">Today's Plan</p>
-+          <h2>${escapeHtml(method)} / W${cycle.week} Day1</h2>
-+          <p>${escapeHtml(phaseName)} / ${escapeHtml(mainLine)}</p>
-+        </div>
-+      </div>
-+      <div class="plan-command-grid">
-+        <div>
-+          <span>今日の体調</span>
-+          <strong>${escapeHtml(wellness.label)}</strong>
-+          <small>${wellness.score !== null ? `${wellness.score}点` : "未入力"}</small>
-+        </div>
-+        <div>
-+          <span>今日の方針</span>
-+          <strong>${escapeHtml(wellness.short)}</strong>
-+          <small>${escapeHtml(wellness.recommendation)}</small>
-+        </div>
-+        <div>
-+          <span>今週の進捗</span>
-+          <strong>${progress.completed}/${progress.planned || weekDays.length}</strong>
-+          <small>${progress.planned ? `${progressPct}% 完了` : "Dayを開いて確認"}</small>
-+        </div>
-+      </div>
-+      <div class="plan-command-progress" aria-label="今週の進捗">
-+        <span style="width:${progressPct}%"></span>
-+      </div>
-+    </article>
-+  `;
-+}
-+
-+function planWeekCompletion(cycle, weekDays = weeklyTemplate(cycle)) {
-+  const feedback = currentAthlete().rpeFeedback || {};
-+  const prefix = [cycle.programMethod, cycle.buddyLevel || "level1", cycle.planTarget, `w${cycle.week}`].join("|");
-+  const completed = Object.keys(feedback).filter((key) => key.startsWith(prefix)).length;
-+  const planned = weekDays.reduce((sum, day) => {
-+    return sum + day.items.filter((item) => shouldShowActualInput(item)).length;
-+  }, 0);
-+  return { completed: Math.min(completed, planned), planned };
-+}
-+
-+function rpeCalibrationCard(cycle) {
-+  if (cycle.programMethod !== "platform" || cycle.week !== 1) return "";
-+  const key = rpeCalibrationKey(cycle);
-+  const saved = currentAthlete().rpeCalibration?.[key] || {};
-+  const status = saved.status || "";
-+  const confidence = saved.rpeConfidence || "learning";
-+  const outcome = rpeCalibrationOutcome(saved);
-+  return `
-+    <details class="plan-card rpe-calibration-card" ${saved.status ? "" : ""}>
-+      <summary class="day-summary">
-+        <div>
-+          <span class="lift-badge">W0</span>
-+          <h2>プラン開始前チェック</h2>
-+          <p>${saved.status === "done" ? `RPEものさしセット記録済み${outcome ? ` / ${outcome}` : ""}` : saved.status === "skipped" ? "RPEものさしセットはスキップ記録済み" : "RPEものさしセットで余力予測の基準を作る"}</p>
-+        </div>
-+        <span class="history-open">▾</span>
-+      </summary>
-+      <div class="rpe-calibration-body" data-calibration-key="${escapeHtml(key)}">
-+        <p class="recommended-badge">任意ドリル</p>
-+        <h3>RPEものさしセット</h3>
-+        <p>安全な補助種目で、RIR0 / RPE10の感覚を確認する学習ドリルです。目的は追い込みではなく、PRサイクルで使うRPE/RIRの校正です。</p>
-+        <ul>
-+          <li>BIG3本体・高重量フリーウェイトでは行いません。</li>
-+          <li>マシン、ケーブル、安全性の高い補助種目で行います。</li>
-+          <li>「もう無理そう」で止めず、安全な実施フォームを保ったまま次の1回を完遂できないところまで確認します。</li>
-+          <li>最後の1回が途中で止まってもOK。痛み、反動、危険な姿勢崩れ、強い疲労がある日はスキップしてください。</li>
-+        </ul>
-+        <div class="calibration-status">
-+          <button class="text-button compact calibration-status-btn ${status === "done" ? "active" : ""}" type="button" data-calibration-status="done">実施した</button>
-+          <button class="text-button compact calibration-status-btn ${status === "skipped" ? "active" : ""}" type="button" data-calibration-status="skipped">スキップ</button>
-+        </div>
-+        <div class="calibration-grid">
-+          <label>使用種目<input class="calibration-exercise" type="text" value="${escapeHtml(saved.exercise || "")}" placeholder="例: レッグカール"></label>
-+          <label>重量<input class="calibration-weight" inputmode="decimal" type="number" min="0" step="0.5" value="${escapeHtml(saved.weight ?? "")}"></label>
-+          <label>回数<input class="calibration-reps" inputmode="numeric" type="number" min="0" step="1" value="${escapeHtml(saved.reps ?? "")}"></label>
-+          <label>予想RIR<input class="calibration-predicted-rir" inputmode="numeric" type="number" min="0" max="10" step="1" value="${escapeHtml(saved.predictedRir ?? "")}"></label>
-+          <label>実際の追加回数<input class="calibration-actual-extra" inputmode="numeric" type="number" min="0" max="30" step="1" value="${escapeHtml(saved.actualExtraReps ?? "")}"></label>
-+          <label>感じたRPE<input class="calibration-rpe" inputmode="decimal" type="number" min="5" max="10" step="0.5" value="${escapeHtml(saved.feltRpe ?? "")}"></label>
-+          <label class="calibration-confidence">RPE自信度<select class="calibration-rpe-confidence">
-+            <option value="solid"${confidence === "solid" ? " selected" : ""}>自信あり</option>
-+            <option value="unsure"${confidence === "unsure" ? " selected" : ""}>少し迷う</option>
-+            <option value="learning"${confidence === "learning" ? " selected" : ""}>感覚練習中</option>
-+          </select></label>
-+        </div>
-+        <label>メモ<textarea class="calibration-note" rows="2" placeholder="予想より何回多くできたか、どこで限界が来たか">${escapeHtml(saved.note || "")}</textarea></label>
-+        ${outcome ? `<p class="rpe-calibration-result">${escapeHtml(outcome)}</p>` : ""}
-+        <div class="actual-actions">
-+          <button class="text-button compact calibration-save" type="button">W0チェックを保存</button>
-+        </div>
-+      </div>
-+    </details>
-+  `;
-+}
-+
-+function rpeCalibrationKey(cycle) {
-+  return [cycle.programMethod, cycle.buddyLevel || "level1", cycle.planTarget, cycle.length, cycle.daysPerWeek, cycle.priorityLift || "total"].join("|");
-+}
-+
-+function rpeCalibrationOutcome(saved = {}) {
-+  if (saved.status === "skipped") return "スキップ。疲労や不安がある日の判断として問題ありません。";
-+  const predicted = Number(saved.predictedRir);
-+  const actual = Number(saved.actualExtraReps);
-+  if (Number.isNaN(predicted) || Number.isNaN(actual)) return "";
-+  const diff = actual - predicted;
-+  if (diff >= 2) return `予想より${diff}回多くできました。きつさを早めに限界と判断しやすい可能性があります。`;
-+  if (diff <= -2) return `予想より${Math.abs(diff)}回少なく限界でした。思ったより限界に近い状態だった可能性があります。`;
-+  return "予想RIRは近いです。この感覚をRPE判断の基準に。";
-+}
-+
-+function saveRpeCalibration(body) {
-+  if (!body) return;
-+  const athlete = currentAthlete();
-+  const activeStatus = body.dataset.status || body.querySelector(".calibration-status-btn.active")?.dataset.calibrationStatus || "done";
-+  const record = {
-+    status: activeStatus,
-+    exercise: body.querySelector(".calibration-exercise")?.value.trim() || "",
-+    weight: body.querySelector(".calibration-weight")?.value ? Number(body.querySelector(".calibration-weight").value) : "",
-+    reps: body.querySelector(".calibration-reps")?.value ? Number(body.querySelector(".calibration-reps").value) : "",
-+    predictedRir: body.querySelector(".calibration-predicted-rir")?.value ? Number(body.querySelector(".calibration-predicted-rir").value) : "",
-+    actualExtraReps: body.querySelector(".calibration-actual-extra")?.value ? Number(body.querySelector(".calibration-actual-extra").value) : "",
-+    feltRpe: body.querySelector(".calibration-rpe")?.value ? Number(body.querySelector(".calibration-rpe").value) : "",
-+    rpeConfidence: body.querySelector(".calibration-rpe-confidence")?.value || "learning",
-+    note: body.querySelector(".calibration-note")?.value.trim() || "",
-+    updatedAt: new Date().toISOString()
-+  };
-+  athlete.rpeCalibration = athlete.rpeCalibration || {};
-+  athlete.rpeCalibration[body.dataset.calibrationKey] = record;
-+  saveState();
-+  render();
-+}
-+
-+function renderRpeCoach(cycle, phase) {
-+  if (!guideEnabled()) {
-+    els.rpeCoachCard.innerHTML = "";
-+    return;
-+  }
-+  const isAccumulation = phase.name === "蓄積期";
-+  const isBridge = phase.name === "ブリッジ週";
-+  const guide = cycle.programMethod === "platform" && cycle.buddyLevel === "level2"
-+    ? "Lv2はRPEと%1RMを併用。@8超えなら下げよう。"
-+    : isAccumulation || isBridge
-+    ? "蓄積期は土台作り。迷ったらRPEを優先。"
-+    : "表示重量は提案。予定RPEを超えそうなら下げよう。";
-+  els.rpeCoachCard.innerHTML = `
-+    <details class="rpe-coach-details">
-+      <summary class="rpe-coach-summary">
-+        <span class="eyebrow">RPE Coach</span>
-+        <strong>${escapeHtml(rpeCoachHeadline(phase, cycle))}</strong>
-+      </summary>
-+      <p>${guide}</p>
-+      <p class="rpe-principle">RPEは育てる感覚。競技フォームが崩れる余力は数えません。</p>
-+      <div class="rpe-scale">
-+        <span><strong>RPE 6</strong> RIR 4目安</span>
-+        <span><strong>RPE 7</strong> RIR 3目安</span>
-+        <span><strong>RPE 8</strong> RIR 2目安</span>
-+        <span><strong>RPE 9</strong> RIR 1目安</span>
-+      </div>
-+    </details>
-+  `;
-+}
-+
-+function rpeCoachHeadline(phase, cycle) {
-+  if (cycle.buddyLevel === "level2") return "Lv2：RPEと%1RM併用";
-+  if ((phase.name || "").includes("蓄積") || (phase.name || "").includes("ブリッジ")) return "蓄積期：MAX更新週ではない";
-+  return "予定RPEを守ることを最優先に";
-+}
-+
-+function phasePurpose(phase, cycle = normalizedCycle()) {
-+  const name = phase?.name || "";
-+  if (name.includes("Reset 蓄積")) return "フォームとRPE感覚を戻す。";
-+  if (name.includes("移行")) return "疲労を抜き、Lv2へ備える。";
-+  if (name.includes("蓄積")) return "フォームとRPE感覚を作る。";
-+  if (name.includes("ブリッジ")) return "疲労を増やさずW5へ。";
-+  if (name.includes("現在地")) return "後半の設定材料を確認。";
-+  if (name.includes("強化")) return "重さへつなげる。";
-+  if (name.includes("ピーキング")) return "強さを出す準備。";
-+  if (name.includes("MAX") || name.includes("PR") || cycle.week === cycle.length) return "成功試技を積み上げる。";
-+  if (cycle.recoveryMode || name.includes("デロード") || name.includes("休養")) return "疲労を抜いて次へ。";
-+  return "予定RPEを守って積む。";
-+}
-+
-+function liftTargetRangeText(cycle = normalizedCycle(), low = 0.75, high = 0.82) {
-+  return activePlanLiftIds(cycle).map((liftId) => {
-+    const max = Number(cycle.maxes[liftId] || bestE1rm(liftId) || 0);
-+    if (!max) return `${mainLiftNames[liftId]} 未設定`;
-+    const lower = roundToIncrement(max * low, 2.5);
-+    const upper = roundToIncrement(max * high, 2.5);
-+    return `${mainLiftNames[liftId]} ${formatNumber(lower)}〜${formatNumber(upper)}kg`;
-+  }).join(" / ");
-+}
-+
-+function finalTargetText(cycle = normalizedCycle()) {
-+  const athlete = currentAthlete();
-+  athlete.goals = normalizeGoals(athlete.goals);
-+  return activePlanLiftIds(cycle).map((liftId) => {
-+    const max = Number(cycle.maxes[liftId] || bestE1rm(liftId) || 0);
-+    const goal = dashboardGoalValue(liftId, athlete);
-+    if (goal) return `${mainLiftNames[liftId]} ${formatNumber(goal)}kg`;
-+    if (!max) return `${mainLiftNames[liftId]} 目標未設定`;
-+    const range = projectedPrRange(liftId, max, cycle.length, cycle.daysPerWeek, cycle.priorityLift, athlete);
-+    return `${mainLiftNames[liftId]} ${formatNumber(range.low)}〜${formatNumber(range.high)}kg`;
-+  }).join(" / ");
-+}
-+
-+function phaseGoalText(cycle = normalizedCycle(), phase = cyclePhase(cycle.week, cycle.length, cycle.programMethod)) {
-+  const name = phase?.name || "";
-+  if (cycle.programMethod === "rebuild16") {
-+    if (cycle.week <= 4) return `W5で${liftTargetRangeText(cycle, 0.72, 0.8)}をRPE8以内で確認。`;
-+    if (cycle.week === 5) return "3〜5回@8で現在地を見る。限界MAXではありません。";
-+    if (cycle.week === 6) return "疲労を抜き、Lv2用TMを整える週。";
-+  }
-+  if (name.includes("蓄積") || name.includes("ブリッジ")) {
-+    const checkLabel = cycle.week < 4 ? "4週間後のW5現在地チェック" : cycle.week === 4 ? "来週のW5現在地チェック" : "W5現在地チェック";
-+    return `${checkLabel}で、${liftTargetRangeText(cycle, 0.75, 0.82)}を3〜5回@8以内。`;
-+  }
-+  if (name.includes("現在地")) {
-+    return "3〜5回@8で確認。やり切りよりRPE優先。";
-+  }
-+  if (name.includes("強化")) {
-+    return `${liftTargetRangeText(cycle, 0.82, 0.9)}付近へ慣れる。`;
-+  }
-+  if (name.includes("ピーキング")) {
-+    return "疲労を抜き、成功率を上げる。";
-+  }
-+  if (name.includes("MAX") || name.includes("PR") || cycle.week === cycle.length) {
-+    return `第一を確実に。第三で${finalTargetText(cycle)}付近へ。`;
-+  }
-+  if (cycle.recoveryMode || name.includes("デロード") || name.includes("休養")) {
-+    return "上限を超えず、RPE6以下で整える。";
-+  }
-+  return "予定RPEを守って次へ。";
-+}
-+
-+function weekLearningCard(cycle, phase) {
-+  if (!guideEnabled()) return "";
-+  const isPlatform = cycle.programMethod === "platform";
-+  const whiteNine = isPlatform && (cycle.week === cycle.length || (phase.name || "").includes("MAX"))
-+    ? `<p class="white-nine-note"><strong>白9本:</strong> 第一を確実に、第二でトータルを作り、第三で挑戦する。成功試技を積み上げることも競技力です。</p>`
-+    : "";
-+  const accumulationNote = isPlatform && ((phase.name || "").includes("蓄積") || (phase.name || "").includes("ブリッジ"))
-+    ? `<p class="guide-note">MAX更新週ではありません。フォームとRPE感覚を作る時期。</p>`
-+    : "";
-+  const purpose = phasePurpose(phase, cycle);
-+  const fullGoal = phaseGoalText(cycle, phase);
-+  return `
-+    <article class="plan-card week-learning-card">
-+      <span class="recommended-badge">短期目標</span>
-+      <h2>${escapeHtml(phase.name)}</h2>
-+      <p>${escapeHtml(purpose)}</p>
-+      <details>
-+        <summary>詳しく見る</summary>
-+        <p>${escapeHtml(fullGoal)}</p>
-+        ${accumulationNote}
-+        ${whiteNine}
-+      </details>
-+    </article>
-+  `;
-+}
-+
-+function currentCheckCarryoverCard(cycle) {
-+  if (!guideEnabled()) return "";
-+  if (cycle.programMethod === "rebuild16") return rebuild16CarryoverCard(cycle);
-+  if (cycle.programMethod !== "platform" || cycle.week <= 5) return "";
-+  const entries = planFeedbackEntriesForWeek(cycle, 5);
-+  if (!entries.length && cycle.length !== 10) return "";
-+  const heavy = entries.filter((entry) => rpeDiff(entry) >= 1);
-+  const light = entries.filter((entry) => rpeDiff(entry) <= -1);
-+  let message = "W6以降は表示重量よりRPE優先。";
-+  if (cycle.length === 10) {
-+    message = cycle.buddyLevel === "level2"
-+      ? "W5が@8なら予定通り。@9ならW6は控えめに。"
-+      : "W5が@8なら予定通り。重ければW6は-2.5kg候補。";
-+  }
-+  if (heavy.length) {
-+    message = "予定より重め。後半は-2.5〜5kgも候補。";
-+  } else if (light.length) {
-+    message = "余裕あり。+2.5kg候補、でもRPE優先。";
-+  }
-+  return `
-+    <article class="plan-card week-learning-card">
-+      <span class="recommended-badge">現在地チェック反映</span>
-+      <h2>後半ブロックの入り方</h2>
-+      <p>${message}</p>
-+    </article>
-+  `;
-+}
-+
-+function rebuild16CarryoverCard(cycle) {
-+  if (!guideEnabled()) return "";
-+  if (cycle.week >= 7 && cycle.week <= 10) {
-+    return `
-+      <article class="plan-card week-learning-card">
-+        <span class="recommended-badge">Reset結果の反映</span>
-+        <h2>Lv2へ入る前の判断</h2>
-+        <p>W5が@8なら予定通り。@9ならW7は控えめに。</p>
-+      </article>
-+    `;
-+  }
-+  if (cycle.week >= 12 && cycle.week <= 15) {
-+    return `
-+      <article class="plan-card week-learning-card">
-+        <span class="recommended-badge">Lv2現在地チェック反映</span>
-+        <h2>後半ブロックの入り方</h2>
-+        <p>W11が@8なら予定通り。@9ならW12は控えめに。</p>
-+      </article>
-+    `;
-+  }
-+  return "";
-+}
-+
-+function tenWeekBenchCareCard(cycle) {
-+  if (!guideEnabled()) return "";
-+  const show = cycle.programMethod === "platform"
-+    && cycle.length === 10
-+    && cycle.buddyLevel === "level2"
-+    && cycle.daysPerWeek === 5
-+    && cycle.priorityLift === "bench"
-+    && [6, 7].includes(Number(cycle.week));
-+  if (!show) return "";
-+  return `
-+    <article class="plan-card week-learning-card">
-+      <span class="recommended-badge">ベンチ頻度の調整</span>
-+      <h2>押せる状態を保つ</h2>
-+      <p>違和感があれば補助を減らそう。押せる状態を優先。</p>
-+    </article>
-+  `;
-+}
-+
-+function renderRecoveryAlert(cycle) {
-+  const alert = cycle.pendingRecoveryAlert;
-+  const nextWeek = alert.nextWeek || Math.min(cycle.week + 1, cycle.length);
-+  els.cyclePhaseTitle.textContent = `Buddy Alert / W${nextWeek}前の進行判断`;
-+  els.cyclePhaseNote.textContent = "";
-+  els.rpeCoachCard.innerHTML = "";
-+  renderProjections(cycle);
-+  els.planList.innerHTML = `
-+    <article class="plan-card recovery-alert-card">
-+      <span class="recommended-badge">進行を止める候補</span>
-+      <h2>W${nextWeek}へ進む前に、回復週も候補です。</h2>
-+      <p>RPE高めが続いています。止まる判断も強くなる一部です。</p>
-+      <div class="recovery-reasons">
-+        ${(alert.reasons || []).map((reason) => `<span>${escapeHtml(reason)}</span>`).join("")}
-+      </div>
-+      <div class="recovery-actions">
-+        <button class="primary-button inline" type="button" data-recovery-action="start">回復週へ</button>
-+        <button class="text-button" type="button" data-recovery-action="skip">通常通りW${nextWeek}へ進む</button>
-+      </div>
-+    </article>
-+  `;
-+}
-+
-+function renderRecoveryWeek(cycle) {
-+  const targetWeek = cycle.recoveryForWeek || Math.min(cycle.week + 1, cycle.length);
-+  els.cyclePhaseTitle.textContent = `W${targetWeek}前のデロード週`;
-+  els.cyclePhaseNote.textContent = guideEnabled()
-+    ? "回復週です。上限を超えず、RPE6以下でフォーム確認。"
-+    : "";
-+  els.rpeCoachCard.innerHTML = "";
-+  renderProjections(cycle);
-+  els.planList.innerHTML = `
-+    <article class="plan-card recovery-alert-card">
-+      <span class="recommended-badge">デロード中</span>
-+      <h2>今日は上限重量を超えないでください。</h2>
-+      <p>目的は疲労を抜く、フォームを確認する、痛みや違和感を見直すことです。補助種目は通常の半分、痛みがあれば中止してください。</p>
-+      <button class="primary-button inline" type="button" data-recovery-action="finish">デロードを終えてW${targetWeek}へ進む</button>
-+    </article>
-+    ${recoveryWeekTemplate(cycle).map((day, index) => `
-+      <details class="day-card plan-day" ${index === 0 ? "open" : ""}>
-+        <summary class="day-summary">
-+          <div>
-+            <span class="lift-badge">Day ${index + 1}</span>
-+            <h2>${day.title}</h2>
-+            <p>${day.summary}</p>
-+          </div>
-+          <span class="history-open">▾</span>
-+        </summary>
-+        <div class="exercise-list">
-+          ${day.items.map((item) => `
-+            <div class="exercise-row recovery-row">
-+              <strong>${escapeHtml(item.name)}</strong>
-+              <span>${escapeHtml(item.work)}</span>
-+              <p class="guide-note">${escapeHtml(item.note)}</p>
-+            </div>
-+          `).join("")}
-+        </div>
-+      </details>
-+    `).join("")}
-+  `;
-+}
-+
-+function recoveryWeekTemplate(cycle) {
-+  const max = (lift, percent) => {
-+    const base = Number(cycle.maxes[lift] || bestE1rm(lift) || 0);
-+    return base ? `${roundToIncrement(base * percent, 2.5)}kg` : "1RM未設定";
-+  };
-+  if (cycle.planTarget === "bench_only") {
-+    return [
-+      {
-+        title: "BP フォーム確認",
-+        summary: "止め、コール、尻の接地を確認。RPE6以下。",
-+        items: [
-+          { name: "ベンチプレス", work: `上限 ${max("bench", 0.65)}まで / 3回 x 3セット`, note: "この重量を超えない。Start / Press / Rack を待つ練習。" },
-+          { name: "上背部補助", work: "通常の半分 / RPE6以下", note: "追い込まず、肩甲骨の動きだけ確認。" }
-+        ]
-+      },
-+      {
-+        title: "BP 軽めボリューム",
-+        summary: "速く、軽く、フォーム再現。",
-+        items: [
-+          { name: "ベンチプレス", work: `上限 ${max("bench", 0.6)}まで / 5回 x 2セット`, note: "軽く感じても上限を超えない。" },
-+          { name: "腕・肩補助", work: "通常の半分 / RPE6以下", note: "痛みや違和感があれば中止。" }
-+        ]
-+      }
-+    ];
-+  }
-+  return [
-+    {
-+      title: "SQ / BP フォーム確認",
-+      summary: "しゃがみ、止め、コールを確認。RPE6以下。",
-+      items: [
-+        { name: "スクワット", work: `上限 ${max("squat", 0.65)}まで / 3回 x 3セット`, note: "この重量を超えない。深さとラック動作を確認。" },
-+        { name: "ベンチプレス", work: `上限 ${max("bench", 0.65)}まで / 3回 x 3セット`, note: "Start / Press / Rack を待つ練習。尻浮きに注意。" }
-+      ]
-+    },
-+    {
-+      title: "DL / BP 軽め",
-+      summary: "引き切りと下ろし方を確認。デッドは低め上限。",
-+      items: [
-+        { name: "デッドリフト", work: `上限 ${max("deadlift", 0.6)}まで / 3回 x 2セット`, note: "Down合図後までコントロール。床に落とさない。" },
-+        { name: "ベンチプレス", work: `上限 ${max("bench", 0.6)}まで / 5回 x 2セット`, note: "軽く、速く、フォームだけ確認。" }
-+      ]
-+    },
-+    {
-+      title: "全身軽め / 可動域確認",
-+      summary: "通常の半分。追い込まない。",
-+      items: [
-+        { name: "BIG3 テクニック", work: "50〜60% / 3回 x 2セット", note: "痛みや違和感があれば中止。疲労を抜くことが目的。" },
-+        { name: "補助種目", work: "通常の半分 / RPE6以下", note: "パンプ狙いで追い込まない。動きの確認だけ。" }
-+      ]
-+    }
-+  ];
-+}
-+
-+function activePlanLiftIds(cycle = normalizedCycle()) {
-+  if (cycle.planTarget === "bench_only") return ["bench"];
-+  if (cycle.programMethod === "smolov_jr") return [cycle.priorityLift === "squat" ? "squat" : "bench"];
-+  return mainLiftIds;
-+}
-+
-+function programMethodInfo(cycle = normalizedCycle()) {
-+  const target = cycle.planTarget === "bench_only" ? "ベンチプレスのみ" : "BIG3";
-+  const platformLabel = cycle.buddyLevel === "level2" ? "Buddy式 Lv2（実戦寄り）" : "Buddy式 Lv1（標準）";
-+  const platformNote = cycle.buddyLevel === "level2"
-+    ? "週内に強弱を作る実戦寄りプラン。"
-+    : "完走とRPE感覚を重視する標準プラン。";
-+  const info = {
-+    platform: [platformLabel, platformNote],
-+    rebuild16: ["Buddy Rebuild 16（大会後リビルド）", "疲労や停滞を整えてLv2へ戻るプラン。"],
-+    hps: ["HPS（BP向き）", "肥大、パワー、筋力を回すBP向き方式。"],
-+    "531": ["5/3/1（長期型）", "Training Maxで堅実に積む長期型。"],
-+    smolov_jr: ["Smolov Jr.（SQ/BP高負荷）", "3週・週4固定。SQ/BP向け高負荷方式。"]
-+  }[cycle.programMethod] || ["Platform Buddy", ""];
-+  return { label: `${info[0]} / ${target}`, note: info[1] };
-+}
-+
-+function methodDefaults(programMethod, planTarget = "big3") {
-+  const defaults = {
-+    platform: { length: 12, daysPerWeek: 4, accessoryVolume: "normal", locked: [] },
-+    rebuild16: { length: 16, daysPerWeek: 4, accessoryVolume: "normal", locked: ["length"] },
-+    hps: { length: 6, daysPerWeek: 3, accessoryVolume: "normal", locked: ["length", "daysPerWeek"] },
-+    "531": { length: 12, daysPerWeek: planTarget === "bench_only" ? 2 : 4, accessoryVolume: "normal", locked: [] },
-+    smolov_jr: { length: 3, daysPerWeek: 4, accessoryVolume: "low", locked: ["length", "daysPerWeek", "accessoryVolume"] }
-+  };
-+  return defaults[programMethod] || defaults.platform;
-+}
-+
-+function allowedCycleLengths(cycle) {
-+  if (cycle.programMethod === "platform") return [10, 12];
-+  if (cycle.programMethod === "rebuild16") return [16];
-+  if (cycle.programMethod === "hps") return [6];
-+  if (cycle.programMethod === "531") return [4, 8, 12];
-+  if (cycle.programMethod === "smolov_jr") return [3];
-+  return [10, 12];
-+}
-+
-+function allowedDaysPerWeek(cycle) {
-+  if (cycle.programMethod === "platform") return [3, 4, 5];
-+  if (cycle.programMethod === "rebuild16") return [3, 4, 5];
-+  if (cycle.programMethod === "hps") return [3];
-+  if (cycle.programMethod === "531") return cycle.planTarget === "bench_only" ? [1, 2, 3] : [3, 4];
-+  if (cycle.programMethod === "smolov_jr") return [4];
-+  return [3, 4, 5];
-+}
-+
-+function applyProgramRules(cycle, previousMethod = cycle.programMethod, previousTarget = cycle.planTarget) {
-+  const changed = previousMethod !== cycle.programMethod || previousTarget !== cycle.planTarget;
-+  const defaults = methodDefaults(cycle.programMethod, cycle.planTarget);
-+  if (changed) {
-+    cycle.length = defaults.length;
-+    cycle.daysPerWeek = defaults.daysPerWeek;
-+    cycle.accessoryVolume = defaults.accessoryVolume;
-+  }
-+
-+  const lengths = allowedCycleLengths(cycle);
-+  const days = allowedDaysPerWeek(cycle);
-+  if (!lengths.includes(Number(cycle.length))) cycle.length = lengths.at(-1);
-+  if (!days.includes(Number(cycle.daysPerWeek))) cycle.daysPerWeek = days.at(-1);
-+  if (cycle.programMethod === "smolov_jr") cycle.accessoryVolume = "low";
-+  cycle.week = Math.min(Number(cycle.week || 1), Number(cycle.length));
-+  if (cycle.planTarget === "bench_only") cycle.priorityLift = "bench";
-+  if (cycle.programMethod === "smolov_jr" && !["squat", "bench"].includes(cycle.priorityLift)) cycle.priorityLift = "bench";
-+  if (!["platform", "rebuild16"].includes(cycle.programMethod)) cycle.buddyLevel = "level1";
-+  return cycle;
-+}
-+
-+function planInsight(cycle) {
-+  const showGuide = guideEnabled();
-+  const athlete = currentAthlete();
-+  const method = programMethodInfo(cycle);
-+  const balance = liftBalance(cycle, athlete);
-+  const levelWarning = cycle.programMethod === "platform" && cycle.buddyLevel === "level2" && cycle.experienceLevel === "beginner"
-+    ? `<p class="safety-note"><strong>注意:</strong> Lv2は中級者向け。迷ったらLv1でOK。</p>`
-+    : "";
-+  const rebuildNote = cycle.programMethod === "rebuild16"
-+    ? `<p class="safety-note"><strong>推奨:</strong> 大会後や停滞時の再準備ブロック。</p>`
-+    : "";
-+  const levelActiveNote = cycle.programMethod === "platform" && cycle.buddyLevel === "level2"
-+    ? `<p class="guide-note"><strong>Lv2適用中:</strong> 強度日・量の日・技術日を分けます。</p>`
-+    : "";
-+  if (!showGuide && !levelWarning) return "";
-+  if (!balance && cycle.planTarget === "bench_only") {
-+    const recommended = cycle.programMethod === "platform" ? `<span class="recommended-badge">迷ったらこれ</span>` : "";
-+    return `<article class="plan-card ${["platform", "rebuild16"].includes(cycle.programMethod) ? "recommended-plan" : ""}">${recommended}<h2>${method.label}</h2>${showGuide ? `<p class="guide-note">${method.note}</p>${levelActiveNote}` : ""}${levelWarning}${rebuildNote}</article>`;
-+  }
-+  if (!balance) return "";
-+  const classLabel = weightClassMeta(athlete.sex, athlete.weightClass)[1];
-+  const recommendedName = mainLiftNames[balance.recommended];
-+  const selectedName = cycle.priorityLift === "total" ? "トータル" : mainLiftNames[cycle.priorityLift];
-+  const note = cycle.priorityLift === "total"
-+    ? `${recommendedName}が低め。迷ったら${recommendedName}重視も候補。`
-+    : cycle.priorityLift === balance.recommended
-+      ? `${selectedName}重視は今のバランスに合っています。`
-+      : `${recommendedName}が低め。目的が明確なら${selectedName}重視でOK。`;
-+
-+  return `
-+    <article class="plan-card ${["platform", "rebuild16"].includes(cycle.programMethod) ? "recommended-plan" : ""}">
-+      ${cycle.programMethod === "platform" ? `<span class="recommended-badge">迷ったらこれ</span>` : cycle.programMethod === "rebuild16" ? `<span class="recommended-badge">リビルド型</span>` : ""}
-+      <h2>${method.label} / ${athlete.sex === "female" ? "女性" : athlete.sex === "male" ? "男性" : "未設定"} ${classLabel} / 現在トータル ${balance.total}kg</h2>
-+      ${showGuide ? `<p class="guide-note">${method.note} ${note}</p>${levelActiveNote}` : ""}
-+      ${levelWarning}
-+      ${rebuildNote}
-+    </article>
-+  `;
-+}
-+
-+function recommendedProgramLabel(athlete = currentAthlete(), cycle = normalizedCycle()) {
-+  if (cycle.programMethod === "rebuild16") return "Buddy Rebuild 16";
-+  if (cycle.programMethod !== "platform") return programMethodInfo(cycle).label.replace(" / BIG3", "").replace(" / ベンチプレスのみ", "");
-+  if (cycle.experienceLevel === "beginner") return "Buddyメソッド Lv1";
-+  return "Buddyメソッド Lv2";
-+}
-+
-+function renderCycleSetupCard(athlete = currentAthlete(), cycle = normalizedCycle()) {
-+  if (!els.cycleSetupPanel) return;
-+  if (Number(cycle.week) >= 2) {
-+    els.cycleSetupPanel.innerHTML = "";
-+    els.cycleSetupPanel.classList.add("hidden");
-+    return;
-+  }
-+  els.cycleSetupPanel.classList.remove("hidden");
-+  const liftIds = activePlanLiftIds(cycle);
-+  const maxReady = liftIds.filter((liftId) => Number(cycle.maxes[liftId] || bestE1rm(liftId) || 0));
-+  const currentTotalValue = liftIds.reduce((sum, liftId) => sum + Number(cycle.maxes[liftId] || bestE1rm(liftId) || 0), 0);
-+  const goalTargetValue = cycle.planTarget === "bench_only" ? dashboardGoalValue("bench", athlete) : dashboardGoalTotal(athlete);
-+  const remaining = goalTargetValue ? goalTargetValue - currentTotalValue : null;
-+  const maxStatus = maxReady.length === liftIds.length
-+    ? "入力済み"
-+    : `${maxReady.length}/${liftIds.length} 種目`;
-+  const goalStatus = goalTargetValue ? `${formatNumber(goalTargetValue)}kg` : "未設定";
-+  const gapText = goalTargetValue
-+    ? remaining > 0
-+      ? `目標まであと ${formatNumber(remaining)}kg`
-+      : "目標到達圏内"
-+    : "目標を入れると距離が見えます";
-+  const selected = programMethodInfo(cycle).label.replace(" / BIG3", "").replace(" / ベンチプレスのみ", "");
-+  const ready = maxReady.length === liftIds.length;
-+  els.cycleSetupPanel.innerHTML = `
-+    <div class="section-title">
-+      <div>
-+        <p class="eyebrow">Cycle Setup</p>
-+        <h2>PRサイクル準備</h2>
-+      </div>
-+      <button class="primary-button inline" type="button" data-cycle-setup-action="open">${ready ? "PRサイクル設定へ進む" : "現在1RMを確認する"}</button>
-+    </div>
-+    <p class="screen-note">現在1RMと目標から、PRサイクルへ進もう。</p>
-+    <div class="cycle-setup-grid">
-+      <article>
-+        <span>現在1RM</span>
-+        <strong>${escapeHtml(maxStatus)}</strong>
-+        <p>${ready ? `${liftIds.map((liftId) => `${mainLiftNames[liftId]} ${formatNumber(Number(cycle.maxes[liftId] || bestE1rm(liftId) || 0))}kg`).join(" / ")}` : "ダッシュボードで1RMを入力。"}</p>
-+      </article>
-+      <article>
-+        <span>目標</span>
-+        <strong>${escapeHtml(goalStatus)}</strong>
-+        <p>${escapeHtml(gapText)}</p>
-+      </article>
-+      <article>
-+        <span>推奨の入口</span>
-+        <strong>${escapeHtml(recommendedProgramLabel(athlete, cycle))}</strong>
-+        <p>現在の選択: ${escapeHtml(selected)}。迷ったら、まず完走できる強度から始めます。</p>
-+      </article>
-+    </div>
-+  `;
-+}
-+
-+function renderCycleInputs() {
-+  const cycle = normalizedCycle();
-+  els.planTargetInput.value = cycle.planTarget;
-+  els.programMethodInput.value = programMethodSelectValue(cycle);
-+  updateCycleOptionControls(cycle);
-+  els.cycleLengthInput.value = String(cycle.length);
-+  els.daysPerWeekInput.value = String(cycle.daysPerWeek);
-+  els.accessoryVolumeInput.value = cycle.accessoryVolume;
-+  els.priorityLiftInput.value = cycle.priorityLift;
-+  els.experienceLevelInput.value = cycle.experienceLevel;
-+  els.cycleMethodNote.textContent = methodControlNote(cycle);
-+  renderProgramMethodGuide(cycle);
-+  els.programDisclaimer.textContent = programDisclaimerText(cycle);
-+  els.programDisclaimer.classList.toggle("hidden", ["platform", "rebuild16"].includes(cycle.programMethod));
-+  if (els.cycleWeekInput) {
-+    els.cycleWeekInput.max = String(cycle.length);
-+    els.cycleWeekInput.value = String(cycle.week);
-+  }
-+  els.squatMaxInput.value = cycle.maxes.squat || "";
-+  els.benchMaxInput.value = cycle.maxes.bench || "";
-+  els.deadliftMaxInput.value = cycle.maxes.deadlift || "";
-+  renderFacilityOptions(cycle);
-+}
-+
-+function renderProgramMethodGuide(cycle = normalizedCycle()) {
-+  if (!els.programMethodGuide) return;
-+  const method = programMethodInfo(cycle);
-+  const current = method.label.replace(" / BIG3", "").replace(" / ベンチプレスのみ", "");
-+  const cards = [
-+    ["Buddy Lv1", "完走とRPE感覚を作る標準ルート。"],
-+    ["Buddy Lv2", "週内に強弱を作る実戦寄り。"],
-+    ["Rebuild 16", "大会後や停滞時に整え直すルート。"]
-+  ];
-+  const showBuddyCards = ["platform", "rebuild16"].includes(cycle.programMethod);
-+  els.programMethodGuide.innerHTML = `
-+    <div class="method-guide-head">
-+      <span>選択中プラン</span>
-+      <strong>${escapeHtml(current)}</strong>
-+      <p>${escapeHtml(method.note)}</p>
-+    </div>
-+    ${showBuddyCards ? `
-+      <div class="method-guide-grid">
-+        ${cards.map(([title, body]) => `
-+          <article>
-+            <strong>${escapeHtml(title)}</strong>
-+            <p>${escapeHtml(body)}</p>
-+          </article>
-+        `).join("")}
-+      </div>
-+    ` : `
-+      <p class="program-disclaimer inline">参考テンプレートです。完全再現ではありません。</p>
-+    `}
-+  `;
-+}
-+
-+function updateCycleOptionControls(cycle) {
-+  const lengthLabels = { 3: "3週", 4: "4週", 6: "6週", 8: "8週", 10: "10週", 12: "12週", 16: "16週" };
-+  const dayLabels = { 1: "週1回", 2: "週2回", 3: "週3回", 4: "週4回", 5: "週5回" };
-+  els.cycleLengthInput.innerHTML = allowedCycleLengths(cycle).map((value) => `<option value="${value}">${lengthLabels[value]}</option>`).join("");
-+  els.daysPerWeekInput.innerHTML = allowedDaysPerWeek(cycle).map((value) => `<option value="${value}">${dayLabels[value]}</option>`).join("");
-+  const defaults = methodDefaults(cycle.programMethod, cycle.planTarget);
-+  els.cycleLengthInput.disabled = defaults.locked.includes("length");
-+  els.daysPerWeekInput.disabled = defaults.locked.includes("daysPerWeek");
-+  els.accessoryVolumeInput.disabled = defaults.locked.includes("accessoryVolume");
-+}
-+
-+function programMethodSelectValue(cycle) {
-+  if (cycle.programMethod === "platform") {
-+    return cycle.buddyLevel === "level2" ? "platform_level2" : "platform";
-+  }
-+  return cycle.programMethod;
-+}
-+
-+function applyProgramMethodSelectValue(cycle, value) {
-+  if (value === "platform_level2") {
-+    cycle.programMethod = "platform";
-+    cycle.buddyLevel = "level2";
-+    return;
-+  }
-+  if (value === "platform_level1" || value === "platform") {
-+    cycle.programMethod = "platform";
-+    cycle.buddyLevel = "level1";
-+    return;
-+  }
-+  cycle.programMethod = value;
-+  cycle.buddyLevel = "level1";
-+}
-+
-+function methodControlNote(cycle) {
-+  const locked = methodDefaults(cycle.programMethod, cycle.planTarget).locked;
-+  if (cycle.programMethod === "platform") {
-+    const levelNote = cycle.buddyLevel === "level2"
-+      ? "Lv2は中級者以上向け。週内でRPEと%1RMに波を作り、重点種目に高重量シングルを少量入れます。"
-+      : "Lv1はRPE習得とフォーム再現を優先する標準プランです。";
-+    return `トレーニング週数は${cycle.length}週。現在地チェック前の休養ブロックを含むため、想定完了期間は約${cycle.length + 1}週です。${levelNote}`;
-+  }
-+  if (cycle.programMethod === "rebuild16") return "Buddy Rebuild 16は16週固定。W1〜W5でLv1 Reset、W6で移行、W7〜W16でLv2 10週へ進む大会後・高疲労向けの再準備プランです。";
-+  if (!locked.length) return "週数・頻度を選べます。";
-+  if (cycle.programMethod === "hps") return "HPSは6週・週3回固定です。Hypertrophy → Power → Strengthの順で回します。";
-+  if (cycle.programMethod === "smolov_jr") return "Smolov Jr.は3週・週4回・補助少なめ固定です。SQ/BP向けで、DLには適用しません。";
-+  return "この方式では一部の設定が固定されます。";
-+}
-+
-+function programDisclaimerText(cycle) {
-+  if (["platform", "rebuild16"].includes(cycle.programMethod)) return "";
-+  return "注記: HPS、5/3/1、Smolov Jr.は各メソッドの考え方を参考にしたPlatform Buddy用の簡略テンプレートです。公式プログラムの完全再現、公式提携、公式承認を示すものではありません。";
-+}
-+
-+function renderFacilityOptions(cycle) {
-+  els.facilityGrid.innerHTML = facilityExerciseOptions.map((exerciseId) => {
-+    const meta = exerciseMeta(exerciseId);
-+    const checked = cycle.availableFacilityExercises.includes(exerciseId) ? "checked" : "";
-+    return `
-+      <label class="facility-option">
-+        <input type="checkbox" value="${exerciseId}" ${checked}>
-+        <span>${escapeHtml(meta.name)}</span>
-+      </label>
-+    `;
-+  }).join("");
-+}
-+
-+function normalizedCycle() {
-+  const athlete = currentAthlete();
-+  athlete.cycle = athlete.cycle || defaultCycle();
-+  athlete.cycle.length = Number(athlete.cycle.length || 12);
-+  athlete.cycle.daysPerWeek = Number(athlete.cycle.daysPerWeek || 4);
-+  athlete.cycle.planTarget = ["big3", "bench_only"].includes(athlete.cycle.planTarget) ? athlete.cycle.planTarget : "big3";
-+  athlete.cycle.programMethod = ["platform", "rebuild16", "hps", "531", "smolov_jr"].includes(athlete.cycle.programMethod) ? athlete.cycle.programMethod : "platform";
-+  athlete.cycle.buddyLevel = ["level1", "level2"].includes(athlete.cycle.buddyLevel) ? athlete.cycle.buddyLevel : "level1";
-+  athlete.cycle.accessoryVolume = athlete.cycle.accessoryVolume || "normal";
-+  athlete.cycle.priorityLift = ["total", "squat", "bench", "deadlift"].includes(athlete.cycle.priorityLift)
-+    ? athlete.cycle.priorityLift
-+    : "total";
-+  athlete.cycle.experienceLevel = ["beginner", "intermediate", "advanced"].includes(athlete.cycle.experienceLevel)
-+    ? athlete.cycle.experienceLevel
-+    : "beginner";
-+  athlete.cycle.week = Math.min(Number(athlete.cycle.week || 1), athlete.cycle.length);
-+  athlete.cycle.recoveryMode = athlete.cycle.recoveryMode === true;
-+  athlete.cycle.recoveryForWeek = athlete.cycle.recoveryForWeek ? Number(athlete.cycle.recoveryForWeek) : null;
-+  athlete.cycle.recoveryFromWeek = athlete.cycle.recoveryFromWeek ? Number(athlete.cycle.recoveryFromWeek) : null;
-+  athlete.cycle.pendingRecoveryAlert = athlete.cycle.pendingRecoveryAlert || null;
-+  athlete.cycle.availableFacilityExercises = Array.isArray(athlete.cycle.availableFacilityExercises)
-+    ? athlete.cycle.availableFacilityExercises.filter((id) => facilityExerciseOptions.includes(id))
-+    : [];
-+  athlete.cycle.maxes = { ...defaultCycle().maxes, ...(athlete.cycle.maxes || {}) };
-+  applyProgramRules(athlete.cycle);
-+  return athlete.cycle;
-+}
-+
-+function updateCycleFromInputs() {
-+  const cycle = normalizedCycle();
-+  const previousMethod = cycle.programMethod;
-+  const previousTarget = cycle.planTarget;
-+  cycle.length = Number(els.cycleLengthInput.value);
-+  cycle.daysPerWeek = Number(els.daysPerWeekInput.value);
-+  cycle.planTarget = els.planTargetInput.value;
-+  applyProgramMethodSelectValue(cycle, els.programMethodInput.value);
-+  cycle.accessoryVolume = els.accessoryVolumeInput.value;
-+  cycle.priorityLift = els.priorityLiftInput.value;
-+  cycle.experienceLevel = els.experienceLevelInput.value;
-+  cycle.week = Math.min(Math.max(Number(cycle.week || 1), 1), cycle.length);
-+  cycle.availableFacilityExercises = [...els.facilityGrid.querySelectorAll("input:checked")].map((input) => input.value);
-+  cycle.maxes = {
-+    squat: els.squatMaxInput.value,
-+    bench: els.benchMaxInput.value,
-+    deadlift: els.deadliftMaxInput.value
-+  };
-+  if (previousMethod !== cycle.programMethod || previousTarget !== cycle.planTarget) {
-+    cycle.recoveryMode = false;
-+    cycle.recoveryForWeek = null;
-+    cycle.recoveryFromWeek = null;
-+    cycle.pendingRecoveryAlert = null;
-+  }
-+  applyProgramRules(cycle, previousMethod, previousTarget);
-+  saveState();
-+  render();
-+}
-+
-+function cyclePhase(week, length, programMethod = "platform") {
-+  if (programMethod === "rebuild16") return rebuild16Phase(week);
-+  if (programMethod === "platform" && length >= 10 && week === 5) {
-+    return {
-+      name: "現在地チェック",
-+      note: "疲労を抜いて、RPE8前後で現在地を確認。"
-+    };
-+  }
-+  if (programMethod === "platform" && [10, 12].includes(Number(length)) && week === 4) {
-+    return {
-+      name: "ブリッジ週",
-+      note: "W5へつなぐ週。重さより疲労を残さない。"
-+    };
-+  }
-+  if (programMethod === "platform" && week === length) {
-+    return {
-+      name: "大会想定MAXチェック",
-+      note: "SQ→BP→DLを試技形式で確認。第三だけ挑戦。"
-+    };
-+  }
-+  const ratio = week / length;
-+  if (ratio <= 0.34) {
-+    return {
-+      name: "蓄積期",
-+      note: "フォームとRPE感覚を作る週。"
-+    };
-+  }
-+  if (ratio <= 0.67) {
-+    return {
-+      name: "強化期",
-+      note: "重さへ移行。トップで確認、バックオフで積む。"
-+    };
-+  }
-+  if (week < length) {
-+    return {
-+      name: "ピーキング期",
-+      note: "量を落として、重さの精度を上げる。"
-+    };
-+  }
-+  return { name: "大会想定MAXチェック", note: "SQ→BP→DLの順で確認する週。" };
-+}
-+
-+function rebuild16Phase(week) {
-+  if (week <= 4) {
-+    return {
-+      name: "Lv1 Reset 蓄積期",
-+      note: "フォームとRPE感覚を戻す週。"
-+    };
-+  }
-+  if (week === 5) {
-+    return {
-+      name: "Reset 現在地チェック",
-+      note: "Lv2へ入る前の現在地確認。"
-+    };
-+  }
-+  if (week === 6) {
-+    return {
-+      name: "移行週",
-+      note: "疲労を抜き、Lv2用TMを決める週。"
-+    };
-+  }
-+  const lv2Week = week - 6;
-+  const lv2Phase = cyclePhase(lv2Week, 10, "platform");
-+  const label = lv2Phase.name === "大会想定MAXチェック" ? "大会想定MAXチェック" : `Lv2 ${lv2Phase.name}`;
-+  return {
-+    name: label,
-+    note: lv2Phase.note
-+  };
-+}
-+
-+function renderProjections(cycle) {
-+  const athlete = currentAthlete();
-+  els.projectionGrid.innerHTML = activePlanLiftIds(cycle).map((liftId) => {
-+    const max = Number(cycle.maxes[liftId] || bestE1rm(liftId) || 0);
-+    if (!max) {
-+      return `<article class="projection-card"><span>${mainLiftNames[liftId]}</span><strong>-</strong><p>現在1RMを入力</p></article>`;
-+    }
-+    const range = projectedPrRange(liftId, max, cycle.length, cycle.daysPerWeek, cycle.priorityLift, athlete);
-+    return `<article class="projection-card"><span>${mainLiftNames[liftId]} 予測PR</span><strong>${range.low}〜${range.high}kg</strong><p>現在1RM ${max}kgから</p></article>`;
-+  }).join("");
-+}
-+
-+function projectedPrRange(liftId, max, length, daysPerWeek, priorityLift = "total", athlete = currentAthlete()) {
-+  const presets = {
-+    squat: { ten: [0.025, 0.055], twelve: [0.035, 0.07], cap: 22.5 },
-+    bench: { ten: [0.035, 0.075], twelve: [0.05, 0.09], cap: 12.5 },
-+    deadlift: { ten: [0.025, 0.055], twelve: [0.035, 0.07], cap: 25 }
-+  };
-+  const preset = presets[liftId];
-+  const base = length === 10 ? preset.ten : preset.twelve;
-+  const priorityScore = priorityLift === liftId ? 1.08 : priorityLift === "total" ? 1 : 0.96;
-+  const volumeScore = ({ 3: 1.02, 4: 1.06, 5: 1.08 }[daysPerWeek] || 1.06) * priorityScore * contextProgressMultiplier(athlete);
-+  const fatigueDiscount = { 3: 0, 4: 0.005, 5: 0.0125 }[daysPerWeek] || 0.005;
-+  const lowGain = Math.min(max * base[0] * volumeScore, preset.cap);
-+  const highGain = Math.min(max * Math.max(base[1] * volumeScore - fatigueDiscount, base[0]), preset.cap);
-+  return {
-+    low: roundToIncrement(max + lowGain, 2.5),
-+    high: roundToIncrement(max + highGain, 2.5)
-+  };
-+}
-+
-+function currentTotal(cycle = normalizedCycle()) {
-+  return mainLiftIds.reduce((sum, liftId) => sum + Number(cycle.maxes[liftId] || bestE1rm(liftId) || 0), 0);
-+}
-+
-+function contextProgressMultiplier(athlete = currentAthlete()) {
-+  const total = currentTotal();
-+  const bodyweight = Number(athlete.bodyweight);
-+  if (!total || !bodyweight) return 1;
-+
-+  const ratio = total / bodyweight;
-+  const thresholds = athlete.sex === "female"
-+    ? { intermediate: 3.2, advanced: 4.6, high: 5.8 }
-+    : { intermediate: 4.0, advanced: 5.5, high: 7.0 };
-+  const levelMultiplier = ratio < thresholds.intermediate ? 1.08
-+    : ratio < thresholds.advanced ? 1
-+    : ratio < thresholds.high ? 0.86
-+    : 0.72;
-+  const classUpper = weightClassMeta(athlete.sex, athlete.weightClass)[2];
-+  const classMultiplier = !Number.isFinite(classUpper) ? 0.92
-+    : classUpper <= (athlete.sex === "female" ? 57 : 66) ? 1.03
-+    : classUpper >= (athlete.sex === "female" ? 84 : 105) ? 0.96
-+    : 1;
-+
-+  return levelMultiplier * classMultiplier;
-+}
-+
-+function liftBalance(cycle = normalizedCycle(), athlete = currentAthlete()) {
-+  const lifts = Object.fromEntries(mainLiftIds.map((liftId) => [liftId, Number(cycle.maxes[liftId] || bestE1rm(liftId) || 0)]));
-+  const total = lifts.squat + lifts.bench + lifts.deadlift;
-+  if (!total) return null;
-+
-+  const expected = athlete.sex === "female"
-+    ? { squat: 0.35, bench: 0.2, deadlift: 0.45 }
-+    : { squat: 0.36, bench: 0.24, deadlift: 0.4 };
-+  const gaps = mainLiftIds.map((liftId) => ({
-+    liftId,
-+    value: lifts[liftId],
-+    gap: lifts[liftId] / total - expected[liftId]
-+  })).sort((a, b) => a.gap - b.gap);
-+
-+  return { lifts, total, recommended: gaps[0].liftId, gap: gaps[0].gap };
-+}
-+
-+function exerciseLine(item, cycle, dayIndex = 0, itemIndex = 0) {
-+  if (item.kind === "method") {
-+    const note = guideEnabled() && item.note ? `<p class="guide-note">${escapeHtml(item.note)}</p>` : "";
-+    const actual = shouldShowActualInput(item) ? actualInputBlock(item, cycle, item.work, item.note, dayIndex, itemIndex) : "";
-+    return `<div class="exercise-row method-row"><strong>${escapeHtml(item.name)}</strong>${planPrescriptionMarkup(item.work, item)}${note}${actual}</div>`;
-+  }
-+  if (item.kind === "accessory") {
-+    const badge = item.exerciseId && equipmentLabel(item.exerciseId)
-+      ? `<em class="equipment-tag">${equipmentLabel(item.exerciseId)}</em>`
-+      : "";
-+    const note = guideEnabled() && item.note ? `<p class="guide-note">${escapeHtml(item.note)}</p>` : "";
-+    const actual = shouldShowActualInput(item) ? actualInputBlock(item, cycle, item.work, item.note, dayIndex, itemIndex) : "";
-+    return `<div class="exercise-row accessory-row"><strong>${escapeHtml(item.name)}${badge}</strong><span>${escapeHtml(item.work)}</span>${note}${actual}</div>`;
-+  }
-+  const max = Number(cycle.maxes[item.lift] || bestE1rm(item.lift) || 0);
-+  const prescription = prescriptionForWeek(item.lift, max, cycle.week, cycle.length, cycle.daysPerWeek, item.variant, cycle.priorityLift, cycle.buddyLevel);
-+  const phase = cyclePhase(cycle.week, cycle.length, cycle.programMethod);
-+  const detailMarkup = guideEnabled() && prescription.detail
-+    ? `<details class="set-detail-note">
-+        <summary>${escapeHtml(rpeCoachHeadline(phase, cycle))}</summary>
-+        <p>${escapeHtml(prescription.detail)}</p>
-+      </details>`
-+    : "";
-+  return `
-+    <div class="exercise-row main-row">
-+      <div class="exercise-row-header">
-+        <strong>${escapeHtml(item.name)}</strong>
-+        ${detailMarkup}
-+      </div>
-+      ${planPrescriptionMarkup(prescription.title, item)}
-+      ${actualInputBlock(item, cycle, prescription.title, prescription.detail, dayIndex, itemIndex)}
-+    </div>
-+  `;
-+}
-+
-+function prescriptionBlockLabel(block = {}, item = {}) {
-+  if (block.type === "attempt") return block.displayLabel || block.label || "試技";
-+  if (isCurrentCheckItem(item)) return "確認";
-+  if (block.type === "topset") return "Top";
-+  if (block.type === "backoff") return "Back";
-+  return block.label || "Set";
-+}
-+
-+function prescriptionBlockWeightLabel(block = {}) {
-+  if (block.weightLabel) return block.weightLabel;
-+  if (block.weight) return `${block.weight}kg`;
-+  if (block.weightLow && block.weightHigh) return `${block.weightLow}〜${block.weightHigh}kg`;
-+  if (block.weightLow) return `${block.weightLow}kg`;
-+  return "";
-+}
-+
-+function planPrescriptionMarkup(title = "", item = {}) {
-+  const blocks = parsePrescriptionBlocks(title);
-+  if (!blocks.length) return `<span>${escapeHtml(title)}</span>`;
-+  return `
-+    <table class="plan-set-table" aria-label="セット予定">
-+      <thead>
-+        <tr>
-+          <th></th>
-+          <th>重量</th>
-+          <th>回数</th>
-+          <th>セット</th>
-+          <th>RPE目標</th>
-+        </tr>
-+      </thead>
-+      <tbody>
-+        ${blocks.map((block) => `
-+          <tr class="plan-set-row ${escapeHtml(block.type)}">
-+            <td class="set-label">${escapeHtml(prescriptionBlockLabel(block, item))}</td>
-+            <td class="set-weight"><strong>${escapeHtml(prescriptionBlockWeightLabel(block) || "—")}</strong></td>
-+            <td class="set-reps">${escapeHtml(block.reps)}</td>
-+            <td class="set-sets">${block.sets ? `×${escapeHtml(block.sets)}` : block.type === "attempt" ? "—" : "1"}</td>
-+            <td class="set-rpe">${escapeHtml(block.rpe)}</td>
-+          </tr>
-+        `).join("")}
-+      </tbody>
-+    </table>
-+  `;
-+}
-+
-+function parsePrescriptionBlocks(title = "") {
-+  const text = String(title || "").replace(/[×✕]/g, "x");
-+  const attemptMatches = [...text.matchAll(/(第一|第二|第三)\s*([\d.]+)(?:\s*[〜~\-]\s*([\d.]+))?\s*kg\s*@?\s*(?:RPE)?\s*([\d.]+(?:\s*[〜~\-]\s*[\d.]+)?)/g)];
-+  if (attemptMatches.length) {
-+    return attemptMatches.map((match) => {
-+      const name = match[1];
-+      const low = match[2];
-+      const high = match[3] || "";
-+      const rpeLabel = normalizeRangeText(match[4]);
-+      const weightLabel = high ? `${low}〜${high}kg` : `${low}kg`;
-+      return {
-+        label: `${name}試技`,
-+        displayLabel: `${name}試技`,
-+        type: "attempt",
-+        weight: high ? "" : formatNumber(Number(low)),
-+        weightLow: low,
-+        weightHigh: high,
-+        weightLabel,
-+        reps: "1",
-+        sets: "",
-+        rpe: `@RPE${rpeLabel}`,
-+        rpeLabel,
-+        goal: `${name} ${weightLabel} @${rpeLabel}`
-+      };
-+    });
-+  }
-+
-+  const matches = [...text.matchAll(/([\d.]+)\s*kg\s*x\s*(\d+(?:\s*[〜~\-]\s*\d+)?)\s*(?:x\s*(\d+))?(?:\s*@?\s*(?:RPE)?\s*([\d.]+(?:\s*[〜~\-]\s*[\d.]+)?))?/g)];
-+  return matches.map((match, index) => {
-+    const weight = Number(match[1]);
-+    const reps = normalizeRangeText(match[2]);
-+    const sets = match[3] || "";
-+    const rpeLabel = normalizeRangeText(match[4] || "");
-+    return {
-+      label: index === 0 ? "トップセット" : "バックオフセット",
-+      type: index === 0 ? "topset" : "backoff",
-+      weight: formatNumber(weight),
-+      range: recommendationRange(weight),
-+      reps,
-+      sets,
-+      rpe: rpeLabel ? `@RPE${rpeLabel}` : "",
-+      rpeLabel,
-+      goal: `${reps}回${sets ? ` × ${sets}set` : ""}${rpeLabel ? ` @${rpeLabel}` : ""}`
-+    };
-+  });
-+}
-+
-+function recommendationRange(weight) {
-+  const step = weight >= 100 ? 5 : 2.5;
-+  return `${formatNumber(roundToIncrement(Math.max(0, weight - step), 2.5))}〜${formatNumber(roundToIncrement(weight + step, 2.5))}`;
-+}
-+
-+function formatNumber(value) {
-+  return Number(value).toFixed(1).replace(/\.0$/, "");
-+}
-+
-+function shouldShowActualInput(item) {
-+  const text = `${item.name || ""} ${item.work || ""} ${item.note || ""}`;
-+  return !/(完全休養|休む|散歩|ストレッチ|コンディショニング)/.test(text);
-+}
-+
-+function actualInputBlock(item, cycle, planText, detail, dayIndex, itemIndex) {
-+  const target = plannedTopSet(planText, detail);
-+  const key = planFeedbackKey(cycle, dayIndex, itemIndex, item.lift || item.exerciseId || "custom", item.name);
-+  const saved = currentAthlete().rpeFeedback?.[key];
-+  const previous = previousFeedbackMarkup(cycle, item);
-+  const feedback = saved ? feedbackMarkup(saved) : "";
-+  const confidence = saved?.rpeConfidence || "learning";
-+  const rows = saved?.setDetails?.length ? saved.setDetails : [{ weight: saved?.weight ?? target.weight ?? "", reps: saved?.reps ?? target.reps ?? "", rpe: saved?.rpe ?? "" }];
-+  return `
-+    <div class="actual-box" data-plan-key="${escapeHtml(key)}" data-lift="${escapeHtml(item.lift || item.exerciseId || "custom")}" data-source="plan" data-exercise="${escapeHtml(item.name)}" data-planned-rpe="${target.rpe || ""}" data-plan-text="${escapeHtml(planText)}">
-+      <div class="actual-title">
-+        <strong>実績入力</strong>
-+        <span>${target.rpe ? `予定 @${target.rpe}` : "RPE判定"}</span>
-+      </div>
-+      ${previous}
-+      <div class="actual-set-list">
-+        ${rows.map((row, index) => actualSetRowMarkup(row, index)).join("")}
-+      </div>
-+      <label class="rpe-confidence">
-+        <span>RPE自信度</span>
-+        <select class="actual-rpe-confidence">
-+          <option value="solid"${confidence === "solid" ? " selected" : ""}>自信あり</option>
-+          <option value="unsure"${confidence === "unsure" ? " selected" : ""}>少し迷う</option>
-+          <option value="learning"${confidence === "learning" ? " selected" : ""}>感覚練習中</option>
-+        </select>
-+      </label>
-+      <div class="actual-actions">
-+        <button class="text-button compact actual-add-set" type="button">セット追加</button>
-+        <button class="text-button compact actual-save" type="button">記録</button>
-+      </div>
-+      ${feedback}
-+    </div>
-+  `;
-+}
-+
-+function actualSetRowMarkup(row = {}, index = 0) {
-+  return editableActualSetRowMarkup(row, index);
+diff -- styles.css
+--- a/styles.css
++++ b/styles.css
+@@ -13801,5 +13801,351 @@
+     min-height: 58px;
+     padding: 11px 12px;
+   }
+ }
+ 
++/* v134: shared contrast contract for buttons, inputs, badges, set rows and meet notes */
++:root {
++  --pb-bg: #f6f1e8;
++  --pb-surface: #fffaf0;
++  --pb-surface-2: #f1eadf;
++  --pb-border: rgba(30, 41, 59, 0.18);
++  --pb-text: #111827;
++  --pb-text-muted: #475569;
++  --pb-text-soft: #64748b;
++  --pb-text-inverse: #ffffff;
++  --pb-ink: #17202a;
++  --pb-ink-2: #0f172a;
++  --pb-ink-border: rgba(255, 255, 255, 0.18);
++  --pb-red: #dc2626;
++  --pb-red-dark: #991b1b;
++  --pb-green: #22c55e;
++  --pb-green-dark: #15803d;
++  --pb-yellow: #eab308;
++  --pb-yellow-dark: #854d0e;
++  --pb-blue: #2563eb;
++  --pb-input-bg: #ffffff;
++  --pb-input-text: #111827;
++  --pb-input-border: #cbd5e1;
++  --pb-input-placeholder: #94a3b8;
++  --pb-button-bg: #17202a;
++  --pb-button-text: #ffffff;
++  --pb-button-muted-bg: #e5e7eb;
++  --pb-button-muted-text: #111827;
++}
++
++html body button,
++html body .action-button,
++html body .primary-button,
++html body .actual-save,
++html body .save-button,
++html body .actual-add-set,
++html body .add-set-button,
++html body .secondary-button,
++html body .meet-command-actions button.primary,
++html body .editable-exercise-footer .actual-save,
++html body .editable-exercise-footer .actual-add-set {
++  border-color: var(--pb-button-bg) !important;
++  background: var(--pb-button-bg) !important;
++  color: var(--pb-button-text) !important;
++  text-shadow: none !important;
++}
++
++html body :is(
++  button,
++  .action-button,
++  .primary-button,
++  .actual-save,
++  .save-button,
++  .actual-add-set,
++  .add-set-button,
++  .secondary-button,
++  .meet-command-actions button.primary,
++  .editable-exercise-footer .actual-save,
++  .editable-exercise-footer .actual-add-set
++) * {
++  color: inherit !important;
++  text-shadow: none !important;
++}
++
++html body :is(
++  button,
++  .action-button,
++  .primary-button,
++  .actual-save,
++  .save-button,
++  .actual-add-set,
++  .add-set-button,
++  .secondary-button
++):disabled {
++  border-color: #d1d5db !important;
++  background: #d1d5db !important;
++  color: #4b5563 !important;
++  opacity: 0.78 !important;
++}
++
++html body input,
++html body textarea,
++html body select,
++html body .actual-weight,
++html body .actual-reps,
++html body .actual-rpe,
++html body .meet-attempt-row input,
++html body .meet-attempt-row select,
++html body .meet-note-form :is(input, select, textarea) {
++  border-color: var(--pb-input-border) !important;
++  background: var(--pb-input-bg) !important;
++  color: var(--pb-input-text) !important;
++  text-shadow: none !important;
++  -webkit-text-fill-color: var(--pb-input-text);
++}
++
++html body input::placeholder,
++html body textarea::placeholder,
++html body .actual-weight::placeholder,
++html body .actual-reps::placeholder,
++html body .actual-rpe::placeholder {
++  color: var(--pb-input-placeholder) !important;
++  opacity: 1 !important;
++}
++
++html body select option {
++  background: var(--pb-input-bg) !important;
++  color: var(--pb-input-text) !important;
++}
++
++html body :is(
++  .set-meta,
++  .set-label,
++  .set-cell,
++  .set-number,
++  .editable-set-row .set-meta,
++  .actual-set-row .set-meta
++) {
++  overflow: visible !important;
++  color: var(--pb-text) !important;
++  text-shadow: none !important;
++}
++
++html body :is(
++  .set-meta,
++  .set-label,
++  .set-cell,
++  .set-number
++) :is(strong, b, span) {
++  position: relative !important;
++  z-index: 2 !important;
++  color: var(--pb-text) !important;
++  text-shadow: none !important;
++}
++
++html body .editable-set-row .set-meta small,
++html body .actual-set-row .set-meta small,
++html body .set-kind,
++html body .set-kind-default {
++  position: relative !important;
++  z-index: 2 !important;
++  color: var(--pb-text-inverse) !important;
++  text-shadow: none !important;
++}
++
++html body :is(.set-kind-top, .kind-top, .badge-top) {
++  background: #ef4444 !important;
++  color: #ffffff !important;
++  border-color: #ef4444 !important;
++}
++
++html body :is(.set-kind-back, .kind-back, .badge-back) {
++  background: #22c55e !important;
++  color: #052e16 !important;
++  border-color: #22c55e !important;
++}
++
++html body :is(.set-kind-accessory, .kind-accessory, .badge-accessory) {
++  background: #eab308 !important;
++  color: #422006 !important;
++  border-color: #eab308 !important;
++}
++
++html body :is(.set-kind-check, .set-kind-attempt) {
++  background: var(--pb-ink) !important;
++  color: var(--pb-text-inverse) !important;
++  border-color: var(--pb-ink) !important;
++}
++
++html body #planView :is(
++  .guide-note,
++  .program-disclaimer,
++  .cycle-method-note,
++  .method-check-note,
++  .planned-method-label,
++  .exercise-rpe-hint
++) {
++  background: #fff7ed !important;
++  color: var(--pb-text-muted) !important;
++  text-shadow: none !important;
++}
++
++html body #planView :is(
++  .guide-note,
++  .program-disclaimer,
++  .cycle-method-note,
++  .method-check-note,
++  .planned-method-label,
++  .exercise-rpe-hint
++) * {
++  color: inherit !important;
++  text-shadow: none !important;
++}
++
++html body :is(
++  .meet-attempt-number,
++  .attempt-number,
++  .lift-attempt-number,
++  .meet-note-attempt-index,
++  .meet-attempt-row strong
++) {
++  border-color: var(--pb-ink) !important;
++  background: var(--pb-ink) !important;
++  color: var(--pb-text-inverse) !important;
++  font-weight: 900 !important;
++  text-shadow: none !important;
++}
++
++html body :is(
++  .meet-attempt-number,
++  .attempt-number,
++  .lift-attempt-number,
++  .meet-note-attempt-index,
++  .meet-attempt-row strong
++) * {
++  color: inherit !important;
++  text-shadow: none !important;
++}
++
++html body :is(
++  .meet-note-form .input-grid label,
++  .meet-attempt-lift,
++  .meet-attempt-row,
++  .dashboard-input-grid label,
++  .input-grid label,
++  .cycle-grid label,
++  .max-grid label
++) {
++  border-color: var(--pb-border) !important;
++  background:
++    linear-gradient(90deg, rgba(180, 35, 24, 0.026), transparent 48%),
++    var(--pb-surface) !important;
++  color: var(--pb-text) !important;
++  text-shadow: none !important;
++}
++
++html body :is(
++  .meet-note-form .input-grid label,
++  .meet-attempt-lift,
++  .meet-attempt-row,
++  .dashboard-input-grid label,
++  .input-grid label,
++  .cycle-grid label,
++  .max-grid label
++) :is(strong, b, span, label) {
++  color: var(--pb-text) !important;
++  text-shadow: none !important;
++}
++
++html body :is(
++  .meet-note-form .input-grid label,
++  .meet-attempt-lift,
++  .meet-attempt-row,
++  .dashboard-input-grid label,
++  .input-grid label,
++  .cycle-grid label,
++  .max-grid label
++) :is(p, small, em) {
++  color: var(--pb-text-muted) !important;
++  text-shadow: none !important;
++}
++
++html body :is(.chip, .status-chip, .info-chip, .badge, .pill) {
++  border-color: var(--pb-border) !important;
++  background: #ffffff !important;
++  color: var(--pb-text) !important;
++  text-shadow: none !important;
++}
++
++html body :is(.chip.dark, .status-chip.dark, .badge.dark, .pill.dark, .quiz-badge) {
++  background: var(--pb-ink) !important;
++  color: var(--pb-text-inverse) !important;
++  border-color: var(--pb-ink) !important;
++}
++
++html body :is(.chip.red, .status-chip.red, .badge.red, .pill.red, .recommended-badge) {
++  background: var(--pb-red) !important;
++  color: #ffffff !important;
++  border-color: var(--pb-red) !important;
++}
++
++html body :is(.chip.green, .status-chip.green, .badge.green, .pill.green) {
++  background: var(--pb-green) !important;
++  color: #052e16 !important;
++  border-color: var(--pb-green) !important;
++}
++
++html body :is(.chip.yellow, .status-chip.yellow, .badge.yellow, .pill.yellow) {
++  background: var(--pb-yellow) !important;
++  color: #422006 !important;
++  border-color: var(--pb-yellow) !important;
++}
++
++html body .tabbar .tab.active,
++html body .bottom-nav .active,
++html body .nav-item.active,
++html body .guide-toggle,
++html body .guide-button,
++html body .floating-guide-panel button {
++  background: var(--pb-ink) !important;
++  color: var(--pb-text-inverse) !important;
++  border-color: var(--pb-ink) !important;
++  text-shadow: none !important;
++}
++
++html body :is(
++  .tabbar .tab.active,
++  .bottom-nav .active,
++  .nav-item.active,
++  .guide-toggle,
++  .guide-button,
++  .floating-guide-panel button
++) * {
++  color: inherit !important;
++  text-shadow: none !important;
++}
++
++html body .tabbar .tab:not(.active),
++html body .bottom-nav > :not(.active),
++html body .nav-item:not(.active) {
++  color: var(--pb-text-muted) !important;
++  text-shadow: none !important;
++}
++
++html body :is(
++  .readiness-floating,
++  .floating-condition-panel,
++  .guide-floating,
++  .floating-guide-panel
++) {
++  border-color: var(--pb-border) !important;
++  background: rgba(255, 250, 240, 0.96) !important;
++  color: var(--pb-text) !important;
++  text-shadow: none !important;
++}
++
++html body :is(
++  .readiness-floating,
++  .floating-condition-panel,
++  .guide-floating,
++  .floating-guide-panel
++) :is(strong, b, span, p, small) {
++  color: inherit !important;
++  text-shadow: none !important;
 +}
 +
-+function editableActualSetRowMarkup(row = {}, index = 0) {
-+  const kind = row.kind || row.label || "";
-+  const setLabel = row.displayLabel || `S${index + 1}`;
-+  const isAttempt = /第一試技|第二試技|第三試技/.test(setLabel);
-+  const isCheck = /確認セット/.test(setLabel);
-+  const isAccessory = String(kind).includes("補助");
-+  const plannedKg = isAttempt || isAccessory ? "" : String(row.plannedWeight ?? row.weight ?? "");
-+  const plannedWeightHint = String(row.plannedWeightLabel ?? (row.plannedWeight ? `${row.plannedWeight}kg` : ""));
-+  const plannedReps = String(row.plannedReps ?? row.reps ?? "");
-+  const plannedRepsLabel = String(row.plannedRepsLabel ?? plannedReps);
-+  const plannedRpeRaw = cleanRpeValue(row.plannedRpeLabel || row.plannedRpe || "");
-+  const rawActualKg = String(row.weight ?? (isAccessory || isAttempt ? "" : plannedKg) ?? "");
-+  const actualKg = isAccessory && rawActualKg && !/^\d+(?:\.\d+)?$/.test(rawActualKg.trim()) ? "" : rawActualKg;
-+  const actualReps = String(row.reps ?? (isAttempt ? "1" : plannedReps) ?? "");
-+  const actualRpe = String(row.rpe ?? "");
-+  const kindLower = String(kind).toLowerCase();
-+  const kindClass = isAttempt
-+    ? "set-kind-attempt"
-+    : isCheck
-+      ? "set-kind-check"
-+      : kindLower.includes("top")
-+        ? "set-kind-top"
-+        : kindLower.includes("back")
-+          ? "set-kind-back"
-+          : isAccessory
-+            ? "set-kind-accessory"
-+            : "set-kind-default";
-+  const rowClass = isAttempt ? " attempt-row" : isCheck ? " check-row" : isAccessory ? " accessory-row" : "";
-+  const plannedLabel = row.plannedLabel || [
-+    plannedWeightHint,
-+    plannedRepsLabel ? `${plannedRepsLabel}回` : "",
-+    plannedRpeRaw ? `@${plannedRpeRaw}` : ""
-+  ].filter(Boolean).join(" / ");
-+  const showPlanLabel = isAttempt || isCheck || isAccessory;
-+  const placeholderKg = isAttempt ? (plannedWeightHint || row.weightLow || "kg") : (plannedKg || "kg");
-   return `
-     <div class="editable-set-row actual-set-row${rowClass}">
-       <div class="set-meta">
-         <strong>${escapeHtml(setLabel)}</strong>
-         ${kind ? `<small class="${kindClass}">${escapeHtml(kind)}</small>` : ""}
 
 diff -- sw.js
 --- a/sw.js
 +++ b/sw.js
 @@ -1,14 +1,14 @@
--const CACHE_NAME = "platform-buddy-v132";
+-const CACHE_NAME = "platform-buddy-v133";
 -const CORE_ASSETS = [
 -  "./",
 -  "index.html",
--  "index.html?v=132",
+-  "index.html?v=133",
 -  "styles.css",
--  "styles.css?v=132",
+-  "styles.css?v=133",
 -  "app.js",
--  "app.js?v=132",
-+const CACHE_NAME = "platform-buddy-v133";
+-  "app.js?v=133",
++const CACHE_NAME = "platform-buddy-v134";
 +const CORE_ASSETS = [
 +  "./",
 +  "index.html",
-+  "index.html?v=133",
++  "index.html?v=134",
 +  "styles.css",
-+  "styles.css?v=133",
++  "styles.css?v=134",
 +  "app.js",
-+  "app.js?v=133",
++  "app.js?v=134",
    "manifest.webmanifest",
    "icon.svg",
    "apple-touch-icon.png",
@@ -5115,8 +2373,8 @@ diff -- manifest.webmanifest
    "name": "Platform Buddy",
    "short_name": "Buddy",
    "description": "BIG3の現在地と目標を見える化し、PRサイクル、記録、分析、大会準備までつなげて管理できるパワーリフティング向けPWAです。",
--  "start_url": "./index.html?v=132",
-+  "start_url": "./index.html?v=133",
+-  "start_url": "./index.html?v=133",
++  "start_url": "./index.html?v=134",
    "scope": "./",
    "display": "standalone",
    "background_color": "#f4efe6",
