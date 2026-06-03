@@ -14205,3 +14205,48 @@ html body :is(
   color: var(--pb-text, #111827) !important;
   -webkit-text-fill-color: var(--pb-text, #111827) !important;
 }
+
+/* v135: PLAN mobile set label column should stay paper-colored, not black */
+html body #planView .editable-set-row > .set-meta,
+html body #planView .actual-set-row > .set-meta {
+  position: sticky !important;
+  left: 0 !important;
+  z-index: 3 !important;
+  border-right: 1px solid rgba(203, 189, 168, 0.78) !important;
+  background:
+    linear-gradient(90deg, rgba(180, 35, 24, 0.045), transparent 64%),
+    #fffaf0 !important;
+  color: var(--pb-text, #111827) !important;
+  text-shadow: none !important;
+}
+
+html body #planView .editable-set-row > .set-meta strong,
+html body #planView .actual-set-row > .set-meta strong {
+  color: var(--pb-text, #111827) !important;
+  -webkit-text-fill-color: var(--pb-text, #111827) !important;
+  text-shadow: none !important;
+}
+
+html body #planView .editable-set-row > .set-meta small,
+html body #planView .actual-set-row > .set-meta small {
+  width: fit-content;
+  min-width: 42px;
+  border-radius: 999px;
+  padding: 2px 7px;
+  text-align: center;
+  line-height: 1.05;
+}
+
+html body #planView .editable-set-row > .set-meta .set-kind-top,
+html body #planView .actual-set-row > .set-meta .set-kind-top {
+  background: #ef4444 !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+html body #planView .editable-set-row > .set-meta .set-kind-back,
+html body #planView .actual-set-row > .set-meta .set-kind-back {
+  background: #22c55e !important;
+  color: #052e16 !important;
+  -webkit-text-fill-color: #052e16 !important;
+}
