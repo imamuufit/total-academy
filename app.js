@@ -3577,9 +3577,9 @@ function sessionRowsForItem(item, cycle, dayIndex, itemIndex) {
     }
     return blocks.map((block, rowIndex) => ({
       name: item.name,
-      label: block.type === "topset" ? "Top" : "Back",
+      label: prescriptionBlockLabel(block, item),
       type: block.type,
-      weight: `${block.weight}kg`,
+      weight: prescriptionBlockWeightLabel(block),
       reps: block.reps,
       sets: block.sets || "1",
       rpe: block.rpe,
@@ -3699,6 +3699,7 @@ function normalizeRangeText(value = "") {
     .replace(/～/g, "〜")
     .replace(/~/g, "〜")
     .replace(/-/g, "〜")
+    .replace(/\s*〜\s*/g, "〜")
     .trim();
 }
 
@@ -4915,7 +4916,7 @@ function exerciseLine(item, cycle, dayIndex = 0, itemIndex = 0) {
   if (item.kind === "method") {
     const note = guideEnabled() && item.note ? `<p class="guide-note">${escapeHtml(item.note)}</p>` : "";
     const actual = shouldShowActualInput(item) ? actualInputBlock(item, cycle, item.work, item.note, dayIndex, itemIndex) : "";
-    return `<div class="exercise-row method-row"><strong>${escapeHtml(item.name)}</strong>${planPrescriptionMarkup(item.work)}${note}${actual}</div>`;
+    return `<div class="exercise-row method-row"><strong>${escapeHtml(item.name)}</strong>${planPrescriptionMarkup(item.work, item)}${note}${actual}</div>`;
   }
   if (item.kind === "accessory") {
     const badge = item.exerciseId && equipmentLabel(item.exerciseId)
@@ -4940,13 +4941,29 @@ function exerciseLine(item, cycle, dayIndex = 0, itemIndex = 0) {
         <strong>${escapeHtml(item.name)}</strong>
         ${detailMarkup}
       </div>
-      ${planPrescriptionMarkup(prescription.title)}
+      ${planPrescriptionMarkup(prescription.title, item)}
       ${actualInputBlock(item, cycle, prescription.title, prescription.detail, dayIndex, itemIndex)}
     </div>
   `;
 }
 
-function planPrescriptionMarkup(title = "") {
+function prescriptionBlockLabel(block = {}, item = {}) {
+  if (block.type === "attempt") return block.displayLabel || block.label || "試技";
+  if (isCurrentCheckItem(item)) return "確認";
+  if (block.type === "topset") return "Top";
+  if (block.type === "backoff") return "Back";
+  return block.label || "Set";
+}
+
+function prescriptionBlockWeightLabel(block = {}) {
+  if (block.weightLabel) return block.weightLabel;
+  if (block.weight) return `${block.weight}kg`;
+  if (block.weightLow && block.weightHigh) return `${block.weightLow}〜${block.weightHigh}kg`;
+  if (block.weightLow) return `${block.weightLow}kg`;
+  return "";
+}
+
+function planPrescriptionMarkup(title = "", item = {}) {
   const blocks = parsePrescriptionBlocks(title);
   if (!blocks.length) return `<span>${escapeHtml(title)}</span>`;
   return `
@@ -4963,10 +4980,10 @@ function planPrescriptionMarkup(title = "") {
       <tbody>
         ${blocks.map((block) => `
           <tr class="plan-set-row ${escapeHtml(block.type)}">
-            <td class="set-label">${block.type === "topset" ? "Top" : "Back"}</td>
-            <td class="set-weight"><strong>${escapeHtml(block.weight)}<small>kg</small></strong></td>
+            <td class="set-label">${escapeHtml(prescriptionBlockLabel(block, item))}</td>
+            <td class="set-weight"><strong>${escapeHtml(prescriptionBlockWeightLabel(block) || "—")}</strong></td>
             <td class="set-reps">${escapeHtml(block.reps)}</td>
-            <td class="set-sets">${block.sets ? `×${escapeHtml(block.sets)}` : "—"}</td>
+            <td class="set-sets">${block.sets ? `×${escapeHtml(block.sets)}` : block.type === "attempt" ? "—" : "1"}</td>
             <td class="set-rpe">${escapeHtml(block.rpe)}</td>
           </tr>
         `).join("")}
@@ -4976,8 +4993,8 @@ function planPrescriptionMarkup(title = "") {
 }
 
 function parsePrescriptionBlocks(title = "") {
-  const text = String(title || "").replace(/×/g, "x");
-  const attemptMatches = [...text.matchAll(/(第一|第二|第三)\s*([\d.]+)(?:\s*[〜~\-]\s*([\d.]+))?\s*kg\s*@?\s*(?:RPE)?\s*([\d.]+(?:[〜~\-][\d.]+)?)/g)];
+  const text = String(title || "").replace(/[×✕]/g, "x");
+  const attemptMatches = [...text.matchAll(/(第一|第二|第三)\s*([\d.]+)(?:\s*[〜~\-]\s*([\d.]+))?\s*kg\s*@?\s*(?:RPE)?\s*([\d.]+(?:\s*[〜~\-]\s*[\d.]+)?)/g)];
   if (attemptMatches.length) {
     return attemptMatches.map((match) => {
       const name = match[1];
@@ -5002,7 +5019,7 @@ function parsePrescriptionBlocks(title = "") {
     });
   }
 
-  const matches = [...text.matchAll(/([\d.]+)\s*kg\s*x\s*(\d+(?:[〜~\-]\d+)?)\s*(?:x\s*(\d+))?(?:\s*@?\s*(?:RPE)?\s*([\d.]+(?:[〜~\-][\d.]+)?))?/g)];
+  const matches = [...text.matchAll(/([\d.]+)\s*kg\s*x\s*(\d+(?:\s*[〜~\-]\s*\d+)?)\s*(?:x\s*(\d+))?(?:\s*@?\s*(?:RPE)?\s*([\d.]+(?:\s*[〜~\-]\s*[\d.]+)?))?/g)];
   return matches.map((match, index) => {
     const weight = Number(match[1]);
     const reps = normalizeRangeText(match[2]);
@@ -5109,7 +5126,7 @@ function editableActualSetRowMarkup(row = {}, index = 0) {
     plannedRpeRaw ? `@${plannedRpeRaw}` : ""
   ].filter(Boolean).join(" / ");
   const showPlanLabel = isAttempt || isCheck || isAccessory;
-  const placeholderKg = isAttempt ? (row.weightLow || "kg") : (plannedKg || "kg");
+  const placeholderKg = isAttempt ? (plannedWeightHint || row.weightLow || "kg") : (plannedKg || "kg");
   return `
     <div class="editable-set-row actual-set-row${rowClass}">
       <div class="set-meta">
