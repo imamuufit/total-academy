@@ -13717,6 +13717,98 @@ html body .knowledge-official-grid {
   }
 }
 
+/* v139: unify fixed wellness and guide controls across all screens */
+html body .wellness-floating,
+html body .guide-mode-bar,
+html body[data-active-view="home"] .wellness-floating,
+html body[data-active-view="home"] .guide-mode-bar {
+  width: min(220px, calc(100vw - 28px)) !important;
+  min-height: 74px !important;
+  padding: 10px 12px !important;
+  border-radius: 14px !important;
+  transform: none !important;
+}
+
+html body .wellness-floating,
+html body[data-active-view="home"] .wellness-floating {
+  left: 14px !important;
+  right: auto !important;
+  bottom: calc(92px + env(safe-area-inset-bottom)) !important;
+}
+
+html body .guide-mode-bar,
+html body[data-active-view="home"] .guide-mode-bar {
+  left: auto !important;
+  right: 14px !important;
+  bottom: calc(92px + env(safe-area-inset-bottom)) !important;
+}
+
+html body .guide-mode-bar span,
+html body[data-active-view="home"] .guide-mode-bar span {
+  font-size: 0.9rem !important;
+  line-height: 1.12 !important;
+}
+
+html body .guide-mode-bar small,
+html body .wellness-floating span,
+html body .wellness-floating small,
+html body[data-active-view="home"] .guide-mode-bar small,
+html body[data-active-view="home"] .wellness-floating span,
+html body[data-active-view="home"] .wellness-floating small {
+  font-size: 0.76rem !important;
+  line-height: 1.22 !important;
+}
+
+html body .wellness-floating strong,
+html body[data-active-view="home"] .wellness-floating strong {
+  font-size: 1rem !important;
+  line-height: 1.16 !important;
+}
+
+html body .guide-mode-toggle,
+html body[data-active-view="home"] .guide-mode-toggle {
+  min-width: 98px !important;
+  min-height: 40px !important;
+  padding: 0 14px !important;
+  font-size: 0.82rem !important;
+}
+
+html body .wellness-floating.expanded {
+  width: min(320px, calc(100vw - 28px)) !important;
+  min-height: auto !important;
+  bottom: calc(92px + env(safe-area-inset-bottom)) !important;
+}
+
+@media (max-width: 640px) {
+  html body .wellness-floating,
+  html body .guide-mode-bar,
+  html body[data-active-view="home"] .wellness-floating,
+  html body[data-active-view="home"] .guide-mode-bar {
+    width: min(150px, calc((100vw - 52px) / 2)) !important;
+    min-height: 74px !important;
+    padding: 9px 10px !important;
+  }
+
+  html body .wellness-floating,
+  html body[data-active-view="home"] .wellness-floating {
+    left: 14px !important;
+    bottom: calc(92px + env(safe-area-inset-bottom)) !important;
+  }
+
+  html body .guide-mode-bar,
+  html body[data-active-view="home"] .guide-mode-bar {
+    right: 14px !important;
+    bottom: calc(92px + env(safe-area-inset-bottom)) !important;
+  }
+
+  html body .guide-mode-toggle,
+  html body[data-active-view="home"] .guide-mode-toggle {
+    min-width: 90px !important;
+    min-height: 38px !important;
+    padding-inline: 10px !important;
+  }
+}
+
 /* v137: compact explanatory copy and swipeable PLAN overflow */
 html body :is(
   .guide-note,
