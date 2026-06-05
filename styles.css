@@ -13581,6 +13581,142 @@ html body .knowledge-library-body .knowledge-grid {
   }
 }
 
+/* v138: reduce first-view density and make hidden overflow discoverable */
+html body main,
+html body :is(.topbar, .meet-prep-announcement) {
+  max-width: 1180px;
+  margin-inline: auto;
+}
+
+html body :is(
+  .panel,
+  .home-hero-card,
+  .home-card,
+  .plan-command-card,
+  .meet-main-panel,
+  .data-panel
+) {
+  max-width: 100%;
+}
+
+html body .set-detail-head {
+  align-items: flex-start;
+  gap: 12px;
+}
+
+html body .set-detail-head .text-button {
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+html body .method-disclaimer-details {
+  padding: 0;
+}
+
+html body .method-disclaimer-details summary {
+  cursor: pointer;
+  font-weight: 900;
+  color: var(--accent-dark);
+}
+
+html body .method-disclaimer-details p {
+  margin: 8px 0 0;
+}
+
+html body .knowledge-library-body {
+  display: grid;
+  gap: 10px;
+}
+
+html body .knowledge-category {
+  border: 1px solid var(--line);
+  border-radius: var(--pb-radius-md, 10px);
+  background:
+    linear-gradient(90deg, rgba(180, 35, 24, 0.035), transparent 48%),
+    var(--surface, #fffaf2);
+  overflow: hidden;
+}
+
+html body .knowledge-category > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 48px;
+  cursor: pointer;
+  padding: 12px 14px;
+  list-style: none;
+}
+
+html body .knowledge-category > summary::-webkit-details-marker {
+  display: none;
+}
+
+html body .knowledge-category > summary::after {
+  content: "⌄";
+  font-weight: 900;
+  color: var(--text-sub, #526179);
+}
+
+html body .knowledge-category[open] > summary::after {
+  content: "⌃";
+}
+
+html body .knowledge-category > summary span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+html body .knowledge-category > summary strong {
+  color: var(--text-main, #171717);
+}
+
+html body .knowledge-category > summary small {
+  color: var(--text-sub, #526179);
+  font-weight: 800;
+}
+
+html body .knowledge-category-grid {
+  padding: 0 12px 12px;
+}
+
+html body .knowledge-official-grid {
+  grid-template-columns: 1fr;
+}
+
+@media (max-width: 640px) {
+  html body #planView :is(.exercise-row, .editable-set-sheet)::before {
+    content: "← 横にスワイプして確認 →";
+    display: block;
+    position: sticky;
+    left: 0;
+    width: fit-content;
+    margin: 0 0 8px;
+    border-radius: var(--pb-radius-pill, 999px);
+    background: rgba(180, 35, 24, 0.1);
+    color: var(--accent-dark, #7a271a);
+    padding: 4px 9px;
+    font-size: var(--pb-text-xs, 0.7rem);
+    font-weight: 900;
+    line-height: 1.2;
+    z-index: 4;
+  }
+
+  html body .set-detail-head {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: start;
+  }
+
+  html body .set-detail-head .screen-note {
+    margin-bottom: 0;
+  }
+
+  html body .knowledge-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* v137: compact explanatory copy and swipeable PLAN overflow */
 html body :is(
   .guide-note,

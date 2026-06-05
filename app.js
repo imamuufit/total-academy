@@ -1113,7 +1113,7 @@ const defaultState = {
   wellnessExpanded: false,
   startAction: "plan",
   onboarding: { done: false, step: "intro", goal: "big3", dailyLastShown: "" },
-  collapsed: { welcome: true, profile: true, cycle: false, facilities: true, meetNote: true, quiz: false },
+  collapsed: { welcome: true, profile: true, buddyMethod: true, planContext: true, cycle: true, facilities: true, meetNote: true, quiz: false },
   quiz: {
     view: "top",
     category: "",
@@ -1154,6 +1154,26 @@ const defaultState = {
 
 let state = loadState();
 let homeDashboardOpenCard = "";
+
+try {
+  const compactKey = "platform-buddy-ui-compact-v138";
+  if (!localStorage.getItem(compactKey)) {
+    state.collapsed = {
+      ...defaultState.collapsed,
+      ...(state.collapsed || {}),
+      welcome: true,
+      profile: true,
+      buddyMethod: true,
+      planContext: true,
+      cycle: true,
+      facilities: true
+    };
+    localStorage.setItem(compactKey, "1");
+    saveState();
+  }
+} catch (error) {
+  console.warn("UI compact preference could not be initialized", error);
+}
 
 const els = {
   athleteStrip: document.querySelector("#athleteStrip"),
@@ -1710,23 +1730,10 @@ function openDailyWellness() {
 }
 
 function renderCollapseState(athlete = currentAthlete(), cycle = normalizedCycle()) {
-  const hadBuddyMethodPreference = Object.prototype.hasOwnProperty.call(state.collapsed || {}, "buddyMethod");
   state.collapsed = { ...defaultState.collapsed, ...(state.collapsed || {}) };
   applyCollapse("profile", els.profilePanelContent, els.profileCollapseBtn, "プロフィール");
   applyCollapse("welcome", els.welcomePanelContent, els.welcomeCollapseBtn, "はじめてガイド");
-  const forceOpenBuddyMethod = cycle.experienceLevel === "beginner" && !hadBuddyMethodPreference;
-  if (forceOpenBuddyMethod) {
-    els.buddyMethodPanelContent?.classList.remove("collapsed");
-    if (els.buddyMethodCollapseBtn) {
-      els.buddyMethodCollapseBtn.textContent = "⌃";
-      els.buddyMethodCollapseBtn.dataset.collapseKey = "buddyMethod";
-      els.buddyMethodCollapseBtn.setAttribute("aria-expanded", "true");
-      els.buddyMethodCollapseBtn.setAttribute("aria-label", "Buddyメソッドとは？を閉じる");
-    }
-  } else {
-    if (!hadBuddyMethodPreference && cycle.experienceLevel !== "beginner") state.collapsed.buddyMethod = true;
-    applyCollapse("buddyMethod", els.buddyMethodPanelContent, els.buddyMethodCollapseBtn, "Buddyメソッドとは？");
-  }
+  applyCollapse("buddyMethod", els.buddyMethodPanelContent, els.buddyMethodCollapseBtn, "Buddyメソッドとは？");
   applyCollapse("cycle", els.cyclePanelContent, els.cycleCollapseBtn, "PRサイクル設計");
   applyCollapse("facilities", els.facilityGrid, els.facilityCollapseBtn, "設備依存種目");
   applyCollapse("meetNote", els.meetNotePanelContent, els.meetNoteCollapseBtn, "大会ノート");
@@ -1801,6 +1808,57 @@ function renderCollapseSummaries(athlete, cycle) {
   }
 }
 
+function renderKnowledgeLibraryAccordion() {
+  const body = document.querySelector(".knowledge-library-body");
+  const grid = body?.querySelector(":scope > .knowledge-grid");
+  if (!body || !grid || body.dataset.grouped === "true") return;
+
+  const cards = [...grid.querySelectorAll(":scope > .knowledge-card")];
+  if (!cards.length) return;
+
+  const categoryOrder = ["強度管理", "プログラム", "周期化", "試合", "コンディション", "方式", "評価"];
+  const grouped = new Map(categoryOrder.map((category) => [category, []]));
+  const officialCards = [];
+
+  cards.forEach((card) => {
+    const category = card.querySelector("span")?.textContent?.trim() || "その他";
+    if (category === "公式情報") {
+      officialCards.push(card);
+      return;
+    }
+    if (!grouped.has(category)) grouped.set(category, []);
+    grouped.get(category).push(card);
+  });
+
+  const fragment = document.createDocumentFragment();
+  if (officialCards.length) {
+    const officialGrid = document.createElement("div");
+    officialGrid.className = "knowledge-grid knowledge-official-grid";
+    officialCards.forEach((card) => officialGrid.appendChild(card));
+    fragment.appendChild(officialGrid);
+  }
+
+  grouped.forEach((items, category) => {
+    if (!items.length) return;
+    const details = document.createElement("details");
+    details.className = "knowledge-category";
+
+    const summary = document.createElement("summary");
+    summary.innerHTML = `<span><strong>${escapeHtml(category)}</strong><small>${items.length}語</small></span>`;
+    details.appendChild(summary);
+
+    const categoryGrid = document.createElement("div");
+    categoryGrid.className = "knowledge-grid knowledge-category-grid";
+    items.forEach((card) => categoryGrid.appendChild(card));
+    details.appendChild(categoryGrid);
+    fragment.appendChild(details);
+  });
+
+  body.innerHTML = "";
+  body.appendChild(fragment);
+  body.dataset.grouped = "true";
+}
+
 function render() {
   const athlete = currentAthlete();
   updateActiveViewClass();
@@ -1846,6 +1904,7 @@ function render() {
   renderPlanContext();
   renderMeetNotebook(athlete);
   renderQuiz();
+  renderKnowledgeLibraryAccordion();
   drawWeeklyDataChart(athlete);
   drawChart();
 }
@@ -6633,7 +6692,7 @@ function applyOnboardingPlan() {
   athlete.weightClass = inferWeightClass(athlete.sex || "male", athlete.bodyweight);
   athlete.rpeExperience = els.onboardingRpeExperience?.value || "learning";
   state.startAction = goal === "meet" ? "meet" : "plan";
-  state.collapsed = { ...defaultState.collapsed, ...(state.collapsed || {}), cycle: false, welcome: true };
+  state.collapsed = { ...defaultState.collapsed, ...(state.collapsed || {}), cycle: true, welcome: true, profile: true };
   state.onboarding.step = "complete";
   saveState();
   render();

@@ -12,7 +12,7 @@
     <link rel="preload" as="image" href="home-bg-lite.jpg">
     <link rel="preload" as="image" href="icon-sheet-lite.jpg">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <link rel="stylesheet" href="styles.css?v=137">
+    <link rel="stylesheet" href="styles.css?v=138">
   </head>
   <body>
     <div class="app-shell">
@@ -314,7 +314,7 @@
               <div class="set-detail-head">
                 <div>
                   <h3>セット入力</h3>
-                  <p>Set1を下のセットへコピーできます。</p>
+                  <p class="screen-note set-copy-note">Set1を下へコピーできます。</p>
                 </div>
                 <button class="text-button compact" id="fillSetRowsBtn" type="button">Set1を下へコピー</button>
               </div>
@@ -425,7 +425,10 @@
             <p class="collapse-summary" id="buddyMethodSummary"></p>
             <div class="collapsible-content" id="buddyMethodPanelContent">
               <p class="screen-note">RPEと疲労を見ながら、PRへ進むサイクルです。</p>
-              <p class="program-disclaimer">万能メニューではありません。体調とRPEで調整します。</p>
+              <details class="program-disclaimer method-disclaimer-details">
+                <summary>注意を見る</summary>
+                <p>万能メニューではありません。体調とRPEで調整します。</p>
+              </details>
               <div class="method-level-grid">
                 <article>
                   <span>Lv1</span>
@@ -453,12 +456,12 @@
                 <h2>PRサイクル設計</h2>
               </div>
               <div class="plan-actions">
-                <button class="collapse-toggle" id="cycleCollapseBtn" type="button" aria-label="PRサイクル設計を閉じる" aria-expanded="true">▴</button>
+                  <button class="collapse-toggle" id="cycleCollapseBtn" type="button" aria-label="PRサイクル設計を開く" aria-expanded="false">▾</button>
                 <button class="text-button" id="saveCycleBtn" type="button">保存</button>
               </div>
             </div>
             <p class="collapse-summary" id="cycleSummary"></p>
-            <div class="collapsible-content" id="cyclePanelContent">
+            <div class="collapsible-content collapsed" id="cyclePanelContent">
               <p class="screen-note">方式、週数、頻度を選ぼう。</p>
               <div class="cycle-grid cycle-basic-grid">
                 <label>
@@ -996,6 +999,6 @@
       </form>
     </dialog>
 
-    <script src="app.js?v=137"></script>
+    <script src="app.js?v=138"></script>
   </body>
 </html>
