@@ -1,3251 +1,665 @@
 ﻿--- index.html
 +++ index.html
 @@ line 15 @@
--     <link rel="stylesheet" href="styles.css?v=138">
-+     <link rel="stylesheet" href="styles.css?v=139">
+-     <link rel="stylesheet" href="styles.css?v=139">
++     <link rel="stylesheet" href="styles.css?v=140">
 @@ line 1002 @@
--     <script src="app.js?v=138"></script>
-+     <script src="app.js?v=139"></script>
+-     <script src="app.js?v=139"></script>
++     <script src="app.js?v=140"></script>
 --- styles.css
 +++ styles.css
-@@ line 13720 @@
-- /* v137: compact explanatory copy and swipeable PLAN overflow */
-+ /* v139: unify fixed wellness and guide controls across all screens */
-@@ line 13721 @@
-- html body :is(
-+ html body .wellness-floating,
-@@ line 13722 @@
--   .guide-note,
-+ html body .guide-mode-bar,
-@@ line 13723 @@
--   .screen-note,
-+ html body[data-active-view="home"] .wellness-floating,
-@@ line 13724 @@
--   .data-note,
-+ html body[data-active-view="home"] .guide-mode-bar {
-@@ line 13725 @@
--   .cycle-method-note,
-+   width: min(220px, calc(100vw - 28px)) !important;
-@@ line 13726 @@
--   .program-disclaimer,
-+   min-height: 74px !important;
-@@ line 13727 @@
--   .white-nine-note,
-+   padding: 10px 12px !important;
-@@ line 13728 @@
--   .method-check-note,
-+   border-radius: 14px !important;
-@@ line 13729 @@
--   .exercise-rpe-hint,
-+   transform: none !important;
-@@ line 13730 @@
--   .planned-summary,
-+ }
-@@ line 13731 @@
--   .planned-method-label,
-+ 
-@@ line 13732 @@
--   .program-method-guide p,
-+ html body .wellness-floating,
-@@ line 13733 @@
--   .program-card-mini p,
-+ html body[data-active-view="home"] .wellness-floating {
-@@ line 13734 @@
--   .cycle-setup-grid p,
-+   left: 14px !important;
-@@ line 13735 @@
--   .cycle-setup-card p,
-+   right: auto !important;
-@@ line 13736 @@
--   .home-card-note,
-+   bottom: calc(92px + env(safe-area-inset-bottom)) !important;
-@@ line 13737 @@
--   .collapse-summary,
-+ }
-@@ line 13738 @@
--   .rpe-feedback,
-+ 
-@@ line 13739 @@
--   .academy-evaluation-card p,
-+ html body .guide-mode-bar,
-@@ line 13740 @@
--   .weekly-verdict p
-+ html body[data-active-view="home"] .guide-mode-bar {
-@@ line 13741 @@
-- ) {
-+   left: auto !important;
-@@ line 13742 @@
--   max-width: 100%;
-+   right: 14px !important;
-@@ line 13743 @@
--   line-height: 1.35 !important;
-+   bottom: calc(92px + env(safe-area-inset-bottom)) !important;
-@@ line 13746 @@
-- html body #planView :is(
-+ html body .guide-mode-bar span,
-@@ line 13747 @@
--   .exercise-row,
-+ html body[data-active-view="home"] .guide-mode-bar span {
-@@ line 13748 @@
--   .plan-prescription,
-+   font-size: 0.9rem !important;
-@@ line 13749 @@
--   .editable-set-sheet,
-+   line-height: 1.12 !important;
-@@ line 13750 @@
--   .actual-set-list,
-+ }
-@@ line 13751 @@
--   .program-method-guide,
-+ 
-@@ line 13752 @@
--   .program-card-mini,
-+ html body .guide-mode-bar small,
-@@ line 13753 @@
--   .cycle-setup-grid,
-+ html body .wellness-floating span,
-@@ line 13754 @@
--   .cycle-detail-grid,
-+ html body .wellness-floating small,
-@@ line 13755 @@
--   .cycle-basic-grid,
-+ html body[data-active-view="home"] .guide-mode-bar small,
-@@ line 13756 @@
--   .cycle-settings-details-body
-+ html body[data-active-view="home"] .wellness-floating span,
-@@ line 13757 @@
-- ) {
-+ html body[data-active-view="home"] .wellness-floating small {
-@@ line 13758 @@
--   max-width: 100%;
-+   font-size: 0.76rem !important;
-@@ line 13759 @@
--   overflow-x: auto;
-+   line-height: 1.22 !important;
-@@ line 13760 @@
--   -webkit-overflow-scrolling: touch;
-+ }
-@@ line 13761 @@
-- }
-+ 
-@@ line 13762 @@
-- 
-+ html body .wellness-floating strong,
-@@ line 13763 @@
-- html body #planView .plan-set-table {
-+ html body[data-active-view="home"] .wellness-floating strong {
-@@ line 13764 @@
--   min-width: 560px;
-+   font-size: 1rem !important;
-@@ line 13765 @@
--   width: max-content;
-+   line-height: 1.16 !important;
-@@ line 13768 @@
-- html body #planView :is(
-+ html body .guide-mode-toggle,
-@@ line 13769 @@
--   .editable-set-row,
-+ html body[data-active-view="home"] .guide-mode-toggle {
-@@ line 13770 @@
--   .actual-set-row
-+   min-width: 98px !important;
-@@ line 13771 @@
-- ) {
-+   min-height: 40px !important;
-@@ line 13772 @@
--   min-width: 620px;
-+   padding: 0 14px !important;
-@@ line 13773 @@
-- }
-+   font-size: 0.82rem !important;
-@@ line 13774 @@
-- 
-+ }
-@@ line 13775 @@
-- html body #planView :is(
-+ 
-@@ line 13776 @@
--   .exercise-row,
-+ html body .wellness-floating.expanded {
-@@ line 13777 @@
--   .editable-set-sheet,
-+   width: min(320px, calc(100vw - 28px)) !important;
-@@ line 13778 @@
--   .program-method-guide,
-+   min-height: auto !important;
-@@ line 13779 @@
--   .cycle-settings-details-body
-+   bottom: calc(92px + env(safe-area-inset-bottom)) !important;
-@@ line 13780 @@
-- ) {
-+ }
-@@ line 13781 @@
--   scrollbar-width: thin;
-+ 
-@@ line 13782 @@
-- }
-+ @media (max-width: 640px) {
-@@ line 13783 @@
-- 
-+   html body .wellness-floating,
-@@ line 13784 @@
-- @media (max-width: 640px) {
-+   html body .guide-mode-bar,
-@@ line 13785 @@
--   html body :is(
-+   html body[data-active-view="home"] .wellness-floating,
-@@ line 13786 @@
--     .guide-note,
-+   html body[data-active-view="home"] .guide-mode-bar {
-@@ line 13787 @@
--     .screen-note,
-+     width: min(150px, calc((100vw - 52px) / 2)) !important;
-@@ line 13788 @@
--     .data-note,
-+     min-height: 74px !important;
-@@ line 13789 @@
--     .cycle-method-note,
-+     padding: 9px 10px !important;
-@@ line 13790 @@
--     .program-disclaimer,
-+   }
-@@ line 13791 @@
--     .white-nine-note,
-+ 
-@@ line 13792 @@
--     .method-check-note,
-+   html body .wellness-floating,
-@@ line 13793 @@
--     .program-method-guide p,
-+   html body[data-active-view="home"] .wellness-floating {
-@@ line 13794 @@
--     .program-card-mini p,
-+     left: 14px !important;
-@@ line 13795 @@
--     .cycle-setup-grid p,
-+     bottom: calc(92px + env(safe-area-inset-bottom)) !important;
-@@ line 13796 @@
--     .cycle-setup-card p,
-+   }
-@@ line 13797 @@
--     .home-card-note,
-+ 
-@@ line 13798 @@
--     .collapse-summary,
-+   html body .guide-mode-bar,
-@@ line 13799 @@
--     .rpe-feedback,
-+   html body[data-active-view="home"] .guide-mode-bar {
-@@ line 13800 @@
--     .academy-evaluation-card p,
-+     right: 14px !important;
-@@ line 13801 @@
--     .weekly-verdict p
-+     bottom: calc(92px + env(safe-area-inset-bottom)) !important;
-@@ line 13802 @@
--   ) {
-+   }
-@@ line 13803 @@
--     display: -webkit-box;
-+ 
-@@ line 13804 @@
--     overflow: hidden;
-+   html body .guide-mode-toggle,
-@@ line 13805 @@
--     -webkit-box-orient: vertical;
-+   html body[data-active-view="home"] .guide-mode-toggle {
-@@ line 13806 @@
--     -webkit-line-clamp: 2;
-+     min-width: 90px !important;
-@@ line 13807 @@
--     font-size: var(--pb-text-xs) !important;
-+     min-height: 38px !important;
-@@ line 13808 @@
--   }
-+     padding-inline: 10px !important;
-@@ line 13809 @@
-- 
-+   }
-@@ line 13810 @@
--   html body :is(
-+ }
-@@ line 13811 @@
--     .exercise-rpe-hint,
-+ 
-@@ line 13812 @@
--     .planned-summary,
-+ /* v137: compact explanatory copy and swipeable PLAN overflow */
-@@ line 13813 @@
--     .planned-method-label,
-+ html body :is(
-@@ line 13814 @@
--     .prescription-summary,
-+   .guide-note,
-@@ line 13815 @@
--     .exercise-prescription-summary
-+   .screen-note,
-@@ line 13816 @@
--   ) {
-+   .data-note,
-@@ line 13817 @@
--     display: block !important;
-+   .cycle-method-note,
-@@ line 13818 @@
--     overflow: hidden !important;
-+   .program-disclaimer,
-@@ line 13819 @@
--     text-overflow: ellipsis;
-+   .white-nine-note,
-@@ line 13820 @@
--     white-space: nowrap;
-+   .method-check-note,
-@@ line 13821 @@
--     font-size: var(--pb-text-xs) !important;
-+   .exercise-rpe-hint,
-@@ line 13822 @@
--     line-height: 1.3 !important;
-+   .planned-summary,
-@@ line 13823 @@
--   }
-+   .planned-method-label,
-@@ line 13824 @@
-- 
-+   .program-method-guide p,
-@@ line 13825 @@
--   html body #planView .plan-set-table {
-+   .program-card-mini p,
-@@ line 13826 @@
--     min-width: 540px;
-+   .cycle-setup-grid p,
-@@ line 13827 @@
--   }
-+   .cycle-setup-card p,
-@@ line 13828 @@
-- 
-+   .home-card-note,
-@@ line 13829 @@
--   html body #planView :is(
-+   .collapse-summary,
-@@ line 13830 @@
--     .editable-set-row,
-+   .rpe-feedback,
-@@ line 13831 @@
--     .actual-set-row
-+   .academy-evaluation-card p,
-@@ line 13832 @@
--   ) {
-+   .weekly-verdict p
-@@ line 13833 @@
--     min-width: 590px;
-+ ) {
-@@ line 13834 @@
--   }
-+   max-width: 100%;
-@@ line 13835 @@
-- }
-+   line-height: 1.35 !important;
-@@ line 13836 @@
-- 
-+ }
-@@ line 13837 @@
-- /* v131: restore readable IRON NOTE contrast in PLAN and MEET */
-+ 
-@@ line 13839 @@
--   .guide-note,
-+   .exercise-row,
-@@ line 13840 @@
--   .program-disclaimer,
-+   .plan-prescription,
-@@ line 13841 @@
--   .cycle-method-note,
-+   .editable-set-sheet,
-@@ line 13842 @@
--   .method-check-note
-+   .actual-set-list,
-@@ line 13843 @@
-- ) {
-+   .program-method-guide,
-@@ line 13844 @@
--   border: 1px solid var(--line) !important;
-+   .program-card-mini,
-@@ line 13845 @@
--   border-left: 4px solid rgba(180, 35, 24, 0.42) !important;
-+   .cycle-setup-grid,
-@@ line 13846 @@
--   background: #fff7ed !important;
-+   .cycle-detail-grid,
-@@ line 13847 @@
--   color: var(--text-sub) !important;
-+   .cycle-basic-grid,
-@@ line 13848 @@
--   text-shadow: none !important;
-+   .cycle-settings-details-body
-@@ line 13849 @@
-- }
-+ ) {
-@@ line 13850 @@
-- 
-+   max-width: 100%;
-@@ line 13851 @@
-- html body #planView :is(
-+   overflow-x: auto;
-@@ line 13852 @@
--   .guide-note,
-+   -webkit-overflow-scrolling: touch;
-@@ line 13853 @@
--   .program-disclaimer,
-+ }
-@@ line 13854 @@
--   .cycle-method-note,
-+ 
-@@ line 13855 @@
--   .method-check-note
-+ html body #planView .plan-set-table {
-@@ line 13856 @@
-- ) * {
-+   min-width: 560px;
-@@ line 13857 @@
--   color: var(--text-sub) !important;
-+   width: max-content;
-@@ line 13858 @@
--   text-shadow: none !important;
-+ }
-@@ line 13859 @@
-- }
-+ 
-@@ line 13860 @@
-- 
-+ html body #planView :is(
-@@ line 13861 @@
-- html body #knowledgeView :is(
-+   .editable-set-row,
-@@ line 13862 @@
--   .meet-today-card,
-+   .actual-set-row
-@@ line 13863 @@
--   .meet-command-actions a,
-+ ) {
-@@ line 13864 @@
--   .meet-command-actions button,
-+   min-width: 620px;
-@@ line 13865 @@
--   .meet-action-grid .meet-shortcut,
-+ }
-@@ line 13866 @@
--   .meet-prep-checklist,
-+ 
-@@ line 13867 @@
--   .meet-check-group,
-+ html body #planView :is(
-@@ line 13868 @@
--   .meet-note-form .input-grid label,
-+   .exercise-row,
-@@ line 13869 @@
--   .meet-attempt-lift
-+   .editable-set-sheet,
-@@ line 13870 @@
-- ) {
-+   .program-method-guide,
-@@ line 13871 @@
--   border-color: var(--line) !important;
-+   .cycle-settings-details-body
-@@ line 13872 @@
--   background:
-+ ) {
-@@ line 13873 @@
--     linear-gradient(90deg, rgba(180, 35, 24, 0.035), transparent 46%),
-+   scrollbar-width: thin;
-@@ line 13874 @@
--     #fffaf2 !important;
-+ }
-@@ line 13875 @@
--   color: var(--text-main) !important;
-+ 
-@@ line 13876 @@
--   box-shadow: 0 8px 18px rgba(51, 42, 29, 0.06) !important;
-+ @media (max-width: 640px) {
-@@ line 13877 @@
--   text-shadow: none !important;
-+   html body :is(
-@@ line 13878 @@
-- }
-+     .guide-note,
-@@ line 13879 @@
-- 
-+     .screen-note,
-@@ line 13880 @@
-- html body #knowledgeView :is(
-+     .data-note,
-@@ line 13881 @@
--   .meet-today-card,
-+     .cycle-method-note,
-@@ line 13882 @@
--   .meet-command-actions a,
-+     .program-disclaimer,
-@@ line 13883 @@
--   .meet-command-actions button,
-+     .white-nine-note,
-@@ line 13884 @@
--   .meet-action-grid .meet-shortcut,
-+     .method-check-note,
-@@ line 13885 @@
--   .meet-prep-checklist,
-+     .program-method-guide p,
-@@ line 13886 @@
--   .meet-check-group,
-+     .program-card-mini p,
-@@ line 13887 @@
--   .meet-note-form .input-grid label,
-+     .cycle-setup-grid p,
-@@ line 13888 @@
--   .meet-attempt-lift
-+     .cycle-setup-card p,
-@@ line 13889 @@
-- ) :is(h1, h2, h3, h4, strong, b, label) {
-+     .home-card-note,
-@@ line 13890 @@
--   color: var(--text-main) !important;
-+     .collapse-summary,
-@@ line 13891 @@
--   text-shadow: none !important;
-+     .rpe-feedback,
-@@ line 13892 @@
-- }
-+     .academy-evaluation-card p,
-@@ line 13893 @@
-- 
-+     .weekly-verdict p
-@@ line 13894 @@
-- html body #knowledgeView :is(
-+   ) {
-@@ line 13895 @@
--   .meet-today-card,
-+     display: -webkit-box;
-@@ line 13896 @@
--   .meet-action-grid .meet-shortcut,
-+     overflow: hidden;
-@@ line 13897 @@
--   .meet-prep-checklist,
-+     -webkit-box-orient: vertical;
-@@ line 13898 @@
--   .meet-check-group
-+     -webkit-line-clamp: 2;
-@@ line 13899 @@
-- ) :is(p, small) {
-+     font-size: var(--pb-text-xs) !important;
-@@ line 13900 @@
--   color: var(--text-sub) !important;
-+   }
-@@ line 13901 @@
--   text-shadow: none !important;
-+ 
-@@ line 13902 @@
-- }
-+   html body :is(
-@@ line 13903 @@
-- 
-+     .exercise-rpe-hint,
-@@ line 13904 @@
-- html body #knowledgeView .meet-today-card a {
-+     .planned-summary,
-@@ line 13905 @@
--   border: 1px solid rgba(21, 127, 59, 0.24) !important;
-+     .planned-method-label,
-@@ line 13906 @@
--   background: #eaf6ec !important;
-+     .prescription-summary,
-@@ line 13907 @@
--   color: #157f3b !important;
-+     .exercise-prescription-summary
-@@ line 13908 @@
-- }
-+   ) {
-@@ line 13909 @@
-- 
-+     display: block !important;
-@@ line 13910 @@
-- html body #knowledgeView .meet-action-grid .meet-shortcut > span,
-+     overflow: hidden !important;
-@@ line 13911 @@
-- html body #knowledgeView .meet-command-actions span {
-+     text-overflow: ellipsis;
-@@ line 13912 @@
--   background: #22272e !important;
-+     white-space: nowrap;
-@@ line 13913 @@
--   color: #fffaf2 !important;
-+     font-size: var(--pb-text-xs) !important;
-@@ line 13914 @@
--   border-color: #22272e !important;
-+     line-height: 1.3 !important;
-@@ line 13915 @@
-- }
-+   }
-@@ line 13917 @@
-- html body #knowledgeView .meet-note-form .input-grid label {
-+   html body #planView .plan-set-table {
-@@ line 13918 @@
--   display: grid;
-+     min-width: 540px;
-@@ line 13919 @@
--   gap: 5px;
-+   }
-@@ line 13920 @@
--   padding: 8px;
-+ 
-@@ line 13921 @@
--   color: var(--text-main) !important;
-+   html body #planView :is(
-@@ line 13922 @@
-- }
-+     .editable-set-row,
-@@ line 13923 @@
-- 
-+     .actual-set-row
-@@ line 13924 @@
-- html body #knowledgeView .meet-attempt-row strong {
-+   ) {
-@@ line 13925 @@
--   background: #22272e !important;
-+     min-width: 590px;
-@@ line 13926 @@
--   color: #fffaf2 !important;
-+   }
-@@ line 13927 @@
--   text-shadow: none !important;
-+ }
-@@ line 13928 @@
-- }
-+ 
-@@ line 13929 @@
-- 
-+ /* v131: restore readable IRON NOTE contrast in PLAN and MEET */
-@@ line 13930 @@
-- html body #knowledgeView .meet-attempt-row :is(input, select),
-+ html body #planView :is(
-@@ line 13931 @@
-- html body #knowledgeView .meet-note-form :is(input, select, textarea) {
-+   .guide-note,
-@@ line 13932 @@
--   background: #ffffff !important;
-+   .program-disclaimer,
-@@ line 13933 @@
--   color: #111827 !important;
-+   .cycle-method-note,
-@@ line 13934 @@
--   border-color: #94a3b8 !important;
-+   .method-check-note
-@@ line 13935 @@
-- }
-+ ) {
-@@ line 13936 @@
-- 
-+   border: 1px solid var(--line) !important;
-@@ line 13937 @@
-- /* v132: show the essential PR cycle settings first */
-+   border-left: 4px solid rgba(180, 35, 24, 0.42) !important;
-@@ line 13938 @@
-- html body #planView .cycle-basic-grid {
-+   background: #fff7ed !important;
-@@ line 13939 @@
--   grid-template-columns: repeat(3, minmax(0, 1fr));
-+   color: var(--text-sub) !important;
-@@ line 13940 @@
-- }
-+   text-shadow: none !important;
-@@ line 13941 @@
-- 
-+ }
-@@ line 13942 @@
-- html body #planView .cycle-basic-maxes {
-+ 
-@@ line 13943 @@
--   display: grid;
-+ html body #planView :is(
-@@ line 13944 @@
--   gap: 10px;
-+   .guide-note,
-@@ line 13945 @@
--   margin-top: 12px;
-+   .program-disclaimer,
-@@ line 13946 @@
--   border: 1px solid var(--line);
-+   .cycle-method-note,
-@@ line 13947 @@
--   border-left: 4px solid rgba(47, 111, 115, 0.62);
-+   .method-check-note
-@@ line 13948 @@
--   border-radius: 10px;
-+ ) * {
-@@ line 13949 @@
--   background:
-+   color: var(--text-sub) !important;
-@@ line 13950 @@
--     linear-gradient(90deg, rgba(47, 111, 115, 0.045), transparent 48%),
-+   text-shadow: none !important;
-@@ line 13951 @@
--     #fffaf2;
-+ }
-@@ line 13952 @@
--   padding: 12px;
-+ 
-@@ line 13953 @@
-- }
-+ html body #knowledgeView :is(
-@@ line 13954 @@
-- 
-+   .meet-today-card,
-@@ line 13955 @@
-- html body #planView .cycle-basic-maxes h3,
-+   .meet-command-actions a,
-@@ line 13956 @@
-- html body #planView .cycle-basic-maxes p {
-+   .meet-command-actions button,
-@@ line 13957 @@
--   margin: 0;
-+   .meet-action-grid .meet-shortcut,
-@@ line 13958 @@
-- }
-+   .meet-prep-checklist,
-@@ line 13959 @@
-- 
-+   .meet-check-group,
-@@ line 13960 @@
-- html body #planView .cycle-basic-maxes h3 {
-+   .meet-note-form .input-grid label,
-@@ line 13961 @@
--   color: var(--text-main);
-+   .meet-attempt-lift
-@@ line 13962 @@
--   font-size: 0.98rem;
-+ ) {
-@@ line 13963 @@
-- }
-+   border-color: var(--line) !important;
-@@ line 13964 @@
-- 
-+   background:
-@@ line 13965 @@
-- html body #planView .cycle-basic-maxes p {
-+     linear-gradient(90deg, rgba(180, 35, 24, 0.035), transparent 46%),
-@@ line 13966 @@
--   color: var(--text-sub);
-+     #fffaf2 !important;
-@@ line 13967 @@
--   font-size: 0.8rem;
-+   color: var(--text-main) !important;
-@@ line 13968 @@
--   font-weight: 800;
-+   box-shadow: 0 8px 18px rgba(51, 42, 29, 0.06) !important;
-@@ line 13969 @@
-- }
-+   text-shadow: none !important;
-@@ line 13970 @@
-- 
-+ }
-@@ line 13971 @@
-- html body #planView .cycle-settings-details {
-+ 
-@@ line 13972 @@
--   margin-top: 12px;
-+ html body #knowledgeView :is(
-@@ line 13973 @@
--   overflow: hidden;
-+   .meet-today-card,
-@@ line 13974 @@
--   border: 1px solid var(--line);
-+   .meet-command-actions a,
-@@ line 13975 @@
--   border-radius: 10px;
-+   .meet-command-actions button,
-@@ line 13976 @@
--   background: #fffaf2;
-+   .meet-action-grid .meet-shortcut,
-@@ line 13977 @@
-- }
-+   .meet-prep-checklist,
-@@ line 13978 @@
-- 
-+   .meet-check-group,
-@@ line 13979 @@
-- html body #planView .cycle-settings-details > summary {
-+   .meet-note-form .input-grid label,
-@@ line 13980 @@
--   display: flex;
-+   .meet-attempt-lift
-@@ line 13981 @@
--   min-height: 64px;
-+ ) :is(h1, h2, h3, h4, strong, b, label) {
-@@ line 13982 @@
--   align-items: center;
-+   color: var(--text-main) !important;
-@@ line 13983 @@
--   justify-content: space-between;
-+   text-shadow: none !important;
-@@ line 13984 @@
--   gap: 14px;
-+ }
-@@ line 13985 @@
--   padding: 12px 14px;
-+ 
-@@ line 13986 @@
--   color: var(--text-main);
-+ html body #knowledgeView :is(
-@@ line 13987 @@
--   cursor: pointer;
-+   .meet-today-card,
-@@ line 13988 @@
--   list-style: none;
-+   .meet-action-grid .meet-shortcut,
-@@ line 13989 @@
-- }
-+   .meet-prep-checklist,
-@@ line 13990 @@
-- 
-+   .meet-check-group
-@@ line 13991 @@
-- html body #planView .cycle-settings-details > summary::-webkit-details-marker {
-+ ) :is(p, small) {
-@@ line 13992 @@
--   display: none;
-+   color: var(--text-sub) !important;
-@@ line 13993 @@
-- }
-+   text-shadow: none !important;
-@@ line 13994 @@
-- 
-+ }
-@@ line 13995 @@
-- html body #planView .cycle-settings-details > summary::after {
-+ 
-@@ line 13996 @@
--   display: grid;
-+ html body #knowledgeView .meet-today-card a {
-@@ line 13997 @@
--   width: 32px;
-+   border: 1px solid rgba(21, 127, 59, 0.24) !important;
-@@ line 13998 @@
--   height: 32px;
-+   background: #eaf6ec !important;
-@@ line 13999 @@
--   flex: 0 0 32px;
-+   color: #157f3b !important;
-@@ line 14000 @@
--   place-items: center;
-+ }
-@@ line 14001 @@
--   border: 1px solid var(--line);
-+ 
-@@ line 14002 @@
--   border-radius: 50%;
-+ html body #knowledgeView .meet-action-grid .meet-shortcut > span,
-@@ line 14003 @@
--   background: #ffffff;
-+ html body #knowledgeView .meet-command-actions span {
-@@ line 14004 @@
--   color: var(--text-main);
-+   background: #22272e !important;
-@@ line 14005 @@
--   content: "+";
-+   color: #fffaf2 !important;
-@@ line 14006 @@
--   font-size: 1.2rem;
-+   border-color: #22272e !important;
-@@ line 14007 @@
--   font-weight: 900;
-+ }
-@@ line 14008 @@
--   line-height: 1;
-+ 
-@@ line 14009 @@
-- }
-+ html body #knowledgeView .meet-note-form .input-grid label {
-@@ line 14010 @@
-- 
-+   display: grid;
-@@ line 14011 @@
-- html body #planView .cycle-settings-details[open] > summary::after {
-+   gap: 5px;
-@@ line 14012 @@
--   content: "-";
-+   padding: 8px;
-@@ line 14013 @@
-- }
-+   color: var(--text-main) !important;
-@@ line 14014 @@
-- 
-+ }
-@@ line 14015 @@
-- html body #planView .cycle-settings-details > summary span {
-+ 
-@@ line 14016 @@
--   display: grid;
-+ html body #knowledgeView .meet-attempt-row strong {
-@@ line 14017 @@
--   gap: 3px;
-+   background: #22272e !important;
-@@ line 14018 @@
-- }
-+   color: #fffaf2 !important;
-@@ line 14019 @@
-- 
-+   text-shadow: none !important;
-@@ line 14020 @@
-- html body #planView .cycle-settings-details > summary strong {
-+ }
-@@ line 14021 @@
--   color: var(--text-main);
-+ 
-@@ line 14022 @@
--   font-size: 0.95rem;
-+ html body #knowledgeView .meet-attempt-row :is(input, select),
-@@ line 14023 @@
-- }
-+ html body #knowledgeView .meet-note-form :is(input, select, textarea) {
-@@ line 14024 @@
-- 
-+   background: #ffffff !important;
-@@ line 14025 @@
-- html body #planView .cycle-settings-details > summary small {
-+   color: #111827 !important;
-@@ line 14026 @@
--   color: var(--text-sub);
-+   border-color: #94a3b8 !important;
-@@ line 14027 @@
--   font-size: 0.76rem;
-+ }
-@@ line 14028 @@
--   line-height: 1.35;
-+ 
-@@ line 14029 @@
-- }
-+ /* v132: show the essential PR cycle settings first */
-@@ line 14030 @@
-- 
-+ html body #planView .cycle-basic-grid {
-@@ line 14031 @@
-- html body #planView .cycle-settings-details-body {
-+   grid-template-columns: repeat(3, minmax(0, 1fr));
-@@ line 14032 @@
--   display: grid;
-+ }
-@@ line 14033 @@
--   gap: 10px;
-+ 
-@@ line 14034 @@
--   padding: 12px;
-+ html body #planView .cycle-basic-maxes {
-@@ line 14035 @@
--   border-top: 1px solid var(--line);
-+   display: grid;
-@@ line 14036 @@
-- }
-+   gap: 10px;
-@@ line 14037 @@
-- 
-+   margin-top: 12px;
-@@ line 14038 @@
-- html body #planView .cycle-detail-grid {
-+   border: 1px solid var(--line);
-@@ line 14039 @@
--   margin: 0;
-+   border-left: 4px solid rgba(47, 111, 115, 0.62);
-@@ line 14040 @@
-- }
-+   border-radius: 10px;
-@@ line 14041 @@
-- 
-+   background:
-@@ line 14042 @@
-- html body #planView .cycle-settings-details .facility-panel {
-+     linear-gradient(90deg, rgba(47, 111, 115, 0.045), transparent 48%),
-@@ line 14043 @@
--   margin-top: 0;
-+     #fffaf2;
-@@ line 14044 @@
-- }
-+   padding: 12px;
-@@ line 14045 @@
-- 
-+ }
-@@ line 14046 @@
-- @media (max-width: 640px) {
-+ 
-@@ line 14047 @@
--   html body #planView .cycle-basic-grid,
-+ html body #planView .cycle-basic-maxes h3,
-@@ line 14048 @@
--   html body #planView .cycle-detail-grid,
-+ html body #planView .cycle-basic-maxes p {
-@@ line 14049 @@
--   html body #planView .cycle-basic-maxes .max-grid {
-+   margin: 0;
-@@ line 14050 @@
--     grid-template-columns: 1fr;
-+ }
-@@ line 14051 @@
--   }
-+ 
-@@ line 14052 @@
-- 
-+ html body #planView .cycle-basic-maxes h3 {
-@@ line 14053 @@
--   html body #planView .cycle-settings-details > summary {
-+   color: var(--text-main);
-@@ line 14054 @@
--     min-height: 58px;
-+   font-size: 0.98rem;
-@@ line 14055 @@
--     padding: 11px 12px;
-+ }
-@@ line 14056 @@
--   }
-+ 
-@@ line 14057 @@
-- }
-+ html body #planView .cycle-basic-maxes p {
-@@ line 14058 @@
-- 
-+   color: var(--text-sub);
-@@ line 14059 @@
-- /* v134: shared contrast contract for buttons, inputs, badges, set rows and meet notes */
-+   font-size: 0.8rem;
-@@ line 14060 @@
-- :root {
-+   font-weight: 800;
-@@ line 14061 @@
--   --pb-bg: #f6f1e8;
-+ }
-@@ line 14062 @@
--   --pb-surface: #fffaf0;
-+ 
-@@ line 14063 @@
--   --pb-surface-2: #f1eadf;
-+ html body #planView .cycle-settings-details {
-@@ line 14064 @@
--   --pb-border: rgba(30, 41, 59, 0.18);
-+   margin-top: 12px;
-@@ line 14065 @@
--   --pb-text: #111827;
-+   overflow: hidden;
-@@ line 14066 @@
--   --pb-text-muted: #475569;
-+   border: 1px solid var(--line);
-@@ line 14067 @@
--   --pb-text-soft: #64748b;
-+   border-radius: 10px;
-@@ line 14068 @@
--   --pb-text-inverse: #ffffff;
-+   background: #fffaf2;
-@@ line 14069 @@
--   --pb-ink: #17202a;
-+ }
-@@ line 14070 @@
--   --pb-ink-2: #0f172a;
-+ 
-@@ line 14071 @@
--   --pb-ink-border: rgba(255, 255, 255, 0.18);
-+ html body #planView .cycle-settings-details > summary {
-@@ line 14072 @@
--   --pb-red: #dc2626;
-+   display: flex;
-@@ line 14073 @@
--   --pb-red-dark: #991b1b;
-+   min-height: 64px;
-@@ line 14074 @@
--   --pb-green: #22c55e;
-+   align-items: center;
-@@ line 14075 @@
--   --pb-green-dark: #15803d;
-+   justify-content: space-between;
-@@ line 14076 @@
--   --pb-yellow: #eab308;
-+   gap: 14px;
-@@ line 14077 @@
--   --pb-yellow-dark: #854d0e;
-+   padding: 12px 14px;
-@@ line 14078 @@
--   --pb-blue: #2563eb;
-+   color: var(--text-main);
-@@ line 14079 @@
--   --pb-input-bg: #ffffff;
-+   cursor: pointer;
-@@ line 14080 @@
--   --pb-input-text: #111827;
-+   list-style: none;
-@@ line 14081 @@
--   --pb-input-border: #cbd5e1;
-+ }
-@@ line 14082 @@
--   --pb-input-placeholder: #94a3b8;
-+ 
-@@ line 14083 @@
--   --pb-button-bg: #17202a;
-+ html body #planView .cycle-settings-details > summary::-webkit-details-marker {
-@@ line 14084 @@
--   --pb-button-text: #ffffff;
-+   display: none;
-@@ line 14085 @@
--   --pb-button-muted-bg: #e5e7eb;
-+ }
-@@ line 14086 @@
--   --pb-button-muted-text: #111827;
-+ 
-@@ line 14087 @@
-- }
-+ html body #planView .cycle-settings-details > summary::after {
-@@ line 14088 @@
-- 
-+   display: grid;
-@@ line 14089 @@
-- html body button,
-+   width: 32px;
-@@ line 14090 @@
-- html body .action-button,
-+   height: 32px;
-@@ line 14091 @@
-- html body .primary-button,
-+   flex: 0 0 32px;
-@@ line 14092 @@
-- html body .actual-save,
-+   place-items: center;
-@@ line 14093 @@
-- html body .save-button,
-+   border: 1px solid var(--line);
-@@ line 14094 @@
-- html body .actual-add-set,
-+   border-radius: 50%;
-@@ line 14095 @@
-- html body .add-set-button,
-+   background: #ffffff;
-@@ line 14096 @@
-- html body .secondary-button,
-+   color: var(--text-main);
-@@ line 14097 @@
-- html body .meet-command-actions button.primary,
-+   content: "+";
-@@ line 14098 @@
-- html body .editable-exercise-footer .actual-save,
-+   font-size: 1.2rem;
-@@ line 14099 @@
-- html body .editable-exercise-footer .actual-add-set {
-+   font-weight: 900;
-@@ line 14100 @@
--   border-color: var(--pb-button-bg) !important;
-+   line-height: 1;
-@@ line 14101 @@
--   background: var(--pb-button-bg) !important;
-+ }
-@@ line 14102 @@
--   color: var(--pb-button-text) !important;
-+ 
-@@ line 14103 @@
--   text-shadow: none !important;
-+ html body #planView .cycle-settings-details[open] > summary::after {
-@@ line 14104 @@
-- }
-+   content: "-";
-@@ line 14105 @@
-- 
-+ }
-@@ line 14106 @@
-- html body :is(
-+ 
-@@ line 14107 @@
--   button,
-+ html body #planView .cycle-settings-details > summary span {
-@@ line 14108 @@
--   .action-button,
-+   display: grid;
-@@ line 14109 @@
--   .primary-button,
-+   gap: 3px;
-@@ line 14110 @@
--   .actual-save,
-+ }
-@@ line 14111 @@
--   .save-button,
-+ 
-@@ line 14112 @@
--   .actual-add-set,
-+ html body #planView .cycle-settings-details > summary strong {
-@@ line 14113 @@
--   .add-set-button,
-+   color: var(--text-main);
-@@ line 14114 @@
--   .secondary-button,
-+   font-size: 0.95rem;
-@@ line 14115 @@
--   .meet-command-actions button.primary,
-+ }
-@@ line 14116 @@
--   .editable-exercise-footer .actual-save,
-+ 
-@@ line 14117 @@
--   .editable-exercise-footer .actual-add-set
-+ html body #planView .cycle-settings-details > summary small {
-@@ line 14118 @@
-- ) * {
-+   color: var(--text-sub);
-@@ line 14119 @@
--   color: inherit !important;
-+   font-size: 0.76rem;
-@@ line 14120 @@
--   text-shadow: none !important;
-+   line-height: 1.35;
-@@ line 14123 @@
-- html body :is(
-+ html body #planView .cycle-settings-details-body {
-@@ line 14124 @@
--   button,
-+   display: grid;
-@@ line 14125 @@
--   .action-button,
-+   gap: 10px;
-@@ line 14126 @@
--   .primary-button,
-+   padding: 12px;
-@@ line 14127 @@
--   .actual-save,
-+   border-top: 1px solid var(--line);
-@@ line 14128 @@
--   .save-button,
-+ }
-@@ line 14129 @@
--   .actual-add-set,
-+ 
-@@ line 14130 @@
--   .add-set-button,
-+ html body #planView .cycle-detail-grid {
-@@ line 14131 @@
--   .secondary-button
-+   margin: 0;
-@@ line 14132 @@
-- ):disabled {
-+ }
-@@ line 14133 @@
--   border-color: #d1d5db !important;
-+ 
-@@ line 14134 @@
--   background: #d1d5db !important;
-+ html body #planView .cycle-settings-details .facility-panel {
-@@ line 14135 @@
--   color: #4b5563 !important;
-+   margin-top: 0;
-@@ line 14136 @@
--   opacity: 0.78 !important;
-+ }
-@@ line 14137 @@
-- }
-+ 
-@@ line 14138 @@
-- 
-+ @media (max-width: 640px) {
-@@ line 14139 @@
-- html body input,
-+   html body #planView .cycle-basic-grid,
-@@ line 14140 @@
-- html body textarea,
-+   html body #planView .cycle-detail-grid,
-@@ line 14141 @@
-- html body select,
-+   html body #planView .cycle-basic-maxes .max-grid {
-@@ line 14142 @@
-- html body .actual-weight,
-+     grid-template-columns: 1fr;
-@@ line 14143 @@
-- html body .actual-reps,
-+   }
-@@ line 14144 @@
-- html body .actual-rpe,
-+ 
-@@ line 14145 @@
-- html body .meet-attempt-row input,
-+   html body #planView .cycle-settings-details > summary {
-@@ line 14146 @@
-- html body .meet-attempt-row select,
-+     min-height: 58px;
-@@ line 14147 @@
-- html body .meet-note-form :is(input, select, textarea) {
-+     padding: 11px 12px;
-@@ line 14148 @@
--   border-color: var(--pb-input-border) !important;
-+   }
-@@ line 14149 @@
--   background: var(--pb-input-bg) !important;
-+ }
-@@ line 14150 @@
--   color: var(--pb-input-text) !important;
-+ 
-@@ line 14151 @@
--   text-shadow: none !important;
-+ /* v134: shared contrast contract for buttons, inputs, badges, set rows and meet notes */
-@@ line 14152 @@
--   -webkit-text-fill-color: var(--pb-input-text);
-+ :root {
-@@ line 14153 @@
-- }
-+   --pb-bg: #f6f1e8;
-@@ line 14154 @@
-- 
-+   --pb-surface: #fffaf0;
-@@ line 14155 @@
-- html body input::placeholder,
-+   --pb-surface-2: #f1eadf;
-@@ line 14156 @@
-- html body textarea::placeholder,
-+   --pb-border: rgba(30, 41, 59, 0.18);
-@@ line 14157 @@
-- html body .actual-weight::placeholder,
-+   --pb-text: #111827;
-@@ line 14158 @@
-- html body .actual-reps::placeholder,
-+   --pb-text-muted: #475569;
-@@ line 14159 @@
-- html body .actual-rpe::placeholder {
-+   --pb-text-soft: #64748b;
-@@ line 14160 @@
--   color: var(--pb-input-placeholder) !important;
-+   --pb-text-inverse: #ffffff;
-@@ line 14161 @@
--   opacity: 1 !important;
-+   --pb-ink: #17202a;
-@@ line 14162 @@
-- }
-+   --pb-ink-2: #0f172a;
-@@ line 14163 @@
-- 
-+   --pb-ink-border: rgba(255, 255, 255, 0.18);
-@@ line 14164 @@
-- html body select option {
-+   --pb-red: #dc2626;
-@@ line 14165 @@
--   background: var(--pb-input-bg) !important;
-+   --pb-red-dark: #991b1b;
-@@ line 14166 @@
--   color: var(--pb-input-text) !important;
-+   --pb-green: #22c55e;
-@@ line 14167 @@
-- }
-+   --pb-green-dark: #15803d;
-@@ line 14168 @@
-- 
-+   --pb-yellow: #eab308;
-@@ line 14169 @@
-- html body :is(
-+   --pb-yellow-dark: #854d0e;
-@@ line 14170 @@
--   .set-meta,
-+   --pb-blue: #2563eb;
-@@ line 14171 @@
--   .set-label,
-+   --pb-input-bg: #ffffff;
-@@ line 14172 @@
--   .set-cell,
-+   --pb-input-text: #111827;
-@@ line 14173 @@
--   .set-number,
-+   --pb-input-border: #cbd5e1;
-@@ line 14174 @@
--   .editable-set-row .set-meta,
-+   --pb-input-placeholder: #94a3b8;
-@@ line 14175 @@
--   .actual-set-row .set-meta
-+   --pb-button-bg: #17202a;
-@@ line 14176 @@
-- ) {
-+   --pb-button-text: #ffffff;
-@@ line 14177 @@
--   overflow: visible !important;
-+   --pb-button-muted-bg: #e5e7eb;
-@@ line 14178 @@
--   color: var(--pb-text) !important;
-+   --pb-button-muted-text: #111827;
-@@ line 14179 @@
--   text-shadow: none !important;
-+ }
-@@ line 14180 @@
-- }
-+ 
-@@ line 14181 @@
-- 
-+ html body button,
-@@ line 14182 @@
-- html body :is(
-+ html body .action-button,
-@@ line 14183 @@
--   .set-meta,
-+ html body .primary-button,
-@@ line 14184 @@
--   .set-label,
-+ html body .actual-save,
-@@ line 14185 @@
--   .set-cell,
-+ html body .save-button,
-@@ line 14186 @@
--   .set-number
-+ html body .actual-add-set,
-@@ line 14187 @@
-- ) :is(strong, b, span) {
-+ html body .add-set-button,
-@@ line 14188 @@
--   position: relative !important;
-+ html body .secondary-button,
-@@ line 14189 @@
--   z-index: 2 !important;
-+ html body .meet-command-actions button.primary,
-@@ line 14190 @@
--   color: var(--pb-text) !important;
-+ html body .editable-exercise-footer .actual-save,
-@@ line 14191 @@
--   text-shadow: none !important;
-+ html body .editable-exercise-footer .actual-add-set {
-@@ line 14192 @@
-- }
-+   border-color: var(--pb-button-bg) !important;
-@@ line 14193 @@
-- 
-+   background: var(--pb-button-bg) !important;
-@@ line 14194 @@
-- html body .editable-set-row .set-meta small,
-+   color: var(--pb-button-text) !important;
-@@ line 14195 @@
-- html body .actual-set-row .set-meta small,
-+   text-shadow: none !important;
-@@ line 14196 @@
-- html body .set-kind,
-+ }
-@@ line 14197 @@
-- html body .set-kind-default {
-+ 
-@@ line 14198 @@
--   position: relative !important;
-+ html body :is(
-@@ line 14199 @@
--   z-index: 2 !important;
-+   button,
-@@ line 14200 @@
--   color: var(--pb-text-inverse) !important;
-+   .action-button,
-@@ line 14201 @@
--   text-shadow: none !important;
-+   .primary-button,
-@@ line 14202 @@
-- }
-+   .actual-save,
-@@ line 14203 @@
-- 
-+   .save-button,
-@@ line 14204 @@
-- html body :is(.set-kind-top, .kind-top, .badge-top) {
-+   .actual-add-set,
-@@ line 14205 @@
--   background: #ef4444 !important;
-+   .add-set-button,
-@@ line 14206 @@
--   color: #ffffff !important;
-+   .secondary-button,
-@@ line 14207 @@
--   border-color: #ef4444 !important;
-+   .meet-command-actions button.primary,
-@@ line 14208 @@
-- }
-+   .editable-exercise-footer .actual-save,
-@@ line 14209 @@
-- 
-+   .editable-exercise-footer .actual-add-set
-@@ line 14210 @@
-- html body :is(.set-kind-back, .kind-back, .badge-back) {
-+ ) * {
-@@ line 14211 @@
--   background: #22c55e !important;
-+   color: inherit !important;
-@@ line 14212 @@
--   color: #052e16 !important;
-+   text-shadow: none !important;
-@@ line 14213 @@
--   border-color: #22c55e !important;
-+ }
-@@ line 14214 @@
-- }
-+ 
-@@ line 14215 @@
-- 
-+ html body :is(
-@@ line 14216 @@
-- html body :is(.set-kind-accessory, .kind-accessory, .badge-accessory) {
-+   button,
-@@ line 14217 @@
--   background: #eab308 !important;
-+   .action-button,
-@@ line 14218 @@
--   color: #422006 !important;
-+   .primary-button,
-@@ line 14219 @@
--   border-color: #eab308 !important;
-+   .actual-save,
-@@ line 14220 @@
-- }
-+   .save-button,
-@@ line 14221 @@
-- 
-+   .actual-add-set,
-@@ line 14222 @@
-- html body :is(.set-kind-check, .set-kind-attempt) {
-+   .add-set-button,
-@@ line 14223 @@
--   background: var(--pb-ink) !important;
-+   .secondary-button
-@@ line 14224 @@
--   color: var(--pb-text-inverse) !important;
-+ ):disabled {
-@@ line 14225 @@
--   border-color: var(--pb-ink) !important;
-+   border-color: #d1d5db !important;
-@@ line 14226 @@
-- }
-+   background: #d1d5db !important;
-@@ line 14227 @@
-- 
-+   color: #4b5563 !important;
-@@ line 14228 @@
-- html body #planView :is(
-+   opacity: 0.78 !important;
-@@ line 14229 @@
--   .guide-note,
-+ }
-@@ line 14230 @@
--   .program-disclaimer,
-+ 
-@@ line 14231 @@
--   .cycle-method-note,
-+ html body input,
-@@ line 14232 @@
--   .method-check-note,
-+ html body textarea,
-@@ line 14233 @@
--   .planned-method-label,
-+ html body select,
-@@ line 14234 @@
--   .exercise-rpe-hint
-+ html body .actual-weight,
-@@ line 14235 @@
-- ) {
-+ html body .actual-reps,
-@@ line 14236 @@
--   background: #fff7ed !important;
-+ html body .actual-rpe,
-@@ line 14237 @@
--   color: var(--pb-text-muted) !important;
-+ html body .meet-attempt-row input,
-@@ line 14238 @@
--   text-shadow: none !important;
-+ html body .meet-attempt-row select,
-@@ line 14239 @@
-- }
-+ html body .meet-note-form :is(input, select, textarea) {
-@@ line 14240 @@
-- 
-+   border-color: var(--pb-input-border) !important;
-@@ line 14241 @@
-- html body #planView :is(
-+   background: var(--pb-input-bg) !important;
-@@ line 14242 @@
--   .guide-note,
-+   color: var(--pb-input-text) !important;
-@@ line 14243 @@
--   .program-disclaimer,
-+   text-shadow: none !important;
-@@ line 14244 @@
--   .cycle-method-note,
-+   -webkit-text-fill-color: var(--pb-input-text);
-@@ line 14245 @@
--   .method-check-note,
-+ }
-@@ line 14246 @@
--   .planned-method-label,
-+ 
-@@ line 14247 @@
--   .exercise-rpe-hint
-+ html body input::placeholder,
-@@ line 14248 @@
-- ) * {
-+ html body textarea::placeholder,
-@@ line 14249 @@
--   color: inherit !important;
-+ html body .actual-weight::placeholder,
-@@ line 14250 @@
--   text-shadow: none !important;
-+ html body .actual-reps::placeholder,
-@@ line 14251 @@
-- }
-+ html body .actual-rpe::placeholder {
-@@ line 14252 @@
-- 
-+   color: var(--pb-input-placeholder) !important;
-@@ line 14253 @@
-- html body :is(
-+   opacity: 1 !important;
-@@ line 14254 @@
--   .meet-attempt-number,
-+ }
-@@ line 14255 @@
--   .attempt-number,
-+ 
-@@ line 14256 @@
--   .lift-attempt-number,
-+ html body select option {
-@@ line 14257 @@
--   .meet-note-attempt-index,
-+   background: var(--pb-input-bg) !important;
-@@ line 14258 @@
--   .meet-attempt-row strong
-+   color: var(--pb-input-text) !important;
-@@ line 14259 @@
-- ) {
-+ }
-@@ line 14260 @@
--   border-color: var(--pb-ink) !important;
-+ 
-@@ line 14261 @@
--   background: var(--pb-ink) !important;
-+ html body :is(
-@@ line 14262 @@
--   color: var(--pb-text-inverse) !important;
-+   .set-meta,
-@@ line 14263 @@
--   font-weight: 900 !important;
-+   .set-label,
-@@ line 14264 @@
--   text-shadow: none !important;
-+   .set-cell,
-@@ line 14265 @@
-- }
-+   .set-number,
-@@ line 14266 @@
-- 
-+   .editable-set-row .set-meta,
-@@ line 14267 @@
-- html body :is(
-+   .actual-set-row .set-meta
-@@ line 14268 @@
--   .meet-attempt-number,
-+ ) {
-@@ line 14269 @@
--   .attempt-number,
-+   overflow: visible !important;
-@@ line 14270 @@
--   .lift-attempt-number,
-+   color: var(--pb-text) !important;
-@@ line 14271 @@
--   .meet-note-attempt-index,
-+   text-shadow: none !important;
-@@ line 14272 @@
--   .meet-attempt-row strong
-+ }
-@@ line 14273 @@
-- ) * {
-+ 
-@@ line 14274 @@
--   color: inherit !important;
-+ html body :is(
-@@ line 14275 @@
--   text-shadow: none !important;
-+   .set-meta,
-@@ line 14276 @@
-- }
-+   .set-label,
-@@ line 14277 @@
-- 
-+   .set-cell,
-@@ line 14278 @@
-- html body :is(
-+   .set-number
-@@ line 14279 @@
--   .meet-note-form .input-grid label,
-+ ) :is(strong, b, span) {
-@@ line 14280 @@
--   .meet-attempt-lift,
-+   position: relative !important;
-@@ line 14281 @@
--   .meet-attempt-row,
-+   z-index: 2 !important;
-@@ line 14282 @@
--   .dashboard-input-grid label,
-+   color: var(--pb-text) !important;
-@@ line 14283 @@
--   .input-grid label,
-+   text-shadow: none !important;
-@@ line 14284 @@
--   .cycle-grid label,
-+ }
-@@ line 14285 @@
--   .max-grid label
-+ 
-@@ line 14286 @@
-- ) {
-+ html body .editable-set-row .set-meta small,
-@@ line 14287 @@
--   border-color: var(--pb-border) !important;
-+ html body .actual-set-row .set-meta small,
-@@ line 14288 @@
--   background:
-+ html body .set-kind,
-@@ line 14289 @@
--     linear-gradient(90deg, rgba(180, 35, 24, 0.026), transparent 48%),
-+ html body .set-kind-default {
-@@ line 14290 @@
--     var(--pb-surface) !important;
-+   position: relative !important;
-@@ line 14291 @@
--   color: var(--pb-text) !important;
-+   z-index: 2 !important;
-@@ line 14292 @@
--   text-shadow: none !important;
-+   color: var(--pb-text-inverse) !important;
-@@ line 14293 @@
-- }
-+   text-shadow: none !important;
-@@ line 14294 @@
-- 
-+ }
-@@ line 14295 @@
-- html body :is(
-+ 
-@@ line 14296 @@
--   .meet-note-form .input-grid label,
-+ html body :is(.set-kind-top, .kind-top, .badge-top) {
-@@ line 14297 @@
--   .meet-attempt-lift,
-+   background: #ef4444 !important;
-@@ line 14298 @@
--   .meet-attempt-row,
-+   color: #ffffff !important;
-@@ line 14299 @@
--   .dashboard-input-grid label,
-+   border-color: #ef4444 !important;
-@@ line 14300 @@
--   .input-grid label,
-+ }
-@@ line 14301 @@
--   .cycle-grid label,
-+ 
-@@ line 14302 @@
--   .max-grid label
-+ html body :is(.set-kind-back, .kind-back, .badge-back) {
-@@ line 14303 @@
-- ) :is(strong, b, span, label) {
-+   background: #22c55e !important;
-@@ line 14304 @@
--   color: var(--pb-text) !important;
-+   color: #052e16 !important;
-@@ line 14305 @@
--   text-shadow: none !important;
-+   border-color: #22c55e !important;
-@@ line 14308 @@
-- html body :is(
-+ html body :is(.set-kind-accessory, .kind-accessory, .badge-accessory) {
-@@ line 14309 @@
--   .meet-note-form .input-grid label,
-+   background: #eab308 !important;
-@@ line 14310 @@
--   .meet-attempt-lift,
-+   color: #422006 !important;
-@@ line 14311 @@
--   .meet-attempt-row,
-+   border-color: #eab308 !important;
-@@ line 14312 @@
--   .dashboard-input-grid label,
-+ }
-@@ line 14313 @@
--   .input-grid label,
-+ 
-@@ line 14314 @@
--   .cycle-grid label,
-+ html body :is(.set-kind-check, .set-kind-attempt) {
-@@ line 14315 @@
--   .max-grid label
-+   background: var(--pb-ink) !important;
-@@ line 14316 @@
-- ) :is(p, small, em) {
-+   color: var(--pb-text-inverse) !important;
-@@ line 14317 @@
--   color: var(--pb-text-muted) !important;
-+   border-color: var(--pb-ink) !important;
-@@ line 14318 @@
--   text-shadow: none !important;
-+ }
-@@ line 14319 @@
-- }
-+ 
-@@ line 14320 @@
-- 
-+ html body #planView :is(
-@@ line 14321 @@
-- html body :is(.chip, .status-chip, .info-chip, .badge, .pill) {
-+   .guide-note,
-@@ line 14322 @@
--   border-color: var(--pb-border) !important;
-+   .program-disclaimer,
-@@ line 14323 @@
--   background: #ffffff !important;
-+   .cycle-method-note,
-@@ line 14324 @@
--   color: var(--pb-text) !important;
-+   .method-check-note,
-@@ line 14325 @@
--   text-shadow: none !important;
-+   .planned-method-label,
-@@ line 14326 @@
-- }
-+   .exercise-rpe-hint
-@@ line 14327 @@
-- 
-+ ) {
-@@ line 14328 @@
-- html body :is(.chip.dark, .status-chip.dark, .badge.dark, .pill.dark, .quiz-badge) {
-+   background: #fff7ed !important;
-@@ line 14329 @@
--   background: var(--pb-ink) !important;
-+   color: var(--pb-text-muted) !important;
-@@ line 14330 @@
--   color: var(--pb-text-inverse) !important;
-+   text-shadow: none !important;
-@@ line 14331 @@
--   border-color: var(--pb-ink) !important;
-+ }
-@@ line 14332 @@
-- }
-+ 
-@@ line 14333 @@
-- 
-+ html body #planView :is(
-@@ line 14334 @@
-- html body :is(.chip.red, .status-chip.red, .badge.red, .pill.red, .recommended-badge) {
-+   .guide-note,
-@@ line 14335 @@
--   background: var(--pb-red) !important;
-+   .program-disclaimer,
-@@ line 14336 @@
--   color: #ffffff !important;
-+   .cycle-method-note,
-@@ line 14337 @@
--   border-color: var(--pb-red) !important;
-+   .method-check-note,
-@@ line 14338 @@
-- }
-+   .planned-method-label,
-@@ line 14339 @@
-- 
-+   .exercise-rpe-hint
-@@ line 14340 @@
-- html body :is(.chip.green, .status-chip.green, .badge.green, .pill.green) {
-+ ) * {
-@@ line 14341 @@
--   background: var(--pb-green) !important;
-+   color: inherit !important;
-@@ line 14342 @@
--   color: #052e16 !important;
-+   text-shadow: none !important;
-@@ line 14343 @@
--   border-color: var(--pb-green) !important;
-+ }
-@@ line 14344 @@
-- }
-+ 
-@@ line 14345 @@
-- 
-+ html body :is(
-@@ line 14346 @@
-- html body :is(.chip.yellow, .status-chip.yellow, .badge.yellow, .pill.yellow) {
-+   .meet-attempt-number,
-@@ line 14347 @@
--   background: var(--pb-yellow) !important;
-+   .attempt-number,
-@@ line 14348 @@
--   color: #422006 !important;
-+   .lift-attempt-number,
-@@ line 14349 @@
--   border-color: var(--pb-yellow) !important;
-+   .meet-note-attempt-index,
-@@ line 14350 @@
-- }
-+   .meet-attempt-row strong
-@@ line 14351 @@
-- 
-+ ) {
-@@ line 14352 @@
-- html body .tabbar .tab.active,
-+   border-color: var(--pb-ink) !important;
-@@ line 14353 @@
-- html body .bottom-nav .active,
-+   background: var(--pb-ink) !important;
-@@ line 14354 @@
-- html body .nav-item.active,
-+   color: var(--pb-text-inverse) !important;
-@@ line 14355 @@
-- html body .guide-toggle,
-+   font-weight: 900 !important;
-@@ line 14356 @@
-- html body .guide-button,
-+   text-shadow: none !important;
-@@ line 14357 @@
-- html body .floating-guide-panel button {
-+ }
-@@ line 14358 @@
--   background: var(--pb-ink) !important;
-+ 
-@@ line 14359 @@
--   color: var(--pb-text-inverse) !important;
-+ html body :is(
-@@ line 14360 @@
--   border-color: var(--pb-ink) !important;
-+   .meet-attempt-number,
-@@ line 14361 @@
--   text-shadow: none !important;
-+   .attempt-number,
-@@ line 14362 @@
-- }
-+   .lift-attempt-number,
-@@ line 14363 @@
-- 
-+   .meet-note-attempt-index,
-@@ line 14364 @@
-- html body :is(
-+   .meet-attempt-row strong
-@@ line 14365 @@
--   .tabbar .tab.active,
-+ ) * {
-@@ line 14366 @@
--   .bottom-nav .active,
-+   color: inherit !important;
-@@ line 14367 @@
--   .nav-item.active,
-+   text-shadow: none !important;
-@@ line 14368 @@
--   .guide-toggle,
-+ }
-@@ line 14369 @@
--   .guide-button,
-+ 
-@@ line 14370 @@
--   .floating-guide-panel button
-+ html body :is(
-@@ line 14371 @@
-- ) * {
-+   .meet-note-form .input-grid label,
-@@ line 14372 @@
--   color: inherit !important;
-+   .meet-attempt-lift,
-@@ line 14373 @@
--   text-shadow: none !important;
-+   .meet-attempt-row,
-@@ line 14374 @@
-- }
-+   .dashboard-input-grid label,
-@@ line 14375 @@
-- 
-+   .input-grid label,
-@@ line 14376 @@
-- html body .tabbar .tab:not(.active),
-+   .cycle-grid label,
-@@ line 14377 @@
-- html body .bottom-nav > :not(.active),
-+   .max-grid label
-@@ line 14378 @@
-- html body .nav-item:not(.active) {
-+ ) {
-@@ line 14379 @@
--   color: var(--pb-text-muted) !important;
-+   border-color: var(--pb-border) !important;
-@@ line 14380 @@
--   text-shadow: none !important;
-+   background:
-@@ line 14381 @@
-- }
-+     linear-gradient(90deg, rgba(180, 35, 24, 0.026), transparent 48%),
-@@ line 14382 @@
-- 
-+     var(--pb-surface) !important;
-@@ line 14383 @@
-- html body :is(
-+   color: var(--pb-text) !important;
-@@ line 14384 @@
--   .readiness-floating,
-+   text-shadow: none !important;
-@@ line 14385 @@
--   .floating-condition-panel,
-+ }
-@@ line 14386 @@
--   .guide-floating,
-+ 
-@@ line 14387 @@
--   .floating-guide-panel
-+ html body :is(
-@@ line 14388 @@
-- ) {
-+   .meet-note-form .input-grid label,
-@@ line 14389 @@
--   border-color: var(--pb-border) !important;
-+   .meet-attempt-lift,
-@@ line 14390 @@
--   background: rgba(255, 250, 240, 0.96) !important;
-+   .meet-attempt-row,
-@@ line 14391 @@
--   color: var(--pb-text) !important;
-+   .dashboard-input-grid label,
-@@ line 14392 @@
--   text-shadow: none !important;
-+   .input-grid label,
-@@ line 14393 @@
-- }
-+   .cycle-grid label,
-@@ line 14394 @@
-- 
-+   .max-grid label
-@@ line 14395 @@
-- html body :is(
-+ ) :is(strong, b, span, label) {
-@@ line 14396 @@
--   .readiness-floating,
-+   color: var(--pb-text) !important;
-@@ line 14397 @@
--   .floating-condition-panel,
-+   text-shadow: none !important;
-@@ line 14398 @@
--   .guide-floating,
-+ }
-@@ line 14399 @@
--   .floating-guide-panel
-+ 
-@@ line 14400 @@
-- ) :is(strong, b, span, p, small) {
-+ html body :is(
-@@ line 14401 @@
--   color: inherit !important;
-+   .meet-note-form .input-grid label,
-@@ line 14402 @@
--   text-shadow: none !important;
-+   .meet-attempt-lift,
-@@ line 14403 @@
-- }
-+   .meet-attempt-row,
-@@ line 14404 @@
-- 
-+   .dashboard-input-grid label,
-@@ line 14405 @@
-- /* v134 addendum: round number tags must never be dark-on-dark */
-+   .input-grid label,
-@@ line 14406 @@
-- html body :is(
-+   .cycle-grid label,
-@@ line 14407 @@
--   .set-index,
-+   .max-grid label
-@@ line 14408 @@
--   .set-number,
-+ ) :is(p, small, em) {
-@@ line 14409 @@
--   .set-badge,
-+   color: var(--pb-text-muted) !important;
-@@ line 14410 @@
--   .attempt-index,
-+   text-shadow: none !important;
-@@ line 14411 @@
--   .attempt-number,
-+ }
-@@ line 14412 @@
--   .meet-attempt-number,
-+ 
-@@ line 14413 @@
--   .meet-note-attempt-index,
-+ html body :is(.chip, .status-chip, .info-chip, .badge, .pill) {
-@@ line 14414 @@
--   .lift-attempt-number,
-+   border-color: var(--pb-border) !important;
-@@ line 14415 @@
--   .round-index,
-+   background: #ffffff !important;
-@@ line 14416 @@
--   .round-number,
-+   color: var(--pb-text) !important;
-@@ line 14417 @@
--   .meet-attempt-row strong,
-+   text-shadow: none !important;
-@@ line 14418 @@
--   .meet-note-form .meet-attempt-row strong
-+ }
-@@ line 14419 @@
-- ) {
-+ 
-@@ line 14420 @@
--   border-color: var(--pb-ink, #17202a) !important;
-+ html body :is(.chip.dark, .status-chip.dark, .badge.dark, .pill.dark, .quiz-badge) {
-@@ line 14421 @@
--   background: var(--pb-ink, #17202a) !important;
-+   background: var(--pb-ink) !important;
-@@ line 14422 @@
--   color: var(--pb-text-inverse, #ffffff) !important;
-+   color: var(--pb-text-inverse) !important;
-@@ line 14423 @@
--   font-weight: 900 !important;
-+   border-color: var(--pb-ink) !important;
-@@ line 14424 @@
--   text-shadow: none !important;
-+ }
-@@ line 14425 @@
--   -webkit-text-fill-color: var(--pb-text-inverse, #ffffff) !important;
-+ 
-@@ line 14426 @@
-- }
-+ html body :is(.chip.red, .status-chip.red, .badge.red, .pill.red, .recommended-badge) {
-@@ line 14427 @@
-- 
-+   background: var(--pb-red) !important;
-@@ line 14428 @@
-- html body :is(
-+   color: #ffffff !important;
-@@ line 14429 @@
--   .set-index,
-+   border-color: var(--pb-red) !important;
-@@ line 14430 @@
--   .set-number,
-+ }
-@@ line 14431 @@
--   .set-badge,
-+ 
-@@ line 14432 @@
--   .attempt-index,
-+ html body :is(.chip.green, .status-chip.green, .badge.green, .pill.green) {
-@@ line 14433 @@
--   .attempt-number,
-+   background: var(--pb-green) !important;
-@@ line 14434 @@
--   .meet-attempt-number,
-+   color: #052e16 !important;
-@@ line 14435 @@
--   .meet-note-attempt-index,
-+   border-color: var(--pb-green) !important;
-@@ line 14436 @@
--   .lift-attempt-number,
-+ }
-@@ line 14437 @@
--   .round-index,
-+ 
-@@ line 14438 @@
--   .round-number,
-+ html body :is(.chip.yellow, .status-chip.yellow, .badge.yellow, .pill.yellow) {
-@@ line 14439 @@
--   .meet-attempt-row strong,
-+   background: var(--pb-yellow) !important;
-@@ line 14440 @@
--   .meet-note-form .meet-attempt-row strong
-+   color: #422006 !important;
-@@ line 14441 @@
-- ) * {
-+   border-color: var(--pb-yellow) !important;
-@@ line 14442 @@
--   color: inherit !important;
-+ }
-@@ line 14443 @@
--   text-shadow: none !important;
-+ 
-@@ line 14444 @@
--   -webkit-text-fill-color: inherit !important;
-+ html body .tabbar .tab.active,
-@@ line 14445 @@
-- }
-+ html body .bottom-nav .active,
-@@ line 14446 @@
-- 
-+ html body .nav-item.active,
-@@ line 14447 @@
-- html body :is(
-+ html body .guide-toggle,
-@@ line 14448 @@
--   .set-index.light,
-+ html body .guide-button,
-@@ line 14449 @@
--   .set-number.light,
-+ html body .floating-guide-panel button {
-@@ line 14450 @@
--   .set-badge.light,
-+   background: var(--pb-ink) !important;
-@@ line 14451 @@
--   .attempt-index.light,
-+   color: var(--pb-text-inverse) !important;
-@@ line 14452 @@
--   .attempt-number.light,
-+   border-color: var(--pb-ink) !important;
-@@ line 14453 @@
--   .round-index.light,
-+   text-shadow: none !important;
-@@ line 14454 @@
--   .round-number.light
-+ }
-@@ line 14455 @@
-- ) {
-+ 
-@@ line 14456 @@
--   border-color: var(--pb-border, rgba(30, 41, 59, 0.18)) !important;
-+ html body :is(
-@@ line 14457 @@
--   background: #ffffff !important;
-+   .tabbar .tab.active,
-@@ line 14458 @@
--   color: var(--pb-text, #111827) !important;
-+   .bottom-nav .active,
-@@ line 14459 @@
--   -webkit-text-fill-color: var(--pb-text, #111827) !important;
-+   .nav-item.active,
-@@ line 14460 @@
-- }
-+   .guide-toggle,
-@@ line 14461 @@
-- 
-+   .guide-button,
-@@ line 14462 @@
-- /* v135: PLAN mobile set label column should stay paper-colored, not black */
-+   .floating-guide-panel button
-@@ line 14463 @@
-- html body #planView .editable-set-row > .set-meta,
-+ ) * {
-@@ line 14464 @@
-- html body #planView .actual-set-row > .set-meta {
-+   color: inherit !important;
-@@ line 14465 @@
--   position: sticky !important;
-+   text-shadow: none !important;
-@@ line 14466 @@
--   left: 0 !important;
-+ }
-@@ line 14467 @@
--   z-index: 3 !important;
-+ 
-@@ line 14468 @@
--   border-right: 1px solid rgba(203, 189, 168, 0.78) !important;
-+ html body .tabbar .tab:not(.active),
-@@ line 14469 @@
--   background:
-+ html body .bottom-nav > :not(.active),
-@@ line 14470 @@
--     linear-gradient(90deg, rgba(180, 35, 24, 0.045), transparent 64%),
-+ html body .nav-item:not(.active) {
-@@ line 14471 @@
--     #fffaf0 !important;
-+   color: var(--pb-text-muted) !important;
-@@ line 14472 @@
--   color: var(--pb-text, #111827) !important;
-+   text-shadow: none !important;
-@@ line 14473 @@
--   text-shadow: none !important;
-+ }
-@@ line 14474 @@
-- }
-+ 
-@@ line 14475 @@
-- 
-+ html body :is(
-@@ line 14476 @@
-- html body #planView .editable-set-row > .set-meta strong,
-+   .readiness-floating,
-@@ line 14477 @@
-- html body #planView .actual-set-row > .set-meta strong {
-+   .floating-condition-panel,
-@@ line 14478 @@
--   color: var(--pb-text, #111827) !important;
-+   .guide-floating,
-@@ line 14479 @@
--   -webkit-text-fill-color: var(--pb-text, #111827) !important;
-+   .floating-guide-panel
-@@ line 14480 @@
--   text-shadow: none !important;
-+ ) {
-@@ line 14481 @@
-- }
-+   border-color: var(--pb-border) !important;
-@@ line 14482 @@
-- 
-+   background: rgba(255, 250, 240, 0.96) !important;
-@@ line 14483 @@
-- html body #planView .editable-set-row > .set-meta small,
-+   color: var(--pb-text) !important;
-@@ line 14484 @@
-- html body #planView .actual-set-row > .set-meta small {
-+   text-shadow: none !important;
-@@ line 14485 @@
--   width: fit-content;
-+ }
-@@ line 14486 @@
--   min-width: 42px;
-+ 
-@@ line 14487 @@
--   border-radius: 999px;
-+ html body :is(
-@@ line 14488 @@
--   padding: 2px 7px;
-+   .readiness-floating,
-@@ line 14489 @@
--   text-align: center;
-+   .floating-condition-panel,
-@@ line 14490 @@
--   line-height: 1.05;
-+   .guide-floating,
-@@ line 14491 @@
-- }
-+   .floating-guide-panel
-@@ line 14492 @@
-- 
-+ ) :is(strong, b, span, p, small) {
-@@ line 14493 @@
-- html body #planView .editable-set-row > .set-meta .set-kind-top,
-+   color: inherit !important;
-@@ line 14494 @@
-- html body #planView .actual-set-row > .set-meta .set-kind-top {
-+   text-shadow: none !important;
-@@ line 14495 @@
--   background: #ef4444 !important;
-+ }
-@@ line 14496 @@
--   color: #ffffff !important;
-+ 
-@@ line 14497 @@
--   -webkit-text-fill-color: #ffffff !important;
-+ /* v134 addendum: round number tags must never be dark-on-dark */
-@@ line 14498 @@
-- }
-+ html body :is(
-@@ line 14499 @@
-- 
-+   .set-index,
-@@ line 14500 @@
-- html body #planView .editable-set-row > .set-meta .set-kind-back,
-+   .set-number,
-@@ line 14501 @@
-- html body #planView .actual-set-row > .set-meta .set-kind-back {
-+   .set-badge,
-@@ line 14502 @@
--   background: #22c55e !important;
-+   .attempt-index,
-@@ line 14503 @@
--   color: #052e16 !important;
-+   .attempt-number,
-@@ line 14504 @@
--   -webkit-text-fill-color: #052e16 !important;
-+   .meet-attempt-number,
-@@ line 14505 @@
-- }
-+   .meet-note-attempt-index,
-@@ line 14506 @@
-- 
-+   .lift-attempt-number,
-@@ line 14507 @@
-- /* v136: mobile UI design-token baseline */
-+   .round-index,
-@@ line 14508 @@
-- :root {
-+   .round-number,
-@@ line 14509 @@
--   --pb-text-xs: 0.7rem;
-+   .meet-attempt-row strong,
-@@ line 14510 @@
--   --pb-text-sm: 0.8rem;
-+   .meet-note-form .meet-attempt-row strong
-@@ line 14511 @@
--   --pb-text-md: 0.9rem;
-+ ) {
-@@ line 14512 @@
--   --pb-text-lg: 1.05rem;
-+   border-color: var(--pb-ink, #17202a) !important;
-@@ line 14513 @@
--   --pb-text-xl: 1.25rem;
-+   background: var(--pb-ink, #17202a) !important;
-@@ line 14514 @@
--   --pb-text-display: clamp(2.2rem, 8vw, 3.6rem);
-+   color: var(--pb-text-inverse, #ffffff) !important;
-@@ line 14515 @@
--   --pb-line-tight: 1.15;
-+   font-weight: 900 !important;
-@@ line 14516 @@
--   --pb-line-normal: 1.45;
-+   text-shadow: none !important;
-@@ line 14517 @@
--   --pb-line-loose: 1.65;
-+   -webkit-text-fill-color: var(--pb-text-inverse, #ffffff) !important;
-@@ line 14518 @@
--   --pb-radius-sm: 6px;
-+ }
-@@ line 14519 @@
--   --pb-radius-md: 10px;
-+ 
-@@ line 14520 @@
--   --pb-radius-lg: 16px;
-+ html body :is(
-@@ line 14521 @@
--   --pb-radius-pill: 999px;
-+   .set-index,
-@@ line 14522 @@
--   --pb-pad-card: 16px;
-+   .set-number,
-@@ line 14523 @@
--   --pb-pad-card-sm: 12px;
-+   .set-badge,
-@@ line 14524 @@
--   --pb-gap-sm: 6px;
-+   .attempt-index,
-@@ line 14525 @@
--   --pb-gap-md: 10px;
-+   .attempt-number,
-@@ line 14526 @@
--   --pb-gap-lg: 16px;
-+   .meet-attempt-number,
-@@ line 14527 @@
--   --pb-tap-target: 44px;
-+   .meet-note-attempt-index,
-@@ line 14528 @@
--   --pb-tap-target-sm: 40px;
-+   .lift-attempt-number,
-@@ line 14529 @@
-- }
-+   .round-index,
-@@ line 14530 @@
-- 
-+   .round-number,
-@@ line 14531 @@
-- html body :is(
-+   .meet-attempt-row strong,
-@@ line 14532 @@
--   .eyebrow,
-+   .meet-note-form .meet-attempt-row strong
-@@ line 14533 @@
--   .section-kicker,
-+ ) * {
-@@ line 14534 @@
--   .home-card-label,
-+   color: inherit !important;
-@@ line 14535 @@
--   .lift-badge,
-+   text-shadow: none !important;
-@@ line 14536 @@
--   .recommended-badge,
-+   -webkit-text-fill-color: inherit !important;
-@@ line 14537 @@
--   .badge,
-+ }
-@@ line 14538 @@
--   .chip,
-+ 
-@@ line 14539 @@
--   .pill,
-+ html body :is(
-@@ line 14540 @@
--   .set-kind,
-+   .set-index.light,
-@@ line 14541 @@
--   .set-kind-top,
-+   .set-number.light,
-@@ line 14542 @@
--   .set-kind-back,
-+   .set-badge.light,
-@@ line 14543 @@
--   .set-kind-accessory,
-+   .attempt-index.light,
-@@ line 14544 @@
--   .set-kind-check,
-+   .attempt-number.light,
-@@ line 14545 @@
--   .set-kind-attempt
-+   .round-index.light,
-@@ line 14546 @@
-- ) {
-+   .round-number.light
-@@ line 14547 @@
--   border-radius: var(--pb-radius-pill) !important;
-+ ) {
-@@ line 14548 @@
--   font-size: var(--pb-text-xs) !important;
-+   border-color: var(--pb-border, rgba(30, 41, 59, 0.18)) !important;
-@@ line 14549 @@
--   line-height: var(--pb-line-tight) !important;
-+   background: #ffffff !important;
-@@ line 14550 @@
--   white-space: nowrap !important;
-+   color: var(--pb-text, #111827) !important;
-@@ line 14551 @@
-- }
-+   -webkit-text-fill-color: var(--pb-text, #111827) !important;
-@@ line 14552 @@
-- 
-+ }
-@@ line 14553 @@
-- html body :is(
-+ 
-@@ line 14554 @@
--   p,
-+ /* v135: PLAN mobile set label column should stay paper-colored, not black */
-@@ line 14555 @@
--   small,
-+ html body #planView .editable-set-row > .set-meta,
-@@ line 14556 @@
--   .description,
-+ html body #planView .actual-set-row > .set-meta {
-@@ line 14557 @@
--   .helper-text,
-+   position: sticky !important;
-@@ line 14558 @@
--   .note-text,
-+   left: 0 !important;
-@@ line 14559 @@
--   .screen-note,
-+   z-index: 3 !important;
-@@ line 14560 @@
--   .guide-note,
-+   border-right: 1px solid rgba(203, 189, 168, 0.78) !important;
-@@ line 14561 @@
--   .data-note,
-+   background:
-@@ line 14562 @@
--   .planned-summary,
-+     linear-gradient(90deg, rgba(180, 35, 24, 0.045), transparent 64%),
-@@ line 14563 @@
--   .prescription-summary,
-+     #fffaf0 !important;
-@@ line 14564 @@
--   .planned-method-label,
-+   color: var(--pb-text, #111827) !important;
-@@ line 14565 @@
--   .exercise-prescription-summary,
-+   text-shadow: none !important;
-@@ line 14566 @@
--   .exercise-rpe-hint
-+ }
-@@ line 14567 @@
-- ) {
-+ 
-@@ line 14568 @@
--   font-size: var(--pb-text-sm);
-+ html body #planView .editable-set-row > .set-meta strong,
-@@ line 14569 @@
--   line-height: var(--pb-line-normal);
-+ html body #planView .actual-set-row > .set-meta strong {
-@@ line 14570 @@
--   overflow-wrap: anywhere;
-+   color: var(--pb-text, #111827) !important;
-@@ line 14571 @@
-- }
-+   -webkit-text-fill-color: var(--pb-text, #111827) !important;
-@@ line 14572 @@
-- 
-+   text-shadow: none !important;
-@@ line 14573 @@
-- html body :is(
-+ }
-@@ line 14574 @@
--   h1,
-+ 
-@@ line 14575 @@
--   h2,
-+ html body #planView .editable-set-row > .set-meta small,
-@@ line 14576 @@
--   h3,
-+ html body #planView .actual-set-row > .set-meta small {
-@@ line 14577 @@
--   .card-title,
-+   width: fit-content;
-@@ line 14578 @@
--   .section-title,
-+   min-width: 42px;
-@@ line 14579 @@
--   .exercise-title,
-+   border-radius: 999px;
-@@ line 14580 @@
--   .day-title
-+   padding: 2px 7px;
-@@ line 14581 @@
-- ) {
-+   text-align: center;
-@@ line 14582 @@
--   line-height: var(--pb-line-tight) !important;
-+   line-height: 1.05;
-@@ line 14583 @@
--   word-break: keep-all;
-+ }
-@@ line 14584 @@
--   overflow-wrap: anywhere;
-+ 
-@@ line 14585 @@
-- }
-+ html body #planView .editable-set-row > .set-meta .set-kind-top,
-@@ line 14586 @@
-- 
-+ html body #planView .actual-set-row > .set-meta .set-kind-top {
-@@ line 14587 @@
-- html body .section-title h2 {
-+   background: #ef4444 !important;
-@@ line 14588 @@
--   text-decoration: none !important;
-+   color: #ffffff !important;
-@@ line 14589 @@
-- }
-+   -webkit-text-fill-color: #ffffff !important;
-@@ line 14590 @@
-- 
-+ }
-@@ line 14591 @@
-- html body :is(
-+ 
-@@ line 14592 @@
--   input,
-+ html body #planView .editable-set-row > .set-meta .set-kind-back,
-@@ line 14593 @@
--   textarea,
-+ html body #planView .actual-set-row > .set-meta .set-kind-back {
-@@ line 14594 @@
--   select,
-+   background: #22c55e !important;
-@@ line 14595 @@
--   button
-+   color: #052e16 !important;
-@@ line 14596 @@
-- ) {
-+   -webkit-text-fill-color: #052e16 !important;
-@@ line 14597 @@
--   font: inherit;
-+ }
-@@ line 14598 @@
-- }
-+ 
-@@ line 14599 @@
-- 
-+ /* v136: mobile UI design-token baseline */
-@@ line 14600 @@
-- html body :is(
-+ :root {
-@@ line 14601 @@
--   input,
-+   --pb-text-xs: 0.7rem;
-@@ line 14602 @@
--   textarea,
-+   --pb-text-sm: 0.8rem;
-@@ line 14603 @@
--   select
-+   --pb-text-md: 0.9rem;
-@@ line 14604 @@
-- ) {
-+   --pb-text-lg: 1.05rem;
-@@ line 14605 @@
--   min-height: var(--pb-tap-target) !important;
-+   --pb-text-xl: 1.25rem;
-@@ line 14606 @@
--   border-radius: var(--pb-radius-md) !important;
-+   --pb-text-display: clamp(2.2rem, 8vw, 3.6rem);
-@@ line 14607 @@
--   font-size: var(--pb-text-md) !important;
-+   --pb-line-tight: 1.15;
-@@ line 14608 @@
--   line-height: 1.2 !important;
-+   --pb-line-normal: 1.45;
-@@ line 14609 @@
-- }
-+   --pb-line-loose: 1.65;
-@@ line 14610 @@
-- 
-+   --pb-radius-sm: 6px;
-@@ line 14611 @@
-- html body :is(
-+   --pb-radius-md: 10px;
-@@ line 14612 @@
--   button,
-+   --pb-radius-lg: 16px;
-@@ line 14613 @@
--   .action-button,
-+   --pb-radius-pill: 999px;
-@@ line 14614 @@
--   .primary-button,
-+   --pb-pad-card: 16px;
-@@ line 14615 @@
--   .text-button,
-+   --pb-pad-card-sm: 12px;
-@@ line 14616 @@
--   .actual-save,
-+   --pb-gap-sm: 6px;
-@@ line 14617 @@
--   .save-button,
-+   --pb-gap-md: 10px;
-@@ line 14618 @@
--   .actual-add-set,
-+   --pb-gap-lg: 16px;
-@@ line 14619 @@
--   .add-set-button,
-+   --pb-tap-target: 44px;
-@@ line 14620 @@
--   .secondary-button
-+   --pb-tap-target-sm: 40px;
-@@ line 14621 @@
-- ) {
-+ }
-@@ line 14622 @@
--   min-height: var(--pb-tap-target) !important;
-+ 
-@@ line 14623 @@
--   border-radius: var(--pb-radius-md) !important;
-+ html body :is(
-@@ line 14624 @@
--   font-weight: 800 !important;
-+   .eyebrow,
-@@ line 14625 @@
-- }
-+   .section-kicker,
-@@ line 14626 @@
-- 
-+   .home-card-label,
-@@ line 14627 @@
-- html body :is(
-+   .lift-badge,
-@@ line 14628 @@
--   .card,
-+   .recommended-badge,
-@@ line 14629 @@
--   .panel,
-+   .badge,
-@@ line 14630 @@
--   .compact-panel,
-+   .chip,
-@@ line 14631 @@
--   .home-card,
-+   .pill,
-@@ line 14632 @@
--   .plan-card,
-+   .set-kind,
-@@ line 14633 @@
--   .meet-card,
-+   .set-kind-top,
-@@ line 14634 @@
--   .dashboard-card,
-+   .set-kind-back,
-@@ line 14635 @@
--   .analysis-card,
-+   .set-kind-accessory,
-@@ line 14636 @@
--   .data-card,
-+   .set-kind-check,
-@@ line 14637 @@
--   .log-card,
-+   .set-kind-attempt
-@@ line 14638 @@
--   .knowledge-card,
-+ ) {
-@@ line 14639 @@
--   .quiz-card,
-+   border-radius: var(--pb-radius-pill) !important;
-@@ line 14640 @@
--   .editable-exercise-sheet
-+   font-size: var(--pb-text-xs) !important;
-@@ line 14641 @@
-- ) {
-+   line-height: var(--pb-line-tight) !important;
-@@ line 14642 @@
--   border-radius: var(--pb-radius-lg) !important;
-+   white-space: nowrap !important;
-@@ line 14643 @@
--   padding: var(--pb-pad-card) !important;
-+ }
-@@ line 14644 @@
-- }
-+ 
-@@ line 14645 @@
-- 
-+ html body :is(
-@@ line 14646 @@
-- html body :is(
-+   p,
-@@ line 14647 @@
--   .editable-set-sheet,
-+   small,
-@@ line 14648 @@
--   .editable-set-row,
-+   .description,
-@@ line 14649 @@
--   .actual-set-row,
-+   .helper-text,
-@@ line 14650 @@
--   .meet-attempt-row
-+   .note-text,
-@@ line 14651 @@
-- ) {
-+   .screen-note,
-@@ line 14652 @@
--   max-width: 100%;
-+   .guide-note,
-@@ line 14653 @@
-- }
-+   .data-note,
-@@ line 14654 @@
-- 
-+   .planned-summary,
-@@ line 14655 @@
-- html body .editable-set-sheet {
-+   .prescription-summary,
-@@ line 14656 @@
--   overflow-x: auto;
-+   .planned-method-label,
-@@ line 14657 @@
--   -webkit-overflow-scrolling: touch;
-+   .exercise-prescription-summary,
-@@ line 14658 @@
-- }
-+   .exercise-rpe-hint
-@@ line 14659 @@
-- 
-+ ) {
-@@ line 14660 @@
-- @media (max-width: 640px) {
-+   font-size: var(--pb-text-sm);
-@@ line 14661 @@
--   html body :is(
-+   line-height: var(--pb-line-normal);
-@@ line 14662 @@
--     input,
-+   overflow-wrap: anywhere;
-@@ line 14663 @@
--     textarea,
-+ }
-@@ line 14664 @@
--     select
-+ 
-@@ line 14665 @@
--   ) {
-+ html body :is(
-@@ line 14666 @@
--     min-height: var(--pb-tap-target) !important;
-+   h1,
-@@ line 14667 @@
--     font-size: 16px !important;
-+   h2,
-@@ line 14668 @@
--   }
-+   h3,
-@@ line 14669 @@
-- 
-+   .card-title,
-@@ line 14670 @@
--   html body :is(
-+   .section-title,
-@@ line 14671 @@
--     .editable-set-row input,
-+   .exercise-title,
-@@ line 14672 @@
--     .editable-set-row select,
-+   .day-title
-@@ line 14673 @@
--     .actual-set-row input,
-+ ) {
-@@ line 14674 @@
--     .actual-set-row select
-+   line-height: var(--pb-line-tight) !important;
-@@ line 14675 @@
--   ) {
-+   word-break: keep-all;
-@@ line 14676 @@
--     min-height: var(--pb-tap-target-sm) !important;
-+   overflow-wrap: anywhere;
-@@ line 14677 @@
--     font-size: 16px !important;
-+ }
-@@ line 14678 @@
--   }
-+ 
-@@ line 14679 @@
-- 
-+ html body .section-title h2 {
-@@ line 14680 @@
--   html body :is(
-+   text-decoration: none !important;
-@@ line 14681 @@
--     .card,
-+ }
-@@ line 14682 @@
--     .panel,
-+ 
-@@ line 14683 @@
--     .compact-panel,
-+ html body :is(
-@@ line 14684 @@
--     .home-card,
-+   input,
-@@ line 14685 @@
--     .plan-card,
-+   textarea,
-@@ line 14686 @@
--     .meet-card,
-+   select,
-@@ line 14687 @@
--     .dashboard-card,
-+   button
-@@ line 14688 @@
--     .analysis-card,
-+ ) {
-@@ line 14689 @@
--     .data-card,
-+   font: inherit;
-@@ line 14690 @@
--     .log-card,
-+ }
-@@ line 14691 @@
--     .knowledge-card,
-+ 
-@@ line 14692 @@
--     .quiz-card,
-+ html body :is(
-@@ line 14693 @@
--     .editable-exercise-sheet
-+   input,
-@@ line 14694 @@
--   ) {
-+   textarea,
-@@ line 14695 @@
--     border-radius: var(--pb-radius-lg) !important;
-+   select
-@@ line 14696 @@
--     padding: var(--pb-pad-card-sm) !important;
-+ ) {
-@@ line 14697 @@
--   }
-+   min-height: var(--pb-tap-target) !important;
-@@ line 14698 @@
-- 
-+   border-radius: var(--pb-radius-md) !important;
-@@ line 14699 @@
--   html body :is(
-+   font-size: var(--pb-text-md) !important;
-@@ line 14700 @@
--     .prescription-summary,
-+   line-height: 1.2 !important;
-@@ line 14701 @@
--     .planned-method-label,
-+ }
-@@ line 14702 @@
--     .exercise-prescription-summary
-+ 
-@@ line 14703 @@
--   ) {
-+ html body :is(
-@@ line 14704 @@
--     display: -webkit-box;
-+   button,
-@@ line 14705 @@
--     overflow: hidden;
-+   .action-button,
-@@ line 14706 @@
--     -webkit-box-orient: vertical;
-+   .primary-button,
-@@ line 14707 @@
--     -webkit-line-clamp: 2;
-+   .text-button,
-@@ line 14708 @@
--     font-size: var(--pb-text-xs) !important;
-+   .actual-save,
-@@ line 14709 @@
--     line-height: 1.3 !important;
-+   .save-button,
-@@ line 14710 @@
--   }
-+   .actual-add-set,
-@@ line 14711 @@
-- }
-+   .add-set-button,
-@@ line 14712 @@
-- <EOF>
-+   .secondary-button
-@@ line 14713 @@
-- <EOF>
-+ ) {
-@@ line 14714 @@
-- <EOF>
-+   min-height: var(--pb-tap-target) !important;
-@@ line 14715 @@
-- <EOF>
-+   border-radius: var(--pb-radius-md) !important;
-@@ line 14716 @@
-- <EOF>
-+   font-weight: 800 !important;
-@@ line 14717 @@
-- <EOF>
-+ }
-@@ line 14718 @@
+@@ line 14804 @@
 - <EOF>
 + 
-@@ line 14719 @@
+@@ line 14805 @@
+- <EOF>
++ /* v140: text-first IRON NOTE cards, removing old image-slot spacing */
+@@ line 14806 @@
 - <EOF>
 + html body :is(
-@@ line 14720 @@
+@@ line 14807 @@
 - <EOF>
-+   .card,
-@@ line 14721 @@
++   .home-hero-card,
+@@ line 14808 @@
 - <EOF>
-+   .panel,
-@@ line 14722 @@
++   .home-card.visual-card,
+@@ line 14809 @@
 - <EOF>
-+   .compact-panel,
-@@ line 14723 @@
-- <EOF>
-+   .home-card,
-@@ line 14724 @@
-- <EOF>
-+   .plan-card,
-@@ line 14725 @@
-- <EOF>
-+   .meet-card,
-@@ line 14726 @@
++   .home-command-grid .home-card.visual-card,
+@@ line 14810 @@
 - <EOF>
 +   .dashboard-card,
-@@ line 14727 @@
+@@ line 14811 @@
 - <EOF>
-+   .analysis-card,
-@@ line 14728 @@
++   .plan-card,
+@@ line 14812 @@
 - <EOF>
-+   .data-card,
-@@ line 14729 @@
++   .day-card,
+@@ line 14813 @@
 - <EOF>
-+   .log-card,
-@@ line 14730 @@
-- <EOF>
-+   .knowledge-card,
-@@ line 14731 @@
-- <EOF>
-+   .quiz-card,
-@@ line 14732 @@
-- <EOF>
-+   .editable-exercise-sheet
-@@ line 14733 @@
-- <EOF>
-+ ) {
-@@ line 14734 @@
-- <EOF>
-+   border-radius: var(--pb-radius-lg) !important;
-@@ line 14735 @@
-- <EOF>
-+   padding: var(--pb-pad-card) !important;
-@@ line 14736 @@
-- <EOF>
-+ }
-@@ line 14737 @@
-- <EOF>
-+ 
-@@ line 14738 @@
-- <EOF>
-+ html body :is(
-@@ line 14739 @@
++   .editable-exercise-sheet,
+@@ line 14814 @@
 - <EOF>
 +   .editable-set-sheet,
-@@ line 14740 @@
+@@ line 14815 @@
 - <EOF>
-+   .editable-set-row,
-@@ line 14741 @@
++   .log-card,
+@@ line 14816 @@
 - <EOF>
-+   .actual-set-row,
-@@ line 14742 @@
++   .analysis-card,
+@@ line 14817 @@
 - <EOF>
-+   .meet-attempt-row
-@@ line 14743 @@
++   .data-card,
+@@ line 14818 @@
+- <EOF>
++   .meet-card,
+@@ line 14819 @@
+- <EOF>
++   .meet-hero-card,
+@@ line 14820 @@
+- <EOF>
++   .knowledge-card,
+@@ line 14821 @@
+- <EOF>
++   .quiz-card,
+@@ line 14822 @@
+- <EOF>
++   .tool-card,
+@@ line 14823 @@
+- <EOF>
++   .action-card,
+@@ line 14824 @@
+- <EOF>
++   .meet-shortcut,
+@@ line 14825 @@
+- <EOF>
++   .meet-note-card,
+@@ line 14826 @@
+- <EOF>
++   .wellness-check-card,
+@@ line 14827 @@
+- <EOF>
++   .home-action-panel
+@@ line 14828 @@
 - <EOF>
 + ) {
-@@ line 14744 @@
+@@ line 14829 @@
 - <EOF>
-+   max-width: 100%;
-@@ line 14745 @@
++   min-height: auto !important;
+@@ line 14830 @@
+- <EOF>
++   height: auto !important;
+@@ line 14831 @@
+- <EOF>
++   aspect-ratio: auto !important;
+@@ line 14832 @@
+- <EOF>
++   background-image: none !important;
+@@ line 14833 @@
+- <EOF>
++   background:
+@@ line 14834 @@
+- <EOF>
++     linear-gradient(90deg, rgba(180, 35, 24, 0.032), transparent 48%),
+@@ line 14835 @@
+- <EOF>
++     var(--surface, #fffaf2) !important;
+@@ line 14836 @@
+- <EOF>
++   color: var(--text-main, #171717) !important;
+@@ line 14837 @@
+- <EOF>
++   text-shadow: none !important;
+@@ line 14838 @@
+- <EOF>
++   box-shadow: 0 8px 18px rgba(51, 42, 29, 0.06) !important;
+@@ line 14839 @@
 - <EOF>
 + }
-@@ line 14746 @@
+@@ line 14840 @@
 - <EOF>
 + 
-@@ line 14747 @@
+@@ line 14841 @@
 - <EOF>
-+ html body .editable-set-sheet {
-@@ line 14748 @@
++ html body :is(
+@@ line 14842 @@
 - <EOF>
-+   overflow-x: auto;
-@@ line 14749 @@
++   .home-card.visual-card,
+@@ line 14843 @@
 - <EOF>
-+   -webkit-overflow-scrolling: touch;
-@@ line 14750 @@
++   .home-command-grid .home-card.visual-card,
+@@ line 14844 @@
+- <EOF>
++   .dashboard-card,
+@@ line 14845 @@
+- <EOF>
++   .plan-card,
+@@ line 14846 @@
+- <EOF>
++   .day-card,
+@@ line 14847 @@
+- <EOF>
++   .editable-exercise-sheet,
+@@ line 14848 @@
+- <EOF>
++   .log-card,
+@@ line 14849 @@
+- <EOF>
++   .analysis-card,
+@@ line 14850 @@
+- <EOF>
++   .data-card,
+@@ line 14851 @@
+- <EOF>
++   .meet-card,
+@@ line 14852 @@
+- <EOF>
++   .knowledge-card,
+@@ line 14853 @@
+- <EOF>
++   .quiz-card,
+@@ line 14854 @@
+- <EOF>
++   .meet-shortcut
+@@ line 14855 @@
+- <EOF>
++ )::before,
+@@ line 14856 @@
+- <EOF>
++ html body :is(
+@@ line 14857 @@
+- <EOF>
++   .home-card.visual-card,
+@@ line 14858 @@
+- <EOF>
++   .home-command-grid .home-card.visual-card,
+@@ line 14859 @@
+- <EOF>
++   .dashboard-card,
+@@ line 14860 @@
+- <EOF>
++   .plan-card,
+@@ line 14861 @@
+- <EOF>
++   .day-card,
+@@ line 14862 @@
+- <EOF>
++   .editable-exercise-sheet,
+@@ line 14863 @@
+- <EOF>
++   .log-card,
+@@ line 14864 @@
+- <EOF>
++   .analysis-card,
+@@ line 14865 @@
+- <EOF>
++   .data-card,
+@@ line 14866 @@
+- <EOF>
++   .meet-card,
+@@ line 14867 @@
+- <EOF>
++   .knowledge-card,
+@@ line 14868 @@
+- <EOF>
++   .quiz-card,
+@@ line 14869 @@
+- <EOF>
++   .meet-shortcut
+@@ line 14870 @@
+- <EOF>
++ )::after {
+@@ line 14871 @@
+- <EOF>
++   background-image: none !important;
+@@ line 14872 @@
+- <EOF>
++   opacity: 0 !important;
+@@ line 14873 @@
+- <EOF>
++   pointer-events: none !important;
+@@ line 14874 @@
 - <EOF>
 + }
-@@ line 14751 @@
+@@ line 14875 @@
 - <EOF>
 + 
-@@ line 14752 @@
+@@ line 14876 @@
+- <EOF>
++ html body .home-hero-visual,
+@@ line 14877 @@
+- <EOF>
++ html body :is(
+@@ line 14878 @@
+- <EOF>
++   .card-visual,
+@@ line 14879 @@
+- <EOF>
++   .card-image,
+@@ line 14880 @@
+- <EOF>
++   .card-media,
+@@ line 14881 @@
+- <EOF>
++   .hero-visual,
+@@ line 14882 @@
+- <EOF>
++   .dashboard-visual,
+@@ line 14883 @@
+- <EOF>
++   .feature-visual,
+@@ line 14884 @@
+- <EOF>
++   .action-visual,
+@@ line 14885 @@
+- <EOF>
++   .image-slot
+@@ line 14886 @@
+- <EOF>
++ ):empty {
+@@ line 14887 @@
+- <EOF>
++   display: none !important;
+@@ line 14888 @@
+- <EOF>
++ }
+@@ line 14889 @@
+- <EOF>
++ 
+@@ line 14890 @@
+- <EOF>
++ html body :is(
+@@ line 14891 @@
+- <EOF>
++   .home-card .home-card-top,
+@@ line 14892 @@
+- <EOF>
++   .home-command-grid .home-card .home-card-top,
+@@ line 14893 @@
+- <EOF>
++   .day-card > summary,
+@@ line 14894 @@
+- <EOF>
++   .plan-card .section-title,
+@@ line 14895 @@
+- <EOF>
++   .meet-card .section-title
+@@ line 14896 @@
+- <EOF>
++ ) {
+@@ line 14897 @@
+- <EOF>
++   align-items: flex-start !important;
+@@ line 14898 @@
+- <EOF>
++   text-align: left !important;
+@@ line 14899 @@
+- <EOF>
++ }
+@@ line 14900 @@
+- <EOF>
++ 
+@@ line 14901 @@
+- <EOF>
++ html body :is(
+@@ line 14902 @@
+- <EOF>
++   .home-card.visual-card,
+@@ line 14903 @@
+- <EOF>
++   .home-command-grid .home-card.visual-card
+@@ line 14904 @@
+- <EOF>
++ ) {
+@@ line 14905 @@
+- <EOF>
++   display: flex !important;
+@@ line 14906 @@
+- <EOF>
++   flex-direction: column !important;
+@@ line 14907 @@
+- <EOF>
++   justify-content: flex-start !important;
+@@ line 14908 @@
+- <EOF>
++   gap: 10px !important;
+@@ line 14909 @@
+- <EOF>
++   padding: var(--pb-pad-card, 16px) !important;
+@@ line 14910 @@
+- <EOF>
++ }
+@@ line 14911 @@
+- <EOF>
++ 
+@@ line 14912 @@
+- <EOF>
++ html body :is(
+@@ line 14913 @@
+- <EOF>
++   .home-card.visual-card strong,
+@@ line 14914 @@
+- <EOF>
++   .home-command-grid .home-card.visual-card strong,
+@@ line 14915 @@
+- <EOF>
++   .plan-card h2,
+@@ line 14916 @@
+- <EOF>
++   .day-card h2,
+@@ line 14917 @@
+- <EOF>
++   .meet-card h2,
+@@ line 14918 @@
+- <EOF>
++   .knowledge-card h3,
+@@ line 14919 @@
+- <EOF>
++   .quiz-card h3
+@@ line 14920 @@
+- <EOF>
++ ) {
+@@ line 14921 @@
+- <EOF>
++   color: var(--text-main, #171717) !important;
+@@ line 14922 @@
+- <EOF>
++   text-shadow: none !important;
+@@ line 14923 @@
+- <EOF>
++ }
+@@ line 14924 @@
+- <EOF>
++ 
+@@ line 14925 @@
+- <EOF>
++ html body :is(
+@@ line 14926 @@
+- <EOF>
++   .home-card.visual-card p,
+@@ line 14927 @@
+- <EOF>
++   .home-command-grid .home-card.visual-card p,
+@@ line 14928 @@
+- <EOF>
++   .plan-card p,
+@@ line 14929 @@
+- <EOF>
++   .day-card p,
+@@ line 14930 @@
+- <EOF>
++   .meet-card p,
+@@ line 14931 @@
+- <EOF>
++   .knowledge-card p,
+@@ line 14932 @@
+- <EOF>
++   .quiz-card p,
+@@ line 14933 @@
+- <EOF>
++   .screen-note,
+@@ line 14934 @@
+- <EOF>
++   .guide-note,
+@@ line 14935 @@
+- <EOF>
++   .data-note,
+@@ line 14936 @@
+- <EOF>
++   .helper-text
+@@ line 14937 @@
+- <EOF>
++ ) {
+@@ line 14938 @@
+- <EOF>
++   color: var(--text-sub, #526179) !important;
+@@ line 14939 @@
+- <EOF>
++   text-shadow: none !important;
+@@ line 14940 @@
+- <EOF>
++ }
+@@ line 14941 @@
+- <EOF>
++ 
+@@ line 14942 @@
+- <EOF>
++ html body :is(
+@@ line 14943 @@
+- <EOF>
++   .home-icon,
+@@ line 14944 @@
+- <EOF>
++   .card-icon,
+@@ line 14945 @@
+- <EOF>
++   .section-icon,
+@@ line 14946 @@
+- <EOF>
++   .action-icon,
+@@ line 14947 @@
+- <EOF>
++   .dashboard-icon
+@@ line 14948 @@
+- <EOF>
++ ) {
+@@ line 14949 @@
+- <EOF>
++   width: 28px !important;
+@@ line 14950 @@
+- <EOF>
++   height: 28px !important;
+@@ line 14951 @@
+- <EOF>
++   flex: 0 0 28px !important;
+@@ line 14952 @@
+- <EOF>
++ }
+@@ line 14953 @@
+- <EOF>
++ 
+@@ line 14954 @@
+- <EOF>
++ html body :is(.home-current-card, .home-goal-card, .home-meet-card) .home-metric,
+@@ line 14955 @@
+- <EOF>
++ html body :is(.home-current-card, .home-goal-card, .home-meet-card) .main-value,
+@@ line 14956 @@
+- <EOF>
++ html body :is(.home-current-card, .home-goal-card, .home-meet-card) .total-value,
+@@ line 14957 @@
+- <EOF>
++ html body :is(.home-current-card, .home-goal-card, .home-meet-card) .remaining-value,
+@@ line 14958 @@
+- <EOF>
++ html body :is(.home-current-card, .home-goal-card, .home-meet-card) .days-left {
+@@ line 14959 @@
+- <EOF>
++   color: var(--text-main, #171717) !important;
+@@ line 14960 @@
+- <EOF>
++   text-shadow: none !important;
+@@ line 14961 @@
+- <EOF>
++ }
+@@ line 14962 @@
+- <EOF>
++ 
+@@ line 14963 @@
+- <EOF>
++ html body .meet-hero-card {
+@@ line 14964 @@
+- <EOF>
++   display: none !important;
+@@ line 14965 @@
+- <EOF>
++ }
+@@ line 14966 @@
+- <EOF>
++ 
+@@ line 14967 @@
+- <EOF>
++ html body :is(.plan-command-card, .cycle-setup-preview, .buddy-method-panel) {
+@@ line 14968 @@
+- <EOF>
++   min-height: auto !important;
+@@ line 14969 @@
+- <EOF>
++ }
+@@ line 14970 @@
+- <EOF>
++ 
+@@ line 14971 @@
 - <EOF>
 + @media (max-width: 640px) {
-@@ line 14753 @@
+@@ line 14972 @@
 - <EOF>
 +   html body :is(
-@@ line 14754 @@
+@@ line 14973 @@
 - <EOF>
-+     input,
-@@ line 14755 @@
++     .home-hero-card,
+@@ line 14974 @@
 - <EOF>
-+     textarea,
-@@ line 14756 @@
++     .home-card.visual-card,
+@@ line 14975 @@
 - <EOF>
-+     select
-@@ line 14757 @@
-- <EOF>
-+   ) {
-@@ line 14758 @@
-- <EOF>
-+     min-height: var(--pb-tap-target) !important;
-@@ line 14759 @@
-- <EOF>
-+     font-size: 16px !important;
-@@ line 14760 @@
-- <EOF>
-+   }
-@@ line 14761 @@
-- <EOF>
-+ 
-@@ line 14762 @@
-- <EOF>
-+   html body :is(
-@@ line 14763 @@
-- <EOF>
-+     .editable-set-row input,
-@@ line 14764 @@
-- <EOF>
-+     .editable-set-row select,
-@@ line 14765 @@
-- <EOF>
-+     .actual-set-row input,
-@@ line 14766 @@
-- <EOF>
-+     .actual-set-row select
-@@ line 14767 @@
-- <EOF>
-+   ) {
-@@ line 14768 @@
-- <EOF>
-+     min-height: var(--pb-tap-target-sm) !important;
-@@ line 14769 @@
-- <EOF>
-+     font-size: 16px !important;
-@@ line 14770 @@
-- <EOF>
-+   }
-@@ line 14771 @@
-- <EOF>
-+ 
-@@ line 14772 @@
-- <EOF>
-+   html body :is(
-@@ line 14773 @@
-- <EOF>
-+     .card,
-@@ line 14774 @@
-- <EOF>
-+     .panel,
-@@ line 14775 @@
-- <EOF>
-+     .compact-panel,
-@@ line 14776 @@
-- <EOF>
-+     .home-card,
-@@ line 14777 @@
-- <EOF>
-+     .plan-card,
-@@ line 14778 @@
-- <EOF>
-+     .meet-card,
-@@ line 14779 @@
++     .home-command-grid .home-card.visual-card,
+@@ line 14976 @@
 - <EOF>
 +     .dashboard-card,
-@@ line 14780 @@
+@@ line 14977 @@
 - <EOF>
-+     .analysis-card,
-@@ line 14781 @@
++     .plan-card,
+@@ line 14978 @@
 - <EOF>
-+     .data-card,
-@@ line 14782 @@
++     .day-card,
+@@ line 14979 @@
+- <EOF>
++     .editable-exercise-sheet,
+@@ line 14980 @@
+- <EOF>
++     .editable-set-sheet,
+@@ line 14981 @@
 - <EOF>
 +     .log-card,
-@@ line 14783 @@
+@@ line 14982 @@
+- <EOF>
++     .analysis-card,
+@@ line 14983 @@
+- <EOF>
++     .data-card,
+@@ line 14984 @@
+- <EOF>
++     .meet-card,
+@@ line 14985 @@
 - <EOF>
 +     .knowledge-card,
-@@ line 14784 @@
+@@ line 14986 @@
 - <EOF>
 +     .quiz-card,
-@@ line 14785 @@
+@@ line 14987 @@
 - <EOF>
-+     .editable-exercise-sheet
-@@ line 14786 @@
++     .meet-shortcut,
+@@ line 14988 @@
+- <EOF>
++     .wellness-check-card
+@@ line 14989 @@
 - <EOF>
 +   ) {
-@@ line 14787 @@
+@@ line 14990 @@
 - <EOF>
-+     border-radius: var(--pb-radius-lg) !important;
-@@ line 14788 @@
++     min-height: auto !important;
+@@ line 14991 @@
 - <EOF>
-+     padding: var(--pb-pad-card-sm) !important;
-@@ line 14789 @@
++     padding: var(--pb-pad-card-sm, 12px) !important;
+@@ line 14992 @@
 - <EOF>
 +   }
-@@ line 14790 @@
+@@ line 14993 @@
 - <EOF>
 + 
-@@ line 14791 @@
+@@ line 14994 @@
 - <EOF>
-+   html body :is(
-@@ line 14792 @@
++   html body .home-hero-card {
+@@ line 14995 @@
 - <EOF>
-+     .prescription-summary,
-@@ line 14793 @@
-- <EOF>
-+     .planned-method-label,
-@@ line 14794 @@
-- <EOF>
-+     .exercise-prescription-summary
-@@ line 14795 @@
-- <EOF>
-+   ) {
-@@ line 14796 @@
-- <EOF>
-+     display: -webkit-box;
-@@ line 14797 @@
-- <EOF>
-+     overflow: hidden;
-@@ line 14798 @@
-- <EOF>
-+     -webkit-box-orient: vertical;
-@@ line 14799 @@
-- <EOF>
-+     -webkit-line-clamp: 2;
-@@ line 14800 @@
-- <EOF>
-+     font-size: var(--pb-text-xs) !important;
-@@ line 14801 @@
-- <EOF>
-+     line-height: 1.3 !important;
-@@ line 14802 @@
++     gap: 8px !important;
+@@ line 14996 @@
 - <EOF>
 +   }
-@@ line 14803 @@
+@@ line 14997 @@
+- <EOF>
++ 
+@@ line 14998 @@
+- <EOF>
++   html body .home-hero-card h2 {
+@@ line 14999 @@
+- <EOF>
++     font-size: clamp(1.55rem, 9vw, 2.25rem) !important;
+@@ line 15000 @@
+- <EOF>
++     line-height: 1.12 !important;
+@@ line 15001 @@
+- <EOF>
++   }
+@@ line 15002 @@
+- <EOF>
++ 
+@@ line 15003 @@
+- <EOF>
++   html body :is(.home-hero-card p, .home-card.visual-card p, .screen-note, .guide-note, .data-note, .helper-text) {
+@@ line 15004 @@
+- <EOF>
++     display: -webkit-box;
+@@ line 15005 @@
+- <EOF>
++     overflow: hidden;
+@@ line 15006 @@
+- <EOF>
++     -webkit-box-orient: vertical;
+@@ line 15007 @@
+- <EOF>
++     -webkit-line-clamp: 2;
+@@ line 15008 @@
+- <EOF>
++   }
+@@ line 15009 @@
+- <EOF>
++ 
+@@ line 15010 @@
+- <EOF>
++   html body :is(.home-icon, .card-icon, .section-icon, .action-icon, .dashboard-icon) {
+@@ line 15011 @@
+- <EOF>
++     width: 24px !important;
+@@ line 15012 @@
+- <EOF>
++     height: 24px !important;
+@@ line 15013 @@
+- <EOF>
++     flex-basis: 24px !important;
+@@ line 15014 @@
+- <EOF>
++   }
+@@ line 15015 @@
 - <EOF>
 + }
 --- sw.js
 +++ sw.js
 @@ line 1 @@
-- const CACHE_NAME = "platform-buddy-v138";
-+ const CACHE_NAME = "platform-buddy-v139";
+- const CACHE_NAME = "platform-buddy-v139";
++ const CACHE_NAME = "platform-buddy-v140";
 @@ line 5 @@
--   "index.html?v=138",
-+   "index.html?v=139",
+-   "index.html?v=139",
++   "index.html?v=140",
 @@ line 7 @@
--   "styles.css?v=138",
-+   "styles.css?v=139",
+-   "styles.css?v=139",
++   "styles.css?v=140",
 @@ line 9 @@
--   "app.js?v=138",
-+   "app.js?v=139",
+-   "app.js?v=139",
++   "app.js?v=140",
 --- manifest.webmanifest
 +++ manifest.webmanifest
 @@ line 5 @@
--   "start_url": "./index.html?v=138",
-+   "start_url": "./index.html?v=139",
+-   "start_url": "./index.html?v=139",
++   "start_url": "./index.html?v=140",
