@@ -12,7 +12,7 @@
     <link rel="preload" as="image" href="home-bg-lite.jpg">
     <link rel="preload" as="image" href="icon-sheet-lite.jpg">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <link rel="stylesheet" href="styles.css?v=142">
+    <link rel="stylesheet" href="styles.css?v=143">
   </head>
   <body>
     <div class="app-shell">
@@ -178,10 +178,10 @@
               <p class="eyebrow">Start</p>
               <h2>はじめてガイド</h2>
             </div>
-            <button class="collapse-toggle" id="welcomeCollapseBtn" type="button" aria-label="はじめてガイドを閉じる" aria-expanded="true">▴</button>
+            <button class="collapse-toggle" id="welcomeCollapseBtn" type="button" aria-label="はじめてガイドを開く" aria-expanded="false">⌄</button>
           </div>
           <p class="collapse-summary" id="welcomeSummary"></p>
-          <div class="collapsible-content" id="welcomePanelContent">
+          <div class="collapsible-content collapsed" id="welcomePanelContent">
             <div class="start-card-grid" aria-label="目的を選ぶ">
               <button class="start-card recommended" type="button" data-start-action="plan">
                 <span>PLAN</span>
@@ -214,12 +214,12 @@
             <div class="athlete-actions">
               <button class="text-button" id="addAthleteBtn" type="button">選手追加</button>
               <button class="text-button danger" id="deleteAthleteBtn" type="button">選手削除</button>
-              <button class="collapse-toggle" id="profileCollapseBtn" type="button" aria-label="プロフィールを閉じる" aria-expanded="true">▴</button>
+              <button class="collapse-toggle" id="profileCollapseBtn" type="button" aria-label="プロフィールを開く" aria-expanded="false">⌄</button>
             </div>
           </div>
           <p class="collapse-summary" id="profileSummary"></p>
           <section class="athlete-dashboard" id="athleteDashboard" aria-live="polite"></section>
-          <div class="collapsible-content" id="profilePanelContent">
+          <div class="collapsible-content collapsed" id="profilePanelContent">
             <div class="athlete-strip" id="athleteStrip" aria-label="選手一覧"></div>
             <div class="profile-grid">
               <label>
@@ -366,6 +366,8 @@
             <canvas id="weeklyDataChart" width="720" height="320" aria-label="週間の体調とトレーニング負荷グラフ"></canvas>
           </section>
 
+          <section class="metric-grid" id="metricGrid"></section>
+
           <section class="panel academy-evaluation-panel">
             <div class="section-title">
               <div>
@@ -376,8 +378,6 @@
             <p class="screen-note">伸び方を見て、次の一手を決めよう。</p>
             <div class="academy-evaluation-list" id="academyEvaluation"></div>
           </section>
-
-          <section class="metric-grid" id="metricGrid"></section>
         </section>
 
         <section class="view" id="planView">
@@ -983,6 +983,6 @@
       </form>
     </dialog>
 
-    <script src="app.js?v=142"></script>
+    <script src="app.js?v=143"></script>
   </body>
 </html>

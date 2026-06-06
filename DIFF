@@ -1,665 +1,151 @@
-﻿--- index.html
-+++ index.html
-@@ line 15 @@
--     <link rel="stylesheet" href="styles.css?v=141">
-+     <link rel="stylesheet" href="styles.css?v=142">
-@@ line 986 @@
--     <script src="app.js?v=141"></script>
-+     <script src="app.js?v=142"></script>
---- styles.css
-+++ styles.css
-@@ line 15256 @@
-- <EOF>
-+ 
-@@ line 15257 @@
-- <EOF>
-+ /* v142: unify HOME mobile card rhythm around the action-card scale */
-@@ line 15258 @@
-- <EOF>
-+ @media (max-width: 640px) {
-@@ line 15259 @@
-- <EOF>
-+   html body[data-active-view="home"] .home-dashboard {
-@@ line 15260 @@
-- <EOF>
-+     gap: 12px !important;
-@@ line 15261 @@
-- <EOF>
-+     padding-bottom: calc(150px + env(safe-area-inset-bottom)) !important;
-@@ line 15262 @@
-- <EOF>
-+   }
-@@ line 15263 @@
-- <EOF>
-+ 
-@@ line 15264 @@
-- <EOF>
-+   html body[data-active-view="home"] :is(
-@@ line 15265 @@
-- <EOF>
-+     .home-card-grid,
-@@ line 15266 @@
-- <EOF>
-+     .home-command-grid,
-@@ line 15267 @@
-- <EOF>
-+     .home-card-stack
-@@ line 15268 @@
-- <EOF>
-+   ) {
-@@ line 15269 @@
-- <EOF>
-+     gap: 12px !important;
-@@ line 15270 @@
-- <EOF>
-+   }
-@@ line 15271 @@
-- <EOF>
-+ 
-@@ line 15272 @@
-- <EOF>
-+   html body[data-active-view="home"] :is(
-@@ line 15273 @@
-- <EOF>
-+     .home-command-grid .home-card.visual-card,
-@@ line 15274 @@
-- <EOF>
-+     .home-current-card,
-@@ line 15275 @@
-- <EOF>
-+     .home-goal-card,
-@@ line 15276 @@
-- <EOF>
-+     .home-plan-card,
-@@ line 15277 @@
-- <EOF>
-+     .home-meet-card
-@@ line 15278 @@
-- <EOF>
-+   ) {
-@@ line 15279 @@
-- <EOF>
-+     min-height: 132px !important;
-@@ line 15280 @@
-- <EOF>
-+     height: auto !important;
-@@ line 15281 @@
-- <EOF>
-+     gap: 7px !important;
-@@ line 15282 @@
-- <EOF>
-+     border-radius: 18px !important;
-@@ line 15283 @@
-- <EOF>
-+     padding: 14px !important;
-@@ line 15284 @@
-- <EOF>
-+     justify-content: flex-start !important;
-@@ line 15285 @@
-- <EOF>
-+   }
-@@ line 15286 @@
-- <EOF>
-+ 
-@@ line 15287 @@
-- <EOF>
-+   html body[data-active-view="home"] :is(
-@@ line 15288 @@
-- <EOF>
-+     .home-strategy-card,
-@@ line 15289 @@
-- <EOF>
-+     .home-check-card,
-@@ line 15290 @@
-- <EOF>
-+     .home-buddy-summary,
-@@ line 15291 @@
-- <EOF>
-+     .home-buddy-comment-card
-@@ line 15292 @@
-- <EOF>
-+   ) {
-@@ line 15293 @@
-- <EOF>
-+     min-height: 132px !important;
-@@ line 15294 @@
-- <EOF>
-+     height: auto !important;
-@@ line 15295 @@
-- <EOF>
-+     border-radius: 18px !important;
-@@ line 15296 @@
-- <EOF>
-+     padding: 14px !important;
-@@ line 15297 @@
-- <EOF>
-+   }
-@@ line 15298 @@
-- <EOF>
-+ 
-@@ line 15299 @@
-- <EOF>
-+   html body[data-active-view="home"] :is(
-@@ line 15300 @@
-- <EOF>
-+     .home-command-grid .home-card .home-card-top,
-@@ line 15301 @@
-- <EOF>
-+     .home-strategy-card .home-card-top
-@@ line 15302 @@
-- <EOF>
-+   ) {
-@@ line 15303 @@
-- <EOF>
-+     gap: 8px !important;
-@@ line 15304 @@
-- <EOF>
-+     min-height: 24px !important;
-@@ line 15305 @@
-- <EOF>
-+     margin: 0 !important;
-@@ line 15306 @@
-- <EOF>
-+   }
-@@ line 15307 @@
-- <EOF>
-+ 
-@@ line 15308 @@
-- <EOF>
-+   html body[data-active-view="home"] :is(
-@@ line 15309 @@
-- <EOF>
-+     .home-command-grid .home-card .home-card-top span,
-@@ line 15310 @@
-- <EOF>
-+     .home-strategy-card .home-card-top span,
-@@ line 15311 @@
-- <EOF>
-+     .home-buddy-summary > div > span
-@@ line 15312 @@
-- <EOF>
-+   ) {
-@@ line 15313 @@
-- <EOF>
-+     font-size: 0.76rem !important;
-@@ line 15314 @@
-- <EOF>
-+     line-height: 1.2 !important;
-@@ line 15315 @@
-- <EOF>
-+   }
-@@ line 15316 @@
-- <EOF>
-+ 
-@@ line 15317 @@
-- <EOF>
-+   html body[data-active-view="home"] :is(
-@@ line 15318 @@
-- <EOF>
-+     .home-current-card .main-value,
-@@ line 15319 @@
-- <EOF>
-+     .home-current-card .total-value,
-@@ line 15320 @@
-- <EOF>
-+     .home-goal-card .main-value,
-@@ line 15321 @@
-- <EOF>
-+     .home-goal-card .remaining-value,
-@@ line 15322 @@
-- <EOF>
-+     .home-meet-card .main-value,
-@@ line 15323 @@
-- <EOF>
-+     .home-meet-card .days-left
-@@ line 15324 @@
-- <EOF>
-+   ) {
-@@ line 15325 @@
-- <EOF>
-+     margin: 0 !important;
-@@ line 15326 @@
-- <EOF>
-+     font-size: clamp(2rem, 10vw, 3rem) !important;
-@@ line 15327 @@
-- <EOF>
-+     line-height: 1 !important;
-@@ line 15328 @@
-- <EOF>
-+     letter-spacing: 0 !important;
-@@ line 15329 @@
-- <EOF>
-+   }
-@@ line 15330 @@
-- <EOF>
-+ 
-@@ line 15331 @@
-- <EOF>
-+   html body[data-active-view="home"] .home-current-card .home-total-number span {
-@@ line 15332 @@
-- <EOF>
-+     display: inline !important;
-@@ line 15333 @@
-- <EOF>
-+     margin-right: 5px !important;
-@@ line 15334 @@
-- <EOF>
-+     font-size: 0.72rem !important;
-@@ line 15335 @@
-- <EOF>
-+     line-height: 1 !important;
-@@ line 15336 @@
-- <EOF>
-+   }
-@@ line 15337 @@
-- <EOF>
-+ 
-@@ line 15338 @@
-- <EOF>
-+   html body[data-active-view="home"] .home-current-card .home-total-number .unit {
-@@ line 15339 @@
-- <EOF>
-+     font-size: 0.78rem !important;
-@@ line 15340 @@
-- <EOF>
-+   }
-@@ line 15341 @@
-- <EOF>
-+ 
-@@ line 15342 @@
-- <EOF>
-+   html body[data-active-view="home"] .home-goal-card .home-goal-target {
-@@ line 15343 @@
-- <EOF>
-+     margin: 0 !important;
-@@ line 15344 @@
-- <EOF>
-+     font-size: 0.88rem !important;
-@@ line 15345 @@
-- <EOF>
-+     line-height: 1.25 !important;
-@@ line 15346 @@
-- <EOF>
-+   }
-@@ line 15347 @@
-- <EOF>
-+ 
-@@ line 15348 @@
-- <EOF>
-+   html body[data-active-view="home"] .home-goal-card :is(.home-progress, .progress-bar) {
-@@ line 15349 @@
-- <EOF>
-+     height: 6px !important;
-@@ line 15350 @@
-- <EOF>
-+     margin: 1px 0 !important;
-@@ line 15351 @@
-- <EOF>
-+   }
-@@ line 15352 @@
-- <EOF>
-+ 
-@@ line 15353 @@
-- <EOF>
-+   html body[data-active-view="home"] :is(
-@@ line 15354 @@
-- <EOF>
-+     .home-lift-pills,
-@@ line 15355 @@
-- <EOF>
-+     .lift-chip-row,
-@@ line 15356 @@
-- <EOF>
-+     .total-chip-row
-@@ line 15357 @@
-- <EOF>
-+   ) {
-@@ line 15358 @@
-- <EOF>
-+     gap: 5px !important;
-@@ line 15359 @@
-- <EOF>
-+     margin: 0 !important;
-@@ line 15360 @@
-- <EOF>
-+   }
-@@ line 15361 @@
-- <EOF>
-+ 
-@@ line 15362 @@
-- <EOF>
-+   html body[data-active-view="home"] :is(
-@@ line 15363 @@
-- <EOF>
-+     .home-lift-pills span,
-@@ line 15364 @@
-- <EOF>
-+     .lift-chip-row span,
-@@ line 15365 @@
-- <EOF>
-+     .total-chip-row span
-@@ line 15366 @@
-- <EOF>
-+   ) {
-@@ line 15367 @@
-- <EOF>
-+     min-height: 26px !important;
-@@ line 15368 @@
-- <EOF>
-+     padding: 4px 8px !important;
-@@ line 15369 @@
-- <EOF>
-+     font-size: 0.7rem !important;
-@@ line 15370 @@
-- <EOF>
-+     line-height: 1 !important;
-@@ line 15371 @@
-- <EOF>
-+   }
-@@ line 15372 @@
-- <EOF>
-+ 
-@@ line 15373 @@
-- <EOF>
-+   html body[data-active-view="home"] .home-plan-card > strong {
-@@ line 15374 @@
-- <EOF>
-+     margin: 0 !important;
-@@ line 15375 @@
-- <EOF>
-+     max-width: 100% !important;
-@@ line 15376 @@
-- <EOF>
-+     font-size: 1.18rem !important;
-@@ line 15377 @@
-- <EOF>
-+     line-height: 1.18 !important;
-@@ line 15378 @@
-- <EOF>
-+     text-align: left !important;
-@@ line 15379 @@
-- <EOF>
-+   }
-@@ line 15380 @@
-- <EOF>
-+ 
-@@ line 15381 @@
-- <EOF>
-+   html body[data-active-view="home"] .home-plan-card .home-phase-pill {
-@@ line 15382 @@
-- <EOF>
-+     align-self: flex-start !important;
-@@ line 15383 @@
-- <EOF>
-+     margin: 0 !important;
-@@ line 15384 @@
-- <EOF>
-+     padding: 4px 9px !important;
-@@ line 15385 @@
-- <EOF>
-+     font-size: 0.7rem !important;
-@@ line 15386 @@
-- <EOF>
-+   }
-@@ line 15387 @@
-- <EOF>
-+ 
-@@ line 15388 @@
-- <EOF>
-+   html body[data-active-view="home"] .home-plan-card .home-mini-lines {
-@@ line 15389 @@
-- <EOF>
-+     gap: 3px 8px !important;
-@@ line 15390 @@
-- <EOF>
-+     margin: 0 !important;
-@@ line 15391 @@
-- <EOF>
-+     font-size: 0.76rem !important;
-@@ line 15392 @@
-- <EOF>
-+     line-height: 1.3 !important;
-@@ line 15393 @@
-- <EOF>
-+   }
-@@ line 15394 @@
-- <EOF>
-+ 
-@@ line 15395 @@
-- <EOF>
-+   html body[data-active-view="home"] .home-meet-card :is(p, .meet-priority, .home-card-note),
-@@ line 15396 @@
-- <EOF>
-+   html body[data-active-view="home"] :is(.home-strategy-card p, .home-buddy-summary p) {
-@@ line 15397 @@
-- <EOF>
-+     margin: 0 !important;
-@@ line 15398 @@
-- <EOF>
-+     font-size: 0.78rem !important;
-@@ line 15399 @@
-- <EOF>
-+     line-height: 1.35 !important;
-@@ line 15400 @@
-- <EOF>
-+   }
-@@ line 15401 @@
-- <EOF>
-+ 
-@@ line 15402 @@
-- <EOF>
-+   html body[data-active-view="home"] :is(
-@@ line 15403 @@
-- <EOF>
-+     .home-strategy-content strong,
-@@ line 15404 @@
-- <EOF>
-+     .home-buddy-summary strong
-@@ line 15405 @@
-- <EOF>
-+   ) {
-@@ line 15406 @@
-- <EOF>
-+     font-size: 1.05rem !important;
-@@ line 15407 @@
-- <EOF>
-+     line-height: 1.2 !important;
-@@ line 15408 @@
-- <EOF>
-+   }
-@@ line 15409 @@
-- <EOF>
-+ 
-@@ line 15410 @@
-- <EOF>
-+   html body[data-active-view="home"] .home-strategy-content {
-@@ line 15411 @@
-- <EOF>
-+     max-width: calc(100% - 96px) !important;
-@@ line 15412 @@
-- <EOF>
-+     gap: 7px !important;
-@@ line 15413 @@
-- <EOF>
-+   }
-@@ line 15414 @@
-- <EOF>
-+ 
-@@ line 15415 @@
-- <EOF>
-+   html body[data-active-view="home"] :is(
-@@ line 15416 @@
-- <EOF>
-+     .home-strategy-card::after,
-@@ line 15417 @@
-- <EOF>
-+     .home-check-card::after,
-@@ line 15418 @@
-- <EOF>
-+     .home-buddy-summary::after,
-@@ line 15419 @@
-- <EOF>
-+     .home-buddy-comment-card::after
-@@ line 15420 @@
-- <EOF>
-+   ) {
-@@ line 15421 @@
-- <EOF>
-+     width: 88px !important;
-@@ line 15422 @@
-- <EOF>
-+     max-width: 28vw !important;
-@@ line 15423 @@
-- <EOF>
-+     height: 108px !important;
-@@ line 15424 @@
-- <EOF>
-+     right: 8px !important;
-@@ line 15425 @@
-- <EOF>
-+     bottom: 0 !important;
-@@ line 15426 @@
-- <EOF>
-+     background-size: contain !important;
-@@ line 15427 @@
-- <EOF>
-+     background-position: right bottom !important;
-@@ line 15428 @@
-- <EOF>
-+   }
-@@ line 15429 @@
-- <EOF>
-+ 
-@@ line 15430 @@
-- <EOF>
-+   html body[data-active-view="home"] .home-buddy-summary > div {
-@@ line 15431 @@
-- <EOF>
-+     max-width: calc(100% - 96px) !important;
-@@ line 15432 @@
-- <EOF>
-+   }
-@@ line 15433 @@
-- <EOF>
-+ 
-@@ line 15434 @@
-- <EOF>
-+   html body[data-active-view="home"] .home-action-panel {
-@@ line 15435 @@
-- <EOF>
-+     border-radius: 18px !important;
-@@ line 15436 @@
-- <EOF>
-+     padding: 14px !important;
-@@ line 15437 @@
-- <EOF>
-+   }
-@@ line 15438 @@
-- <EOF>
-+ 
-@@ line 15439 @@
-- <EOF>
-+   html body[data-active-view="home"] .home-action-grid {
-@@ line 15440 @@
-- <EOF>
-+     gap: 10px !important;
-@@ line 15441 @@
-- <EOF>
-+   }
-@@ line 15442 @@
-- <EOF>
-+ 
-@@ line 15443 @@
-- <EOF>
-+   html body[data-active-view="home"] .home-action-grid button {
-@@ line 15444 @@
-- <EOF>
-+     min-height: 96px !important;
-@@ line 15445 @@
-- <EOF>
-+     border-radius: 16px !important;
-@@ line 15446 @@
-- <EOF>
-+     padding: 12px !important;
-@@ line 15447 @@
-- <EOF>
-+   }
-@@ line 15448 @@
-- <EOF>
-+ 
-@@ line 15449 @@
-- <EOF>
-+   html body[data-active-view="home"] .home-action-grid button strong {
-@@ line 15450 @@
-- <EOF>
-+     font-size: 1.05rem !important;
-@@ line 15451 @@
-- <EOF>
-+     line-height: 1.2 !important;
-@@ line 15452 @@
-- <EOF>
-+   }
-@@ line 15453 @@
-- <EOF>
-+ 
-@@ line 15454 @@
-- <EOF>
-+   html body[data-active-view="home"] .home-action-grid button small {
-@@ line 15455 @@
-- <EOF>
-+     font-size: 0.76rem !important;
-@@ line 15456 @@
-- <EOF>
-+     line-height: 1.3 !important;
-@@ line 15457 @@
-- <EOF>
-+   }
-@@ line 15458 @@
-- <EOF>
-+ 
-@@ line 15459 @@
-- <EOF>
-+   html body[data-active-view="home"] .home-card-caret {
-@@ line 15460 @@
-- <EOF>
-+     width: 28px !important;
-@@ line 15461 @@
-- <EOF>
-+     height: 28px !important;
-@@ line 15462 @@
-- <EOF>
-+     min-height: 28px !important;
-@@ line 15463 @@
-- <EOF>
-+     right: 8px !important;
-@@ line 15464 @@
-- <EOF>
-+     bottom: 8px !important;
-@@ line 15465 @@
-- <EOF>
-+     font-size: 0.72rem !important;
-@@ line 15466 @@
-- <EOF>
-+   }
-@@ line 15467 @@
-- <EOF>
-+ }
---- sw.js
-+++ sw.js
-@@ line 1 @@
-- const CACHE_NAME = "platform-buddy-v141";
-+ const CACHE_NAME = "platform-buddy-v142";
-@@ line 5 @@
--   "index.html?v=141",
-+   "index.html?v=142",
-@@ line 7 @@
--   "styles.css?v=141",
-+   "styles.css?v=142",
-@@ line 9 @@
--   "app.js?v=141",
-+   "app.js?v=142",
---- manifest.webmanifest
-+++ manifest.webmanifest
-@@ line 5 @@
--   "start_url": "./index.html?v=141",
-+   "start_url": "./index.html?v=142",
+--- v142/index.html
++++ v143/index.html
+@@ -12,7 +12,7 @@
+     <link rel="preload" as="image" href="home-bg-lite.jpg">
+     <link rel="preload" as="image" href="icon-sheet-lite.jpg">
+     <link rel="apple-touch-icon" href="apple-touch-icon.png">
+-    <link rel="stylesheet" href="styles.css?v=142">
++    <link rel="stylesheet" href="styles.css?v=143">
+   </head>
+   <body>
+     <div class="app-shell">
+@@ -178,10 +178,10 @@
+               <p class="eyebrow">Start</p>
+               <h2>はじめてガイド</h2>
+             </div>
+-            <button class="collapse-toggle" id="welcomeCollapseBtn" type="button" aria-label="はじめてガイドを閉じる" aria-expanded="true">▴</button>
++            <button class="collapse-toggle" id="welcomeCollapseBtn" type="button" aria-label="はじめてガイドを開く" aria-expanded="false">⌄</button>
+           </div>
+           <p class="collapse-summary" id="welcomeSummary"></p>
+-          <div class="collapsible-content" id="welcomePanelContent">
++          <div class="collapsible-content collapsed" id="welcomePanelContent">
+             <div class="start-card-grid" aria-label="目的を選ぶ">
+               <button class="start-card recommended" type="button" data-start-action="plan">
+                 <span>PLAN</span>
+@@ -214,12 +214,12 @@
+             <div class="athlete-actions">
+               <button class="text-button" id="addAthleteBtn" type="button">選手追加</button>
+               <button class="text-button danger" id="deleteAthleteBtn" type="button">選手削除</button>
+-              <button class="collapse-toggle" id="profileCollapseBtn" type="button" aria-label="プロフィールを閉じる" aria-expanded="true">▴</button>
++              <button class="collapse-toggle" id="profileCollapseBtn" type="button" aria-label="プロフィールを開く" aria-expanded="false">⌄</button>
+             </div>
+           </div>
+           <p class="collapse-summary" id="profileSummary"></p>
+           <section class="athlete-dashboard" id="athleteDashboard" aria-live="polite"></section>
+-          <div class="collapsible-content" id="profilePanelContent">
++          <div class="collapsible-content collapsed" id="profilePanelContent">
+             <div class="athlete-strip" id="athleteStrip" aria-label="選手一覧"></div>
+             <div class="profile-grid">
+               <label>
+@@ -366,6 +366,8 @@
+             <canvas id="weeklyDataChart" width="720" height="320" aria-label="週間の体調とトレーニング負荷グラフ"></canvas>
+           </section>
+ 
++          <section class="metric-grid" id="metricGrid"></section>
++
+           <section class="panel academy-evaluation-panel">
+             <div class="section-title">
+               <div>
+@@ -376,8 +378,6 @@
+             <p class="screen-note">伸び方を見て、次の一手を決めよう。</p>
+             <div class="academy-evaluation-list" id="academyEvaluation"></div>
+           </section>
+-
+-          <section class="metric-grid" id="metricGrid"></section>
+         </section>
+ 
+         <section class="view" id="planView">
+@@ -983,6 +983,6 @@
+       </form>
+     </dialog>
+ 
+-    <script src="app.js?v=142"></script>
++    <script src="app.js?v=143"></script>
+   </body>
+ </html>
+--- v142/styles.css
++++ v143/styles.css
+@@ -15465,3 +15465,22 @@
+     font-size: 0.72rem !important;
+   }
+ }
++
++/* v143: compact first-view follow-up for LOG and DATA */
++@media (max-width: 640px) {
++  html body #logView .log-form > .section-title {
++    display: grid !important;
++    grid-template-columns: 1fr !important;
++    gap: 10px !important;
++  }
++
++  html body #logView .log-form > .section-title #dateInput {
++    width: 100% !important;
++    min-width: 0 !important;
++  }
++
++  html body #analysisView .metric-grid {
++    margin: 0 0 14px !important;
++    gap: 10px !important;
++  }
++}
+--- v142/app.js
++++ v143/app.js
+@@ -1175,6 +1175,28 @@
+   console.warn("UI compact preference could not be initialized", error);
+ }
+ 
++try {
++  const compactKey = "platform-buddy-ui-compact-v143";
++  if (!localStorage.getItem(compactKey)) {
++    state.collapsed = {
++      ...defaultState.collapsed,
++      ...(state.collapsed || {}),
++      welcome: true,
++      profile: true,
++      buddyMethod: true,
++      planContext: true,
++      cycle: true,
++      facilities: true,
++      meetNote: true,
++      quiz: true
++    };
++    localStorage.setItem(compactKey, "1");
++    saveState();
++  }
++} catch (error) {
++  console.warn("UI compact v143 preference could not be initialized", error);
++}
++
+ const els = {
+   athleteStrip: document.querySelector("#athleteStrip"),
+   welcomePanel: document.querySelector("#welcomePanel"),
+--- v142/sw.js
++++ v143/sw.js
+@@ -1,12 +1,12 @@
+-const CACHE_NAME = "platform-buddy-v142";
++const CACHE_NAME = "platform-buddy-v143";
+ const CORE_ASSETS = [
+   "./",
+   "index.html",
+-  "index.html?v=142",
++  "index.html?v=143",
+   "styles.css",
+-  "styles.css?v=142",
++  "styles.css?v=143",
+   "app.js",
+-  "app.js?v=142",
++  "app.js?v=143",
+   "manifest.webmanifest",
+   "icon.svg",
+   "apple-touch-icon.png",
+--- v142/manifest.webmanifest
++++ v143/manifest.webmanifest
+@@ -2,7 +2,7 @@
+   "name": "Platform Buddy",
+   "short_name": "Buddy",
+   "description": "BIG3の現在地と目標を見える化し、PRサイクル、記録、分析、大会準備までつなげて管理できるパワーリフティング向けPWAです。",
+-  "start_url": "./index.html?v=142",
++  "start_url": "./index.html?v=143",
+   "scope": "./",
+   "display": "standalone",
+   "background_color": "#f4efe6",

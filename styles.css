@@ -15465,3 +15465,22 @@ html body .meet-prep-checklist .meet-checklist-grid {
     font-size: 0.72rem !important;
   }
 }
+
+/* v143: compact first-view follow-up for LOG and DATA */
+@media (max-width: 640px) {
+  html body #logView .log-form > .section-title {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  html body #logView .log-form > .section-title #dateInput {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  html body #analysisView .metric-grid {
+    margin: 0 0 14px !important;
+    gap: 10px !important;
+  }
+}

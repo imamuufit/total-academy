@@ -1175,6 +1175,28 @@ try {
   console.warn("UI compact preference could not be initialized", error);
 }
 
+try {
+  const compactKey = "platform-buddy-ui-compact-v143";
+  if (!localStorage.getItem(compactKey)) {
+    state.collapsed = {
+      ...defaultState.collapsed,
+      ...(state.collapsed || {}),
+      welcome: true,
+      profile: true,
+      buddyMethod: true,
+      planContext: true,
+      cycle: true,
+      facilities: true,
+      meetNote: true,
+      quiz: true
+    };
+    localStorage.setItem(compactKey, "1");
+    saveState();
+  }
+} catch (error) {
+  console.warn("UI compact v143 preference could not be initialized", error);
+}
+
 const els = {
   athleteStrip: document.querySelector("#athleteStrip"),
   welcomePanel: document.querySelector("#welcomePanel"),
