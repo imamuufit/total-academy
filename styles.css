@@ -15253,3 +15253,215 @@ html body .meet-prep-checklist .meet-checklist-grid {
     padding: 12px;
   }
 }
+
+/* v142: unify HOME mobile card rhythm around the action-card scale */
+@media (max-width: 640px) {
+  html body[data-active-view="home"] .home-dashboard {
+    gap: 12px !important;
+    padding-bottom: calc(150px + env(safe-area-inset-bottom)) !important;
+  }
+
+  html body[data-active-view="home"] :is(
+    .home-card-grid,
+    .home-command-grid,
+    .home-card-stack
+  ) {
+    gap: 12px !important;
+  }
+
+  html body[data-active-view="home"] :is(
+    .home-command-grid .home-card.visual-card,
+    .home-current-card,
+    .home-goal-card,
+    .home-plan-card,
+    .home-meet-card
+  ) {
+    min-height: 132px !important;
+    height: auto !important;
+    gap: 7px !important;
+    border-radius: 18px !important;
+    padding: 14px !important;
+    justify-content: flex-start !important;
+  }
+
+  html body[data-active-view="home"] :is(
+    .home-strategy-card,
+    .home-check-card,
+    .home-buddy-summary,
+    .home-buddy-comment-card
+  ) {
+    min-height: 132px !important;
+    height: auto !important;
+    border-radius: 18px !important;
+    padding: 14px !important;
+  }
+
+  html body[data-active-view="home"] :is(
+    .home-command-grid .home-card .home-card-top,
+    .home-strategy-card .home-card-top
+  ) {
+    gap: 8px !important;
+    min-height: 24px !important;
+    margin: 0 !important;
+  }
+
+  html body[data-active-view="home"] :is(
+    .home-command-grid .home-card .home-card-top span,
+    .home-strategy-card .home-card-top span,
+    .home-buddy-summary > div > span
+  ) {
+    font-size: 0.76rem !important;
+    line-height: 1.2 !important;
+  }
+
+  html body[data-active-view="home"] :is(
+    .home-current-card .main-value,
+    .home-current-card .total-value,
+    .home-goal-card .main-value,
+    .home-goal-card .remaining-value,
+    .home-meet-card .main-value,
+    .home-meet-card .days-left
+  ) {
+    margin: 0 !important;
+    font-size: clamp(2rem, 10vw, 3rem) !important;
+    line-height: 1 !important;
+    letter-spacing: 0 !important;
+  }
+
+  html body[data-active-view="home"] .home-current-card .home-total-number span {
+    display: inline !important;
+    margin-right: 5px !important;
+    font-size: 0.72rem !important;
+    line-height: 1 !important;
+  }
+
+  html body[data-active-view="home"] .home-current-card .home-total-number .unit {
+    font-size: 0.78rem !important;
+  }
+
+  html body[data-active-view="home"] .home-goal-card .home-goal-target {
+    margin: 0 !important;
+    font-size: 0.88rem !important;
+    line-height: 1.25 !important;
+  }
+
+  html body[data-active-view="home"] .home-goal-card :is(.home-progress, .progress-bar) {
+    height: 6px !important;
+    margin: 1px 0 !important;
+  }
+
+  html body[data-active-view="home"] :is(
+    .home-lift-pills,
+    .lift-chip-row,
+    .total-chip-row
+  ) {
+    gap: 5px !important;
+    margin: 0 !important;
+  }
+
+  html body[data-active-view="home"] :is(
+    .home-lift-pills span,
+    .lift-chip-row span,
+    .total-chip-row span
+  ) {
+    min-height: 26px !important;
+    padding: 4px 8px !important;
+    font-size: 0.7rem !important;
+    line-height: 1 !important;
+  }
+
+  html body[data-active-view="home"] .home-plan-card > strong {
+    margin: 0 !important;
+    max-width: 100% !important;
+    font-size: 1.18rem !important;
+    line-height: 1.18 !important;
+    text-align: left !important;
+  }
+
+  html body[data-active-view="home"] .home-plan-card .home-phase-pill {
+    align-self: flex-start !important;
+    margin: 0 !important;
+    padding: 4px 9px !important;
+    font-size: 0.7rem !important;
+  }
+
+  html body[data-active-view="home"] .home-plan-card .home-mini-lines {
+    gap: 3px 8px !important;
+    margin: 0 !important;
+    font-size: 0.76rem !important;
+    line-height: 1.3 !important;
+  }
+
+  html body[data-active-view="home"] .home-meet-card :is(p, .meet-priority, .home-card-note),
+  html body[data-active-view="home"] :is(.home-strategy-card p, .home-buddy-summary p) {
+    margin: 0 !important;
+    font-size: 0.78rem !important;
+    line-height: 1.35 !important;
+  }
+
+  html body[data-active-view="home"] :is(
+    .home-strategy-content strong,
+    .home-buddy-summary strong
+  ) {
+    font-size: 1.05rem !important;
+    line-height: 1.2 !important;
+  }
+
+  html body[data-active-view="home"] .home-strategy-content {
+    max-width: calc(100% - 96px) !important;
+    gap: 7px !important;
+  }
+
+  html body[data-active-view="home"] :is(
+    .home-strategy-card::after,
+    .home-check-card::after,
+    .home-buddy-summary::after,
+    .home-buddy-comment-card::after
+  ) {
+    width: 88px !important;
+    max-width: 28vw !important;
+    height: 108px !important;
+    right: 8px !important;
+    bottom: 0 !important;
+    background-size: contain !important;
+    background-position: right bottom !important;
+  }
+
+  html body[data-active-view="home"] .home-buddy-summary > div {
+    max-width: calc(100% - 96px) !important;
+  }
+
+  html body[data-active-view="home"] .home-action-panel {
+    border-radius: 18px !important;
+    padding: 14px !important;
+  }
+
+  html body[data-active-view="home"] .home-action-grid {
+    gap: 10px !important;
+  }
+
+  html body[data-active-view="home"] .home-action-grid button {
+    min-height: 96px !important;
+    border-radius: 16px !important;
+    padding: 12px !important;
+  }
+
+  html body[data-active-view="home"] .home-action-grid button strong {
+    font-size: 1.05rem !important;
+    line-height: 1.2 !important;
+  }
+
+  html body[data-active-view="home"] .home-action-grid button small {
+    font-size: 0.76rem !important;
+    line-height: 1.3 !important;
+  }
+
+  html body[data-active-view="home"] .home-card-caret {
+    width: 28px !important;
+    height: 28px !important;
+    min-height: 28px !important;
+    right: 8px !important;
+    bottom: 8px !important;
+    font-size: 0.72rem !important;
+  }
+}
