@@ -12,7 +12,7 @@
     <link rel="preload" as="image" href="home-bg-lite.jpg">
     <link rel="preload" as="image" href="icon-sheet-lite.jpg">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <link rel="stylesheet" href="styles.css?v=140">
+    <link rel="stylesheet" href="styles.css?v=141">
   </head>
   <body>
     <div class="app-shell">
@@ -588,33 +588,17 @@
               </div>
             </div>
             <p class="screen-note meet-screen-note">大会準備、ルール、ノートをここで確認。</p>
-            <section class="meet-prep-checklist" id="meetPrepChecklist" aria-labelledby="meetPrepChecklistTitle">
-              <div class="section-title">
-                <div>
-                  <p class="eyebrow">Meet Checklist</p>
-                  <h3 id="meetPrepChecklistTitle">大会準備チェックリスト</h3>
-                </div>
-              </div>
-              <p class="meet-rule-note">終わったものから潰そう。</p>
+            <details class="meet-prep-checklist" id="meetPrepChecklist">
+              <summary class="meet-checklist-summary">
+                <span>
+                  <span class="eyebrow">Meet Checklist</span>
+                  <strong id="meetPrepChecklistTitle">大会1か月前から確認すること</strong>
+                  <small>持ち物・ルール・検量・移動</small>
+                </span>
+              </summary>
+              <p class="meet-rule-note">チェックは、大会当日に考えることを減らす準備です。少しずつ潰して、試技に集中しよう。</p>
               <div class="meet-checklist-grid"></div>
-            </section>
-            <div class="meet-shortcut-grid meet-action-grid">
-              <article class="meet-shortcut meet-strategy-card">
-                <span>1st/2nd/3rd</span>
-                <strong>試技戦略</strong>
-                <small>第一は確実に白、第二でトータル、第三で挑戦。成功試技を積み上げる準備をします。</small>
-              </article>
-              <button class="meet-shortcut quiz-shortcut-card" type="button" data-meet-action="quiz">
-                <span>白判定</span>
-                <strong>白判定クイズ</strong>
-                <small>ジャッジの視点を鍛えて、本番の自信に変えましょう。</small>
-              </button>
-              <a class="meet-shortcut meet-note-shortcut" href="#meetNoteTitle">
-                <span>NOTE</span>
-                <strong>大会ノート</strong>
-                <small>試技結果、赤判定の理由、気づきを残して次の大会につなげます。</small>
-              </a>
-            </div>
+            </details>
             <section class="meet-note-panel" aria-labelledby="meetNoteTitle">
               <div class="section-title">
                 <div>
@@ -677,7 +661,7 @@
                   <p class="eyebrow">White Lights</p>
                   <h3 id="quizTitle">白判定クイズ｜3択で覚えるルール</h3>
                 </div>
-                <button class="collapse-toggle" id="quizCollapseBtn" type="button" aria-label="白判定クイズを閉じる" aria-expanded="true">▴</button>
+                <button class="collapse-toggle" id="quizCollapseBtn" type="button" aria-label="白判定クイズを開く" aria-expanded="false">▾</button>
               </div>
               <p class="collapse-summary" id="quizSummary"></p>
               <div class="collapsible-content" id="quizPanelContent">
@@ -999,6 +983,6 @@
       </form>
     </dialog>
 
-    <script src="app.js?v=140"></script>
+    <script src="app.js?v=141"></script>
   </body>
 </html>

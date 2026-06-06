@@ -1113,7 +1113,7 @@ const defaultState = {
   wellnessExpanded: false,
   startAction: "plan",
   onboarding: { done: false, step: "intro", goal: "big3", dailyLastShown: "" },
-  collapsed: { welcome: true, profile: true, buddyMethod: true, planContext: true, cycle: true, facilities: true, meetNote: true, quiz: false },
+  collapsed: { welcome: true, profile: true, buddyMethod: true, planContext: true, cycle: true, facilities: true, meetNote: true, quiz: true },
   quiz: {
     view: "top",
     category: "",
@@ -2103,6 +2103,134 @@ function meetPreparationFocus(days) {
   };
 }
 
+function attemptStrategySeed(athlete = currentAthlete(), liftId = "squat") {
+  athlete.goals = normalizeGoals(athlete.goals);
+  return Number(athlete.goals[liftId] || dashboardCurrentMax(liftId) || 0);
+}
+
+function attemptStrategyRangeLabel(target, lowPercent, highPercent = lowPercent) {
+  const low = roundToIncrement(Number(target || 0) * lowPercent, 2.5);
+  const high = roundToIncrement(Number(target || 0) * highPercent, 2.5);
+  if (!low && !high) return "-";
+  if (low === high) return `${formatNumber(low)}kg`;
+  return `${formatNumber(Math.min(low, high))}〜${formatNumber(Math.max(low, high))}kg`;
+}
+
+function calculateAttemptStrategy({ targetThird, condition = "normal" }) {
+  const target = roundToIncrement(Number(targetThird || 0), 2.5);
+  if (!target) {
+    return {
+      first: "-",
+      second: "-",
+      third: "-",
+      memo: "狙いたい第3試技を入れると候補が出ます。"
+    };
+  }
+  if (condition === "good") {
+    return {
+      first: attemptStrategyRangeLabel(target, 0.9),
+      second: attemptStrategyRangeLabel(target, 0.965),
+      third: `${formatNumber(target)}〜${formatNumber(roundToIncrement(target + 2.5, 2.5))}kg`,
+      memo: "第1で白を取り、第2で勝負権。余裕があれば第3で+2.5kg。"
+    };
+  }
+  if (condition === "bad") {
+    return {
+      first: attemptStrategyRangeLabel(target, 0.85, 0.875),
+      second: attemptStrategyRangeLabel(target, 0.925, 0.95),
+      third: `${formatNumber(roundToIncrement(target * 0.975, 2.5))}〜${formatNumber(target)}kg`,
+      memo: "第1を落とさないことを優先。第3は堅実案も持っておこう。"
+    };
+  }
+  return {
+    first: attemptStrategyRangeLabel(target, 0.875, 0.9),
+    second: attemptStrategyRangeLabel(target, 0.95),
+    third: `${formatNumber(target)}kg`,
+    memo: "第1は確実に。第2でトータルを作り、第3で目標へ。"
+  };
+}
+
+function attemptStrategyMarkup(athlete = currentAthlete()) {
+  const defaultLift = "squat";
+  const target = attemptStrategySeed(athlete, defaultLift);
+  const result = calculateAttemptStrategy({ targetThird: target, condition: "normal" });
+  const conditionButtons = [
+    ["good", "良い"],
+    ["normal", "普通"],
+    ["bad", "調子悪い"]
+  ].map(([id, label]) => `<button class="${id === "normal" ? "active" : ""}" type="button" data-attempt-condition="${id}">${label}</button>`).join("");
+  const liftOptions = mainLiftIds.map((liftId) => {
+    const seed = attemptStrategySeed(athlete, liftId);
+    return `<option value="${escapeHtml(liftId)}" data-default-target="${seed || ""}" ${liftId === defaultLift ? "selected" : ""}>${escapeHtml(mainLiftNames[liftId])}</option>`;
+  }).join("");
+  return `
+    <section class="meet-attempt-strategy-card" data-attempt-strategy>
+      <div class="section-title compact-title">
+        <div>
+          <p class="eyebrow">Attempt Strategy</p>
+          <h3>試技戦略計算ツール</h3>
+        </div>
+      </div>
+      <div class="attempt-strategy-inputs">
+        <label>
+          種目
+          <select id="attemptLiftInput" data-attempt-lift>
+            ${liftOptions}
+          </select>
+        </label>
+        <label>
+          狙いたい第3試技
+          <input id="attemptTargetInput" data-attempt-target inputmode="decimal" type="number" min="0" step="2.5" value="${target || ""}" placeholder="例: 200">
+        </label>
+        <div class="attempt-condition-group" role="group" aria-label="今日の仕上がり">
+          <span>今日の仕上がり</span>
+          <div>${conditionButtons}</div>
+        </div>
+      </div>
+      <div class="attempt-strategy-result" data-attempt-result>
+        ${attemptStrategyResultMarkup(result)}
+      </div>
+      <details class="compact-guide attempt-guide">
+        <summary>第2試技後の判断目安</summary>
+        <div>
+          <p><strong>軽い/RPE8以下:</strong> 予定通り。余裕があれば+2.5kg。</p>
+          <p><strong>普通/RPE8.5〜9:</strong> 予定通り第3で目標重量。</p>
+          <p><strong>重い/RPE9.5以上:</strong> 第3は堅実案へ。</p>
+          <p><strong>失敗:</strong> 同重量再試技、または最小上げ幅で再設定。</p>
+          <small>実際の試技変更は大会ルールと制限時間を優先してください。</small>
+        </div>
+      </details>
+    </section>
+  `;
+}
+
+function attemptStrategyResultMarkup(result) {
+  return `
+    <div class="attempt-result-grid">
+      <article><span>第1試技</span><strong>${escapeHtml(result.first)}</strong></article>
+      <article><span>第2試技</span><strong>${escapeHtml(result.second)}</strong></article>
+      <article><span>第3試技</span><strong>${escapeHtml(result.third)}</strong></article>
+    </div>
+    <p>${escapeHtml(result.memo)}</p>
+  `;
+}
+
+function updateAttemptStrategyResult(panel = document.querySelector("[data-attempt-strategy]")) {
+  if (!panel) return;
+  const liftSelect = panel.querySelector("[data-attempt-lift]");
+  const targetInput = panel.querySelector("[data-attempt-target]");
+  const active = panel.querySelector("[data-attempt-condition].active");
+  if (liftSelect && targetInput && !targetInput.value) {
+    targetInput.value = liftSelect.selectedOptions?.[0]?.dataset.defaultTarget || "";
+  }
+  const result = calculateAttemptStrategy({
+    targetThird: targetInput?.value,
+    condition: active?.dataset.attemptCondition || "normal"
+  });
+  const target = panel.querySelector("[data-attempt-result]");
+  if (target) target.innerHTML = attemptStrategyResultMarkup(result);
+}
+
 function renderMeetCommand(athlete = currentAthlete()) {
   if (!els.meetCommandPanel) return;
   const days = daysUntilMeet(athlete);
@@ -2119,13 +2247,6 @@ function renderMeetCommand(athlete = currentAthlete()) {
         ? "大会当日"
         : `大会まで残り${days}日`;
   els.meetCommandPanel.innerHTML = `
-    <section class="meet-hero-card">
-      <div class="meet-hero-copy">
-        <span>MEET</span>
-        <h2>本番で白を取るために、準備を整えよう。</h2>
-        <p>やるべきことを一つずつ、確実に仕上げていこう。</p>
-      </div>
-    </section>
     <section class="meet-command-grid">
       <article class="meet-dday-card ${ddayClass}">
         <span>${escapeHtml(ddayTitle)}</span>
@@ -2140,11 +2261,14 @@ function renderMeetCommand(athlete = currentAthlete()) {
         <a href="#meetPrepChecklist">チェックリストへ</a>
       </article>
     </section>
-    <div class="meet-command-actions">
-      <a href="#meetPrepChecklist"><span>準備</span><strong>チェックリスト</strong></a>
-      <button type="button" data-meet-action="quiz"><span>白判定</span><strong>クイズ</strong></button>
-      <a href="#meetNoteTitle"><span>記録</span><strong>大会ノート</strong></a>
-    </div>
+    ${days !== null && days < 0 ? `
+      <section class="meet-after-note">
+        <strong>大会から${Math.abs(days)}日経過。</strong>
+        <p>大会ノートに試技結果、判定理由、次回課題を残そう。次のサイクル作成に使えます。</p>
+        <a href="#meetNoteTitle">大会ノートへ</a>
+      </section>
+    ` : ""}
+    ${attemptStrategyMarkup(athlete)}
   `;
 }
 
@@ -6886,6 +7010,13 @@ document.addEventListener("click", (event) => {
     render();
     els.quizPanelContent?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
+  const attemptCondition = event.target.closest("[data-attempt-condition]");
+  if (attemptCondition) {
+    const panel = attemptCondition.closest("[data-attempt-strategy]");
+    panel?.querySelectorAll("[data-attempt-condition]").forEach((button) => button.classList.toggle("active", button === attemptCondition));
+    updateAttemptStrategyResult(panel);
+    return;
+  }
   const meetCheck = event.target.closest("[data-meet-check]");
   if (meetCheck) {
     const athlete = currentAthlete();
@@ -7174,11 +7305,20 @@ document.addEventListener("change", (event) => {
     saveState();
     render();
   }
+  const attemptLift = event.target.closest?.("[data-attempt-lift]");
+  if (attemptLift) {
+    const panel = attemptLift.closest("[data-attempt-strategy]");
+    const targetInput = panel?.querySelector("[data-attempt-target]");
+    if (targetInput) targetInput.value = attemptLift.selectedOptions?.[0]?.dataset.defaultTarget || targetInput.value;
+    updateAttemptStrategyResult(panel);
+  }
 });
 
 document.addEventListener("input", (event) => {
   const goalInput = event.target.closest?.("[data-goal-input]");
   if (goalInput) updateDashboardGoalTotalPreview(goalInput);
+  const attemptTarget = event.target.closest?.("[data-attempt-target]");
+  if (attemptTarget) updateAttemptStrategyResult(attemptTarget.closest("[data-attempt-strategy]"));
 });
 
 document.querySelector("#addAthleteBtn").addEventListener("click", () => {

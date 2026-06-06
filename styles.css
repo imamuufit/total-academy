@@ -15013,3 +15013,243 @@ html body :is(.plan-command-card, .cycle-setup-preview, .buddy-method-panel) {
     flex-basis: 24px !important;
   }
 }
+
+/* v141: MEET becomes an attempt strategy tool screen */
+html body .meet-command-panel {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+html body .meet-command-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: 12px;
+}
+
+html body :is(.meet-dday-card, .meet-today-card, .meet-after-note, .meet-attempt-strategy-card) {
+  border: 1px solid var(--line, #ded6c8);
+  border-left: 5px solid var(--accent, #b42318);
+  border-radius: var(--pb-radius-lg, 16px);
+  background:
+    linear-gradient(90deg, rgba(180, 35, 24, 0.035), transparent 48%),
+    var(--surface, #fffaf2);
+  color: var(--text-main, #171717);
+  box-shadow: 0 8px 18px rgba(51, 42, 29, 0.06);
+  padding: var(--pb-pad-card, 16px);
+}
+
+html body .meet-dday-card {
+  display: grid;
+  gap: 6px;
+  align-content: center;
+}
+
+html body .meet-dday-card strong {
+  color: var(--text-main, #171717);
+  font-size: clamp(2.4rem, 8vw, 4rem);
+  line-height: 0.95;
+  font-weight: 900;
+}
+
+html body .meet-today-card {
+  display: grid;
+  gap: 6px;
+}
+
+html body :is(.meet-dday-card, .meet-today-card, .meet-after-note) span {
+  color: var(--accent-dark, #7a271a);
+  font-size: var(--pb-text-xs, 0.7rem);
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+html body :is(.meet-dday-card, .meet-today-card, .meet-after-note) p,
+html body .meet-attempt-strategy-card p {
+  margin: 0;
+  color: var(--text-sub, #526179);
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+html body :is(.meet-today-card a, .meet-after-note a) {
+  justify-self: start;
+  border-radius: var(--pb-radius-pill, 999px);
+  background: rgba(180, 35, 24, 0.1);
+  color: var(--accent-dark, #7a271a);
+  padding: 7px 11px;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+html body .meet-attempt-strategy-card {
+  display: grid;
+  gap: 12px;
+  border-left-color: var(--coach, #2f6f73);
+}
+
+html body .attempt-strategy-inputs {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.8fr) minmax(140px, 1fr) minmax(220px, 1.4fr);
+  gap: 10px;
+  align-items: end;
+}
+
+html body .attempt-condition-group {
+  display: grid;
+  gap: 6px;
+}
+
+html body .attempt-condition-group > span,
+html body .attempt-strategy-inputs label {
+  color: var(--text-main, #171717);
+  font-size: var(--pb-text-xs, 0.7rem);
+  font-weight: 900;
+}
+
+html body .attempt-condition-group > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+html body .attempt-condition-group button {
+  min-height: 40px !important;
+  border: 1px solid var(--line, #ded6c8);
+  border-radius: var(--pb-radius-pill, 999px) !important;
+  background: #ffffff;
+  color: var(--text-main, #171717);
+  padding: 0 12px;
+}
+
+html body .attempt-condition-group button.active {
+  background: var(--button-dark, #22272e) !important;
+  color: var(--button-dark-text, #ffffff) !important;
+  border-color: var(--button-dark, #22272e) !important;
+}
+
+html body .attempt-result-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+html body .attempt-result-grid article {
+  border: 1px solid var(--line, #ded6c8);
+  border-radius: var(--pb-radius-md, 10px);
+  background: #fffefa;
+  padding: 10px;
+}
+
+html body .attempt-result-grid span {
+  display: block;
+  color: var(--accent-dark, #7a271a);
+  font-size: var(--pb-text-xs, 0.7rem);
+  font-weight: 900;
+}
+
+html body .attempt-result-grid strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--text-main, #171717);
+  font-size: 1.25rem;
+  line-height: 1.1;
+}
+
+html body .attempt-guide {
+  border: 1px solid var(--line, #ded6c8);
+  border-radius: var(--pb-radius-md, 10px);
+  background: rgba(255, 255, 255, 0.48);
+  padding: 10px 12px;
+}
+
+html body .attempt-guide summary {
+  cursor: pointer;
+  color: var(--accent-dark, #7a271a);
+  font-weight: 900;
+}
+
+html body .attempt-guide div {
+  display: grid;
+  gap: 5px;
+  margin-top: 8px;
+}
+
+html body .meet-prep-checklist {
+  display: block !important;
+  border: 1px solid var(--line, #ded6c8) !important;
+  border-left: 5px solid var(--coach, #2f6f73) !important;
+  border-radius: var(--pb-radius-lg, 16px) !important;
+  background:
+    linear-gradient(90deg, rgba(47, 111, 115, 0.055), transparent 46%),
+    var(--surface, #fffaf2) !important;
+  color: var(--text-main, #171717) !important;
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+html body .meet-checklist-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 58px;
+  cursor: pointer;
+  padding: 14px 16px;
+  list-style: none;
+}
+
+html body .meet-checklist-summary::-webkit-details-marker {
+  display: none;
+}
+
+html body .meet-checklist-summary::after {
+  content: "⌄";
+  color: var(--text-sub, #526179);
+  font-weight: 900;
+}
+
+html body .meet-prep-checklist[open] .meet-checklist-summary::after {
+  content: "⌃";
+}
+
+html body .meet-checklist-summary span {
+  display: grid;
+  gap: 2px;
+}
+
+html body .meet-checklist-summary strong {
+  color: var(--text-main, #171717);
+  font-size: 1rem;
+}
+
+html body .meet-checklist-summary small {
+  color: var(--text-sub, #526179);
+  font-weight: 800;
+}
+
+html body .meet-prep-checklist .meet-rule-note,
+html body .meet-prep-checklist .meet-checklist-grid {
+  margin: 0 14px 14px;
+}
+
+@media (max-width: 760px) {
+  html body .meet-command-grid,
+  html body .attempt-strategy-inputs,
+  html body .attempt-result-grid {
+    grid-template-columns: 1fr;
+  }
+
+  html body .meet-dday-card strong {
+    font-size: clamp(2.2rem, 14vw, 4rem);
+  }
+}
+
+@media (max-width: 640px) {
+  html body :is(.meet-dday-card, .meet-today-card, .meet-after-note, .meet-attempt-strategy-card) {
+    padding: var(--pb-pad-card-sm, 12px);
+  }
+
+  html body .meet-checklist-summary {
+    padding: 12px;
+  }
+}
