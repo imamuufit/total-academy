@@ -15484,3 +15484,103 @@ html body .meet-prep-checklist .meet-checklist-grid {
     gap: 10px !important;
   }
 }
+
+/* v144: remove the duplicate fixed wellness panel and keep one compact guide control */
+html body .wellness-floating,
+html body[data-active-view="home"] .wellness-floating {
+  display: none !important;
+}
+
+@media (max-width: 640px) {
+  html body .guide-mode-bar,
+  html body[data-active-view="home"] .guide-mode-bar {
+    left: auto !important;
+    right: 12px !important;
+    bottom: calc(88px + env(safe-area-inset-bottom)) !important;
+    width: 156px !important;
+    min-height: 54px !important;
+    gap: 6px !important;
+    padding: 7px !important;
+    border-radius: 14px !important;
+    transform: none !important;
+  }
+
+  html body .guide-mode-bar > div {
+    min-width: 0 !important;
+  }
+
+  html body .guide-mode-bar span {
+    font-size: 0.72rem !important;
+    line-height: 1.1 !important;
+    white-space: nowrap !important;
+  }
+
+  html body .guide-mode-bar small {
+    display: none !important;
+  }
+
+  html body .guide-mode-toggle,
+  html body[data-active-view="home"] .guide-mode-toggle {
+    min-width: 82px !important;
+    min-height: 38px !important;
+    padding: 0 9px !important;
+    font-size: 0.78rem !important;
+  }
+
+  html body.guide-off .guide-mode-bar {
+    width: 128px !important;
+  }
+
+  html body.guide-off .guide-mode-bar > div {
+    display: none !important;
+  }
+
+  html body :is(
+    .home-dashboard,
+    #planView,
+    #logView,
+    #analysisView,
+    #knowledgeView
+  ) {
+    padding-bottom: calc(142px + env(safe-area-inset-bottom)) !important;
+  }
+
+  html body #knowledgeView .meet-command-panel,
+  html body #knowledgeView .meet-main-panel {
+    gap: 10px !important;
+  }
+
+  html body #knowledgeView :is(
+    .meet-prep-checklist,
+    .meet-note-panel,
+    .quiz-panel,
+    .knowledge-library
+  ) {
+    margin-block: 0 10px !important;
+  }
+
+  html body #knowledgeView :is(
+    .meet-checklist-summary,
+    .knowledge-library-summary
+  ) {
+    min-height: 54px !important;
+    padding: 10px 12px !important;
+  }
+
+  html body #knowledgeView :is(
+    .meet-checklist-summary strong,
+    .knowledge-library-summary strong
+  ) {
+    font-size: 0.95rem !important;
+    line-height: 1.2 !important;
+  }
+
+  html body #knowledgeView :is(
+    .meet-checklist-summary small,
+    .knowledge-library-summary small,
+    .meet-screen-note
+  ) {
+    font-size: 0.74rem !important;
+    line-height: 1.3 !important;
+  }
+}
