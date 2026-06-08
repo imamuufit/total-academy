@@ -1,34 +1,355 @@
---- v147/index.html
-+++ v148/index.html
-Comparing files PLATFORM-BUDDY-V147-WORK\index.html and PLATFORM-BUDDY-V148-WORK\INDEX.HTML
-***** PLATFORM-BUDDY-V147-WORK\index.html
-   14:      <link rel="apple-touch-icon" href="apple-touch-icon.png">
-   15:      <link rel="stylesheet" href="styles.css?v=147">
-   16:    </head>
-***** PLATFORM-BUDDY-V148-WORK\INDEX.HTML
+--- v148/index.html
++++ v149/index.html
+Comparing files PLATFORM-BUDDY-V148-WORK\index.html and PLATFORM-BUDDY-V149-WORK\INDEX.HTML
+***** PLATFORM-BUDDY-V148-WORK\index.html
    14:      <link rel="apple-touch-icon" href="apple-touch-icon.png">
    15:      <link rel="stylesheet" href="styles.css?v=148">
    16:    </head>
+***** PLATFORM-BUDDY-V149-WORK\INDEX.HTML
+   14:      <link rel="apple-touch-icon" href="apple-touch-icon.png">
+   15:      <link rel="stylesheet" href="styles.css?v=149">
+   16:    </head>
 *****
 
-***** PLATFORM-BUDDY-V147-WORK\index.html
- 1183:  
- 1184:      <script src="app.js?v=147"></script>
- 1185:      <script src="video.js?v=147"></script>
- 1186:    </body>
-***** PLATFORM-BUDDY-V148-WORK\INDEX.HTML
+***** PLATFORM-BUDDY-V148-WORK\index.html
  1183:  
  1184:      <script src="app.js?v=148"></script>
  1185:      <script src="video.js?v=148"></script>
  1186:    </body>
+***** PLATFORM-BUDDY-V149-WORK\INDEX.HTML
+ 1183:  
+ 1184:      <script src="app.js?v=149"></script>
+ 1185:      <script src="video.js?v=149"></script>
+ 1186:    </body>
 *****
 
 
---- v147/styles.css
-+++ v148/styles.css
-Comparing files PLATFORM-BUDDY-V147-WORK\styles.css and PLATFORM-BUDDY-V148-WORK\STYLES.CSS
-***** PLATFORM-BUDDY-V147-WORK\styles.css
-***** PLATFORM-BUDDY-V148-WORK\STYLES.CSS
+--- v148/styles.css
++++ v149/styles.css
+Comparing files PLATFORM-BUDDY-V148-WORK\styles.css and PLATFORM-BUDDY-V149-WORK\STYLES.CSS
+***** PLATFORM-BUDDY-V148-WORK\styles.css
+15881:  
+15882:  /* v147: Buddy Motion Analyzer beta */
+15883:  html body .motion-video-frame {
+15884:    position: relative;
+***** PLATFORM-BUDDY-V149-WORK\STYLES.CSS
+15881:  
+15882:  /* v149: BIG3 Velocity Check */
+15883:  html body .vbt-video-frame {
+15884:    position: relative;
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\styles.css
+15890:  
+15891:  html body .motion-video-frame video,
+15892:  html body .motion-video-frame canvas {
+15893:    grid-area: 1 / 1;
+***** PLATFORM-BUDDY-V149-WORK\STYLES.CSS
+15890:  
+15891:  html body .vbt-video-frame video,
+15892:  html body .vbt-video-frame canvas {
+15893:    grid-area: 1 / 1;
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\styles.css
+15895:  
+15896:  html body .motion-overlay {
+15897:    width: 100%;
+***** PLATFORM-BUDDY-V149-WORK\STYLES.CSS
+15895:  
+15896:  html body .vbt-overlay {
+15897:    width: 100%;
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\styles.css
+15898:    height: 100%;
+15899:    pointer-events: none;
+15900:    object-fit: contain;
+15901:  }
+***** PLATFORM-BUDDY-V149-WORK\STYLES.CSS
+15898:    height: 100%;
+15899:    cursor: crosshair;
+15900:    object-fit: contain;
+15901:    touch-action: manipulation;
+15902:    pointer-events: none;
+15903:  }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\styles.css
+15902:  
+15903:  html body .motion-overlay.hidden {
+15904:    display: none !important;
+15905:  }
+***** PLATFORM-BUDDY-V149-WORK\STYLES.CSS
+15904:  
+15905:  html body .vbt-overlay.active {
+15906:    pointer-events: auto;
+15907:  }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\styles.css
+15906:  
+15907:  html body .motion-analyzer-card {
+15908:    display: grid;
+15909:    gap: 10px;
+15910:    border: 1px solid var(--line, #ded6c8);
+15911:    border-left: 5px solid var(--coach, #2f6f73);
+15912:    border-radius: 12px;
+15913:    background:
+15914:      linear-gradient(90deg, rgba(47, 111, 115, 0.055), transparent 46%),
+15915:      var(--surface-soft, #fff7ed);
+15916:    padding: 12px;
+15917:  }
+***** PLATFORM-BUDDY-V149-WORK\STYLES.CSS
+15908:  
+15909:  html body .motion-result {
+15910:    display: grid;
+15911:    gap: 8px;
+15912:    border: 1px solid var(--line, #ded6c8);
+15913:    border-radius: 10px;
+15914:    background: rgba(255, 255, 255, 0.58);
+15915:    padding: 10px;
+15916:  }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\styles.css
+15918:  
+15919:  html body .motion-actions {
+15920:    display: flex;
+15921:    align-items: center;
+15922:    flex-wrap: wrap;
+15923:    gap: 8px;
+15924:  }
+***** PLATFORM-BUDDY-V149-WORK\STYLES.CSS
+15917:  
+15918:  html body .motion-result strong {
+15919:    color: var(--text-main, #171717);
+15920:  }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\styles.css
+15925:  
+15926:  html body .motion-toggle {
+15927:    display: inline-flex !important;
+15928:    align-items: center;
+15929:    gap: 6px !important;
+15930:    width: auto !important;
+15931:    border: 1px solid var(--line, #ded6c8);
+15932:    border-radius: 999px;
+15933:    background: #ffffff;
+15934:    color: var(--text-main, #171717);
+15935:    padding: 8px 11px;
+15936:    font-size: 0.78rem;
+15937:    font-weight: 900;
+15938:  }
+***** PLATFORM-BUDDY-V149-WORK\STYLES.CSS
+15921:  
+15922:  html body .motion-result p,
+15923:  html body .motion-result li,
+15924:  html body .motion-result pre {
+15925:    color: var(--text-sub, #526179);
+15926:    font-size: 0.8rem;
+15927:    font-weight: 800;
+15928:    line-height: 1.45;
+15929:  }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\styles.css
+15939:  
+15940:  html body .motion-toggle input {
+15941:    width: auto !important;
+15942:  }
+***** PLATFORM-BUDDY-V149-WORK\STYLES.CSS
+15930:  
+15931:  html body .motion-result ul {
+15932:    display: grid;
+15933:    gap: 4px;
+15934:    margin: 0;
+15935:    padding-left: 1.1rem;
+15936:  }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\styles.css
+15943:  
+15944:  html body .motion-result {
+15945:    display: grid;
+15946:    gap: 8px;
+15947:    border: 1px solid var(--line, #ded6c8);
+15948:    border-radius: 10px;
+15949:    background: rgba(255, 255, 255, 0.58);
+15950:    padding: 10px;
+15951:  }
+***** PLATFORM-BUDDY-V149-WORK\STYLES.CSS
+15937:  
+15938:  html body .motion-result pre {
+15939:    max-height: 220px;
+15940:    overflow: auto;
+15941:    border-radius: 8px;
+15942:    background: #ffffff;
+15943:    padding: 10px;
+15944:    white-space: pre-wrap;
+15945:  }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\styles.css
+15952:  
+15953:  html body .motion-result strong {
+15954:    color: var(--text-main, #171717);
+15955:  }
+***** PLATFORM-BUDDY-V149-WORK\STYLES.CSS
+15946:  
+15947:  html body .motion-result-chips {
+15948:    display: flex;
+15949:    flex-wrap: wrap;
+15950:    gap: 6px;
+15951:  }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\styles.css
+15956:  
+15957:  html body .motion-result p,
+15958:  html body .motion-result li,
+15959:  html body .motion-result pre {
+15960:    color: var(--text-sub, #526179);
+15961:    font-size: 0.8rem;
+15962:    font-weight: 800;
+15963:    line-height: 1.45;
+15964:  }
+***** PLATFORM-BUDDY-V149-WORK\STYLES.CSS
+15952:  
+15953:  html body .motion-result-chips span,
+15954:  html body .motion-status {
+15955:    width: fit-content;
+15956:    border: 1px solid var(--line, #ded6c8);
+15957:    border-radius: 999px;
+15958:    background: #ffffff;
+15959:    color: var(--text-sub, #526179) !important;
+15960:    padding: 4px 8px;
+15961:    font-size: 0.7rem !important;
+15962:    font-weight: 900 !important;
+15963:  }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\styles.css
+15965:  
+15966:  html body .motion-result ul {
+15967:    display: grid;
+15968:    gap: 4px;
+15969:    margin: 0;
+15970:    padding-left: 1.1rem;
+15971:  }
+***** PLATFORM-BUDDY-V149-WORK\STYLES.CSS
+15964:  
+15965:  html body .motion-status.done {
+15966:    border-color: rgba(47, 111, 115, 0.3);
+15967:    background: rgba(47, 111, 115, 0.12);
+15968:    color: var(--coach, #2f6f73) !important;
+15969:  }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\styles.css
+15972:  
+15973:  html body .motion-result pre {
+15974:    max-height: 220px;
+15975:    overflow: auto;
+15976:    border-radius: 8px;
+15977:    background: #ffffff;
+15978:    padding: 10px;
+15979:    white-space: pre-wrap;
+15980:  }
+***** PLATFORM-BUDDY-V149-WORK\STYLES.CSS
+15970:  
+15971:  /* v149: manual VBT memo */
+15972:  html body .manual-vbt-card {
+15973:    display: grid;
+15974:    gap: 10px;
+15975:    border: 1px solid var(--line, #ded6c8);
+15976:    border-left: 5px solid var(--accent, #b42318);
+15977:    border-radius: 12px;
+15978:    background:
+15979:      linear-gradient(90deg, rgba(180, 35, 24, 0.045), transparent 46%),
+15980:      var(--surface, #fffaf2);
+15981:    padding: 12px;
+15982:  }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\styles.css
+15981:  
+15982:  html body .motion-result-chips {
+15983:    display: flex;
+15984:    flex-wrap: wrap;
+15985:    gap: 6px;
+15986:  }
+***** PLATFORM-BUDDY-V149-WORK\STYLES.CSS
+15983:  
+15984:  html body .vbt-controls {
+15985:    display: grid;
+15986:    grid-template-columns: repeat(2, minmax(0, 1fr));
+15987:    gap: 8px;
+15988:  }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\styles.css
+15987:  
+15988:  html body .motion-result-chips span,
+15989:  html body .motion-status {
+15990:    width: fit-content;
+15991:    border: 1px solid var(--line, #ded6c8);
+15992:    border-radius: 999px;
+15993:    background: #ffffff;
+15994:    color: var(--text-sub, #526179) !important;
+15995:    padding: 4px 8px;
+15996:    font-size: 0.7rem !important;
+15997:    font-weight: 900 !important;
+15998:  }
+***** PLATFORM-BUDDY-V149-WORK\STYLES.CSS
+15989:  
+15990:  html body .vbt-controls label {
+15991:    display: grid !important;
+15992:    gap: 5px !important;
+15993:    width: 100% !important;
+15994:    color: var(--text-main, #171717);
+15995:    font-size: 0.78rem;
+15996:    font-weight: 900;
+15997:  }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\styles.css
+15999:  
+16000:  html body .motion-status.done {
+16001:    border-color: rgba(47, 111, 115, 0.3);
+16002:    background: rgba(47, 111, 115, 0.12);
+16003:    color: var(--coach, #2f6f73) !important;
+16004:  }
+***** PLATFORM-BUDDY-V149-WORK\STYLES.CSS
+15998:  
+15999:  html body .vbt-controls input {
+16000:    min-height: 40px;
+16001:  }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\styles.css
+16005:  
+16006:  @media (max-width: 640px) {
+16007:    html body .motion-actions > * {
+16008:      width: 100%;
+16009:    }
+16010:  
+16011:    html body .motion-toggle {
+16012:      justify-content: center;
+16013:    }
+16014:  }
+***** PLATFORM-BUDDY-V149-WORK\STYLES.CSS
+16002:  
+16003:  html body .vbt-controls .text-button.selected,
+16004:  html body .vbt-history-filter .text-button.selected {
+16005:    background: var(--button-dark, #22272e);
+16006:    color: #fffaf2;
+16007:    border-color: var(--accent, #b42318);
+16008:  }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\styles.css
 16015:  
 16016:  /* v148: manual VBT memo */
 16017:  html body .manual-vbt-card {
@@ -42,12 +363,36 @@ Comparing files PLATFORM-BUDDY-V147-WORK\styles.css and PLATFORM-BUDDY-V148-WORK
 16025:      var(--surface, #fffaf2);
 16026:    padding: 12px;
 16027:  }
+***** PLATFORM-BUDDY-V149-WORK\STYLES.CSS
+16009:  
+16010:  html body .vbt-markers {
+16011:    display: flex;
+16012:    flex-wrap: wrap;
+16013:    gap: 6px;
+16014:  }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\styles.css
 16028:  
 16029:  html body .vbt-controls {
 16030:    display: grid;
 16031:    grid-template-columns: repeat(2, minmax(0, 1fr));
 16032:    gap: 8px;
 16033:  }
+***** PLATFORM-BUDDY-V149-WORK\STYLES.CSS
+16015:  
+16016:  html body .vbt-markers span {
+16017:    border: 1px solid var(--line, #ded6c8);
+16018:    border-radius: 999px;
+16019:    background: #ffffff;
+16020:    color: var(--text-sub, #526179);
+16021:    padding: 5px 9px;
+16022:    font-size: 0.74rem;
+16023:    font-weight: 900;
+16024:  }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\styles.css
 16034:  
 16035:  html body .vbt-controls label {
 16036:    display: grid !important;
@@ -57,16 +402,41 @@ Comparing files PLATFORM-BUDDY-V147-WORK\styles.css and PLATFORM-BUDDY-V148-WORK
 16040:    font-size: 0.78rem;
 16041:    font-weight: 900;
 16042:  }
+***** PLATFORM-BUDDY-V149-WORK\STYLES.CSS
+16025:  
+16026:  html body .vbt-result strong {
+16027:    font-size: 1.05rem;
+16028:  }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\styles.css
 16043:  
 16044:  html body .vbt-controls input {
 16045:    min-height: 40px;
 16046:  }
+***** PLATFORM-BUDDY-V149-WORK\STYLES.CSS
+16029:  
+16030:  html body .vbt-history-panel {
+16031:    display: grid;
+16032:    gap: 10px;
+16033:    border: 1px solid var(--line, #ded6c8);
+16034:    border-radius: 12px;
+16035:    background: var(--surface, #fffaf2);
+16036:    padding: 12px;
+16037:  }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\styles.css
 16047:  
 16048:  html body .vbt-markers {
 16049:    display: flex;
-16050:    flex-wrap: wrap;
-16051:    gap: 6px;
-16052:  }
+***** PLATFORM-BUDDY-V149-WORK\STYLES.CSS
+16038:  
+16039:  html body .vbt-history-filter {
+16040:    display: flex;
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\styles.css
 16053:  
 16054:  html body .vbt-markers span {
 16055:    border: 1px solid var(--line, #ded6c8);
@@ -77,10 +447,34 @@ Comparing files PLATFORM-BUDDY-V147-WORK\styles.css and PLATFORM-BUDDY-V148-WORK
 16060:    font-size: 0.74rem;
 16061:    font-weight: 900;
 16062:  }
+***** PLATFORM-BUDDY-V149-WORK\STYLES.CSS
+16044:  
+16045:  html body .vbt-history-list {
+16046:    display: grid;
+16047:    grid-template-columns: repeat(2, minmax(0, 1fr));
+16048:    gap: 8px;
+16049:  }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\styles.css
 16063:  
 16064:  html body .vbt-result strong {
 16065:    font-size: 1.05rem;
 16066:  }
+***** PLATFORM-BUDDY-V149-WORK\STYLES.CSS
+16050:  
+16051:  html body .vbt-history-card {
+16052:    display: grid;
+16053:    gap: 5px;
+16054:    border: 1px solid var(--line, #ded6c8);
+16055:    border-left: 4px solid var(--coach, #2f6f73);
+16056:    border-radius: 10px;
+16057:    background: #ffffff;
+16058:    padding: 10px;
+16059:  }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\styles.css
 16067:  
 16068:  @media (max-width: 640px) {
 16069:    html body .vbt-controls {
@@ -91,36 +485,163 @@ Comparing files PLATFORM-BUDDY-V147-WORK\styles.css and PLATFORM-BUDDY-V148-WORK
 16074:      width: 100%;
 16075:    }
 16076:  }
+***** PLATFORM-BUDDY-V149-WORK\STYLES.CSS
+16060:  
+16061:  html body .vbt-history-card :is(strong, span) {
+16062:    color: var(--text-main, #171717);
+16063:  }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\styles.css
+***** PLATFORM-BUDDY-V149-WORK\STYLES.CSS
+16064:  
+16065:  html body .vbt-history-card :is(small, p) {
+16066:    margin: 0;
+16067:    color: var(--text-sub, #526179);
+16068:    font-size: 0.78rem;
+16069:    font-weight: 800;
+16070:    line-height: 1.4;
+16071:  }
+16072:  
+16073:  @media (max-width: 640px) {
+16074:    html body .vbt-controls {
+16075:      grid-template-columns: 1fr;
+16076:    }
+16077:  
+16078:    html body .vbt-controls > * {
+16079:      width: 100%;
+16080:    }
+16081:  
+16082:    html body .vbt-history-list {
+16083:      grid-template-columns: 1fr;
+16084:    }
+16085:  }
 *****
 
 
---- v147/video.js
-+++ v148/video.js
-Comparing files PLATFORM-BUDDY-V147-WORK\video.js and PLATFORM-BUDDY-V148-WORK\VIDEO.JS
-***** PLATFORM-BUDDY-V147-WORK\video.js
-   17:    ];
-   18:    let poseLandmarkerPromise = null;
-***** PLATFORM-BUDDY-V148-WORK\VIDEO.JS
+--- v148/video.js
++++ v149/video.js
+Comparing files PLATFORM-BUDDY-V148-WORK\video.js and PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+***** PLATFORM-BUDDY-V148-WORK\video.js
+    4:    const DB_NAME = "platform-buddy-video-db";
+    5:    const DB_VERSION = 1;
+    6:    const STORE_NAME = "videos";
+    7:    const MAX_FILE_BYTES = 350 * 1024 * 1024;
+    8:    const VISION_SCRIPT_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.js";
+    9:    const VISION_MODULE_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/+esm";
+   10:    const VISION_WASM_ROOT = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm";
+   11:    const POSE_MODEL_URL = "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/latest/p
+   12:  ose_landmarker_lite.task";
+   13:    const poseConnections = [
+   14:      [11, 12], [11, 13], [13, 15], [12, 14], [14, 16],
+   15:      [11, 23], [12, 24], [23, 24],
+   16:      [23, 25], [25, 27], [24, 26], [26, 28]
    17:    ];
    18:    let visionModulePromise = null;
    19:    let poseLandmarkerPromise = null;
+   20:  
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+    4:    const DB_NAME = "platform-buddy-video-db";
+    5:    const DB_VERSION = 2;
+    6:    const STORE_NAME = "videos";
+    7:    const VBT_STORE_NAME = "vbtRecords";
+    8:    const MAX_FILE_BYTES = 350 * 1024 * 1024;
+    9:    const DEFAULT_PLATE_DIAMETER_CM = 45;
+   10:  
 *****
 
-***** PLATFORM-BUDDY-V147-WORK\video.js
-  152:  
-  153:    async function getPoseLandmarker() {
-  154:      if (!poseLandmarkerPromise) {
-***** PLATFORM-BUDDY-V148-WORK\VIDEO.JS
+***** PLATFORM-BUDDY-V148-WORK\video.js
+   22:      SQ: ["a?E?}a??", "e??a?Re???e??", "a?C?a??e???ao|", "a??a??a??a?RaR?aR?", "a??a??e??a??", "a??a??e???e??"],
+   23:      BP: ["e??a??a??a??c?R", "e??Ca???a?Re??a-??", "a??e??e???ao|", "e??a?Re??a??", "a??a?aa??a??Ca???e?cc?2ea?N", "a??a??a?oa??", "a??
+   24:  a??e???e??"],
+   25:      DL: ["a??e??", "e??a?C-a?Ra?oaR?", "e??e??e??", "a?-a??a??Pa???a?|a??", "a??a??a?Re??a??", "e??a??"],
+   26:      OTHER: ["a??a??a?RaR?aR?", "a?E|a?3a?ER", "a??a?3a??", "a??c??a???"]
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+   12:      SQ: ["a?E?}a??", "e??a?Re???e??", "a?C?a??e???ao|", "a??a??a??a?RaR?aR?", "a??a??e??a??", "a??a??e???e??"],
+   13:      BP: ["e??a??a??a??c?R", "e??Ca???a?Re??a-??", "a??e??e???ao|", "e??a?Re??a??", "a??a?aa??a??C/e?cc?2ea?N", "a??a??a?oa??", "a??a?
+   14:  ?e???e??"],
+   15:      DL: ["a??a??", "e??a?C-a?Ra?oaR?", "e??e??e??", "a?-a??a??Pa???a?|a??", "a??a??a?Re??a??", "e??a??"],
+   16:      OTHER: ["a??a??a?RaR?aR?", "a?E|a?3a?ER", "a??a?3a??", "a??c??a???"]
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\video.js
+   61:      if (els.panel) {
+   62:        els.panel.querySelector(".screen-note").textContent = "a??a?Ra??a?ca?|a???a???a??Pa??c???a??a-?a??a?cc??Na???a??a??a??a??a??";
+   63:        els.toggle.disabled = true;
+   64:      }
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+   51:      if (els.panel) {
+   52:        const note = els.panel.querySelector(".screen-note");
+   53:        if (note) note.textContent = "a??a?Ra??a?ca?|a???a???a??Pa??c???a??a-?a??a?cc??Na???a??a??a??a??a??";
+   54:        if (els.toggle) els.toggle.disabled = true;
+   55:      }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\video.js
+   96:  
+   97:    function createId() {
+   98:      return globalThis.crypto?.randomUUID?.() || `video_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+   99:    }
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+   87:  
+   88:    function createId(prefix = "video") {
+   89:      return globalThis.crypto?.randomUUID?.() || `${prefix}_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+   90:    }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\video.js
+  125:  
+  126:    function loadScriptOnce(src) {
+  127:      const existing = document.querySelector(`script[src="${src}"]`);
+  128:      if (existing) {
+  129:        return existing.dataset.loaded === "true"
+  130:          ? Promise.resolve()
+  131:          : new Promise((resolve, reject) => {
+  132:            existing.addEventListener("load", resolve, { once: true });
+  133:            existing.addEventListener("error", reject, { once: true });
+  134:          });
+  135:      }
+  136:      return new Promise((resolve, reject) => {
+  137:        const script = document.createElement("script");
+  138:        script.src = src;
+  139:        script.async = true;
+  140:        script.crossOrigin = "anonymous";
+  141:        script.onload = () => {
+  142:          script.dataset.loaded = "true";
+  143:          resolve();
+  144:        };
+  145:        script.onerror = () => reject(new Error("MediaPipea?Rea-a??e??a??a???a??}a??a??a??a??a??a??"));
+  146:        document.head.append(script);
+  147:      });
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  116:  
+  117:    function requestToPromise(request) {
+  118:      return new Promise((resolve, reject) => {
+  119:        request.onsuccess = () => resolve(request.result);
+  120:        request.onerror = () => reject(request.error);
+  121:      });
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\video.js
+  149:  
+  150:    function visionExport(name) {
+  151:      return window[name] || window.vision?.[name] || window.tasksVision?.[name];
+  152:    }
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  123:  
+  124:    function transactionDone(transaction) {
+  125:      return new Promise((resolve, reject) => {
+  126:        transaction.oncomplete = () => resolve();
+  127:        transaction.onerror = () => reject(transaction.error);
+  128:        transaction.onabort = () => reject(transaction.error || new Error("IndexedDB transaction aborted"));
+  129:      });
+  130:    }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\video.js
   153:  
   154:    async function getPoseLandmarkerLegacy() {
   155:      if (!poseLandmarkerPromise) {
-*****
-
-***** PLATFORM-BUDDY-V147-WORK\video.js
-  155:        poseLandmarkerPromise = (async () => {
-  156:          await loadScriptOnce(VISION_SCRIPT_URL);
-  157:          let FilesetResolver = visionExport("FilesetResolver");
-***** PLATFORM-BUDDY-V148-WORK\VIDEO.JS
   156:        poseLandmarkerPromise = (async () => {
   157:          try {
   158:            await loadScriptOnce(VISION_SCRIPT_URL);
@@ -130,15 +651,53 @@ Comparing files PLATFORM-BUDDY-V147-WORK\video.js and PLATFORM-BUDDY-V148-WORK\V
   162:  ??a??a??a??");
   163:          }
   164:          let FilesetResolver = visionExport("FilesetResolver");
+  165:          let PoseLandmarker = visionExport("PoseLandmarker");
+  166:          if (!FilesetResolver || !PoseLandmarker) {
+  167:            const module = await import(VISION_MODULE_URL);
+  168:            FilesetResolver = module.FilesetResolver;
+  169:            PoseLandmarker = module.PoseLandmarker;
+  170:          }
+  171:          if (!FilesetResolver || !PoseLandmarker) {
+  172:            throw new Error("MediaPipe Pose Landmarkera??a??a??a??a???a??a??a??a??a???a??a??a??");
+  173:          }
+  174:          const resolver = await FilesetResolver.forVisionTasks(VISION_WASM_ROOT);
+  175:          return PoseLandmarker.createFromOptions(resolver, {
+  176:            baseOptions: {
+  177:              modelAssetPath: POSE_MODEL_URL,
+  178:              delegate: "GPU"
+  179:            },
+  180:            runningMode: "VIDEO",
+  181:            numPoses: 1
+  182:          });
+  183:        })();
+  184:      }
+  185:      return poseLandmarkerPromise;
+  186:    }
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  131:  
+  132:    function openVideoDb() {
+  133:      return new Promise((resolve, reject) => {
+  134:        const request = indexedDB.open(DB_NAME, DB_VERSION);
+  135:        request.onupgradeneeded = () => {
+  136:          const db = request.result;
+  137:          if (!db.objectStoreNames.contains(STORE_NAME)) {
+  138:            const store = db.createObjectStore(STORE_NAME, { keyPath: "id" });
+  139:            store.createIndex("date", "date");
+  140:            store.createIndex("lift", "lift");
+  141:          }
+  142:          if (!db.objectStoreNames.contains(VBT_STORE_NAME)) {
+  143:            const vbtStore = db.createObjectStore(VBT_STORE_NAME, { keyPath: "id" });
+  144:            vbtStore.createIndex("date", "date");
+  145:            vbtStore.createIndex("lift", "lift");
+  146:          }
+  147:        };
+  148:        request.onsuccess = () => resolve(request.result);
+  149:        request.onerror = () => reject(request.error);
+  150:      });
+  151:    }
 *****
 
-***** PLATFORM-BUDDY-V147-WORK\video.js
-  180:  
-  181:    function point(landmarks, index) {
-  182:      const value = landmarks?.[index];
-  183:      return value && Number.isFinite(value.x) && Number.isFinite(value.y) ? value : null;
-  184:    }
-***** PLATFORM-BUDDY-V148-WORK\VIDEO.JS
+***** PLATFORM-BUDDY-V148-WORK\video.js
   187:  
   188:    async function loadVisionModuleStable() {
   189:      if (!visionModulePromise) {
@@ -161,20 +720,18 @@ Comparing files PLATFORM-BUDDY-V147-WORK\video.js and PLATFORM-BUDDY-V148-WORK\V
   206:      }
   207:      return visionModulePromise;
   208:    }
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  152:  
+  153:    async function saveRecord(storeName, record) {
+  154:      const db = await openVideoDb();
+  155:      const transaction = db.transaction(storeName, "readwrite");
+  156:      transaction.objectStore(storeName).put(record);
+  157:      await transactionDone(transaction);
+  158:      db.close();
+  159:    }
 *****
 
-***** PLATFORM-BUDDY-V147-WORK\video.js
-  185:  
-  186:    function angleBetween(a, b, c) {
-  187:      if (!a || !b || !c) return null;
-  188:      const ab = { x: a.x - b.x, y: a.y - b.y };
-  189:      const cb = { x: c.x - b.x, y: c.y - b.y };
-  190:      const dot = ab.x * cb.x + ab.y * cb.y;
-  191:      const mag = Math.hypot(ab.x, ab.y) * Math.hypot(cb.x, cb.y);
-  192:      if (!mag) return null;
-  193:      return Math.round(Math.acos(Math.max(-1, Math.min(1, dot / mag))) * 180 / Math.PI);
-  194:    }
-***** PLATFORM-BUDDY-V148-WORK\VIDEO.JS
+***** PLATFORM-BUDDY-V148-WORK\video.js
   209:  
   210:    function createPoseLandmarkerStable(PoseLandmarker, resolver, delegate) {
   211:      return PoseLandmarker.createFromOptions(resolver, {
@@ -186,15 +743,20 @@ Comparing files PLATFORM-BUDDY-V147-WORK\video.js and PLATFORM-BUDDY-V148-WORK\V
   217:        numPoses: 1
   218:      });
   219:    }
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  160:  
+  161:    async function loadRecords(storeName) {
+  162:      const db = await openVideoDb();
+  163:      const transaction = db.transaction(storeName, "readonly");
+  164:      const done = transactionDone(transaction);
+  165:      const records = await requestToPromise(transaction.objectStore(storeName).getAll());
+  166:      await done;
+  167:      db.close();
+  168:      return records;
+  169:    }
 *****
 
-***** PLATFORM-BUDDY-V147-WORK\video.js
-  195:  
-  196:    function averageNumber(values) {
-  197:      const numbers = values.filter((value) => Number.isFinite(value));
-  198:      return numbers.length ? Math.round(numbers.reduce((sum, value) => sum + value, 0) / numbers.length) : null;
-  199:    }
-***** PLATFORM-BUDDY-V148-WORK\VIDEO.JS
+***** PLATFORM-BUDDY-V148-WORK\video.js
   220:  
   221:    async function getPoseLandmarker() {
   222:      if (!poseLandmarkerPromise) {
@@ -211,42 +773,37 @@ Comparing files PLATFORM-BUDDY-V147-WORK\video.js and PLATFORM-BUDDY-V148-WORK\V
   233:      }
   234:      return poseLandmarkerPromise;
   235:    }
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  170:  
+  171:    async function getVideoRecord(id) {
+  172:      const db = await openVideoDb();
+  173:      const transaction = db.transaction(STORE_NAME, "readonly");
+  174:      const done = transactionDone(transaction);
+  175:      const record = await requestToPromise(transaction.objectStore(STORE_NAME).get(id));
+  176:      await done;
+  177:      db.close();
+  178:      return record;
+  179:    }
 *****
 
-***** PLATFORM-BUDDY-V147-WORK\video.js
-  200:  
-  201:    function torsoLeanDeg(landmarks) {
-  202:      const leftShoulder = point(landmarks, 11);
-  203:      const rightShoulder = point(landmarks, 12);
-  204:      const leftHip = point(landmarks, 23);
-  205:      const rightHip = point(landmarks, 24);
-  206:      if (!leftShoulder || !rightShoulder || !leftHip || !rightHip) return null;
-  207:      const shoulder = { x: (leftShoulder.x + rightShoulder.x) / 2, y: (leftShoulder.y + rightShoulder.y) / 2 };
-  208:      const hip = { x: (leftHip.x + rightHip.x) / 2, y: (leftHip.y + rightHip.y) / 2 };
-  209:      const dx = shoulder.x - hip.x;
-  210:      const dy = shoulder.y - hip.y;
-  211:      return Math.round(Math.atan2(Math.abs(dx), Math.abs(dy || 0.0001)) * 180 / Math.PI);
-  212:    }
-***** PLATFORM-BUDDY-V148-WORK\VIDEO.JS
+***** PLATFORM-BUDDY-V148-WORK\video.js
   236:  
   237:    function point(landmarks, index) {
   238:      const value = landmarks?.[index];
   239:      return value && Number.isFinite(value.x) && Number.isFinite(value.y) ? value : null;
   240:    }
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  180:  
+  181:    async function deleteVideoRecord(id) {
+  182:      const db = await openVideoDb();
+  183:      const transaction = db.transaction(STORE_NAME, "readwrite");
+  184:      transaction.objectStore(STORE_NAME).delete(id);
+  185:      await transactionDone(transaction);
+  186:      db.close();
+  187:    }
 *****
 
-***** PLATFORM-BUDDY-V147-WORK\video.js
-  213:  
-  214:    function asymmetryScore(landmarks) {
-  215:      const pairs = [[11, 12], [23, 24], [25, 26], [27, 28]];
-  216:      const diffs = pairs.map(([left, right]) => {
-  217:        const a = point(landmarks, left);
-  218:        const b = point(landmarks, right);
-  219:        return a && b ? Math.abs(a.y - b.y) * 100 : null;
-  220:      }).filter((value) => Number.isFinite(value));
-  221:      return diffs.length ? Math.round(diffs.reduce((sum, value) => sum + value, 0) / diffs.length) : null;
-  222:    }
-***** PLATFORM-BUDDY-V148-WORK\VIDEO.JS
+***** PLATFORM-BUDDY-V148-WORK\video.js
   241:  
   242:    function angleBetween(a, b, c) {
   243:      if (!a || !b || !c) return null;
@@ -257,44 +814,40 @@ Comparing files PLATFORM-BUDDY-V147-WORK\video.js and PLATFORM-BUDDY-V148-WORK\V
   248:      if (!mag) return null;
   249:      return Math.round(Math.acos(Math.max(-1, Math.min(1, dot / mag))) * 180 / Math.PI);
   250:    }
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  188:  
+  189:    const saveVideoRecord = (record) => saveRecord(STORE_NAME, record);
+  190:    const saveVbtRecord = (record) => saveRecord(VBT_STORE_NAME, record);
+  191:    const loadVideoRecords = () => loadRecords(STORE_NAME);
+  192:    const loadVbtRecords = () => loadRecords(VBT_STORE_NAME);
+  193:  
+  194:    function checkGridMarkup(lift, values = {}) {
+  195:      return (checkItems[lift] || checkItems.OTHER).map((item) => `
+  196:        <label>
+  197:          ${escapeHtml(item)}
+  198:          <select data-video-check="${escapeHtml(item)}">
+  199:            ${checkOptions.map((option) => `<option value="${escapeHtml(option)}" ${values[item] === option ? "selected" : ""}>${
+  200:  escapeHtml(option)}</option>`).join("")}
+  201:          </select>
+  202:        </label>
+  203:      `).join("");
+  204:    }
 *****
 
-***** PLATFORM-BUDDY-V147-WORK\video.js
-  223:  
-  224:    function compactLandmarks(landmarks) {
-  225:      return landmarks.map((item) => ({
-  226:        x: Number(item.x.toFixed(4)),
-  227:        y: Number(item.y.toFixed(4)),
-  228:        z: Number((item.z || 0).toFixed(4)),
-  229:        visibility: Number((item.visibility || 0).toFixed(3))
-  230:      }));
-  231:    }
-***** PLATFORM-BUDDY-V148-WORK\VIDEO.JS
+***** PLATFORM-BUDDY-V148-WORK\video.js
   251:  
   252:    function averageNumber(values) {
   253:      const numbers = values.filter((value) => Number.isFinite(value));
   254:      return numbers.length ? Math.round(numbers.reduce((sum, value) => sum + value, 0) / numbers.length) : null;
   255:    }
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  205:  
+  206:    function renderCheckGrid(values = {}) {
+  207:      els.checkGrid.innerHTML = checkGridMarkup(els.lift.value, values);
+  208:    }
 *****
 
-***** PLATFORM-BUDDY-V147-WORK\video.js
-  232:  
-  233:    function metricsFromLandmarks(landmarks) {
-  234:      const leftHip = angleBetween(point(landmarks, 11), point(landmarks, 23), point(landmarks, 25));
-  235:      const rightHip = angleBetween(point(landmarks, 12), point(landmarks, 24), point(landmarks, 26));
-  236:      const leftKnee = angleBetween(point(landmarks, 23), point(landmarks, 25), point(landmarks, 27));
-  237:      const rightKnee = angleBetween(point(landmarks, 24), point(landmarks, 26), point(landmarks, 28));
-  238:      const leftElbow = angleBetween(point(landmarks, 11), point(landmarks, 13), point(landmarks, 15));
-  239:      const rightElbow = angleBetween(point(landmarks, 12), point(landmarks, 14), point(landmarks, 16));
-  240:      return {
-  241:        hipAngle: averageNumber([leftHip, rightHip]),
-  242:        kneeAngle: averageNumber([leftKnee, rightKnee]),
-  243:        elbowAngle: averageNumber([leftElbow, rightElbow]),
-  244:        torsoLean: torsoLeanDeg(landmarks),
-  245:        asymmetryScore: asymmetryScore(landmarks)
-  246:      };
-  247:    }
-***** PLATFORM-BUDDY-V148-WORK\VIDEO.JS
+***** PLATFORM-BUDDY-V148-WORK\video.js
   256:  
   257:    function torsoLeanDeg(landmarks) {
   258:      const leftShoulder = point(landmarks, 11);
@@ -308,14 +861,15 @@ Comparing files PLATFORM-BUDDY-V147-WORK\video.js and PLATFORM-BUDDY-V148-WORK\V
   266:      const dy = shoulder.y - hip.y;
   267:      return Math.round(Math.atan2(Math.abs(dx), Math.abs(dy || 0.0001)) * 180 / Math.PI);
   268:    }
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  209:  
+  210:    function readCheckValues(container) {
+  211:      return Object.fromEntries([...container.querySelectorAll("[data-video-check]")].map((select) => [select.dataset.videoCheck,
+  212:   select.value]));
+  213:    }
 *****
 
-***** PLATFORM-BUDDY-V147-WORK\video.js
-  248:  
-  249:    function flag(label, condition, flags) {
-  250:      if (condition) flags.push(label);
-  251:    }
-***** PLATFORM-BUDDY-V148-WORK\VIDEO.JS
+***** PLATFORM-BUDDY-V148-WORK\video.js
   269:  
   270:    function asymmetryScore(landmarks) {
   271:      const pairs = [[11, 12], [23, 24], [25, 26], [27, 28]];
@@ -326,12 +880,25 @@ Comparing files PLATFORM-BUDDY-V147-WORK\video.js and PLATFORM-BUDDY-V148-WORK\V
   276:      }).filter((value) => Number.isFinite(value));
   277:      return diffs.length ? Math.round(diffs.reduce((sum, value) => sum + value, 0) / diffs.length) : null;
   278:    }
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  214:  
+  215:    async function updateStorageStatus(message = "") {
+  216:      if (message) {
+  217:        els.storageStatus.textContent = message;
+  218:        return;
+  219:      }
+  220:      if (!navigator.storage?.estimate) {
+  221:        els.storageStatus.textContent = "c??Pa???a??a??a-?";
+  222:        return;
+  223:      }
+  224:      const estimate = await navigator.storage.estimate();
+  225:      const used = estimate.usage ? Math.round(estimate.usage / 1024 / 1024) : 0;
+  226:      const quota = estimate.quota ? Math.round(estimate.quota / 1024 / 1024) : 0;
+  227:      els.storageStatus.textContent = quota ? `a??c??Ne?? c?L?${used}MB / a?C?e??c?RaR? ${quota}MB` : `a??c??Ne?? c?L?${used}MB`;
+  228:    }
 *****
 
-***** PLATFORM-BUDDY-V147-WORK\video.js
-  252:  
-  253:    function buildMotionSummary(lift, metrics) {
-***** PLATFORM-BUDDY-V148-WORK\VIDEO.JS
+***** PLATFORM-BUDDY-V148-WORK\video.js
   279:  
   280:    function compactLandmarks(landmarks) {
   281:      return landmarks.map((item) => ({
@@ -341,6 +908,21 @@ Comparing files PLATFORM-BUDDY-V147-WORK\video.js and PLATFORM-BUDDY-V148-WORK\V
   285:        visibility: Number((item.visibility || 0).toFixed(3))
   286:      }));
   287:    }
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  229:  
+  230:    function showMode(mode) {
+  231:      const adding = mode === "add";
+  232:      els.form.classList.toggle("hidden", !adding);
+  233:      els.library.classList.toggle("hidden", adding);
+  234:      els.addMode.classList.toggle("primary-button", adding);
+  235:      els.addMode.classList.toggle("text-button", !adding);
+  236:      els.libraryMode.classList.toggle("primary-button", !adding);
+  237:      els.libraryMode.classList.toggle("text-button", adding);
+  238:      if (!adding) renderLibrary();
+  239:    }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\video.js
   288:  
   289:    function metricsFromLandmarks(landmarks) {
   290:      const leftHip = angleBetween(point(landmarks, 11), point(landmarks, 23), point(landmarks, 25));
@@ -357,139 +939,753 @@ Comparing files PLATFORM-BUDDY-V147-WORK\video.js and PLATFORM-BUDDY-V148-WORK\V
   301:        asymmetryScore: asymmetryScore(landmarks)
   302:      };
   303:    }
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  240:  
+  241:    function videoTitle(record) {
+  242:      const weight = record.weight ? `${formatNumber(record.weight)}kg` : "e??e??a?aa?\a??";
+  243:      const reps = record.reps ? ` x ${formatNumber(record.reps)}` : "";
+  244:      const rpe = record.rpe ? ` @${formatNumber(record.rpe)}` : "";
+  245:      return `${liftLabel(record.lift)} ${weight}${reps}${rpe}`;
+  246:    }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\video.js
   304:  
   305:    function flag(label, condition, flags) {
   306:      if (condition) flags.push(label);
   307:    }
-  308:  
-  309:    function buildMotionSummary(lift, metrics) {
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  247:  
+  248:    function formatSeconds(value) {
+  249:      const number = Number(value);
+  250:      return Number.isFinite(number) ? `${number.toFixed(2)}s` : "-";
+  251:    }
 *****
 
-***** PLATFORM-BUDDY-V147-WORK\video.js
-  542:  
-  543:    async function openViewer(id) {
-  544:      const record = await getVideoRecord(id);
-  545:      if (!record) return;
-  546:      const dialog = ensureViewerDialog();
-  547:      const url = createObjectUrl(record.videoBlob);
-  548:      dialog.innerHTML = `
-  549:        <form method="dialog" class="video-viewer-card">
-  550:          <div class="section-title">
-  551:            <div><p class="eyebrow">Video Form Note</p><h2>${escapeHtml(videoTitle(record))}</h2></div>
-  552:            <button class="text-button" value="close" type="submit">e??a??a??</button>
-  553:          </div>
-  554:          <div class="motion-video-frame">
-  555:            <video controls playsinline preload="metadata" src="${escapeHtml(url)}"></video>
-  556:            <canvas class="motion-overlay" data-motion-canvas></canvas>
-  557:          </div>
-  558:          <div class="video-viewer-meta">
-  559:            <span>${escapeHtml(formatDate(record.date))}</span>
-  560:            <span>${escapeHtml(record.setType || "e?ac??}")}</span>
-  561:            <span>a?Ra??}i??${escapeHtml(record.angle || "-")}</span>
-  562:          </div>
-  563:          <section class="video-check-editor">
-  564:            <div class="video-check-head"><strong>a??a?ca??a??a??a???a??a??P</strong><small>e|?e??a??a?|a??La???a???a??a??a??</small><
-  565:  /div>
-  566:            <div class="video-check-grid">${checkGridMarkup(record.lift, record.check || {})}</div>
-  567:          </section>
-  568:          <label>a?!a???<textarea data-video-view-memo rows="3">${escapeHtml(record.memo || "")}</textarea></label>
-  569:          <label>Buddya?!a???<textarea data-video-view-buddy rows="3">${escapeHtml(record.buddyMemo || "")}</textarea></label>
-  570:          <section class="motion-analyzer-card" data-motion-card>
-  571:            <div class="video-check-head">
-  572:              <strong>Buddy Motion Analyzer I2</strong>
-  573:              <small>a??c???a??Pa??e??Ne??a?!a??a??a??c??a??Na??a???a??a??a??a??a??c??Pa???a??a???e????a??a??a??a??a??</small>
-  574:            </div>
-  575:            <p class="video-storage-note">AIa??a?ca??a??e????a??a??Pe???a?cac?e??a???a??a??a?Ra??}e???ao|a??c???a??a??a??e???a??a??c???a??e
-  576:  3aa???a??a???a?|c???a??a??a??a??a??a??a??a??a??c???a??a?-a??Pa??c???a???a??a??Na?3a??a??a?Rc??oea?a??a?aa??a??a?|a??a??a??a??a??</p>
-  577:            <div class="motion-actions">
-  578:              <button class="primary-button inline" type="button" data-motion-analyze="${escapeHtml(record.id)}">c??a??Na??a???a??a
-  579:  ??a??e????a??</button>
-  580:              <label class="motion-toggle"><input type="checkbox" data-motion-overlay-toggle checked>ea?Na??e!?Nc?o</label>
-  581:            </div>
-  582:            <div class="motion-result" data-motion-result>${motionResultMarkup(record.analysis)}</div>
-  583:            <details class="compact-guide">
-  584:              <summary>a?Ra??}a???a??a??</summary>
-  585:              <p>SQa??Pc??a?Naa??a??a??Pa??a??a??a??a??BPa??Pc??a?Naa??a??a??Pa??a??a??a??DLa??Pc??a?Naa??a??a??Pa??a??a??a??a??a??a??a??a
-  586:  ???a??a??a??Neo??a??Na??a??a??a???a??c???e???a???a?\a??a?|a??a??a??a??a??</p>
-  587:            </details>
-  588:          </section>
-  589:          <button class="primary-button" type="button" data-video-review-save="${escapeHtml(record.id)}">a??a?ca??a??c??oea?a??a??
-  590:  a-?</button>
-  591:        </form>
-  592:      `;
-  593:      dialog.showModal();
-  594:    }
-***** PLATFORM-BUDDY-V148-WORK\VIDEO.JS
+***** PLATFORM-BUDDY-V148-WORK\video.js
+  308:  
+  309:    function buildMotionSummary(lift, metrics) {
+  310:      const flags = [];
+  311:      if (lift === "SQ") {
+  312:        flag("torso_forward", metrics.torsoLean !== null && metrics.torsoLean >= 32, flags);
+  313:        flag("depth_candidate", metrics.hipAngle !== null && metrics.kneeAngle !== null && metrics.hipAngle <= 75 && metrics.knee
+  314:  Angle <= 90, flags);
+  315:        flag("minor_asymmetry", metrics.asymmetryScore !== null && metrics.asymmetryScore >= 8, flags);
+  316:        return {
+  317:          flags,
+  318:          title: "a?1a??Pa??Pa??a??a??a??",
+  319:          lines: [
+  320:            metrics.hipAngle !== null ? `e?!e???c?P?e???ao|a?Rc?RaR?: ${metrics.hipAngle}A??` : "e?!e???c?P?e???ao|: c??oea?a?C?e??3",
+  321:            metrics.kneeAngle !== null ? `e??e???ao|a?Rc?RaR?: ${metrics.kneeAngle}A??` : "e??e???ao|: c??oea?a?C?e??3",
+  322:            metrics.torsoLean !== null ? `a??a11a??a??: ${metrics.torsoLean}A??` : "a??a11a??a??: c??oea?a?C?e??3"
+  323:          ],
+  324:          buddyComment: flags.includes("torso_forward")
+  325:            ? "a??a??a??a??Ne?oa???a??a11a??a??a??a??Ea??a???e|?a??a??a??Pe??a???a??a??a??a??a??a??a??!a??a??Pe??3e???a??Na??a???a???a??aR?a??
+  326:  a??e-?a???c??oea?a??a??a??a??a??a??"
+  327:            : "a???a??a?aa?Lca??a??Pa???a?aa??a???e|?a??a??a??a??a??!a??a??a??a??e???ao|a??a??a?Ra??a??Na?P?e??a??a??a??a??a?aa??a??a??a??
+  328:  "
+  329:        };
+  330:      }
+  331:      if (lift === "BP") {
+  332:        flag("elbow_asymmetry", metrics.asymmetryScore !== null && metrics.asymmetryScore >= 7, flags);
+  333:        flag("elbow_lockout_check", metrics.elbowAngle !== null && metrics.elbowAngle < 145, flags);
+  334:        return {
+  335:          flags,
+  336:          title: "a??a?3a??a??a???a?1a??a??",
+  337:          lines: [
+  338:            metrics.elbowAngle !== null ? `e??e???ao|a?Rc?RaR?: ${metrics.elbowAngle}A??` : "e??e???ao|: c??oea?a?C?e??3",
+  339:            metrics.asymmetryScore !== null ? `a?E|a?3a?ERa?Rc?RaR?: ${metrics.asymmetryScore}` : "a?E|a?3a?ER: c??oea?a?C?e??3",
+  340:            "e??Ca???a?Re??a-??a??a??a??e???e??a??Pa??c???a???a??a???c??oea?a??a?|a??a??a??a??a??"
+  341:          ],
+  342:          buddyComment: flags.includes("elbow_asymmetry")
+  343:            ? "a??a??a?oa??a???a?E|a?3a?ERa??a?oa?|a??a??a??Pe??a???a??a??a??a??a??a??e??Ca???a-??a??a??a??a??a?C!a??a???a??a??a???a??a??a??
+  344:  e-?a??c??oea?a??a??a??a??a??a??"
+  345:            : "a?E|a?3a?ERa??Pa???a??a??a?aa??a??a??a???a??a??a??!a??a??Pc??a?Naa??a??a??a??a??a??a?Ra??a??Na??e??e???ao|a??e|?a??a??a??a?a
+  346:  a??a??a??a??"
+  347:        };
+  348:      }
+  349:      if (lift === "DL") {
+  350:        flag("torso_forward", metrics.torsoLean !== null && metrics.torsoLean >= 38, flags);
+  351:        flag("minor_asymmetry", metrics.asymmetryScore !== null && metrics.asymmetryScore >= 8, flags);
+  352:        return {
+  353:          flags,
+  354:          title: "a??a??a??a?aa??a??a??a??",
+  355:          lines: [
+  356:            metrics.hipAngle !== null ? `e?!e???c?P?e???ao|a?Rc?RaR?: ${metrics.hipAngle}A??` : "e?!e???c?P?e???ao|: c??oea?a?C?e??3",
+  357:            metrics.torsoLean !== null ? `e??a?C-a?Ra??a??c?RaR?: ${metrics.torsoLean}A??` : "e??a?C-a?Ra??a??: c??oea?a?C?e??3",
+  358:            metrics.asymmetryScore !== null ? `a?E|a?3a?ERa?Rc?RaR?: ${metrics.asymmetryScore}` : "a?E|a?3a?ER: c??oea?a?C?e??3"
+  359:          ],
+  360:          buddyComment: flags.includes("torso_forward")
+  361:            ? "a??a??a???a??a???a?C?a??a??a??Ea??a??a??a?|a??a??a??Pe??a???a??a??a??a??a??a??ao?e??c-?a???a??a??a??e??a??a??a??a??e-?a??
+  362:  c??oea?a??a??a??a??a??a??"
+  363:            : "a?1a??a??a??a???a???a??Pa???a??a??a?Lca??a?|a??a?aa??a??a??a???e|?a??a??a??a??e??e??e??a???e??a??a??!a??a?P?e??a??a?|a??a??
+  364:  a??a??a??a??a??"
+  365:        };
+  366:      }
+  367:      return {
+  368:        flags,
+  369:        title: "a??a?ca??a??a??a??",
+  370:        lines: [
+  371:          metrics.torsoLean !== null ? `a??a11e???ao|a?Rc?RaR?: ${metrics.torsoLean}A??` : "a??a11e???ao|: c??oea?a?C?e??3",
+  372:          metrics.asymmetryScore !== null ? `a?E|a?3a?ERa?Rc?RaR?: ${metrics.asymmetryScore}` : "a?E|a?3a?ER: c??oea?a?C?e??3"
+  373:        ],
+  374:        buddyComment: "a??Na??a?Ra??a??a??a??a-?a??a??a??a??a??a??!a??a??a??a??e???ao|a???a?Ra??a??Na??a??a??e|?a??a??a??a?aa??a??a??a
+  375:  ??"
+  376:      };
+  377:    }
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  252:  
+  253:    function pixelDistance(a, b) {
+  254:      if (!a || !b) return null;
+  255:      return Math.hypot(a.x - b.x, a.y - b.y);
+  256:    }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\video.js
+  378:  
+  379:    function drawPose(canvas, video, landmarks) {
+  380:      const width = video.videoWidth || video.clientWidth || 640;
+  381:      const height = video.videoHeight || video.clientHeight || 360;
+  382:      canvas.width = width;
+  383:      canvas.height = height;
+  384:      const ctx = canvas.getContext("2d");
+  385:      ctx.clearRect(0, 0, width, height);
+  386:      ctx.lineWidth = Math.max(3, width * 0.004);
+  387:      ctx.strokeStyle = "rgba(180, 35, 24, 0.92)";
+  388:      ctx.fillStyle = "rgba(47, 111, 115, 0.95)";
+  389:      poseConnections.forEach(([start, end]) => {
+  390:        const a = point(landmarks, start);
+  391:        const b = point(landmarks, end);
+  392:        if (!a || !b) return;
+  393:        ctx.beginPath();
+  394:        ctx.moveTo(a.x * width, a.y * height);
+  395:        ctx.lineTo(b.x * width, b.y * height);
+  396:        ctx.stroke();
+  397:      });
+  398:      landmarks.forEach((landmark) => {
+  399:        if ((landmark.visibility || 0) < 0.25) return;
+  400:        ctx.beginPath();
+  401:        ctx.arc(landmark.x * width, landmark.y * height, Math.max(4, width * 0.006), 0, Math.PI * 2);
+  402:        ctx.fill();
+  403:      });
+  404:    }
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  257:  
+  258:    function vbtVelocityComment(lift, velocity) {
+  259:      if (!Number.isFinite(velocity)) return "e??ao|a??e?N?cR?a??a??a??NBuddya?3a?!a?3a??a??a?oa??a??a??";
+  260:      const code = lift || "SQ";
+  261:      if (code === "BP") {
+  262:        if (velocity >= 0.35) return "a??a?aa??e??a??a???a??a??ao?aR?a??a??a??a??a??a??a??a??Pe??a???a??a??a??a??a??a??";
+  263:        if (velocity >= 0.20) return "e??Pa\?a???a??a??aR?c??Na??a??a?3a???a??a??a?|a??a??a??a??";
+  264:        if (velocity >= 0.15) return "e??a??a???a??a??RPE8.5a??9.5a?P?a??a?Ra??Pe??a???a??a??a??a??a??a??";
+  265:        return "a??a?aa??e??c??a?P?a??a???a??a??a??!a???a??a??a??Pc?!c??a??a??c??oea?a??a??a??a??a??a??";
+  266:      }
+  267:      if (code === "DL") {
+  268:        if (velocity >= 0.45) return "e??a??a???a??a??ao?e???a??a???a??e???a??a??a??a??a??a???a??a??";
+  269:        if (velocity >= 0.30) return "e??Pa\?a???a??a??e???e??e??a?RaR?c??Na??a??a?3a???a??a??";
+  270:        if (velocity >= 0.20) return "e??a??a???a??a??RPE8.5a??9.5a?P?a??a?Ra??Pe??a???a??a??a??a??a??a??";
+  271:        return "a??a?aa??e??c??a?P?a??a???a??a??a??!a??e??e??a??Pa??e??a???e|?a??a??a??a??a??";
+  272:      }
+  273:      if (velocity >= 0.50) return "a??a?aa??e??a??a???a??a??ao?aR?RPEa??a??e???a??a??Pe??a???a??a??a??a??a??a??";
+  274:      if (velocity >= 0.35) return "e??Pa\?a???a??a??RPE7a??8c?N?ao|a?RaR?c??Na??a??a?3a???a??a??";
+  275:      if (velocity >= 0.25) return "e??a??a???a??a??RPE8a??9a?P?a??a?Ra??Pe??a???a??a??a??a??a??a??";
+  276:      return "a??a?aa??e??c??a?P?a??a???a??a??a??!a???a??a??a??a??!a??e??e??a??Pa??e??a???a??";
+  277:    }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\video.js
+  405:  
+  406:    function motionResultMarkup(analysis) {
+  407:      if (!analysis || analysis.status !== "completed") {
+  408:        return `<p>e????a??c???a??a??Pa??a??a??a??a??a??a??a??a??c???a??a-??a??a?|a??c??a??Na??a???a??a??a??e????a??a??a??a??a??a?|a??a??a?
+  409:  ?a??a??</p>`;
+  410:      }
+  411:      const lines = Array.isArray(analysis.lines) ? analysis.lines : [];
+  412:      return `
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  278:  
+  279:    function vbtRpeComment(lift, velocity, rpe) {
+  280:      const reported = Number(rpe);
+  281:      if (!Number.isFinite(reported) || !Number.isFinite(velocity)) return "RPEa??a?\a??a??a??Na??a?C??e|3a??Na?Ra?oa???a??e|?a??a??a?
+  282:  ?a?aa??a??a??a??";
+  283:      const fast = lift === "BP" ? 0.35 : lift === "DL" ? 0.45 : 0.50;
+  284:      const slow = lift === "BP" ? 0.15 : lift === "DL" ? 0.20 : 0.25;
+  285:      if (reported >= 8.5 && velocity >= fast) return "c?3a??RPEa??a??e??a??a???a??a??RPEa??e|?a??a?3a??a??a???a?oa?|a??a??a??a??a?
+  286:  ?a??a??a??a??a??";
+  287:      if (reported <= 7.5 && velocity < slow) return "c?3a??RPEa??a??e??a??a???a??a??aR?e??a??Pe??a??a?oa?|a??a??a??Pe??a???a??a??a??
+  288:  a??a??a??";
+  289:      return "c?3a??RPEa??Ne??ao|a?Ra?oa???a??Pa???a??a??a?aa??a??a??a???a??a??";
+  290:    }
+  291:  
+  292:    function vbtResultMarkup(data) {
+  293:      if (!data || !Number.isFinite(Number(data.meanVelocity))) {
+  294:        return `<p>a??a???a??a??a??a??a??a??a??a??e??a???c?1a??Nc???ao?c?1a??a??aR?a??a??a??Na13a??a??a?C?e??ao|a??e?N?cR?a???a??a??a??a?
+  295:  ?</p>`;
+  296:      }
+  297:      return `
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\video.js
+  413:        <div class="motion-result-chips">
+  414:          <span>a?!e??ao|: ${escapeHtml(analysis.confidence || "medium")}</span>
+  415:          <span>${escapeHtml(analysis.keyFrames?.currentTime || "0.0")}c???a???e??</span>
+  416:        </div>
+  417:        <strong>${escapeHtml(analysis.title || "a??a?ca??a??a??a??")}</strong>
+  418:        <ul>${lines.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}</ul>
+  419:        <p>${escapeHtml(analysis.buddyComment || "")}</p>
+  420:        <details class="compact-guide">
+  421:          <summary>e????a??a??a??e|?a??</summary>
+  422:          <pre>${escapeHtml(JSON.stringify(analysis.metrics || {}, null, 2))}</pre>
+  423:        </details>
+  424:      `;
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  298:        <div class="motion-result-chips">
+  299:          <span>e??ao| ${escapeHtml(Number(data.meanVelocity).toFixed(2))} m/s</span>
+  300:          <span>e?E?e??? ${escapeHtml(formatNumber(data.distanceMeters))}m</span>
+  301:          <span>a??e?? ${escapeHtml(formatSeconds(data.durationSeconds))}</span>
+  302:        </div>
+  303:        <strong>${escapeHtml(vbtVelocityComment(data.lift, Number(data.meanVelocity)))}</strong>
+  304:        <p>${escapeHtml(vbtRpeComment(data.lift, Number(data.meanVelocity), data.rpe))}</p>
+  305:      `;
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\video.js
+  426:  
+  427:    function requestToPromise(request) {
+  428:      return new Promise((resolve, reject) => {
+  429:        request.onsuccess = () => resolve(request.result);
+  430:        request.onerror = () => reject(request.error);
+  431:      });
+  432:    }
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  307:  
+  308:    function vbtCardMarkup(record) {
+  309:      const velocityData = record.analysis?.velocityData || {};
+  310:      const calibration = velocityData.calibration || {};
+  311:      const measurement = velocityData.measurement || velocityData;
+  312:      const plateDiameterCm = Number.isFinite(Number(calibration.plateDiameterCm)) ? Number(calibration.plateDiameterCm) : DEFAUL
+  313:  T_PLATE_DIAMETER_CM;
+  314:      return `
+  315:        <section class="manual-vbt-card" data-vbt-card>
+  316:          <div class="video-check-head">
+  317:            <strong>BIG3 Velocity Check I2</strong>
+  318:            <small>a??a???a??a??a??a??Na??a??c????a??a??a??a13a??e??ao|a??a?oa??</small>
+  319:          </div>
+  320:          <p class="video-storage-note">AIea?Na??e????a??a???a??Pa??a??a??a??a??a??a??a???a??a??a??a???a?-a???a?aa??a???a??a??Ea???a?3a??a??
+  321:  e??a???c?1a??Nc???ao?c?1a??a??a13a??a??a?C?e??ao|a??e?N?cR?a??a??a??a??</p>
+  322:          <div class="vbt-controls">
+  323:            <label>a??a???a??a??a?? cm<input data-vbt-plate-cm type="number" inputmode="decimal" min="10" max="60" step="0.1" valu
+  324:  e="${escapeHtml(plateDiameterCm)}"></label>
+  325:            <button class="text-button" type="button" data-vbt-pick="plateA">a??a???a??a??c??P 1</button>
+  326:            <button class="text-button" type="button" data-vbt-pick="plateB">a??a???a??a??c??P 2</button>
+  327:            <button class="text-button" type="button" data-vbt-pick="start">e??a???c?1</button>
+  328:            <button class="text-button" type="button" data-vbt-pick="end">c???ao?c?1</button>
+  329:            <button class="text-button" type="button" data-vbt-reset>a?aa???a??a??</button>
+  330:            <button class="primary-button inline" type="button" data-vbt-save="${escapeHtml(record.id)}">e??ao|a??e?N?cR?</button>
+  331:            <button class="text-button" type="button" data-vbt-copy>c???a??a??a?3a??a??</button>
+  332:          </div>
+  333:          <div class="vbt-markers">
+  334:            <span data-vbt-pick-status>a??c???a?C?a??a??a??a??a??a?|c?1a??a??aR?</span>
+  335:            <span data-vbt-start>e??a??? ${escapeHtml(formatSeconds(measurement.startTime))}</span>
+  336:            <span data-vbt-end>c???ao? ${escapeHtml(formatSeconds(measurement.endTime))}</span>
+  337:          </div>
+  338:          <div class="motion-result vbt-result" data-vbt-result>${vbtResultMarkup({ ...measurement, lift: record.lift, rpe: recor
+  339:  d.rpe })}</div>
+  340:        </section>
+  341:      `;
+  342:    }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\video.js
+  433:  
+  434:    function transactionDone(transaction) {
+  435:      return new Promise((resolve, reject) => {
+  436:        transaction.oncomplete = () => resolve();
+  437:        transaction.onerror = () => reject(transaction.error);
+  438:        transaction.onabort = () => reject(transaction.error || new Error("IndexedDB transaction aborted"));
+  439:      });
+  440:    }
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  343:  
+  344:    function initialVbtState(record) {
+  345:      const velocityData = record.analysis?.velocityData || {};
+  346:      const calibration = velocityData.calibration || {};
+  347:      const measurement = velocityData.measurement || velocityData;
+  348:      return {
+  349:        pickMode: null,
+  350:        plateA: calibration.plateA || null,
+  351:        plateB: calibration.plateB || null,
+  352:        startPoint: measurement.startPoint || null,
+  353:        endPoint: measurement.endPoint || null,
+  354:        startTime: Number.isFinite(Number(measurement.startTime)) ? Number(measurement.startTime) : null,
+  355:        endTime: Number.isFinite(Number(measurement.endTime)) ? Number(measurement.endTime) : null
+  356:      };
+  357:    }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\video.js
+  441:  
+  442:    function openVideoDb() {
+  443:      return new Promise((resolve, reject) => {
+  444:        const request = indexedDB.open(DB_NAME, DB_VERSION);
+  445:        request.onupgradeneeded = () => {
+  446:          const db = request.result;
+  447:          if (!db.objectStoreNames.contains(STORE_NAME)) {
+  448:            const store = db.createObjectStore(STORE_NAME, { keyPath: "id" });
+  449:            store.createIndex("date", "date");
+  450:            store.createIndex("lift", "lift");
+  451:          }
+  452:        };
+  453:        request.onsuccess = () => resolve(request.result);
+  454:        request.onerror = () => reject(request.error);
+  455:      });
+  456:    }
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  358:  
+  359:    function vbtState(dialog) {
+  360:      return dialog?._vbtState || initialVbtState({});
+  361:    }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\video.js
+  457:  
+  458:    async function saveVideoRecord(record) {
+  459:      const db = await openVideoDb();
+  460:      const transaction = db.transaction(STORE_NAME, "readwrite");
+  461:      transaction.objectStore(STORE_NAME).put(record);
+  462:      await transactionDone(transaction);
+  463:      db.close();
+  464:    }
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  362:  
+  363:    function setVbtState(dialog, nextState) {
+  364:      dialog._vbtState = { ...vbtState(dialog), ...nextState };
+  365:    }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\video.js
+  465:  
+  466:    async function loadVideoRecords() {
+  467:      const db = await openVideoDb();
+  468:      const transaction = db.transaction(STORE_NAME, "readonly");
+  469:      const done = transactionDone(transaction);
+  470:      const records = await requestToPromise(transaction.objectStore(STORE_NAME).getAll());
+  471:      await done;
+  472:      db.close();
+  473:      return records;
+  474:    }
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  366:  
+  367:    function syncVbtCanvas(dialog) {
+  368:      const video = dialog?.querySelector("video");
+  369:      const canvas = dialog?.querySelector("[data-vbt-canvas]");
+  370:      if (!video || !canvas || !video.videoWidth || !video.videoHeight) return false;
+  371:      if (canvas.width !== video.videoWidth) canvas.width = video.videoWidth;
+  372:      if (canvas.height !== video.videoHeight) canvas.height = video.videoHeight;
+  373:      return true;
+  374:    }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\video.js
+  475:  
+  476:    async function getVideoRecord(id) {
+  477:      const db = await openVideoDb();
+  478:      const transaction = db.transaction(STORE_NAME, "readonly");
+  479:      const done = transactionDone(transaction);
+  480:      const record = await requestToPromise(transaction.objectStore(STORE_NAME).get(id));
+  481:      await done;
+  482:      db.close();
+  483:      return record;
+  484:    }
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  375:  
+  376:    function canvasPointFromEvent(canvas, event) {
+  377:      const rect = canvas.getBoundingClientRect();
+  378:      if (!rect.width || !rect.height) return null;
+  379:      return {
+  380:        x: (event.clientX - rect.left) * (canvas.width / rect.width),
+  381:        y: (event.clientY - rect.top) * (canvas.height / rect.height)
+  382:      };
+  383:    }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\video.js
+  485:  
+  486:    async function deleteVideoRecord(id) {
+  487:      const db = await openVideoDb();
+  488:      const transaction = db.transaction(STORE_NAME, "readwrite");
+  489:      transaction.objectStore(STORE_NAME).delete(id);
+  490:      await transactionDone(transaction);
+  491:      db.close();
+  492:    }
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  384:  
+  385:    function drawPoint(ctx, point, label, color) {
+  386:      if (!point) return;
+  387:      ctx.fillStyle = color;
+  388:      ctx.strokeStyle = "rgba(255, 250, 242, 0.95)";
+  389:      ctx.lineWidth = 3;
+  390:      ctx.beginPath();
+  391:      ctx.arc(point.x, point.y, 8, 0, Math.PI * 2);
+  392:      ctx.fill();
+  393:      ctx.stroke();
+  394:      ctx.font = "700 18px system-ui";
+  395:      ctx.fillText(label, point.x + 12, point.y - 12);
+  396:    }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\video.js
+  493:  
+  494:    function checkGridMarkup(lift, values = {}) {
+  495:      return (checkItems[lift] || checkItems.OTHER).map((item) => `
+  496:        <label>
+  497:          ${escapeHtml(item)}
+  498:          <select data-video-check="${escapeHtml(item)}">
+  499:            ${checkOptions.map((option) => `<option value="${escapeHtml(option)}" ${values[item] === option ? "selected" : ""}>${
+  500:  escapeHtml(option)}</option>`).join("")}
+  501:          </select>
+  502:        </label>
+  503:      `).join("");
+  504:    }
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  397:  
+  398:    function drawVbtOverlay(dialog) {
+  399:      const canvas = dialog?.querySelector("[data-vbt-canvas]");
+  400:      if (!canvas || !syncVbtCanvas(dialog)) return;
+  401:      const ctx = canvas.getContext("2d");
+  402:      const state = vbtState(dialog);
+  403:      ctx.clearRect(0, 0, canvas.width, canvas.height);
+  404:      ctx.lineWidth = 5;
+  405:      ctx.lineCap = "round";
+  406:      if (state.plateA && state.plateB) {
+  407:        ctx.strokeStyle = "rgba(37, 99, 235, 0.95)";
+  408:        ctx.beginPath();
+  409:        ctx.moveTo(state.plateA.x, state.plateA.y);
+  410:        ctx.lineTo(state.plateB.x, state.plateB.y);
+  411:        ctx.stroke();
+  412:      }
+  413:      if (state.startPoint && state.endPoint) {
+  414:        ctx.strokeStyle = "rgba(180, 35, 24, 0.95)";
+  415:        ctx.beginPath();
+  416:        ctx.moveTo(state.startPoint.x, state.startPoint.y);
+  417:        ctx.lineTo(state.endPoint.x, state.endPoint.y);
+  418:        ctx.stroke();
+  419:      }
+  420:      drawPoint(ctx, state.plateA, "P1", "#2563eb");
+  421:      drawPoint(ctx, state.plateB, "P2", "#2563eb");
+  422:      drawPoint(ctx, state.startPoint, "START", "#171717");
+  423:      drawPoint(ctx, state.endPoint, "END", "#b42318");
+  424:    }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\video.js
+  505:  
+  506:    function renderCheckGrid(values = {}) {
+  507:      els.checkGrid.innerHTML = checkGridMarkup(els.lift.value, values);
+  508:    }
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  425:  
+  426:    function setVbtPickMode(button) {
+  427:      const dialog = button.closest("dialog");
+  428:      const mode = button.dataset.vbtPick;
+  429:      setVbtState(dialog, { pickMode: mode });
+  430:      dialog.querySelector("[data-vbt-canvas]")?.classList.add("active");
+  431:      dialog.querySelectorAll("[data-vbt-pick]").forEach((item) => item.classList.toggle("selected", item === button));
+  432:      const status = dialog.querySelector("[data-vbt-pick-status]");
+  433:      const label = { plateA: "a??a???a??a??c??P1", plateB: "a??a???a??a??c??P2", start: "e??a???c?1", end: "c???ao?c?1" }[mode] || "c?
+  434:  1";
+  435:      if (status) status.textContent = `${label}a??a??c???a?C?a???a??a??a??`;
+  436:    }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\video.js
+  509:  
+  510:    function readCheckValues(container) {
+  511:      return Object.fromEntries([...container.querySelectorAll("[data-video-check]")].map((select) => [select.dataset.videoCheck,
+  512:   select.value]));
+  513:    }
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  437:  
+  438:    function handleVbtCanvasPointer(event) {
+  439:      const dialog = event.target.closest("dialog");
+  440:      const canvas = event.target.closest("[data-vbt-canvas]");
+  441:      if (!dialog || !canvas || !syncVbtCanvas(dialog)) return;
+  442:      const state = vbtState(dialog);
+  443:      if (!state.pickMode) return;
+  444:      const point = canvasPointFromEvent(canvas, event);
+  445:      const video = dialog.querySelector("video");
+  446:      const time = Number(video?.currentTime);
+  447:      const key = state.pickMode === "plateA" ? "plateA" : state.pickMode === "plateB" ? "plateB" : state.pickMode === "start" ? 
+  448:  "startPoint" : "endPoint";
+  449:      const update = { [key]: point };
+  450:      if (state.pickMode === "start" && Number.isFinite(time)) update.startTime = time;
+  451:      if (state.pickMode === "end" && Number.isFinite(time)) update.endTime = time;
+  452:      setVbtState(dialog, update);
+  453:      const marker = dialog.querySelector(state.pickMode === "start" ? "[data-vbt-start]" : state.pickMode === "end" ? "[data-vbt
+  454:  -end]" : "[data-vbt-pick-status]");
+  455:      if (marker) marker.textContent = state.pickMode === "start" ? `e??a??? ${formatSeconds(time)}` : state.pickMode === "end" ? 
+  456:  `c???ao? ${formatSeconds(time)}` : "a?-a???a?aa??a???a??a??Ea???a?3c?1a??a??a-?";
+  457:      setVbtState(dialog, { pickMode: null });
+  458:      canvas.classList.remove("active");
+  459:      dialog.querySelectorAll("[data-vbt-pick]").forEach((item) => item.classList.remove("selected"));
+  460:      drawVbtOverlay(dialog);
+  461:    }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\video.js
+  514:  
+  515:    async function updateStorageStatus(message = "") {
+  516:      if (message) {
+  517:        els.storageStatus.textContent = message;
+  518:        return;
+  519:      }
+  520:      if (!navigator.storage?.estimate) {
+  521:        els.storageStatus.textContent = "c??Pa???a??a??a-?";
+  522:        return;
+  523:      }
+  524:      const estimate = await navigator.storage.estimate();
+  525:      const used = estimate.usage ? Math.round(estimate.usage / 1024 / 1024) : 0;
+  526:      const quota = estimate.quota ? Math.round(estimate.quota / 1024 / 1024) : 0;
+  527:      els.storageStatus.textContent = quota ? `a??c??Ne?? c?L?${used}MB / a?C?e??c?RaR? ${quota}MB` : `a??c??Ne?? c?L?${used}MB`;
+  528:    }
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  462:  
+  463:    function resetVbt(button) {
+  464:      const dialog = button.closest("dialog");
+  465:      setVbtState(dialog, { pickMode: null, plateA: null, plateB: null, startPoint: null, endPoint: null, startTime: null, endTim
+  466:  e: null });
+  467:      const resultBox = dialog.querySelector("[data-vbt-result]");
+  468:      if (resultBox) resultBox.innerHTML = vbtResultMarkup(null);
+  469:      const status = dialog.querySelector("[data-vbt-pick-status]");
+  470:      if (status) status.textContent = "a??c???a?C?a??a??a??a??a??a?|c?1a??a??aR?";
+  471:      const start = dialog.querySelector("[data-vbt-start]");
+  472:      const end = dialog.querySelector("[data-vbt-end]");
+  473:      if (start) start.textContent = "e??a??? -";
+  474:      if (end) end.textContent = "c???ao? -";
+  475:      dialog.querySelectorAll("[data-vbt-pick]").forEach((item) => item.classList.remove("selected"));
+  476:      dialog.querySelector("[data-vbt-canvas]")?.classList.remove("active");
+  477:      drawVbtOverlay(dialog);
+  478:    }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\video.js
+  529:  
+  530:    function showMode(mode) {
+  531:      const adding = mode === "add";
+  532:      els.form.classList.toggle("hidden", !adding);
+  533:      els.library.classList.toggle("hidden", adding);
+  534:      els.addMode.classList.toggle("primary-button", adding);
+  535:      els.addMode.classList.toggle("text-button", !adding);
+  536:      els.libraryMode.classList.toggle("primary-button", !adding);
+  537:      els.libraryMode.classList.toggle("text-button", adding);
+  538:      if (!adding) renderLibrary();
+  539:    }
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  479:  
+  480:    function calculateVbt(dialog, record) {
+  481:      const state = vbtState(dialog);
+  482:      const plateDiameterCm = Number(dialog.querySelector("[data-vbt-plate-cm]")?.value || DEFAULT_PLATE_DIAMETER_CM);
+  483:      const plateDiameterPixels = pixelDistance(state.plateA, state.plateB);
+  484:      const travelPixels = pixelDistance(state.startPoint, state.endPoint);
+  485:      const durationSeconds = Number(state.endTime) - Number(state.startTime);
+  486:      if (!Number.isFinite(plateDiameterCm) || plateDiameterCm <= 0) throw new Error("a??a???a??a??a??a??a?\a??a??a?|a??a??a??a??a
+  487:  ??");
+  488:      if (!Number.isFinite(plateDiameterPixels) || plateDiameterPixels <= 0) throw new Error("a??a???a??a??c??Pa??2c?1a??aR?a??a?|a
+  489:  ??a??a??a??a??");
+  490:      if (!Number.isFinite(travelPixels) || travelPixels <= 0) throw new Error("e??a???c?1a??Nc???ao?c?1a??a??aR?a??a?|a??a??a??a??a
+  491:  ??");
+  492:      if (!Number.isFinite(durationSeconds) || durationSeconds <= 0) throw new Error("c???ao?c?1a??Pe??a???c?1a??a??a??a?Ra??a???a??a
+  493:  ??a???a??aR?a??a?|a??a??a??a??a??");
+  494:      const metersPerPixel = (plateDiameterCm / 100) / plateDiameterPixels;
+  495:      const distanceMeters = travelPixels * metersPerPixel;
+  496:      const meanVelocity = distanceMeters / durationSeconds;
+  497:      return {
+  498:        mode: "plate-calibrated-manual",
+  499:        lift: record.lift,
+  500:        weight: Number(record.weight) || null,
+  501:        reps: Number(record.reps) || null,
+  502:        rpe: Number(record.rpe) || null,
+  503:        calibration: { plateDiameterCm, plateDiameterPixels, metersPerPixel, plateA: state.plateA, plateB: state.plateB },
+  504:        measurement: { startTime: Number(state.startTime), endTime: Number(state.endTime), durationSeconds, startPoint: state.sta
+  505:  rtPoint, endPoint: state.endPoint, distanceMeters, meanVelocity },
+  506:        meanVelocity,
+  507:        buddyComment: vbtVelocityComment(record.lift, meanVelocity),
+  508:        rpeComment: vbtRpeComment(record.lift, meanVelocity, record.rpe),
+  509:        updatedAt: new Date().toISOString()
+  510:      };
+  511:    }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\video.js
+  540:  
+  541:    function videoTitle(record) {
+  542:      const weight = record.weight ? `${formatNumber(record.weight)}kg` : "e??e??a?aa?\a??";
+  543:      const reps = record.reps ? ` A?${formatNumber(record.reps)}` : "";
+  544:      const rpe = record.rpe ? ` @${formatNumber(record.rpe)}` : "";
+  545:      return `${liftLabel(record.lift)} ${weight}${reps}${rpe}`;
+  546:    }
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  512:  
+  513:    async function saveVbtVelocity(button) {
+  514:      const dialog = button.closest("dialog");
+  515:      const record = await getVideoRecord(button.dataset.vbtSave);
+  516:      const resultBox = dialog?.querySelector("[data-vbt-result]");
+  517:      if (!record || !dialog || !resultBox) return;
+  518:      try {
+  519:        const velocityData = calculateVbt(dialog, record);
+  520:        record.analysis = { ...(record.analysis || {}), velocityData };
+  521:        record.updatedAt = new Date().toISOString();
+  522:        await saveVideoRecord(record);
+  523:        await saveVbtRecord({
+  524:          id: createId("vbt"),
+  525:          videoId: record.id,
+  526:          createdAt: new Date().toISOString(),
+  527:          date: record.date || today(),
+  528:          lift: record.lift,
+  529:          weight: Number(record.weight) || null,
+  530:          reps: Number(record.reps) || null,
+  531:          rpe: Number(record.rpe) || null,
+  532:          videoName: record.videoName || "",
+  533:          cameraAngle: record.angle || "",
+  534:          ...velocityData
+  535:        });
+  536:        resultBox.innerHTML = vbtResultMarkup({ ...velocityData.measurement, lift: record.lift, rpe: record.rpe });
+  537:        button.textContent = "a??a-?a??a??a??a??";
+  538:        setTimeout(() => { button.textContent = "e??ao|a??e?N?cR?"; }, 1200);
+  539:        renderLibrary();
+  540:        renderVbtHistory();
+  541:      } catch (error) {
+  542:        resultBox.innerHTML = `<p>${escapeHtml(error.message || "e??ao|a??e?N?cR?a???a??a??a??a??a???a??a??a??")}</p>`;
+  543:      }
+  544:    }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\video.js
+  547:  
+  548:    function libraryCardMarkup(record) {
+  549:      const checked = selectedForCompare.has(record.id);
+  550:      const memo = record.buddyMemo || record.memo || "a?!a???a?aa??";
+  551:      return `
+  552:        <article class="video-library-card">
+  553:          <div class="video-card-head">
+  554:            <span>${escapeHtml(record.setType || "e?ac??}")}</span>
+  555:            <small>${escapeHtml(formatDate(record.date))}</small>
+  556:          </div>
+  557:          <strong>${escapeHtml(videoTitle(record))}</strong>
+  558:          <p class="motion-status ${record.analysis?.status === "completed" ? "done" : ""}">e????a??i??${record.analysis?.status ==
+  559:  = "completed" ? "aR?ao?" : "a?ae????a??"}</p>
+  560:          <p>a?Ra??}i??${escapeHtml(record.angle || "-")}</p>
+  561:          <p>${escapeHtml(memo)}</p>
+  562:          <div class="video-card-actions">
+  563:            <button class="primary-button inline" type="button" data-video-view="${escapeHtml(record.id)}">e|?a??</button>
+  564:            <button class="text-button ${checked ? "selected" : ""}" type="button" data-video-compare="${escapeHtml(record.id)}">
+  565:  ${checked ? "a?P?e??a??a??a??a??" : "a?P?e??a???e??a??"}</button>
+  566:            <button class="text-button danger" type="button" data-video-delete="${escapeHtml(record.id)}">a??e??</button>
+  567:          </div>
+  568:        </article>
+  569:      `;
+  570:    }
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  545:  
+  546:    function vbtCopyText(record, velocityData) {
+  547:      const measurement = velocityData?.measurement || velocityData || {};
+  548:      const velocity = Number(measurement.meanVelocity);
+  549:      return `${liftLabel(record.lift)} ${record.weight ? `${formatNumber(record.weight)}kg` : ""}${record.reps ? ` x ${formatNum
+  550:  ber(record.reps)}` : ""}${record.rpe ? ` @${formatNumber(record.rpe)}` : ""}\nMean Velocity ${Number.isFinite(velocity) ? veloc
+  551:  ity.toFixed(2) : "-"} m/s\nBuddy: ${vbtVelocityComment(record.lift, velocity)}`;
+  552:    }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\video.js
+  571:  
+  572:    async function renderLibrary() {
+  573:      let records = await loadVideoRecords();
+  574:      if (els.filterLift.value !== "ALL") records = records.filter((record) => record.lift === els.filterLift.value);
+  575:      records.sort((a, b) => String(a.date || "").localeCompare(String(b.date || "")) * (els.sortOrder.value === "old" ? 1 : -1))
+  576:  ;
+  577:      els.libraryGrid.innerHTML = records.length
+  578:        ? records.map(libraryCardMarkup).join("")
+  579:        : `<p class="video-empty">a??a??a??c???a??Pa??a??a??a??a??a??a???a?\a?Ra???a??a??a??1a???aR?a??a?|a??a??a??a??</p>`;
+  580:      els.compareBtn.disabled = selectedForCompare.size !== 2;
+  581:      await updateStorageStatus();
+  582:    }
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  553:  
+  554:    async function copyVbtResult(button) {
+  555:      const dialog = button.closest("dialog");
+  556:      const record = await getVideoRecord(dialog?.querySelector("[data-vbt-save]")?.dataset.vbtSave);
+  557:      if (!record?.analysis?.velocityData) return;
+  558:      const text = vbtCopyText(record, record.analysis.velocityData);
+  559:      await navigator.clipboard?.writeText(text);
+  560:      button.textContent = "a?3a??a??a??a??a??a??";
+  561:      setTimeout(() => { button.textContent = "c???a??a??a?3a??a??"; }, 1200);
+  562:    }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\video.js
+  583:  
+  584:    function ensureViewerDialog() {
+  585:      let dialog = document.querySelector("#videoViewerDialog");
+  586:      if (dialog) return dialog;
+  587:      dialog = document.createElement("dialog");
+  588:      dialog.id = "videoViewerDialog";
+  589:      dialog.className = "video-viewer-dialog";
+  590:      document.body.append(dialog);
+  591:      dialog.addEventListener("close", () => {
+  592:        const video = dialog.querySelector("video");
+  593:        if (video?.src) revokeObjectUrl(video.src);
+  594:        dialog.innerHTML = "";
+  595:      });
+  596:      return dialog;
+  597:    }
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  563:  
+  564:    function ensureVbtHistorySection() {
+  565:      let section = document.querySelector("#vbtHistoryPanel");
+  566:      if (section || !els.body) return section;
+  567:      section = document.createElement("section");
+  568:      section.id = "vbtHistoryPanel";
+  569:      section.className = "vbt-history-panel";
+  570:      section.innerHTML = `
+  571:        <div class="video-check-head"><strong>VBTa?}\a-?L</strong><small>BIG3a?Re??ao|a?!a???</small></div>
+  572:        <div class="vbt-history-filter">
+  573:          <button class="text-button selected" type="button" data-vbt-filter="ALL">a??a?1a?|</button>
+  574:          <button class="text-button" type="button" data-vbt-filter="SQ">SQ</button>
+  575:          <button class="text-button" type="button" data-vbt-filter="BP">BP</button>
+  576:          <button class="text-button" type="button" data-vbt-filter="DL">DL</button>
+  577:        </div>
+  578:        <div class="vbt-history-list" id="vbtHistoryList"></div>
+  579:      `;
+  580:      els.body.append(section);
+  581:      return section;
+  582:    }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\video.js
   598:  
   599:    function formatSeconds(value) {
   600:      const number = Number(value);
   601:      return Number.isFinite(number) ? `${number.toFixed(2)}s` : "-";
   602:    }
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  583:  
+  584:    function vbtHistoryMarkup(record) {
+  585:      const measurement = record.measurement || {};
+  586:      const velocity = Number(measurement.meanVelocity);
+  587:      return `
+  588:        <article class="vbt-history-card">
+  589:          <strong>${escapeHtml(liftLabel(record.lift))} ${record.weight ? `${escapeHtml(formatNumber(record.weight))}kg` : ""}${r
+  590:  ecord.reps ? ` x ${escapeHtml(formatNumber(record.reps))}` : ""}${record.rpe ? ` @${escapeHtml(formatNumber(record.rpe))}` : ""
+  591:  }</strong>
+  592:          <span>a13a??e??ao| ${Number.isFinite(velocity) ? escapeHtml(velocity.toFixed(2)) : "-"} m/s</span>
+  593:          <small>${escapeHtml(formatDate(record.date))}</small>
+  594:          <p>${escapeHtml(record.buddyComment || vbtVelocityComment(record.lift, velocity))}</p>
+  595:        </article>
+  596:      `;
+  597:    }
 *****
 
-***** PLATFORM-BUDDY-V147-WORK\video.js
-  595:  
-  596:    async function analyzeMotion(button) {
-  597:      const dialog = button.closest("dialog");
-  598:      const record = await getVideoRecord(button.dataset.motionAnalyze);
-  599:      const video = dialog?.querySelector("video");
-  600:      const canvas = dialog?.querySelector("[data-motion-canvas]");
-  601:      const resultBox = dialog?.querySelector("[data-motion-result]");
-  602:      if (!record || !video || !canvas || !resultBox) return;
-  603:      if (!video.videoWidth || !video.videoHeight) {
-  604:        resultBox.innerHTML = `<p>a??c???a?Rea-a??e??a??a??a???e????a??a??a?|a??a??a??a??a??</p>`;
-  605:        return;
-  606:      }
-  607:      button.disabled = true;
-  608:      button.textContent = "e????a??a?C-...";
-  609:      resultBox.innerHTML = `<p>MediaPipea??ea-a??e??a??a???a??a??a??a??a??a??a??Pa???a??a??e??a??a??a??a??a??a??a??</p>`;
-  610:      try {
-  611:        const pose = await getPoseLandmarker();
-  612:        const result = pose.detectForVideo(video, performance.now());
-  613:        const landmarks = result.landmarks?.[0];
-  614:        if (!landmarks?.length) {
-  615:          resultBox.innerHTML = `<p>e???c?P?c?1a??c??oea?a???a??a??a??a??a???a??a??a??a??Neo??a??a??a??a??a???a??a??a???a??e????a??a??a?|a??
-  616:  a??a??a??a??</p>`;
-  617:          return;
-  618:        }
-  619:        drawPose(canvas, video, landmarks);
-  620:        const metrics = metricsFromLandmarks(landmarks);
-  621:        const summary = buildMotionSummary(record.lift, metrics);
-  622:        const analysis = {
-  623:          status: "completed",
-  624:          confidence: landmarks.filter((item) => (item.visibility || 0) >= 0.5).length >= 18 ? "high" : "medium",
-  625:          keyFrames: {
-  626:            currentTime: video.currentTime.toFixed(1),
-  627:            start: null,
-  628:            bottom: null,
-  629:            finish: null
-  630:          },
-  631:          metrics,
-  632:          flags: summary.flags,
-  633:          title: summary.title,
-  634:          lines: summary.lines,
-  635:          buddyComment: summary.buddyComment,
-  636:          poseKeypoints: compactLandmarks(landmarks),
-  637:          barPathPoints: null,
-  638:          velocityData: null,
-  639:          updatedAt: new Date().toISOString()
-  640:        };
-  641:        record.analysis = analysis;
-  642:        record.updatedAt = new Date().toISOString();
-  643:        if (!record.buddyMemo) record.buddyMemo = summary.buddyComment;
-  644:        await saveVideoRecord(record);
-  645:        resultBox.innerHTML = motionResultMarkup(analysis);
-  646:        renderLibrary();
-  647:      } catch (error) {
-  648:        console.error("Motion analysis failed", error);
-  649:        resultBox.innerHTML = `<p>e????a??a???a??}a??a??a??a??a??a??a?aa?3a?ca??a?3a?\c???a??a??c???a?Ra??a??a??a??a??Neo??a??a??a???a?|a?
-  650:  ?a??a??a??c??oea?a??a?|a??a??a??a??a??</p>`;
-  651:      } finally {
-  652:        button.disabled = false;
-  653:        button.textContent = "c??a??Na??a???a??a??a??e????a??";
-  654:      }
-  655:    }
-***** PLATFORM-BUDDY-V148-WORK\VIDEO.JS
+***** PLATFORM-BUDDY-V148-WORK\video.js
   603:  
   604:    function manualVelocityMarkup(velocityData) {
   605:      if (!velocityData || !Number.isFinite(Number(velocityData.averageVelocity))) {
@@ -505,34 +1701,21 @@ Comparing files PLATFORM-BUDDY-V147-WORK\video.js and PLATFORM-BUDDY-V148-WORK\V
   615:        <p>a??a??e?aa??e??e?E!a???a??Pa?aa??a??a??aR?a??a??a?oe??a??a??cR?a?oa??a??c??!a??VBTa?!a???a???a??a??</p>
   616:      `;
   617:    }
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  598:  
+  599:    async function renderVbtHistory(filter = "ALL") {
+  600:      const section = ensureVbtHistorySection();
+  601:      const list = section?.querySelector("#vbtHistoryList");
+  602:      if (!list) return;
+  603:      let records = await loadVbtRecords();
+  604:      if (filter !== "ALL") records = records.filter((record) => record.lift === filter);
+  605:      records.sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+  606:      list.innerHTML = records.length ? records.slice(0, 20).map(vbtHistoryMarkup).join("") : `<p class="video-empty">a??a??VBTe?N
+  607:  ?e?2a??Pa??a??a??a??a??a??</p>`;
+  608:    }
 *****
 
-***** PLATFORM-BUDDY-V147-WORK\video.js
-  656:  
-  657:    async function saveViewerReview(button) {
-  658:      const dialog = button.closest("dialog");
-  659:      const record = await getVideoRecord(button.dataset.videoReviewSave);
-  660:      if (!record) return;
-  661:      record.check = readCheckValues(dialog);
-  662:      record.memo = dialog.querySelector("[data-video-view-memo]").value.trim();
-  663:      record.buddyMemo = dialog.querySelector("[data-video-view-buddy]").value.trim();
-  664:      record.updatedAt = new Date().toISOString();
-  665:      await saveVideoRecord(record);
-  666:      button.textContent = "a??a-?a??a??a??a??";
-  667:      setTimeout(() => { button.textContent = "a??a?ca??a??c??oea?a??a??a-?"; }, 1200);
-  668:      renderLibrary();
-  669:    }
-  670:  
-  671:    function compareColumnMarkup(record, url) {
-  672:      return `
-  673:        <article class="video-compare-column">
-  674:          <strong>${escapeHtml(videoTitle(record))}</strong>
-  675:          <small>${escapeHtml(formatDate(record.date))} / a?Ra??}i??${escapeHtml(record.angle || "-")}</small>
-  676:          <video controls playsinline preload="metadata" src="${escapeHtml(url)}"></video>
-  677:          <p>${escapeHtml(record.buddyMemo || record.memo || "a?!a???a?aa??")}</p>
-  678:        </article>
-  679:      `;
-***** PLATFORM-BUDDY-V148-WORK\VIDEO.JS
+***** PLATFORM-BUDDY-V148-WORK\video.js
   618:  
   619:    function vbtCardMarkup(record) {
   620:      const velocityData = record.analysis?.velocityData || {};
@@ -561,145 +1744,92 @@ Comparing files PLATFORM-BUDDY-V147-WORK\video.js and PLATFORM-BUDDY-V148-WORK\V
   643:          <div class="motion-result vbt-result" data-vbt-result>${manualVelocityMarkup(velocityData)}</div>
   644:        </section>
   645:      `;
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  609:  
+  610:    function libraryCardMarkup(record) {
+  611:      const checked = selectedForCompare.has(record.id);
+  612:      const memo = record.buddyMemo || record.memo || "a?!a???a?aa??";
+  613:      const velocity = Number(record.analysis?.velocityData?.measurement?.meanVelocity ?? record.analysis?.velocityData?.meanVelo
+  614:  city);
+  615:      return `
+  616:        <article class="video-library-card">
+  617:          <div class="video-card-head">
+  618:            <span>${escapeHtml(record.setType || "e?ac??}")}</span>
+  619:            <small>${escapeHtml(formatDate(record.date))}</small>
+  620:          </div>
+  621:          <strong>${escapeHtml(videoTitle(record))}</strong>
+  622:          <p class="motion-status ${Number.isFinite(velocity) ? "done" : ""}">VBT: ${Number.isFinite(velocity) ? `${escapeHtml(ve
+  623:  locity.toFixed(2))} m/s` : "a?ae?N?a?C??"}</p>
+  624:          <p>a?Ra??}: ${escapeHtml(record.angle || "-")}</p>
+  625:          <p>${escapeHtml(memo)}</p>
+  626:          <div class="video-card-actions">
+  627:            <button class="primary-button inline" type="button" data-video-view="${escapeHtml(record.id)}">e|?a??</button>
+  628:            <button class="text-button ${checked ? "selected" : ""}" type="button" data-video-compare="${escapeHtml(record.id)}">
+  629:  ${checked ? "a?P?e??a??a??a??a??" : "a?P?e??a???e??a??"}</button>
+  630:            <button class="text-button danger" type="button" data-video-delete="${escapeHtml(record.id)}">a??e??</button>
+  631:          </div>
+  632:        </article>
+  633:      `;
 *****
 
-***** PLATFORM-BUDDY-V147-WORK\video.js
-  681:  
-  682:    async function renderComparison() {
-  683:      cleanupContainerVideos(els.compareView);
-  684:      const ids = [...selectedForCompare];
-  685:      if (ids.length !== 2) return;
-  686:      const records = await Promise.all(ids.map(getVideoRecord));
-  687:      if (records.some((record) => !record)) return;
-  688:      const urls = records.map((record) => createObjectUrl(record.videoBlob));
-  689:      els.compareView.innerHTML = `
-  690:        <div class="video-compare-head">
-  691:          <strong>a??c???a?P?e??</strong>
-  692:          <button class="text-button compact" type="button" data-video-compare-close>a?P?e??a??e??a??a??</button>
-  693:        </div>
-  694:        <div class="video-compare-grid">
-  695:          ${compareColumnMarkup(records[0], urls[0])}
-  696:          ${compareColumnMarkup(records[1], urls[1])}
-  697:        </div>
-  698:      `;
-  699:      els.compareView.classList.remove("hidden");
-  700:      els.compareView.scrollIntoView({ behavior: "smooth", block: "start" });
-  701:    }
-***** PLATFORM-BUDDY-V148-WORK\VIDEO.JS
+***** PLATFORM-BUDDY-V148-WORK\video.js
   647:  
   648:    function vbtState(dialog) {
   649:      return dialog?._vbtState || { startTime: null, endTime: null };
   650:    }
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  635:  
+  636:    async function renderLibrary() {
+  637:      let records = await loadVideoRecords();
+  638:      if (els.filterLift.value !== "ALL") records = records.filter((record) => record.lift === els.filterLift.value);
+  639:      records.sort((a, b) => String(a.date || "").localeCompare(String(b.date || "")) * (els.sortOrder.value === "old" ? 1 : -1))
+  640:  ;
+  641:      els.libraryGrid.innerHTML = records.length
+  642:        ? records.map(libraryCardMarkup).join("")
+  643:        : `<p class="video-empty">a??a??a??c???a??Pa??a??a??a??a??a??a???a?\a?Ra???a??a??a??1a???aR?a??a?|a??a??a??a??</p>`;
+  644:      els.compareBtn.disabled = selectedForCompare.size !== 2;
+  645:      await updateStorageStatus();
+  646:    }
 *****
 
-***** PLATFORM-BUDDY-V147-WORK\video.js
-  702:  
-  703:    async function handleSave(event) {
-  704:      event.preventDefault();
-  705:      const file = els.file.files?.[0];
-  706:      if (!file) return updateStorageStatus("a??c???a??a?!a??a???a??e??Ca??a???a??a??a??a??a??");
-  707:      if (!file.type.startsWith("video/")) return updateStorageStatus("a??c???a??a?!a??a???a??e??Ca??a???a??a??a??a??a??");
-  708:      if (file.size > MAX_FILE_BYTES) return updateStorageStatus("a??c???a??a???a??a??a??a??a??a??350MBa??\a?C?a??c?RaR?a???a??a?|a??a
-  709:  ??a??a??a??");
-  710:  
-  711:      const record = {
-  712:        id: createId(),
-  713:        createdAt: new Date().toISOString(),
-  714:        updatedAt: new Date().toISOString(),
-  715:        date: els.date.value || today(),
-  716:        lift: els.lift.value,
-  717:        weight: Number(els.weight.value || 0),
-  718:        reps: Number(els.reps.value || 0),
-  719:        rpe: Number(els.rpe.value || 0),
-  720:        setType: els.setType.value,
-  721:        angle: els.angle.value,
-  722:        memo: els.memo.value.trim(),
-  723:        buddyMemo: els.buddyMemo.value.trim(),
-  724:        videoName: file.name,
-  725:        videoType: file.type,
-  726:        videoSize: file.size,
-  727:        videoBlob: file,
-  728:        check: readCheckValues(els.checkGrid),
-  729:        analysis: {
-  730:          status: "not_analyzed",
-  731:          poseKeypoints: null,
-  732:          barPathPoints: null,
-  733:          velocityData: null
-  734:        }
-  735:      };
-  736:  
-  737:      try {
-  738:        await saveVideoRecord(record);
-  739:        resetForm();
-  740:        updateStorageStatus("a??a-?a??a??a??a??a??");
-  741:        showMode("library");
-  742:      } catch (error) {
-  743:        console.error("Video save failed", error);
-  744:        updateStorageStatus("a??a-?a???a??a??a??a??a???a??a??a??c??Pa???aR1e??a??c??oea?a??a?|a??a??a??a??a??");
-  745:      }
-  746:    }
-***** PLATFORM-BUDDY-V148-WORK\VIDEO.JS
+***** PLATFORM-BUDDY-V148-WORK\video.js
   651:  
   652:    function setVbtState(dialog, nextState) {
   653:      dialog._vbtState = { ...vbtState(dialog), ...nextState };
   654:    }
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  647:  
+  648:    function ensureViewerDialog() {
+  649:      let dialog = document.querySelector("#videoViewerDialog");
+  650:      if (dialog) return dialog;
+  651:      dialog = document.createElement("dialog");
+  652:      dialog.id = "videoViewerDialog";
+  653:      dialog.className = "video-viewer-dialog";
+  654:      document.body.append(dialog);
+  655:      dialog.addEventListener("close", () => {
+  656:        const video = dialog.querySelector("video");
+  657:        if (video?.src) revokeObjectUrl(video.src);
+  658:        dialog.innerHTML = "";
+  659:      });
+  660:      return dialog;
+  661:    }
 *****
 
-***** PLATFORM-BUDDY-V147-WORK\video.js
-  747:  
-  748:    function resetForm() {
-  749:      if (els.preview.src) revokeObjectUrl(els.preview.src);
-  750:      els.form.reset();
-  751:      els.date.value = today();
-  752:      els.preview.removeAttribute("src");
-  753:      els.preview.classList.add("hidden");
-  754:      renderCheckGrid();
-  755:    }
-***** PLATFORM-BUDDY-V148-WORK\VIDEO.JS
+***** PLATFORM-BUDDY-V148-WORK\video.js
   655:  
   656:    function currentVideoTime(dialog) {
   657:      const video = dialog?.querySelector("video");
   658:      const value = Number(video?.currentTime);
   659:      return Number.isFinite(value) ? value : null;
   660:    }
-*****
-
-***** PLATFORM-BUDDY-V147-WORK\video.js
-  756:  
-  757:    async function handleLibraryClick(event) {
-  758:      const view = event.target.closest("[data-video-view]");
-  759:      if (view) return openViewer(view.dataset.videoView);
-  760:  
-  761:      const compare = event.target.closest("[data-video-compare]");
-  762:      if (compare) {
-  763:        const id = compare.dataset.videoCompare;
-  764:        if (selectedForCompare.has(id)) selectedForCompare.delete(id);
-  765:        else if (selectedForCompare.size < 2) selectedForCompare.add(id);
-  766:        else return updateStorageStatus("a?P?e??a???a??a??a??c???a??P2a???a??a???a???a??a??");
-  767:        return renderLibrary();
-  768:      }
-  769:  
-  770:      const remove = event.target.closest("[data-video-delete]");
-  771:      if (remove) {
-  772:        if (!confirm("a??a?Ra??c???e?N?e?2a??a??e??a??a??a??a??i??")) return;
-  773:        await deleteVideoRecord(remove.dataset.videoDelete);
-  774:        selectedForCompare.delete(remove.dataset.videoDelete);
-  775:        els.compareView.classList.add("hidden");
-  776:        return renderLibrary();
-  777:      }
-  778:  
-  779:      if (event.target.closest("[data-video-compare-close]")) {
-  780:        cleanupContainerVideos(els.compareView);
-  781:        els.compareView.innerHTML = "";
-  782:        els.compareView.classList.add("hidden");
-  783:      }
-  784:    }
-***** PLATFORM-BUDDY-V148-WORK\VIDEO.JS
   661:  
   662:    async function openViewer(id) {
-  663:      const record = await getVideoRecord(id);
-  664:      if (!record) return;
-  665:      const dialog = ensureViewerDialog();
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  662:  
+  663:    async function openViewer(id) {
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\video.js
   666:      const url = createObjectUrl(record.videoBlob);
   667:      dialog._vbtState = {
   668:        startTime: Number.isFinite(Number(record.analysis?.velocityData?.startTime)) ? Number(record.analysis.velocityData.startT
@@ -708,26 +1838,37 @@ Comparing files PLATFORM-BUDDY-V147-WORK\video.js and PLATFORM-BUDDY-V148-WORK\V
   671:   null
   672:      };
   673:      dialog.innerHTML = `
-  674:        <form method="dialog" class="video-viewer-card">
-  675:          <div class="section-title">
-  676:            <div><p class="eyebrow">Video Form Note</p><h2>${escapeHtml(videoTitle(record))}</h2></div>
-  677:            <button class="text-button" value="close" type="submit">e??a??a??</button>
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  667:      const url = createObjectUrl(record.videoBlob);
+  668:      dialog._vbtState = initialVbtState(record);
+  669:      dialog.innerHTML = `
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\video.js
   678:          </div>
   679:          <div class="motion-video-frame">
   680:            <video controls playsinline preload="metadata" src="${escapeHtml(url)}"></video>
   681:            <canvas class="motion-overlay" data-motion-canvas></canvas>
   682:          </div>
-  683:          <div class="video-viewer-meta">
-  684:            <span>${escapeHtml(formatDate(record.date))}</span>
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  674:          </div>
+  675:          <div class="vbt-video-frame">
+  676:            <video controls playsinline preload="metadata" src="${escapeHtml(url)}"></video>
+  677:            <canvas class="vbt-overlay" data-vbt-canvas></canvas>
+  678:          </div>
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\video.js
   685:            <span>${escapeHtml(record.setType || "e?ac??}")}</span>
   686:            <span>a?Ra??}i??${escapeHtml(record.angle || "-")}</span>
   687:          </div>
-  688:          <section class="video-check-editor">
-  689:            <div class="video-check-head"><strong>a??a?ca??a??a??a???a??a??P</strong><small>e|?e??a??a?|a??La???a???a??a??a??</small><
-  690:  /div>
-  691:            <div class="video-check-grid">${checkGridMarkup(record.lift, record.check || {})}</div>
-  692:          </section>
-  693:          <label>a?!a???<textarea data-video-view-memo rows="3">${escapeHtml(record.memo || "")}</textarea></label>
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  681:            <span>${escapeHtml(record.setType || "e?ac??}")}</span>
+  682:            <span>a?Ra??}: ${escapeHtml(record.angle || "-")}</span>
+  683:          </div>
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\video.js
   694:          <label>Buddya?!a???<textarea data-video-view-buddy rows="3">${escapeHtml(record.buddyMemo || "")}</textarea></label>
   695:          <section class="motion-analyzer-card" data-motion-card>
   696:            <div class="video-check-head">
@@ -750,31 +1891,24 @@ Comparing files PLATFORM-BUDDY-V147-WORK\video.js and PLATFORM-BUDDY-V148-WORK\V
   713:            </details>
   714:          </section>
   715:          <button class="primary-button" type="button" data-video-review-save="${escapeHtml(record.id)}">a??a?ca??a??c??oea?a??a??
-  716:  a-?</button>
-  717:        </form>
-  718:      `;
-  719:      dialog.showModal();
-  720:    }
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  690:          <label>Buddya?!a???<textarea data-video-view-buddy rows="3">${escapeHtml(record.buddyMemo || "")}</textarea></label>
+  691:          ${vbtCardMarkup(record)}
+  692:          <button class="primary-button" type="button" data-video-review-save="${escapeHtml(record.id)}">a??a?ca??a??c??oea?a??a??
 *****
 
-***** PLATFORM-BUDDY-V147-WORK\video.js
-  785:  
-  786:    els.toggle.addEventListener("click", () => {
-  787:      const open = els.body.classList.toggle("hidden") === false;
-  788:      els.toggle.textContent = open ? "e??a??a??" : "e??a??";
-  789:      els.toggle.setAttribute("aria-expanded", String(open));
-  790:      if (open) updateStorageStatus();
-  791:    });
-  792:    els.addMode.addEventListener("click", () => showMode("add"));
-  793:    els.libraryMode.addEventListener("click", () => showMode("library"));
-  794:    els.lift.addEventListener("change", () => renderCheckGrid());
-  795:    els.file.addEventListener("change", () => {
-  796:      if (els.preview.src) revokeObjectUrl(els.preview.src);
-  797:      const file = els.file.files?.[0];
-  798:      if (!file) {
-  799:        els.preview.classList.add("hidden");
-  800:        return;
-***** PLATFORM-BUDDY-V148-WORK\VIDEO.JS
+***** PLATFORM-BUDDY-V148-WORK\video.js
+  719:      dialog.showModal();
+  720:    }
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  696:      dialog.showModal();
+  697:      const video = dialog.querySelector("video");
+  698:      video?.addEventListener("loadedmetadata", () => drawVbtOverlay(dialog), { once: true });
+  699:      if (video?.readyState >= 1) drawVbtOverlay(dialog);
+  700:    }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\video.js
   721:  
   722:    async function analyzeMotionLegacy(button) {
   723:      const dialog = button.closest("dialog");
@@ -786,37 +1920,6 @@ Comparing files PLATFORM-BUDDY-V147-WORK\video.js and PLATFORM-BUDDY-V148-WORK\V
   729:      if (video.readyState < 2) {
   730:        resultBox.innerHTML = `<p>a??c???a??a?C?ao|a??c??a??a??a??a??a???a??e?2a??a?|a??a??e????a??a??a?|a??a??a??a??a??</p>`;
   731:        return;
-*****
-
-Resync Failed.  Files are too different.
-***** PLATFORM-BUDDY-V147-WORK\video.js
-  801:      }
-  802:      els.preview.src = createObjectUrl(file);
-  803:      els.preview.classList.remove("hidden");
-  804:    });
-  805:    els.form.addEventListener("submit", handleSave);
-  806:    els.filterLift.addEventListener("change", renderLibrary);
-  807:    els.sortOrder.addEventListener("change", renderLibrary);
-  808:    els.compareBtn.addEventListener("click", renderComparison);
-  809:    els.library.addEventListener("click", handleLibraryClick);
-  810:    document.addEventListener("click", (event) => {
-  811:      const saveReview = event.target.closest("[data-video-review-save]");
-  812:      if (saveReview) saveViewerReview(saveReview);
-  813:      const analyze = event.target.closest("[data-motion-analyze]");
-  814:      if (analyze) analyzeMotion(analyze);
-  815:    });
-  816:    document.addEventListener("change", (event) => {
-  817:      if (!event.target.matches("[data-motion-overlay-toggle]")) return;
-  818:      const canvas = event.target.closest("dialog")?.querySelector("[data-motion-canvas]");
-  819:      if (canvas) canvas.classList.toggle("hidden", !event.target.checked);
-  820:    });
-  821:    window.addEventListener("beforeunload", clearObjectUrls);
-  822:  
-  823:    els.date.value = today();
-  824:    renderCheckGrid();
-  825:    updateStorageStatus();
-  826:  })();
-***** PLATFORM-BUDDY-V148-WORK\VIDEO.JS
   732:      }
   733:      if (!video.videoWidth || !video.videoHeight) {
   734:        resultBox.innerHTML = `<p>a??c???a?Rea-a??e??a??a??a???e????a??a??a?|a??a??a??a??a??</p>`;
@@ -878,6 +1981,24 @@ Resync Failed.  Files are too different.
   790:        button.textContent = "c??a??Na??a???a??a??a??e????a??";
   791:      }
   792:    }
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  701:  
+  702:    async function saveViewerReview(button) {
+  703:      const dialog = button.closest("dialog");
+  704:      const record = await getVideoRecord(button.dataset.videoReviewSave);
+  705:      if (!record) return;
+  706:      record.check = readCheckValues(dialog);
+  707:      record.memo = dialog.querySelector("[data-video-view-memo]").value.trim();
+  708:      record.buddyMemo = dialog.querySelector("[data-video-view-buddy]").value.trim();
+  709:      record.updatedAt = new Date().toISOString();
+  710:      await saveVideoRecord(record);
+  711:      button.textContent = "a??a-?a??a??a??a??";
+  712:      setTimeout(() => { button.textContent = "a??a?ca??a??c??oea?a??a??a-?"; }, 1200);
+  713:      renderLibrary();
+  714:    }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\video.js
   793:  
   794:    function markVbtFrame(button) {
   795:      const dialog = button.closest("dialog");
@@ -888,6 +2009,21 @@ Resync Failed.  Files are too different.
   800:      const marker = dialog.querySelector(type === "start" ? "[data-vbt-start]" : "[data-vbt-end]");
   801:      if (marker) marker.textContent = `${type === "start" ? "e??a???" : "c???ao?"} ${formatSeconds(time)}`;
   802:    }
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  715:  
+  716:    function compareColumnMarkup(record, url) {
+  717:      return `
+  718:        <article class="video-compare-column">
+  719:          <strong>${escapeHtml(videoTitle(record))}</strong>
+  720:          <small>${escapeHtml(formatDate(record.date))} / a?Ra??}: ${escapeHtml(record.angle || "-")}</small>
+  721:          <video controls playsinline preload="metadata" src="${escapeHtml(url)}"></video>
+  722:          <p>${escapeHtml(record.buddyMemo || record.memo || "a?!a???a?aa??")}</p>
+  723:        </article>
+  724:      `;
+  725:    }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\video.js
   803:  
   804:    async function saveVbtVelocity(button) {
   805:      const dialog = button.closest("dialog");
@@ -917,31 +2053,394 @@ Resync Failed.  Files are too different.
   829:        startTime,
   830:        endTime,
   831:        distance,
+  832:        averageVelocity: distance / duration,
+  833:        updatedAt: new Date().toISOString()
+  834:      };
+  835:      record.analysis = {
+  836:        ...(record.analysis || {}),
+  837:        velocityData
+  838:      };
+  839:      record.updatedAt = new Date().toISOString();
+  840:      await saveVideoRecord(record);
+  841:      if (resultBox) resultBox.innerHTML = manualVelocityMarkup(velocityData);
+  842:      button.textContent = "a??a-?a??a??a??a??";
+  843:      setTimeout(() => { button.textContent = "e??ao|a??a??a-?"; }, 1200);
+  844:      renderLibrary();
+  845:    }
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  726:  
+  727:    async function renderComparison() {
+  728:      cleanupContainerVideos(els.compareView);
+  729:      const ids = [...selectedForCompare];
+  730:      if (ids.length !== 2) return;
+  731:      const records = await Promise.all(ids.map(getVideoRecord));
+  732:      if (records.some((record) => !record)) return;
+  733:      const urls = records.map((record) => createObjectUrl(record.videoBlob));
+  734:      els.compareView.innerHTML = `
+  735:        <div class="video-compare-head">
+  736:          <strong>a??c???a?P?e??</strong>
+  737:          <button class="text-button compact" type="button" data-video-compare-close>a?P?e??a??e??a??a??</button>
+  738:        </div>
+  739:        <div class="video-compare-grid">
+  740:          ${compareColumnMarkup(records[0], urls[0])}
+  741:          ${compareColumnMarkup(records[1], urls[1])}
+  742:        </div>
+  743:      `;
+  744:      els.compareView.classList.remove("hidden");
+  745:      els.compareView.scrollIntoView({ behavior: "smooth", block: "start" });
+  746:    }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\video.js
+  846:  
+  847:    async function analyzeMotion(button) {
+  848:      const dialog = button.closest("dialog");
+  849:      const record = await getVideoRecord(button.dataset.motionAnalyze);
+  850:      const video = dialog?.querySelector("video");
+  851:      const canvas = dialog?.querySelector("[data-motion-canvas]");
+  852:      const resultBox = dialog?.querySelector("[data-motion-result]");
+  853:      if (!record || !video || !canvas || !resultBox) return;
+  854:      if (video.readyState < 2 || !video.videoWidth || !video.videoHeight) {
+  855:        resultBox.innerHTML = `<p>a??c???a??a?C?ao|a??c??a??a??a??a??a???a??e?2a??a?|a??a??e????a??a??a?|a??a??a??a??a??</p>`;
+  856:        return;
+  857:      }
+  858:      button.disabled = true;
+  859:      button.textContent = "e????a??a?C-...";
+  860:      resultBox.innerHTML = `<p>MediaPipea??ea-a??e??a??a???a??a??a??a??a??a??a??Pa???a??a??e??a??a??a??a??a??a??a??</p>`;
+  861:      try {
+  862:        video.pause();
+  863:        const pose = await getPoseLandmarker();
+  864:        const result = pose.detectForVideo(video, Math.max(0, Math.round(video.currentTime * 1000)));
+  865:        const landmarks = result.landmarks?.[0];
+  866:        if (!landmarks?.length) {
+  867:          resultBox.innerHTML = `<p>e???c?P?c?1a??c??oea?a???a??a??a??a??a???a??a??a??a??Neo??a??e|?a??a??a??a???a??a??a???a??e????a??a??a?|
+  868:  a??a??a??a??a??</p>`;
+  869:          return;
+  870:        }
+  871:        drawPose(canvas, video, landmarks);
+  872:        const metrics = metricsFromLandmarks(landmarks);
+  873:        const summary = buildMotionSummary(record.lift, metrics);
+  874:        const analysis = {
+  875:          status: "completed",
+  876:          confidence: landmarks.filter((item) => (item.visibility || 0) >= 0.5).length >= 18 ? "high" : "medium",
+  877:          keyFrames: {
+  878:            currentTime: video.currentTime.toFixed(1),
+  879:            start: null,
+  880:            bottom: null,
+  881:            finish: null
+  882:          },
+  883:          metrics,
+  884:          flags: summary.flags,
+  885:          title: summary.title,
+  886:          lines: summary.lines,
+  887:          buddyComment: summary.buddyComment,
+  888:          poseKeypoints: compactLandmarks(landmarks),
+  889:          barPathPoints: null,
+  890:          velocityData: record.analysis?.velocityData || null,
+  891:          updatedAt: new Date().toISOString()
+  892:        };
+  893:        record.analysis = analysis;
+  894:        record.updatedAt = new Date().toISOString();
+  895:        if (!record.buddyMemo) record.buddyMemo = summary.buddyComment;
+  896:        await saveVideoRecord(record);
+  897:        resultBox.innerHTML = motionResultMarkup(analysis);
+  898:        renderLibrary();
+  899:      } catch (error) {
+  900:        console.error("Motion analysis failed", error);
+  901:        poseLandmarkerPromise = null;
+  902:        const message = error?.message ? ` ${escapeHtml(error.message)}` : "";
+  903:        resultBox.innerHTML = `<p>e????a??a???a??}a??a??a??a??a??a??e??a?!c???a??a??c??oea?a??a??a??c???a??a???a??e?2a??a?|a??ao|a??ec|a?
+  904:  ?a??a??a??a??a??${message}</p>`;
+  905:      } finally {
+  906:        button.disabled = false;
+  907:        button.textContent = "c??a??Na??a???a??a??a??e????a??";
+  908:      }
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  747:  
+  748:    async function handleSave(event) {
+  749:      event.preventDefault();
+  750:      const file = els.file.files?.[0];
+  751:      if (!file) return updateStorageStatus("a??c???a??a?!a??a???a??e??Ca??a???a??a??a??a??a??");
+  752:      if (!file.type.startsWith("video/")) return updateStorageStatus("a??c???a??a?!a??a???a??e??Ca??a???a??a??a??a??a??");
+  753:      if (file.size > MAX_FILE_BYTES) return updateStorageStatus("a??c???a??a???a??a??a??a??a??a??350MBa??\a?C?a??c?RaR?a???a??a?|a??a
+  754:  ??a??a??a??");
+  755:  
+  756:      const record = {
+  757:        id: createId(),
+  758:        createdAt: new Date().toISOString(),
+  759:        updatedAt: new Date().toISOString(),
+  760:        date: els.date.value || today(),
+  761:        lift: els.lift.value,
+  762:        weight: Number(els.weight.value || 0),
+  763:        reps: Number(els.reps.value || 0),
+  764:        rpe: Number(els.rpe.value || 0),
+  765:        setType: els.setType.value,
+  766:        angle: els.angle.value,
+  767:        memo: els.memo.value.trim(),
+  768:        buddyMemo: els.buddyMemo.value.trim(),
+  769:        videoName: file.name,
+  770:        videoType: file.type,
+  771:        videoSize: file.size,
+  772:        videoBlob: file,
+  773:        check: readCheckValues(els.checkGrid),
+  774:        analysis: { velocityData: null }
+  775:      };
+  776:  
+  777:      try {
+  778:        await saveVideoRecord(record);
+  779:        resetForm();
+  780:        updateStorageStatus("a??a-?a??a??a??a??a??");
+  781:        showMode("library");
+  782:      } catch (error) {
+  783:        console.error("Video save failed", error);
+  784:        updateStorageStatus("a??a-?a???a??a??a??a??a???a??a??a??c??Pa???aR1e??a??c??oea?a??a?|a??a??a??a??a??");
+  785:      }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\video.js
+  910:  
+  911:    async function saveViewerReview(button) {
+  912:      const dialog = button.closest("dialog");
+  913:      const record = await getVideoRecord(button.dataset.videoReviewSave);
+  914:      if (!record) return;
+  915:      record.check = readCheckValues(dialog);
+  916:      record.memo = dialog.querySelector("[data-video-view-memo]").value.trim();
+  917:      record.buddyMemo = dialog.querySelector("[data-video-view-buddy]").value.trim();
+  918:      record.updatedAt = new Date().toISOString();
+  919:      await saveVideoRecord(record);
+  920:      button.textContent = "a??a-?a??a??a??a??";
+  921:      setTimeout(() => { button.textContent = "a??a?ca??a??c??oea?a??a??a-?"; }, 1200);
+  922:      renderLibrary();
+  923:    }
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  787:  
+  788:    function resetForm() {
+  789:      if (els.preview.src) revokeObjectUrl(els.preview.src);
+  790:      els.form.reset();
+  791:      els.date.value = today();
+  792:      els.preview.removeAttribute("src");
+  793:      els.preview.classList.add("hidden");
+  794:      renderCheckGrid();
+  795:    }
+*****
+
+***** PLATFORM-BUDDY-V148-WORK\video.js
+  924:  
+  925:    function compareColumnMarkup(record, url) {
+  926:      return `
+  927:        <article class="video-compare-column">
+  928:          <strong>${escapeHtml(videoTitle(record))}</strong>
+  929:          <small>${escapeHtml(formatDate(record.date))} / a?Ra??}i??${escapeHtml(record.angle || "-")}</small>
+  930:          <video controls playsinline preload="metadata" src="${escapeHtml(url)}"></video>
+  931:          <p>${escapeHtml(record.buddyMemo || record.memo || "a?!a???a?aa??")}</p>
+  932:        </article>
+  933:      `;
+  934:    }
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  796:  
+  797:    async function handleLibraryClick(event) {
+  798:      const view = event.target.closest("[data-video-view]");
+  799:      if (view) return openViewer(view.dataset.videoView);
+  800:  
+  801:      const compare = event.target.closest("[data-video-compare]");
+  802:      if (compare) {
+  803:        const id = compare.dataset.videoCompare;
+  804:        if (selectedForCompare.has(id)) selectedForCompare.delete(id);
+  805:        else if (selectedForCompare.size < 2) selectedForCompare.add(id);
+  806:        else return updateStorageStatus("a?P?e??a???a??a??a??c???a??P2a???a??a???a???a??a??");
+  807:        return renderLibrary();
+  808:      }
+  809:  
+  810:      const remove = event.target.closest("[data-video-delete]");
+  811:      if (remove) {
+  812:        if (!confirm("a??a?Ra??c???e?N?e?2a??a??e??a??a??a??a??i??")) return;
+  813:        await deleteVideoRecord(remove.dataset.videoDelete);
+  814:        selectedForCompare.delete(remove.dataset.videoDelete);
+  815:        els.compareView.classList.add("hidden");
+  816:        return renderLibrary();
+  817:      }
+  818:  
+  819:      if (event.target.closest("[data-video-compare-close]")) {
+  820:        cleanupContainerVideos(els.compareView);
+  821:        els.compareView.innerHTML = "";
+  822:        els.compareView.classList.add("hidden");
+  823:      }
+  824:    }
+*****
+
+Resync Failed.  Files are too different.
+***** PLATFORM-BUDDY-V148-WORK\video.js
+  935:  
+  936:    async function renderComparison() {
+  937:      cleanupContainerVideos(els.compareView);
+  938:      const ids = [...selectedForCompare];
+  939:      if (ids.length !== 2) return;
+  940:      const records = await Promise.all(ids.map(getVideoRecord));
+  941:      if (records.some((record) => !record)) return;
+  942:      const urls = records.map((record) => createObjectUrl(record.videoBlob));
+  943:      els.compareView.innerHTML = `
+  944:        <div class="video-compare-head">
+  945:          <strong>a??c???a?P?e??</strong>
+  946:          <button class="text-button compact" type="button" data-video-compare-close>a?P?e??a??e??a??a??</button>
+  947:        </div>
+  948:        <div class="video-compare-grid">
+  949:          ${compareColumnMarkup(records[0], urls[0])}
+  950:          ${compareColumnMarkup(records[1], urls[1])}
+  951:        </div>
+  952:      `;
+  953:      els.compareView.classList.remove("hidden");
+  954:      els.compareView.scrollIntoView({ behavior: "smooth", block: "start" });
+  955:    }
+  956:  
+  957:    async function handleSave(event) {
+  958:      event.preventDefault();
+  959:      const file = els.file.files?.[0];
+  960:      if (!file) return updateStorageStatus("a??c???a??a?!a??a???a??e??Ca??a???a??a??a??a??a??");
+  961:      if (!file.type.startsWith("video/")) return updateStorageStatus("a??c???a??a?!a??a???a??e??Ca??a???a??a??a??a??a??");
+  962:      if (file.size > MAX_FILE_BYTES) return updateStorageStatus("a??c???a??a???a??a??a??a??a??a??350MBa??\a?C?a??c?RaR?a???a??a?|a??a
+  963:  ??a??a??a??");
+  964:  
+  965:      const record = {
+  966:        id: createId(),
+  967:        createdAt: new Date().toISOString(),
+  968:        updatedAt: new Date().toISOString(),
+  969:        date: els.date.value || today(),
+  970:        lift: els.lift.value,
+  971:        weight: Number(els.weight.value || 0),
+  972:        reps: Number(els.reps.value || 0),
+  973:        rpe: Number(els.rpe.value || 0),
+  974:        setType: els.setType.value,
+  975:        angle: els.angle.value,
+  976:        memo: els.memo.value.trim(),
+  977:        buddyMemo: els.buddyMemo.value.trim(),
+  978:        videoName: file.name,
+  979:        videoType: file.type,
+  980:        videoSize: file.size,
+  981:        videoBlob: file,
+  982:        check: readCheckValues(els.checkGrid),
+  983:        analysis: {
+  984:          status: "not_analyzed",
+  985:          poseKeypoints: null,
+  986:          barPathPoints: null,
+  987:          velocityData: null
+  988:        }
+  989:      };
+  990:  
+  991:      try {
+  992:        await saveVideoRecord(record);
+  993:        resetForm();
+  994:        updateStorageStatus("a??a-?a??a??a??a??a??");
+  995:        showMode("library");
+  996:      } catch (error) {
+  997:        console.error("Video save failed", error);
+  998:        updateStorageStatus("a??a-?a???a??a??a??a??a???a??a??a??c??Pa???aR1e??a??c??oea?a??a?|a??a??a??a??a??");
+  999:      }
+ 1000:    }
+ 1001:  
+ 1002:    function resetForm() {
+ 1003:      if (els.preview.src) revokeObjectUrl(els.preview.src);
+ 1004:      els.form.reset();
+ 1005:      els.date.value = today();
+ 1006:      els.preview.removeAttribute("src");
+ 1007:      els.preview.classList.add("hidden");
+ 1008:      renderCheckGrid();
+ 1009:    }
+ 1010:  
+ 1011:    async function handleLibraryClick(event) {
+ 1012:      const view = event.target.closest("[data-video-view]");
+ 1013:      if (view) return openViewer(view.dataset.videoView);
+ 1014:  
+ 1015:      const compare = event.target.closest("[data-video-compare]");
+ 1016:      if (compare) {
+ 1017:        const id = compare.dataset.videoCompare;
+ 1018:        if (selectedForCompare.has(id)) selectedForCompare.delete(id);
+ 1019:        else if (selectedForCompare.size < 2) selectedForCompare.add(id);
+ 1020:        else return updateStorageStatus("a?P?e??a???a??a??a??c???a??P2a???a??a???a???a??a??");
+ 1021:        return renderLibrary();
+ 1022:      }
+ 1023:  
+ 1024:      const remove = event.target.closest("[data-video-delete]");
+ 1025:      if (remove) {
+ 1026:        if (!confirm("a??a?Ra??c???e?N?e?2a??a??e??a??a??a??a??i??")) return;
+ 1027:        await deleteVideoRecord(remove.dataset.videoDelete);
+ 1028:        selectedForCompare.delete(remove.dataset.videoDelete);
+ 1029:        els.compareView.classList.add("hidden");
+ 1030:        return renderLibrary();
+ 1031:      }
+ 1032:  
+ 1033:      if (event.target.closest("[data-video-compare-close]")) {
+ 1034:        cleanupContainerVideos(els.compareView);
+***** PLATFORM-BUDDY-V149-WORK\VIDEO.JS
+  825:  
+  826:    els.toggle.addEventListener("click", () => {
+  827:      const open = els.body.classList.toggle("hidden") === false;
+  828:      els.toggle.textContent = open ? "e??a??a??" : "e??a??";
+  829:      els.toggle.setAttribute("aria-expanded", String(open));
+  830:      if (open) {
+  831:        updateStorageStatus();
+  832:        renderVbtHistory();
+  833:      }
+  834:    });
+  835:    els.addMode.addEventListener("click", () => showMode("add"));
+  836:    els.libraryMode.addEventListener("click", () => showMode("library"));
+  837:    els.lift.addEventListener("change", () => renderCheckGrid());
+  838:    els.file.addEventListener("change", () => {
+  839:      if (els.preview.src) revokeObjectUrl(els.preview.src);
+  840:      const file = els.file.files?.[0];
+  841:      if (!file) {
+  842:        els.preview.classList.add("hidden");
+  843:        return;
+  844:      }
+  845:      els.preview.src = createObjectUrl(file);
+  846:      els.preview.classList.remove("hidden");
+  847:    });
+  848:    els.form.addEventListener("submit", handleSave);
+  849:    els.filterLift.addEventListener("change", renderLibrary);
+  850:    els.sortOrder.addEventListener("change", renderLibrary);
+  851:    els.compareBtn.addEventListener("click", renderComparison);
+  852:    els.library.addEventListener("click", handleLibraryClick);
+  853:    document.addEventListener("click", (event) => {
+  854:      const vbtPick = event.target.closest("[data-vbt-pick]");
+  855:      if (vbtPick) return setVbtPickMode(vbtPick);
+  856:      const vbtReset = event.target.closest("[data-vbt-reset]");
+  857:      if (vbtReset) return resetVbt(vbtReset);
+  858:      const vbtSave = event.target.closest("[data-vbt-save]");
+  859:      if (vbtSave) return saveVbtVelocity(vbtSave);
+  860:      const vbtCopy = event.target.closest("[data-vbt-copy]");
+  861:      if (vbtCopy) return copyVbtResult(vbtCopy);
+  862:      const vbtFilter = event.target.closest("[data-vbt-filter]");
+  863:      if (vbtFilter) {
+  864:        document.querySelectorAll("[data-vbt-filter]").forEach((item) => item.classList.toggle("selected", item === vbtFilter));
+  865:        return renderVbtHistory(vbtFilter.dataset.vbtFilter);
+  866:      }
+  867:      const saveReview = event.target.closest("[data-video-review-save]");
+  868:      if (saveReview) saveViewerReview(saveReview);
+  869:    });
+  870:    document.addEventListener("pointerup", (event) => {
+  871:      if (event.target.matches("[data-vbt-canvas]")) handleVbtCanvasPointer(event);
+  872:    });
+  873:    window.addEventListener("beforeunload", clearObjectUrls);
+  874:  
+  875:    els.date.value = today();
+  876:    renderCheckGrid();
+  877:    updateStorageStatus();
+  878:    renderVbtHistory();
+  879:  })();
 *****
 
 
---- v147/sw.js
-+++ v148/sw.js
-Comparing files PLATFORM-BUDDY-V147-WORK\sw.js and PLATFORM-BUDDY-V148-WORK\SW.JS
-***** PLATFORM-BUDDY-V147-WORK\sw.js
-    1:  const CACHE_NAME = "platform-buddy-v147";
-    2:  const CORE_ASSETS = [
-***** PLATFORM-BUDDY-V148-WORK\SW.JS
+--- v148/sw.js
++++ v149/sw.js
+Comparing files PLATFORM-BUDDY-V148-WORK\sw.js and PLATFORM-BUDDY-V149-WORK\SW.JS
+***** PLATFORM-BUDDY-V148-WORK\sw.js
     1:  const CACHE_NAME = "platform-buddy-v148";
     2:  const CORE_ASSETS = [
+***** PLATFORM-BUDDY-V149-WORK\SW.JS
+    1:  const CACHE_NAME = "platform-buddy-v149";
+    2:  const CORE_ASSETS = [
 *****
 
-***** PLATFORM-BUDDY-V147-WORK\sw.js
-    4:    "index.html",
-    5:    "index.html?v=147",
-    6:    "styles.css",
-    7:    "styles.css?v=147",
-    8:    "app.js",
-    9:    "app.js?v=147",
-   10:    "video.js",
-   11:    "video.js?v=147",
-   12:    "manifest.webmanifest",
-***** PLATFORM-BUDDY-V148-WORK\SW.JS
+***** PLATFORM-BUDDY-V148-WORK\sw.js
     4:    "index.html",
     5:    "index.html?v=148",
     6:    "styles.css",
@@ -951,19 +2450,29 @@ Comparing files PLATFORM-BUDDY-V147-WORK\sw.js and PLATFORM-BUDDY-V148-WORK\SW.J
    10:    "video.js",
    11:    "video.js?v=148",
    12:    "manifest.webmanifest",
+***** PLATFORM-BUDDY-V149-WORK\SW.JS
+    4:    "index.html",
+    5:    "index.html?v=149",
+    6:    "styles.css",
+    7:    "styles.css?v=149",
+    8:    "app.js",
+    9:    "app.js?v=149",
+   10:    "video.js",
+   11:    "video.js?v=149",
+   12:    "manifest.webmanifest",
 *****
 
 
---- v147/manifest.webmanifest
-+++ v148/manifest.webmanifest
-Comparing files PLATFORM-BUDDY-V147-WORK\manifest.webmanifest and PLATFORM-BUDDY-V148-WORK\MANIFEST.WEBMANIFEST
-***** PLATFORM-BUDDY-V147-WORK\manifest.webmanifest
-    5:  ?|cR!c??a???a??a??a??a??Pa??a?aa??a??a???a?3a???a??a??PWAa???a??a??",
-    6:    "start_url": "./index.html?v=147",
-    7:    "scope": "./",
-***** PLATFORM-BUDDY-V148-WORK\MANIFEST.WEBMANIFEST
+--- v148/manifest.webmanifest
++++ v149/manifest.webmanifest
+Comparing files PLATFORM-BUDDY-V148-WORK\manifest.webmanifest and PLATFORM-BUDDY-V149-WORK\MANIFEST.WEBMANIFEST
+***** PLATFORM-BUDDY-V148-WORK\manifest.webmanifest
     5:  ?|cR!c??a???a??a??a??a??Pa??a?aa??a??a???a?3a???a??a??PWAa???a??a??",
     6:    "start_url": "./index.html?v=148",
+    7:    "scope": "./",
+***** PLATFORM-BUDDY-V149-WORK\MANIFEST.WEBMANIFEST
+    5:  ?|cR!c??a???a??a??a??a??Pa??a?aa??a??a???a?3a???a??a??PWAa???a??a??",
+    6:    "start_url": "./index.html?v=149",
     7:    "scope": "./",
 *****
 

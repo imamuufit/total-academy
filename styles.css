@@ -15877,8 +15877,8 @@ html body .video-viewer-meta span {
   }
 }
 
-/* v147: Buddy Motion Analyzer beta */
-html body .motion-video-frame {
+/* v149: BIG3 Velocity Check */
+html body .vbt-video-frame {
   position: relative;
   display: grid;
   border-radius: 12px;
@@ -15886,57 +15886,22 @@ html body .motion-video-frame {
   background: #171717;
 }
 
-html body .motion-video-frame video,
-html body .motion-video-frame canvas {
+html body .vbt-video-frame video,
+html body .vbt-video-frame canvas {
   grid-area: 1 / 1;
 }
 
-html body .motion-overlay {
+html body .vbt-overlay {
   width: 100%;
   height: 100%;
-  pointer-events: none;
+  cursor: crosshair;
   object-fit: contain;
+  touch-action: manipulation;
+  pointer-events: none;
 }
 
-html body .motion-overlay.hidden {
-  display: none !important;
-}
-
-html body .motion-analyzer-card {
-  display: grid;
-  gap: 10px;
-  border: 1px solid var(--line, #ded6c8);
-  border-left: 5px solid var(--coach, #2f6f73);
-  border-radius: 12px;
-  background:
-    linear-gradient(90deg, rgba(47, 111, 115, 0.055), transparent 46%),
-    var(--surface-soft, #fff7ed);
-  padding: 12px;
-}
-
-html body .motion-actions {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-html body .motion-toggle {
-  display: inline-flex !important;
-  align-items: center;
-  gap: 6px !important;
-  width: auto !important;
-  border: 1px solid var(--line, #ded6c8);
-  border-radius: 999px;
-  background: #ffffff;
-  color: var(--text-main, #171717);
-  padding: 8px 11px;
-  font-size: 0.78rem;
-  font-weight: 900;
-}
-
-html body .motion-toggle input {
-  width: auto !important;
+html body .vbt-overlay.active {
+  pointer-events: auto;
 }
 
 html body .motion-result {
@@ -16001,17 +15966,7 @@ html body .motion-status.done {
   color: var(--coach, #2f6f73) !important;
 }
 
-@media (max-width: 640px) {
-  html body .motion-actions > * {
-    width: 100%;
-  }
-
-  html body .motion-toggle {
-    justify-content: center;
-  }
-}
-
-/* v148: manual VBT memo */
+/* v149: manual VBT memo */
 html body .manual-vbt-card {
   display: grid;
   gap: 10px;
@@ -16043,6 +15998,13 @@ html body .vbt-controls input {
   min-height: 40px;
 }
 
+html body .vbt-controls .text-button.selected,
+html body .vbt-history-filter .text-button.selected {
+  background: var(--button-dark, #22272e);
+  color: #fffaf2;
+  border-color: var(--accent, #b42318);
+}
+
 html body .vbt-markers {
   display: flex;
   flex-wrap: wrap;
@@ -16063,6 +16025,49 @@ html body .vbt-result strong {
   font-size: 1.05rem;
 }
 
+html body .vbt-history-panel {
+  display: grid;
+  gap: 10px;
+  border: 1px solid var(--line, #ded6c8);
+  border-radius: 12px;
+  background: var(--surface, #fffaf2);
+  padding: 12px;
+}
+
+html body .vbt-history-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+html body .vbt-history-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+html body .vbt-history-card {
+  display: grid;
+  gap: 5px;
+  border: 1px solid var(--line, #ded6c8);
+  border-left: 4px solid var(--coach, #2f6f73);
+  border-radius: 10px;
+  background: #ffffff;
+  padding: 10px;
+}
+
+html body .vbt-history-card :is(strong, span) {
+  color: var(--text-main, #171717);
+}
+
+html body .vbt-history-card :is(small, p) {
+  margin: 0;
+  color: var(--text-sub, #526179);
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
 @media (max-width: 640px) {
   html body .vbt-controls {
     grid-template-columns: 1fr;
@@ -16070,5 +16075,9 @@ html body .vbt-result strong {
 
   html body .vbt-controls > * {
     width: 100%;
+  }
+
+  html body .vbt-history-list {
+    grid-template-columns: 1fr;
   }
 }

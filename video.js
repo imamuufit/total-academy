@@ -2,25 +2,16 @@
   "use strict";
 
   const DB_NAME = "platform-buddy-video-db";
-  const DB_VERSION = 1;
+  const DB_VERSION = 2;
   const STORE_NAME = "videos";
+  const VBT_STORE_NAME = "vbtRecords";
   const MAX_FILE_BYTES = 350 * 1024 * 1024;
-  const VISION_SCRIPT_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.js";
-  const VISION_MODULE_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/+esm";
-  const VISION_WASM_ROOT = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm";
-  const POSE_MODEL_URL = "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/latest/pose_landmarker_lite.task";
-  const poseConnections = [
-    [11, 12], [11, 13], [13, 15], [12, 14], [14, 16],
-    [11, 23], [12, 24], [23, 24],
-    [23, 25], [25, 27], [24, 26], [26, 28]
-  ];
-  let visionModulePromise = null;
-  let poseLandmarkerPromise = null;
+  const DEFAULT_PLATE_DIAMETER_CM = 45;
 
   const checkItems = {
     SQ: ["深さ", "膝の軌道", "上体角度", "ボトムの安定", "切り返し", "バー軌道"],
-    BP: ["降ろし位置", "胸での静止", "前腕角度", "肘の開き", "ブリッジ・肩甲骨", "押し出し", "バー軌道"],
-    DL: ["初速", "背中の固定", "膝通過", "ロックアウト", "バーの近さ", "重心"],
+    BP: ["降ろし位置", "胸での静止", "前腕角度", "肘の開き", "ブリッジ/肩甲骨", "押し出し", "バー軌道"],
+    DL: ["初動", "背中の固定", "膝通過", "ロックアウト", "バーの近さ", "重心"],
     OTHER: ["動作の安定", "左右差", "テンポ", "再現性"]
   };
   const checkOptions = ["未確認", "良い", "普通", "課題あり"];
@@ -57,8 +48,9 @@
 
   if (!els.panel || !("indexedDB" in window)) {
     if (els.panel) {
-      els.panel.querySelector(".screen-note").textContent = "このブラウザでは動画保存を利用できません。";
-      els.toggle.disabled = true;
+      const note = els.panel.querySelector(".screen-note");
+      if (note) note.textContent = "このブラウザでは動画保存を利用できません。";
+      if (els.toggle) els.toggle.disabled = true;
     }
     return;
   }
@@ -92,8 +84,8 @@
     return { SQ: "SQ", BP: "BP", DL: "DL", OTHER: "その他" }[lift] || "その他";
   }
 
-  function createId() {
-    return globalThis.crypto?.randomUUID?.() || `video_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+  function createId(prefix = "video") {
+    return globalThis.crypto?.randomUUID?.() || `${prefix}_${Date.now()}_${Math.random().toString(16).slice(2)}`;
   }
 
   function createObjectUrl(blob) {
@@ -121,296 +113,6 @@
     });
   }
 
-  function loadScriptOnce(src) {
-    const existing = document.querySelector(`script[src="${src}"]`);
-    if (existing) {
-      return existing.dataset.loaded === "true"
-        ? Promise.resolve()
-        : new Promise((resolve, reject) => {
-          existing.addEventListener("load", resolve, { once: true });
-          existing.addEventListener("error", reject, { once: true });
-        });
-    }
-    return new Promise((resolve, reject) => {
-      const script = document.createElement("script");
-      script.src = src;
-      script.async = true;
-      script.crossOrigin = "anonymous";
-      script.onload = () => {
-        script.dataset.loaded = "true";
-        resolve();
-      };
-      script.onerror = () => reject(new Error("MediaPipeの読み込みに失敗しました。"));
-      document.head.append(script);
-    });
-  }
-
-  function visionExport(name) {
-    return window[name] || window.vision?.[name] || window.tasksVision?.[name];
-  }
-
-  async function getPoseLandmarkerLegacy() {
-    if (!poseLandmarkerPromise) {
-      poseLandmarkerPromise = (async () => {
-        try {
-          await loadScriptOnce(VISION_SCRIPT_URL);
-        } catch (error) {
-          console.warn("MediaPipe script load failed", error);
-          throw new Error("MediaPipeを読み込めませんでした。通信状態を確認して、もう一度試してください。");
-        }
-        let FilesetResolver = visionExport("FilesetResolver");
-        let PoseLandmarker = visionExport("PoseLandmarker");
-        if (!FilesetResolver || !PoseLandmarker) {
-          const module = await import(VISION_MODULE_URL);
-          FilesetResolver = module.FilesetResolver;
-          PoseLandmarker = module.PoseLandmarker;
-        }
-        if (!FilesetResolver || !PoseLandmarker) {
-          throw new Error("MediaPipe Pose Landmarkerを初期化できませんでした。");
-        }
-        const resolver = await FilesetResolver.forVisionTasks(VISION_WASM_ROOT);
-        return PoseLandmarker.createFromOptions(resolver, {
-          baseOptions: {
-            modelAssetPath: POSE_MODEL_URL,
-            delegate: "GPU"
-          },
-          runningMode: "VIDEO",
-          numPoses: 1
-        });
-      })();
-    }
-    return poseLandmarkerPromise;
-  }
-
-  async function loadVisionModuleStable() {
-    if (!visionModulePromise) {
-      visionModulePromise = (async () => {
-        try {
-          const module = await import(VISION_MODULE_URL);
-          if (module.FilesetResolver && module.PoseLandmarker) return module;
-        } catch (error) {
-          console.warn("MediaPipe ESM import failed", error);
-        }
-        await loadScriptOnce(VISION_SCRIPT_URL);
-        const FilesetResolver = visionExport("FilesetResolver");
-        const PoseLandmarker = visionExport("PoseLandmarker");
-        if (!FilesetResolver || !PoseLandmarker) {
-          throw new Error("MediaPipeを読み込めませんでした。通信状態を確認して、もう一度試してください。");
-        }
-        return { FilesetResolver, PoseLandmarker };
-      })();
-    }
-    return visionModulePromise;
-  }
-
-  function createPoseLandmarkerStable(PoseLandmarker, resolver, delegate) {
-    return PoseLandmarker.createFromOptions(resolver, {
-      baseOptions: {
-        modelAssetPath: POSE_MODEL_URL,
-        delegate
-      },
-      runningMode: "VIDEO",
-      numPoses: 1
-    });
-  }
-
-  async function getPoseLandmarker() {
-    if (!poseLandmarkerPromise) {
-      poseLandmarkerPromise = (async () => {
-        const { FilesetResolver, PoseLandmarker } = await loadVisionModuleStable();
-        const resolver = await FilesetResolver.forVisionTasks(VISION_WASM_ROOT);
-        try {
-          return await createPoseLandmarkerStable(PoseLandmarker, resolver, "GPU");
-        } catch (error) {
-          console.warn("MediaPipe GPU delegate failed. Falling back to CPU.", error);
-          return createPoseLandmarkerStable(PoseLandmarker, resolver, "CPU");
-        }
-      })();
-    }
-    return poseLandmarkerPromise;
-  }
-
-  function point(landmarks, index) {
-    const value = landmarks?.[index];
-    return value && Number.isFinite(value.x) && Number.isFinite(value.y) ? value : null;
-  }
-
-  function angleBetween(a, b, c) {
-    if (!a || !b || !c) return null;
-    const ab = { x: a.x - b.x, y: a.y - b.y };
-    const cb = { x: c.x - b.x, y: c.y - b.y };
-    const dot = ab.x * cb.x + ab.y * cb.y;
-    const mag = Math.hypot(ab.x, ab.y) * Math.hypot(cb.x, cb.y);
-    if (!mag) return null;
-    return Math.round(Math.acos(Math.max(-1, Math.min(1, dot / mag))) * 180 / Math.PI);
-  }
-
-  function averageNumber(values) {
-    const numbers = values.filter((value) => Number.isFinite(value));
-    return numbers.length ? Math.round(numbers.reduce((sum, value) => sum + value, 0) / numbers.length) : null;
-  }
-
-  function torsoLeanDeg(landmarks) {
-    const leftShoulder = point(landmarks, 11);
-    const rightShoulder = point(landmarks, 12);
-    const leftHip = point(landmarks, 23);
-    const rightHip = point(landmarks, 24);
-    if (!leftShoulder || !rightShoulder || !leftHip || !rightHip) return null;
-    const shoulder = { x: (leftShoulder.x + rightShoulder.x) / 2, y: (leftShoulder.y + rightShoulder.y) / 2 };
-    const hip = { x: (leftHip.x + rightHip.x) / 2, y: (leftHip.y + rightHip.y) / 2 };
-    const dx = shoulder.x - hip.x;
-    const dy = shoulder.y - hip.y;
-    return Math.round(Math.atan2(Math.abs(dx), Math.abs(dy || 0.0001)) * 180 / Math.PI);
-  }
-
-  function asymmetryScore(landmarks) {
-    const pairs = [[11, 12], [23, 24], [25, 26], [27, 28]];
-    const diffs = pairs.map(([left, right]) => {
-      const a = point(landmarks, left);
-      const b = point(landmarks, right);
-      return a && b ? Math.abs(a.y - b.y) * 100 : null;
-    }).filter((value) => Number.isFinite(value));
-    return diffs.length ? Math.round(diffs.reduce((sum, value) => sum + value, 0) / diffs.length) : null;
-  }
-
-  function compactLandmarks(landmarks) {
-    return landmarks.map((item) => ({
-      x: Number(item.x.toFixed(4)),
-      y: Number(item.y.toFixed(4)),
-      z: Number((item.z || 0).toFixed(4)),
-      visibility: Number((item.visibility || 0).toFixed(3))
-    }));
-  }
-
-  function metricsFromLandmarks(landmarks) {
-    const leftHip = angleBetween(point(landmarks, 11), point(landmarks, 23), point(landmarks, 25));
-    const rightHip = angleBetween(point(landmarks, 12), point(landmarks, 24), point(landmarks, 26));
-    const leftKnee = angleBetween(point(landmarks, 23), point(landmarks, 25), point(landmarks, 27));
-    const rightKnee = angleBetween(point(landmarks, 24), point(landmarks, 26), point(landmarks, 28));
-    const leftElbow = angleBetween(point(landmarks, 11), point(landmarks, 13), point(landmarks, 15));
-    const rightElbow = angleBetween(point(landmarks, 12), point(landmarks, 14), point(landmarks, 16));
-    return {
-      hipAngle: averageNumber([leftHip, rightHip]),
-      kneeAngle: averageNumber([leftKnee, rightKnee]),
-      elbowAngle: averageNumber([leftElbow, rightElbow]),
-      torsoLean: torsoLeanDeg(landmarks),
-      asymmetryScore: asymmetryScore(landmarks)
-    };
-  }
-
-  function flag(label, condition, flags) {
-    if (condition) flags.push(label);
-  }
-
-  function buildMotionSummary(lift, metrics) {
-    const flags = [];
-    if (lift === "SQ") {
-      flag("torso_forward", metrics.torsoLean !== null && metrics.torsoLean >= 32, flags);
-      flag("depth_candidate", metrics.hipAngle !== null && metrics.kneeAngle !== null && metrics.hipAngle <= 75 && metrics.kneeAngle <= 90, flags);
-      flag("minor_asymmetry", metrics.asymmetryScore !== null && metrics.asymmetryScore >= 8, flags);
-      return {
-        flags,
-        title: "スクワット傾向",
-        lines: [
-          metrics.hipAngle !== null ? `股関節角度の目安: ${metrics.hipAngle}°` : "股関節角度: 確認不足",
-          metrics.kneeAngle !== null ? `膝角度の目安: ${metrics.kneeAngle}°` : "膝角度: 確認不足",
-          metrics.torsoLean !== null ? `体幹前傾: ${metrics.torsoLean}°` : "体幹前傾: 確認不足"
-        ],
-        buddyComment: flags.includes("torso_forward")
-          ? "ボトム周辺で体幹前傾が強めに見える可能性があります。次回は足裏全体に圧を残す意識で確認しましょう。"
-          : "大きな崩れは少なめに見えます。次回も同じ角度から撮ると比較しやすくなります。"
-      };
-    }
-    if (lift === "BP") {
-      flag("elbow_asymmetry", metrics.asymmetryScore !== null && metrics.asymmetryScore >= 7, flags);
-      flag("elbow_lockout_check", metrics.elbowAngle !== null && metrics.elbowAngle < 145, flags);
-      return {
-        flags,
-        title: "ベンチプレス傾向",
-        lines: [
-          metrics.elbowAngle !== null ? `肘角度の目安: ${metrics.elbowAngle}°` : "肘角度: 確認不足",
-          metrics.asymmetryScore !== null ? `左右差の目安: ${metrics.asymmetryScore}` : "左右差: 確認不足",
-          "胸での静止やバー軌道は動画本体で確認してください。"
-        ],
-        buddyComment: flags.includes("elbow_asymmetry")
-          ? "押し出しで左右差が出ている可能性があります。胸で止めた後、両手で同時に押す意識を確認しましょう。"
-          : "左右差は大きくなさそうです。次回は真横か斜め前から撮ると前腕角度を見やすくなります。"
-      };
-    }
-    if (lift === "DL") {
-      flag("torso_forward", metrics.torsoLean !== null && metrics.torsoLean >= 38, flags);
-      flag("minor_asymmetry", metrics.asymmetryScore !== null && metrics.asymmetryScore >= 8, flags);
-      return {
-        flags,
-        title: "デッドリフト傾向",
-        lines: [
-          metrics.hipAngle !== null ? `股関節角度の目安: ${metrics.hipAngle}°` : "股関節角度: 確認不足",
-          metrics.torsoLean !== null ? `背中の傾き目安: ${metrics.torsoLean}°` : "背中の傾き: 確認不足",
-          metrics.asymmetryScore !== null ? `左右差の目安: ${metrics.asymmetryScore}` : "左右差: 確認不足"
-        ],
-        buddyComment: flags.includes("torso_forward")
-          ? "引き始めで上体が強く倒れている可能性があります。広背筋でバーを近く保つ意識を確認しましょう。"
-          : "スタート姿勢は大きく崩れていないように見えます。膝通過付近も次回比較していきましょう。"
-      };
-    }
-    return {
-      flags,
-      title: "フォーム傾向",
-      lines: [
-        metrics.torsoLean !== null ? `体幹角度の目安: ${metrics.torsoLean}°` : "体幹角度: 確認不足",
-        metrics.asymmetryScore !== null ? `左右差の目安: ${metrics.asymmetryScore}` : "左右差: 確認不足"
-      ],
-      buddyComment: "全体の傾向を保存しました。次回も同じ角度で撮ると変化を見やすくなります。"
-    };
-  }
-
-  function drawPose(canvas, video, landmarks) {
-    const width = video.videoWidth || video.clientWidth || 640;
-    const height = video.videoHeight || video.clientHeight || 360;
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext("2d");
-    ctx.clearRect(0, 0, width, height);
-    ctx.lineWidth = Math.max(3, width * 0.004);
-    ctx.strokeStyle = "rgba(180, 35, 24, 0.92)";
-    ctx.fillStyle = "rgba(47, 111, 115, 0.95)";
-    poseConnections.forEach(([start, end]) => {
-      const a = point(landmarks, start);
-      const b = point(landmarks, end);
-      if (!a || !b) return;
-      ctx.beginPath();
-      ctx.moveTo(a.x * width, a.y * height);
-      ctx.lineTo(b.x * width, b.y * height);
-      ctx.stroke();
-    });
-    landmarks.forEach((landmark) => {
-      if ((landmark.visibility || 0) < 0.25) return;
-      ctx.beginPath();
-      ctx.arc(landmark.x * width, landmark.y * height, Math.max(4, width * 0.006), 0, Math.PI * 2);
-      ctx.fill();
-    });
-  }
-
-  function motionResultMarkup(analysis) {
-    if (!analysis || analysis.status !== "completed") {
-      return `<p>解析結果はまだありません。動画を止めて「現在フレームを解析」を押してください。</p>`;
-    }
-    const lines = Array.isArray(analysis.lines) ? analysis.lines : [];
-    return `
-      <div class="motion-result-chips">
-        <span>信頼度: ${escapeHtml(analysis.confidence || "medium")}</span>
-        <span>${escapeHtml(analysis.keyFrames?.currentTime || "0.0")}秒付近</span>
-      </div>
-      <strong>${escapeHtml(analysis.title || "フォーム傾向")}</strong>
-      <ul>${lines.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}</ul>
-      <p>${escapeHtml(analysis.buddyComment || "")}</p>
-      <details class="compact-guide">
-        <summary>解析値を見る</summary>
-        <pre>${escapeHtml(JSON.stringify(analysis.metrics || {}, null, 2))}</pre>
-      </details>
-    `;
-  }
-
   function requestToPromise(request) {
     return new Promise((resolve, reject) => {
       request.onsuccess = () => resolve(request.result);
@@ -436,25 +138,30 @@
           store.createIndex("date", "date");
           store.createIndex("lift", "lift");
         }
+        if (!db.objectStoreNames.contains(VBT_STORE_NAME)) {
+          const vbtStore = db.createObjectStore(VBT_STORE_NAME, { keyPath: "id" });
+          vbtStore.createIndex("date", "date");
+          vbtStore.createIndex("lift", "lift");
+        }
       };
       request.onsuccess = () => resolve(request.result);
       request.onerror = () => reject(request.error);
     });
   }
 
-  async function saveVideoRecord(record) {
+  async function saveRecord(storeName, record) {
     const db = await openVideoDb();
-    const transaction = db.transaction(STORE_NAME, "readwrite");
-    transaction.objectStore(STORE_NAME).put(record);
+    const transaction = db.transaction(storeName, "readwrite");
+    transaction.objectStore(storeName).put(record);
     await transactionDone(transaction);
     db.close();
   }
 
-  async function loadVideoRecords() {
+  async function loadRecords(storeName) {
     const db = await openVideoDb();
-    const transaction = db.transaction(STORE_NAME, "readonly");
+    const transaction = db.transaction(storeName, "readonly");
     const done = transactionDone(transaction);
-    const records = await requestToPromise(transaction.objectStore(STORE_NAME).getAll());
+    const records = await requestToPromise(transaction.objectStore(storeName).getAll());
     await done;
     db.close();
     return records;
@@ -477,6 +184,11 @@
     await transactionDone(transaction);
     db.close();
   }
+
+  const saveVideoRecord = (record) => saveRecord(STORE_NAME, record);
+  const saveVbtRecord = (record) => saveRecord(VBT_STORE_NAME, record);
+  const loadVideoRecords = () => loadRecords(STORE_NAME);
+  const loadVbtRecords = () => loadRecords(VBT_STORE_NAME);
 
   function checkGridMarkup(lift, values = {}) {
     return (checkItems[lift] || checkItems.OTHER).map((item) => `
@@ -525,14 +237,354 @@
 
   function videoTitle(record) {
     const weight = record.weight ? `${formatNumber(record.weight)}kg` : "重量未入力";
-    const reps = record.reps ? ` ×${formatNumber(record.reps)}` : "";
+    const reps = record.reps ? ` x ${formatNumber(record.reps)}` : "";
     const rpe = record.rpe ? ` @${formatNumber(record.rpe)}` : "";
     return `${liftLabel(record.lift)} ${weight}${reps}${rpe}`;
+  }
+
+  function formatSeconds(value) {
+    const number = Number(value);
+    return Number.isFinite(number) ? `${number.toFixed(2)}s` : "-";
+  }
+
+  function pixelDistance(a, b) {
+    if (!a || !b) return null;
+    return Math.hypot(a.x - b.x, a.y - b.y);
+  }
+
+  function vbtVelocityComment(lift, velocity) {
+    if (!Number.isFinite(velocity)) return "速度を計算するとBuddyコメントが出ます。";
+    const code = lift || "SQ";
+    if (code === "BP") {
+      if (velocity >= 0.35) return "かなり速めです。予定より余力がある可能性があります。";
+      if (velocity >= 0.20) return "良好です。実用ゾーンで動いています。";
+      if (velocity >= 0.15) return "重めです。RPE8.5〜9.5寄りの可能性があります。";
+      return "かなり限界寄りです。次セットは無理せず確認しましょう。";
+    }
+    if (code === "DL") {
+      if (velocity >= 0.45) return "速めです。床離れに余裕がありそうです。";
+      if (velocity >= 0.30) return "良好です。高重量の実用ゾーンです。";
+      if (velocity >= 0.20) return "重めです。RPE8.5〜9.5寄りの可能性があります。";
+      return "かなり限界寄りです。次回重量は慎重に見ましょう。";
+    }
+    if (velocity >= 0.50) return "かなり速めです。予定RPEより軽い可能性があります。";
+    if (velocity >= 0.35) return "良好です。RPE7〜8程度の実用ゾーンです。";
+    if (velocity >= 0.25) return "重めです。RPE8〜9寄りの可能性があります。";
+    return "かなり限界寄りです。次セットや次回重量は慎重に。";
+  }
+
+  function vbtRpeComment(lift, velocity, rpe) {
+    const reported = Number(rpe);
+    if (!Number.isFinite(reported) || !Number.isFinite(velocity)) return "RPEも入れると、主観とのズレを見やすくなります。";
+    const fast = lift === "BP" ? 0.35 : lift === "DL" ? 0.45 : 0.50;
+    const slow = lift === "BP" ? 0.15 : lift === "DL" ? 0.20 : 0.25;
+    if (reported >= 8.5 && velocity >= fast) return "申告RPEより速めです。RPE感覚が厳しめに出ているかもしれません。";
+    if (reported <= 7.5 && velocity < slow) return "申告RPEより遅めです。実際は重く出ている可能性があります。";
+    return "申告RPEと速度のズレは大きくなさそうです。";
+  }
+
+  function vbtResultMarkup(data) {
+    if (!data || !Number.isFinite(Number(data.meanVelocity))) {
+      return `<p>プレート径を合わせ、開始点と終了点を指定すると平均挙上速度を計算できます。</p>`;
+    }
+    return `
+      <div class="motion-result-chips">
+        <span>速度 ${escapeHtml(Number(data.meanVelocity).toFixed(2))} m/s</span>
+        <span>距離 ${escapeHtml(formatNumber(data.distanceMeters))}m</span>
+        <span>時間 ${escapeHtml(formatSeconds(data.durationSeconds))}</span>
+      </div>
+      <strong>${escapeHtml(vbtVelocityComment(data.lift, Number(data.meanVelocity)))}</strong>
+      <p>${escapeHtml(vbtRpeComment(data.lift, Number(data.meanVelocity), data.rpe))}</p>
+    `;
+  }
+
+  function vbtCardMarkup(record) {
+    const velocityData = record.analysis?.velocityData || {};
+    const calibration = velocityData.calibration || {};
+    const measurement = velocityData.measurement || velocityData;
+    const plateDiameterCm = Number.isFinite(Number(calibration.plateDiameterCm)) ? Number(calibration.plateDiameterCm) : DEFAULT_PLATE_DIAMETER_CM;
+    return `
+      <section class="manual-vbt-card" data-vbt-card>
+        <div class="video-check-head">
+          <strong>BIG3 Velocity Check β</strong>
+          <small>プレート径とバー移動から平均速度を出す</small>
+        </div>
+        <p class="video-storage-note">AI骨格解析ではありません。プレート径でキャリブレーションし、開始点と終了点から平均挙上速度を計算します。</p>
+        <div class="vbt-controls">
+          <label>プレート径 cm<input data-vbt-plate-cm type="number" inputmode="decimal" min="10" max="60" step="0.1" value="${escapeHtml(plateDiameterCm)}"></label>
+          <button class="text-button" type="button" data-vbt-pick="plateA">プレート端 1</button>
+          <button class="text-button" type="button" data-vbt-pick="plateB">プレート端 2</button>
+          <button class="text-button" type="button" data-vbt-pick="start">開始点</button>
+          <button class="text-button" type="button" data-vbt-pick="end">終了点</button>
+          <button class="text-button" type="button" data-vbt-reset>リセット</button>
+          <button class="primary-button inline" type="button" data-vbt-save="${escapeHtml(record.id)}">速度を計算</button>
+          <button class="text-button" type="button" data-vbt-copy>結果をコピー</button>
+        </div>
+        <div class="vbt-markers">
+          <span data-vbt-pick-status>動画上をタップして点を指定</span>
+          <span data-vbt-start>開始 ${escapeHtml(formatSeconds(measurement.startTime))}</span>
+          <span data-vbt-end>終了 ${escapeHtml(formatSeconds(measurement.endTime))}</span>
+        </div>
+        <div class="motion-result vbt-result" data-vbt-result>${vbtResultMarkup({ ...measurement, lift: record.lift, rpe: record.rpe })}</div>
+      </section>
+    `;
+  }
+
+  function initialVbtState(record) {
+    const velocityData = record.analysis?.velocityData || {};
+    const calibration = velocityData.calibration || {};
+    const measurement = velocityData.measurement || velocityData;
+    return {
+      pickMode: null,
+      plateA: calibration.plateA || null,
+      plateB: calibration.plateB || null,
+      startPoint: measurement.startPoint || null,
+      endPoint: measurement.endPoint || null,
+      startTime: Number.isFinite(Number(measurement.startTime)) ? Number(measurement.startTime) : null,
+      endTime: Number.isFinite(Number(measurement.endTime)) ? Number(measurement.endTime) : null
+    };
+  }
+
+  function vbtState(dialog) {
+    return dialog?._vbtState || initialVbtState({});
+  }
+
+  function setVbtState(dialog, nextState) {
+    dialog._vbtState = { ...vbtState(dialog), ...nextState };
+  }
+
+  function syncVbtCanvas(dialog) {
+    const video = dialog?.querySelector("video");
+    const canvas = dialog?.querySelector("[data-vbt-canvas]");
+    if (!video || !canvas || !video.videoWidth || !video.videoHeight) return false;
+    if (canvas.width !== video.videoWidth) canvas.width = video.videoWidth;
+    if (canvas.height !== video.videoHeight) canvas.height = video.videoHeight;
+    return true;
+  }
+
+  function canvasPointFromEvent(canvas, event) {
+    const rect = canvas.getBoundingClientRect();
+    if (!rect.width || !rect.height) return null;
+    return {
+      x: (event.clientX - rect.left) * (canvas.width / rect.width),
+      y: (event.clientY - rect.top) * (canvas.height / rect.height)
+    };
+  }
+
+  function drawPoint(ctx, point, label, color) {
+    if (!point) return;
+    ctx.fillStyle = color;
+    ctx.strokeStyle = "rgba(255, 250, 242, 0.95)";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(point.x, point.y, 8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.font = "700 18px system-ui";
+    ctx.fillText(label, point.x + 12, point.y - 12);
+  }
+
+  function drawVbtOverlay(dialog) {
+    const canvas = dialog?.querySelector("[data-vbt-canvas]");
+    if (!canvas || !syncVbtCanvas(dialog)) return;
+    const ctx = canvas.getContext("2d");
+    const state = vbtState(dialog);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.lineWidth = 5;
+    ctx.lineCap = "round";
+    if (state.plateA && state.plateB) {
+      ctx.strokeStyle = "rgba(37, 99, 235, 0.95)";
+      ctx.beginPath();
+      ctx.moveTo(state.plateA.x, state.plateA.y);
+      ctx.lineTo(state.plateB.x, state.plateB.y);
+      ctx.stroke();
+    }
+    if (state.startPoint && state.endPoint) {
+      ctx.strokeStyle = "rgba(180, 35, 24, 0.95)";
+      ctx.beginPath();
+      ctx.moveTo(state.startPoint.x, state.startPoint.y);
+      ctx.lineTo(state.endPoint.x, state.endPoint.y);
+      ctx.stroke();
+    }
+    drawPoint(ctx, state.plateA, "P1", "#2563eb");
+    drawPoint(ctx, state.plateB, "P2", "#2563eb");
+    drawPoint(ctx, state.startPoint, "START", "#171717");
+    drawPoint(ctx, state.endPoint, "END", "#b42318");
+  }
+
+  function setVbtPickMode(button) {
+    const dialog = button.closest("dialog");
+    const mode = button.dataset.vbtPick;
+    setVbtState(dialog, { pickMode: mode });
+    dialog.querySelector("[data-vbt-canvas]")?.classList.add("active");
+    dialog.querySelectorAll("[data-vbt-pick]").forEach((item) => item.classList.toggle("selected", item === button));
+    const status = dialog.querySelector("[data-vbt-pick-status]");
+    const label = { plateA: "プレート端1", plateB: "プレート端2", start: "開始点", end: "終了点" }[mode] || "点";
+    if (status) status.textContent = `${label}を動画上でタップ`;
+  }
+
+  function handleVbtCanvasPointer(event) {
+    const dialog = event.target.closest("dialog");
+    const canvas = event.target.closest("[data-vbt-canvas]");
+    if (!dialog || !canvas || !syncVbtCanvas(dialog)) return;
+    const state = vbtState(dialog);
+    if (!state.pickMode) return;
+    const point = canvasPointFromEvent(canvas, event);
+    const video = dialog.querySelector("video");
+    const time = Number(video?.currentTime);
+    const key = state.pickMode === "plateA" ? "plateA" : state.pickMode === "plateB" ? "plateB" : state.pickMode === "start" ? "startPoint" : "endPoint";
+    const update = { [key]: point };
+    if (state.pickMode === "start" && Number.isFinite(time)) update.startTime = time;
+    if (state.pickMode === "end" && Number.isFinite(time)) update.endTime = time;
+    setVbtState(dialog, update);
+    const marker = dialog.querySelector(state.pickMode === "start" ? "[data-vbt-start]" : state.pickMode === "end" ? "[data-vbt-end]" : "[data-vbt-pick-status]");
+    if (marker) marker.textContent = state.pickMode === "start" ? `開始 ${formatSeconds(time)}` : state.pickMode === "end" ? `終了 ${formatSeconds(time)}` : "キャリブレーション点を保存";
+    setVbtState(dialog, { pickMode: null });
+    canvas.classList.remove("active");
+    dialog.querySelectorAll("[data-vbt-pick]").forEach((item) => item.classList.remove("selected"));
+    drawVbtOverlay(dialog);
+  }
+
+  function resetVbt(button) {
+    const dialog = button.closest("dialog");
+    setVbtState(dialog, { pickMode: null, plateA: null, plateB: null, startPoint: null, endPoint: null, startTime: null, endTime: null });
+    const resultBox = dialog.querySelector("[data-vbt-result]");
+    if (resultBox) resultBox.innerHTML = vbtResultMarkup(null);
+    const status = dialog.querySelector("[data-vbt-pick-status]");
+    if (status) status.textContent = "動画上をタップして点を指定";
+    const start = dialog.querySelector("[data-vbt-start]");
+    const end = dialog.querySelector("[data-vbt-end]");
+    if (start) start.textContent = "開始 -";
+    if (end) end.textContent = "終了 -";
+    dialog.querySelectorAll("[data-vbt-pick]").forEach((item) => item.classList.remove("selected"));
+    dialog.querySelector("[data-vbt-canvas]")?.classList.remove("active");
+    drawVbtOverlay(dialog);
+  }
+
+  function calculateVbt(dialog, record) {
+    const state = vbtState(dialog);
+    const plateDiameterCm = Number(dialog.querySelector("[data-vbt-plate-cm]")?.value || DEFAULT_PLATE_DIAMETER_CM);
+    const plateDiameterPixels = pixelDistance(state.plateA, state.plateB);
+    const travelPixels = pixelDistance(state.startPoint, state.endPoint);
+    const durationSeconds = Number(state.endTime) - Number(state.startTime);
+    if (!Number.isFinite(plateDiameterCm) || plateDiameterCm <= 0) throw new Error("プレート径を入力してください。");
+    if (!Number.isFinite(plateDiameterPixels) || plateDiameterPixels <= 0) throw new Error("プレート端を2点指定してください。");
+    if (!Number.isFinite(travelPixels) || travelPixels <= 0) throw new Error("開始点と終了点を指定してください。");
+    if (!Number.isFinite(durationSeconds) || durationSeconds <= 0) throw new Error("終了点は開始点より後のフレームで指定してください。");
+    const metersPerPixel = (plateDiameterCm / 100) / plateDiameterPixels;
+    const distanceMeters = travelPixels * metersPerPixel;
+    const meanVelocity = distanceMeters / durationSeconds;
+    return {
+      mode: "plate-calibrated-manual",
+      lift: record.lift,
+      weight: Number(record.weight) || null,
+      reps: Number(record.reps) || null,
+      rpe: Number(record.rpe) || null,
+      calibration: { plateDiameterCm, plateDiameterPixels, metersPerPixel, plateA: state.plateA, plateB: state.plateB },
+      measurement: { startTime: Number(state.startTime), endTime: Number(state.endTime), durationSeconds, startPoint: state.startPoint, endPoint: state.endPoint, distanceMeters, meanVelocity },
+      meanVelocity,
+      buddyComment: vbtVelocityComment(record.lift, meanVelocity),
+      rpeComment: vbtRpeComment(record.lift, meanVelocity, record.rpe),
+      updatedAt: new Date().toISOString()
+    };
+  }
+
+  async function saveVbtVelocity(button) {
+    const dialog = button.closest("dialog");
+    const record = await getVideoRecord(button.dataset.vbtSave);
+    const resultBox = dialog?.querySelector("[data-vbt-result]");
+    if (!record || !dialog || !resultBox) return;
+    try {
+      const velocityData = calculateVbt(dialog, record);
+      record.analysis = { ...(record.analysis || {}), velocityData };
+      record.updatedAt = new Date().toISOString();
+      await saveVideoRecord(record);
+      await saveVbtRecord({
+        id: createId("vbt"),
+        videoId: record.id,
+        createdAt: new Date().toISOString(),
+        date: record.date || today(),
+        lift: record.lift,
+        weight: Number(record.weight) || null,
+        reps: Number(record.reps) || null,
+        rpe: Number(record.rpe) || null,
+        videoName: record.videoName || "",
+        cameraAngle: record.angle || "",
+        ...velocityData
+      });
+      resultBox.innerHTML = vbtResultMarkup({ ...velocityData.measurement, lift: record.lift, rpe: record.rpe });
+      button.textContent = "保存しました";
+      setTimeout(() => { button.textContent = "速度を計算"; }, 1200);
+      renderLibrary();
+      renderVbtHistory();
+    } catch (error) {
+      resultBox.innerHTML = `<p>${escapeHtml(error.message || "速度を計算できませんでした。")}</p>`;
+    }
+  }
+
+  function vbtCopyText(record, velocityData) {
+    const measurement = velocityData?.measurement || velocityData || {};
+    const velocity = Number(measurement.meanVelocity);
+    return `${liftLabel(record.lift)} ${record.weight ? `${formatNumber(record.weight)}kg` : ""}${record.reps ? ` x ${formatNumber(record.reps)}` : ""}${record.rpe ? ` @${formatNumber(record.rpe)}` : ""}\nMean Velocity ${Number.isFinite(velocity) ? velocity.toFixed(2) : "-"} m/s\nBuddy: ${vbtVelocityComment(record.lift, velocity)}`;
+  }
+
+  async function copyVbtResult(button) {
+    const dialog = button.closest("dialog");
+    const record = await getVideoRecord(dialog?.querySelector("[data-vbt-save]")?.dataset.vbtSave);
+    if (!record?.analysis?.velocityData) return;
+    const text = vbtCopyText(record, record.analysis.velocityData);
+    await navigator.clipboard?.writeText(text);
+    button.textContent = "コピーしました";
+    setTimeout(() => { button.textContent = "結果をコピー"; }, 1200);
+  }
+
+  function ensureVbtHistorySection() {
+    let section = document.querySelector("#vbtHistoryPanel");
+    if (section || !els.body) return section;
+    section = document.createElement("section");
+    section.id = "vbtHistoryPanel";
+    section.className = "vbt-history-panel";
+    section.innerHTML = `
+      <div class="video-check-head"><strong>VBT履歴</strong><small>BIG3の速度メモ</small></div>
+      <div class="vbt-history-filter">
+        <button class="text-button selected" type="button" data-vbt-filter="ALL">すべて</button>
+        <button class="text-button" type="button" data-vbt-filter="SQ">SQ</button>
+        <button class="text-button" type="button" data-vbt-filter="BP">BP</button>
+        <button class="text-button" type="button" data-vbt-filter="DL">DL</button>
+      </div>
+      <div class="vbt-history-list" id="vbtHistoryList"></div>
+    `;
+    els.body.append(section);
+    return section;
+  }
+
+  function vbtHistoryMarkup(record) {
+    const measurement = record.measurement || {};
+    const velocity = Number(measurement.meanVelocity);
+    return `
+      <article class="vbt-history-card">
+        <strong>${escapeHtml(liftLabel(record.lift))} ${record.weight ? `${escapeHtml(formatNumber(record.weight))}kg` : ""}${record.reps ? ` x ${escapeHtml(formatNumber(record.reps))}` : ""}${record.rpe ? ` @${escapeHtml(formatNumber(record.rpe))}` : ""}</strong>
+        <span>平均速度 ${Number.isFinite(velocity) ? escapeHtml(velocity.toFixed(2)) : "-"} m/s</span>
+        <small>${escapeHtml(formatDate(record.date))}</small>
+        <p>${escapeHtml(record.buddyComment || vbtVelocityComment(record.lift, velocity))}</p>
+      </article>
+    `;
+  }
+
+  async function renderVbtHistory(filter = "ALL") {
+    const section = ensureVbtHistorySection();
+    const list = section?.querySelector("#vbtHistoryList");
+    if (!list) return;
+    let records = await loadVbtRecords();
+    if (filter !== "ALL") records = records.filter((record) => record.lift === filter);
+    records.sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+    list.innerHTML = records.length ? records.slice(0, 20).map(vbtHistoryMarkup).join("") : `<p class="video-empty">まだVBT記録はありません。</p>`;
   }
 
   function libraryCardMarkup(record) {
     const checked = selectedForCompare.has(record.id);
     const memo = record.buddyMemo || record.memo || "メモなし";
+    const velocity = Number(record.analysis?.velocityData?.measurement?.meanVelocity ?? record.analysis?.velocityData?.meanVelocity);
     return `
       <article class="video-library-card">
         <div class="video-card-head">
@@ -540,8 +592,8 @@
           <small>${escapeHtml(formatDate(record.date))}</small>
         </div>
         <strong>${escapeHtml(videoTitle(record))}</strong>
-        <p class="motion-status ${record.analysis?.status === "completed" ? "done" : ""}">解析：${record.analysis?.status === "completed" ? "完了" : "未解析"}</p>
-        <p>撮影：${escapeHtml(record.angle || "-")}</p>
+        <p class="motion-status ${Number.isFinite(velocity) ? "done" : ""}">VBT: ${Number.isFinite(velocity) ? `${escapeHtml(velocity.toFixed(2))} m/s` : "未計測"}</p>
+        <p>撮影: ${escapeHtml(record.angle || "-")}</p>
         <p>${escapeHtml(memo)}</p>
         <div class="video-card-actions">
           <button class="primary-button inline" type="button" data-video-view="${escapeHtml(record.id)}">見る</button>
@@ -578,88 +630,26 @@
     return dialog;
   }
 
-  function formatSeconds(value) {
-    const number = Number(value);
-    return Number.isFinite(number) ? `${number.toFixed(2)}s` : "-";
-  }
-
-  function manualVelocityMarkup(velocityData) {
-    if (!velocityData || !Number.isFinite(Number(velocityData.averageVelocity))) {
-      return `<p>開始フレームと終了フレームを指定すると、平均挙上速度を記録できます。</p>`;
-    }
-    return `
-      <div class="motion-result-chips">
-        <span>開始 ${escapeHtml(formatSeconds(velocityData.startTime))}</span>
-        <span>終了 ${escapeHtml(formatSeconds(velocityData.endTime))}</span>
-        <span>距離 ${escapeHtml(formatNumber(velocityData.distance))}m</span>
-      </div>
-      <strong>平均速度 ${escapeHtml(Number(velocityData.averageVelocity).toFixed(2))} m/s</strong>
-      <p>バー自動追跡ではなく、指定した区間から算出した簡易VBTメモです。</p>
-    `;
-  }
-
-  function vbtCardMarkup(record) {
-    const velocityData = record.analysis?.velocityData || {};
-    const distance = Number.isFinite(Number(velocityData.distance)) ? Number(velocityData.distance) : 0.5;
-    return `
-      <section class="manual-vbt-card" data-vbt-card>
-        <div class="video-check-head">
-          <strong>挙上速度メモ β</strong>
-          <small>開始・終了を手動指定</small>
-        </div>
-        <p class="video-storage-note">バー自動追跡ではありません。動画を止めて、開始と終了を押す簡易VBTです。</p>
-        <div class="vbt-controls">
-          <button class="text-button" type="button" data-vbt-mark="start" data-video-id="${escapeHtml(record.id)}">開始フレーム</button>
-          <button class="text-button" type="button" data-vbt-mark="end" data-video-id="${escapeHtml(record.id)}">終了フレーム</button>
-          <label>移動距離 m<input data-vbt-distance type="number" inputmode="decimal" min="0.05" max="2" step="0.01" value="${escapeHtml(distance)}"></label>
-          <button class="primary-button inline" type="button" data-vbt-save="${escapeHtml(record.id)}">速度を保存</button>
-        </div>
-        <div class="vbt-markers">
-          <span data-vbt-start>開始 ${escapeHtml(formatSeconds(velocityData.startTime))}</span>
-          <span data-vbt-end>終了 ${escapeHtml(formatSeconds(velocityData.endTime))}</span>
-        </div>
-        <div class="motion-result vbt-result" data-vbt-result>${manualVelocityMarkup(velocityData)}</div>
-      </section>
-    `;
-  }
-
-  function vbtState(dialog) {
-    return dialog?._vbtState || { startTime: null, endTime: null };
-  }
-
-  function setVbtState(dialog, nextState) {
-    dialog._vbtState = { ...vbtState(dialog), ...nextState };
-  }
-
-  function currentVideoTime(dialog) {
-    const video = dialog?.querySelector("video");
-    const value = Number(video?.currentTime);
-    return Number.isFinite(value) ? value : null;
-  }
-
   async function openViewer(id) {
     const record = await getVideoRecord(id);
     if (!record) return;
     const dialog = ensureViewerDialog();
     const url = createObjectUrl(record.videoBlob);
-    dialog._vbtState = {
-      startTime: Number.isFinite(Number(record.analysis?.velocityData?.startTime)) ? Number(record.analysis.velocityData.startTime) : null,
-      endTime: Number.isFinite(Number(record.analysis?.velocityData?.endTime)) ? Number(record.analysis.velocityData.endTime) : null
-    };
+    dialog._vbtState = initialVbtState(record);
     dialog.innerHTML = `
       <form method="dialog" class="video-viewer-card">
         <div class="section-title">
           <div><p class="eyebrow">Video Form Note</p><h2>${escapeHtml(videoTitle(record))}</h2></div>
           <button class="text-button" value="close" type="submit">閉じる</button>
         </div>
-        <div class="motion-video-frame">
+        <div class="vbt-video-frame">
           <video controls playsinline preload="metadata" src="${escapeHtml(url)}"></video>
-          <canvas class="motion-overlay" data-motion-canvas></canvas>
+          <canvas class="vbt-overlay" data-vbt-canvas></canvas>
         </div>
         <div class="video-viewer-meta">
           <span>${escapeHtml(formatDate(record.date))}</span>
           <span>${escapeHtml(record.setType || "自由")}</span>
-          <span>撮影：${escapeHtml(record.angle || "-")}</span>
+          <span>撮影: ${escapeHtml(record.angle || "-")}</span>
         </div>
         <section class="video-check-editor">
           <div class="video-check-head"><strong>フォームチェック</strong><small>見返して更新できます</small></div>
@@ -667,211 +657,14 @@
         </section>
         <label>メモ<textarea data-video-view-memo rows="3">${escapeHtml(record.memo || "")}</textarea></label>
         <label>Buddyメモ<textarea data-video-view-buddy rows="3">${escapeHtml(record.buddyMemo || "")}</textarea></label>
-        <section class="motion-analyzer-card" data-motion-card>
-          <div class="video-check-head">
-            <strong>Buddy Motion Analyzer β</strong>
-            <small>動画は外部送信せず、現在フレームだけを端末内で解析します。</small>
-          </div>
-          <p class="video-storage-note">AIフォーム解析は補助機能です。撮影角度、照明、服装、動画品質によって結果が変わります。最終判断は動画本体とコーチの確認を優先してください。</p>
-          <div class="motion-actions">
-            <button class="primary-button inline" type="button" data-motion-analyze="${escapeHtml(record.id)}">現在フレームを解析</button>
-            <label class="motion-toggle"><input type="checkbox" data-motion-overlay-toggle checked>骨格表示</label>
-          </div>
-          <div class="motion-result" data-motion-result>${motionResultMarkup(record.analysis)}</div>
-          ${vbtCardMarkup(record)}
-          <details class="compact-guide">
-            <summary>撮影ガイド</summary>
-            <p>SQは真横または斜め後ろ、BPは真横または斜め前、DLは真横または斜め前がおすすめです。全身とバーベルを画面に入れてください。</p>
-          </details>
-        </section>
+        ${vbtCardMarkup(record)}
         <button class="primary-button" type="button" data-video-review-save="${escapeHtml(record.id)}">フォーム確認を保存</button>
       </form>
     `;
     dialog.showModal();
-  }
-
-  async function analyzeMotionLegacy(button) {
-    const dialog = button.closest("dialog");
-    const record = await getVideoRecord(button.dataset.motionAnalyze);
-    const video = dialog?.querySelector("video");
-    const canvas = dialog?.querySelector("[data-motion-canvas]");
-    const resultBox = dialog?.querySelector("[data-motion-result]");
-    if (!record || !video || !canvas || !resultBox) return;
-    if (video.readyState < 2) {
-      resultBox.innerHTML = `<p>動画を一度再生するか、少し進めてから解析してください。</p>`;
-      return;
-    }
-    if (!video.videoWidth || !video.videoHeight) {
-      resultBox.innerHTML = `<p>動画の読み込み後に解析してください。</p>`;
-      return;
-    }
-    button.disabled = true;
-    button.textContent = "解析中...";
-    button.textContent = "解析中...";
-    resultBox.innerHTML = `<p>MediaPipeを読み込んでいます。初回は少し時間がかかります。</p>`;
-    try {
-      video.pause();
-      const pose = await getPoseLandmarker();
-      const result = pose.detectForVideo(video, Math.max(0, Math.round(video.currentTime * 1000)));
-      const landmarks = result.landmarks?.[0];
-      if (!landmarks?.length) {
-        resultBox.innerHTML = `<p>関節点を確認できませんでした。全身が映るフレームで再解析してください。</p>`;
-        return;
-      }
-      drawPose(canvas, video, landmarks);
-      const metrics = metricsFromLandmarks(landmarks);
-      const summary = buildMotionSummary(record.lift, metrics);
-      const analysis = {
-        status: "completed",
-        confidence: landmarks.filter((item) => (item.visibility || 0) >= 0.5).length >= 18 ? "high" : "medium",
-        keyFrames: {
-          currentTime: video.currentTime.toFixed(1),
-          start: null,
-          bottom: null,
-          finish: null
-        },
-        metrics,
-        flags: summary.flags,
-        title: summary.title,
-        lines: summary.lines,
-        buddyComment: summary.buddyComment,
-        poseKeypoints: compactLandmarks(landmarks),
-        barPathPoints: null,
-        velocityData: record.analysis?.velocityData || null,
-        updatedAt: new Date().toISOString()
-      };
-      record.analysis = analysis;
-      record.updatedAt = new Date().toISOString();
-      if (!record.buddyMemo) record.buddyMemo = summary.buddyComment;
-      await saveVideoRecord(record);
-      resultBox.innerHTML = motionResultMarkup(analysis);
-      renderLibrary();
-    } catch (error) {
-      console.error("Motion analysis failed", error);
-      poseLandmarkerPromise = null;
-      const message = error?.message ? ` ${escapeHtml(error.message)}` : "";
-      resultBox.innerHTML = `<p>解析に失敗しました。通信状態を確認し、動画を少し進めて再度お試しください。${message}</p>`;
-      resultBox.innerHTML = `<p>解析に失敗しました。オンライン接続、動画の明るさ、全身が映っているかを確認してください。</p>`;
-    } finally {
-      button.disabled = false;
-      button.textContent = "現在フレームを解析";
-      button.textContent = "現在フレームを解析";
-    }
-  }
-
-  function markVbtFrame(button) {
-    const dialog = button.closest("dialog");
-    const time = currentVideoTime(dialog);
-    if (time === null) return;
-    const type = button.dataset.vbtMark;
-    setVbtState(dialog, type === "start" ? { startTime: time } : { endTime: time });
-    const marker = dialog.querySelector(type === "start" ? "[data-vbt-start]" : "[data-vbt-end]");
-    if (marker) marker.textContent = `${type === "start" ? "開始" : "終了"} ${formatSeconds(time)}`;
-  }
-
-  async function saveVbtVelocity(button) {
-    const dialog = button.closest("dialog");
-    const record = await getVideoRecord(button.dataset.vbtSave);
-    if (!record) return;
-    const state = vbtState(dialog);
-    const distanceInput = dialog.querySelector("[data-vbt-distance]");
-    const resultBox = dialog.querySelector("[data-vbt-result]");
-    const distance = Number(distanceInput?.value);
-    const startTime = Number(state.startTime);
-    const endTime = Number(state.endTime);
-    if (!Number.isFinite(startTime) || !Number.isFinite(endTime)) {
-      if (resultBox) resultBox.innerHTML = `<p>開始フレームと終了フレームを指定してください。</p>`;
-      return;
-    }
-    const duration = endTime - startTime;
-    if (duration <= 0) {
-      if (resultBox) resultBox.innerHTML = `<p>終了フレームは開始フレームより後にしてください。</p>`;
-      return;
-    }
-    if (!Number.isFinite(distance) || distance <= 0) {
-      if (resultBox) resultBox.innerHTML = `<p>移動距離を入力してください。</p>`;
-      return;
-    }
-    const velocityData = {
-      mode: "manual",
-      startTime,
-      endTime,
-      distance,
-      averageVelocity: distance / duration,
-      updatedAt: new Date().toISOString()
-    };
-    record.analysis = {
-      ...(record.analysis || {}),
-      velocityData
-    };
-    record.updatedAt = new Date().toISOString();
-    await saveVideoRecord(record);
-    if (resultBox) resultBox.innerHTML = manualVelocityMarkup(velocityData);
-    button.textContent = "保存しました";
-    setTimeout(() => { button.textContent = "速度を保存"; }, 1200);
-    renderLibrary();
-  }
-
-  async function analyzeMotion(button) {
-    const dialog = button.closest("dialog");
-    const record = await getVideoRecord(button.dataset.motionAnalyze);
-    const video = dialog?.querySelector("video");
-    const canvas = dialog?.querySelector("[data-motion-canvas]");
-    const resultBox = dialog?.querySelector("[data-motion-result]");
-    if (!record || !video || !canvas || !resultBox) return;
-    if (video.readyState < 2 || !video.videoWidth || !video.videoHeight) {
-      resultBox.innerHTML = `<p>動画を一度再生するか、少し進めてから解析してください。</p>`;
-      return;
-    }
-    button.disabled = true;
-    button.textContent = "解析中...";
-    resultBox.innerHTML = `<p>MediaPipeを読み込んでいます。初回は少し時間がかかります。</p>`;
-    try {
-      video.pause();
-      const pose = await getPoseLandmarker();
-      const result = pose.detectForVideo(video, Math.max(0, Math.round(video.currentTime * 1000)));
-      const landmarks = result.landmarks?.[0];
-      if (!landmarks?.length) {
-        resultBox.innerHTML = `<p>関節点を確認できませんでした。全身が見えるフレームで再解析してください。</p>`;
-        return;
-      }
-      drawPose(canvas, video, landmarks);
-      const metrics = metricsFromLandmarks(landmarks);
-      const summary = buildMotionSummary(record.lift, metrics);
-      const analysis = {
-        status: "completed",
-        confidence: landmarks.filter((item) => (item.visibility || 0) >= 0.5).length >= 18 ? "high" : "medium",
-        keyFrames: {
-          currentTime: video.currentTime.toFixed(1),
-          start: null,
-          bottom: null,
-          finish: null
-        },
-        metrics,
-        flags: summary.flags,
-        title: summary.title,
-        lines: summary.lines,
-        buddyComment: summary.buddyComment,
-        poseKeypoints: compactLandmarks(landmarks),
-        barPathPoints: null,
-        velocityData: record.analysis?.velocityData || null,
-        updatedAt: new Date().toISOString()
-      };
-      record.analysis = analysis;
-      record.updatedAt = new Date().toISOString();
-      if (!record.buddyMemo) record.buddyMemo = summary.buddyComment;
-      await saveVideoRecord(record);
-      resultBox.innerHTML = motionResultMarkup(analysis);
-      renderLibrary();
-    } catch (error) {
-      console.error("Motion analysis failed", error);
-      poseLandmarkerPromise = null;
-      const message = error?.message ? ` ${escapeHtml(error.message)}` : "";
-      resultBox.innerHTML = `<p>解析に失敗しました。通信状態を確認し、動画を少し進めて再度お試しください。${message}</p>`;
-    } finally {
-      button.disabled = false;
-      button.textContent = "現在フレームを解析";
-    }
+    const video = dialog.querySelector("video");
+    video?.addEventListener("loadedmetadata", () => drawVbtOverlay(dialog), { once: true });
+    if (video?.readyState >= 1) drawVbtOverlay(dialog);
   }
 
   async function saveViewerReview(button) {
@@ -892,7 +685,7 @@
     return `
       <article class="video-compare-column">
         <strong>${escapeHtml(videoTitle(record))}</strong>
-        <small>${escapeHtml(formatDate(record.date))} / 撮影：${escapeHtml(record.angle || "-")}</small>
+        <small>${escapeHtml(formatDate(record.date))} / 撮影: ${escapeHtml(record.angle || "-")}</small>
         <video controls playsinline preload="metadata" src="${escapeHtml(url)}"></video>
         <p>${escapeHtml(record.buddyMemo || record.memo || "メモなし")}</p>
       </article>
@@ -945,12 +738,7 @@
       videoSize: file.size,
       videoBlob: file,
       check: readCheckValues(els.checkGrid),
-      analysis: {
-        status: "not_analyzed",
-        poseKeypoints: null,
-        barPathPoints: null,
-        velocityData: null
-      }
+      analysis: { velocityData: null }
     };
 
     try {
@@ -1006,7 +794,10 @@
     const open = els.body.classList.toggle("hidden") === false;
     els.toggle.textContent = open ? "閉じる" : "開く";
     els.toggle.setAttribute("aria-expanded", String(open));
-    if (open) updateStorageStatus();
+    if (open) {
+      updateStorageStatus();
+      renderVbtHistory();
+    }
   });
   els.addMode.addEventListener("click", () => showMode("add"));
   els.libraryMode.addEventListener("click", () => showMode("library"));
@@ -1027,23 +818,29 @@
   els.compareBtn.addEventListener("click", renderComparison);
   els.library.addEventListener("click", handleLibraryClick);
   document.addEventListener("click", (event) => {
-    const vbtMark = event.target.closest("[data-vbt-mark]");
-    if (vbtMark) return markVbtFrame(vbtMark);
+    const vbtPick = event.target.closest("[data-vbt-pick]");
+    if (vbtPick) return setVbtPickMode(vbtPick);
+    const vbtReset = event.target.closest("[data-vbt-reset]");
+    if (vbtReset) return resetVbt(vbtReset);
     const vbtSave = event.target.closest("[data-vbt-save]");
     if (vbtSave) return saveVbtVelocity(vbtSave);
+    const vbtCopy = event.target.closest("[data-vbt-copy]");
+    if (vbtCopy) return copyVbtResult(vbtCopy);
+    const vbtFilter = event.target.closest("[data-vbt-filter]");
+    if (vbtFilter) {
+      document.querySelectorAll("[data-vbt-filter]").forEach((item) => item.classList.toggle("selected", item === vbtFilter));
+      return renderVbtHistory(vbtFilter.dataset.vbtFilter);
+    }
     const saveReview = event.target.closest("[data-video-review-save]");
     if (saveReview) saveViewerReview(saveReview);
-    const analyze = event.target.closest("[data-motion-analyze]");
-    if (analyze) analyzeMotion(analyze);
   });
-  document.addEventListener("change", (event) => {
-    if (!event.target.matches("[data-motion-overlay-toggle]")) return;
-    const canvas = event.target.closest("dialog")?.querySelector("[data-motion-canvas]");
-    if (canvas) canvas.classList.toggle("hidden", !event.target.checked);
+  document.addEventListener("pointerup", (event) => {
+    if (event.target.matches("[data-vbt-canvas]")) handleVbtCanvasPointer(event);
   });
   window.addEventListener("beforeunload", clearObjectUrls);
 
   els.date.value = today();
   renderCheckGrid();
   updateStorageStatus();
+  renderVbtHistory();
 })();
