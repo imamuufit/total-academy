@@ -15990,7 +15990,7 @@ html body .motion-status.done {
   color: var(--coach, #2f6f73) !important;
 }
 
-/* v149: manual VBT memo */
+/* v151: VBT Studio automatic flow */
 html body .manual-vbt-card {
   display: grid;
   gap: 10px;
@@ -16012,15 +16012,29 @@ html body .vbt-trim-card {
   padding: 10px;
 }
 
-html body .vbt-trim-actions {
-  display: flex;
-  flex-wrap: wrap;
+html body .vbt-trim-range {
+  display: grid;
   gap: 8px;
+}
+
+html body .vbt-trim-range label {
+  display: grid !important;
+  grid-template-columns: 44px 1fr;
+  align-items: center;
+  gap: 8px !important;
+  color: var(--text-main, #171717);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+html body .vbt-trim-range input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent, #b42318);
 }
 
 html body .vbt-controls {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(120px, 0.7fr) repeat(2, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -16062,6 +16076,22 @@ html body .vbt-markers span {
 
 html body .vbt-result strong {
   font-size: 1.05rem;
+}
+
+html body .vbt-rep-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+html body .vbt-rep-list span {
+  border: 1px solid var(--line, #ded6c8);
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--text-main, #171717);
+  padding: 5px 9px;
+  font-size: 0.76rem;
+  font-weight: 900;
 }
 
 html body .vbt-history-panel {
