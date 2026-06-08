@@ -2,7 +2,7 @@
   "name": "Platform Buddy",
   "short_name": "Buddy",
   "description": "BIG3の現在地と目標を見える化し、PRサイクル、記録、分析、大会準備までつなげて管理できるパワーリフティング向けPWAです。",
-  "start_url": "./index.html?v=145",
+  "start_url": "./index.html?v=147",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f4efe6",

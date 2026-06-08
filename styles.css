@@ -15876,3 +15876,137 @@ html body .video-viewer-meta span {
     padding: 12px;
   }
 }
+
+/* v147: Buddy Motion Analyzer beta */
+html body .motion-video-frame {
+  position: relative;
+  display: grid;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #171717;
+}
+
+html body .motion-video-frame video,
+html body .motion-video-frame canvas {
+  grid-area: 1 / 1;
+}
+
+html body .motion-overlay {
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  object-fit: contain;
+}
+
+html body .motion-overlay.hidden {
+  display: none !important;
+}
+
+html body .motion-analyzer-card {
+  display: grid;
+  gap: 10px;
+  border: 1px solid var(--line, #ded6c8);
+  border-left: 5px solid var(--coach, #2f6f73);
+  border-radius: 12px;
+  background:
+    linear-gradient(90deg, rgba(47, 111, 115, 0.055), transparent 46%),
+    var(--surface-soft, #fff7ed);
+  padding: 12px;
+}
+
+html body .motion-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+html body .motion-toggle {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px !important;
+  width: auto !important;
+  border: 1px solid var(--line, #ded6c8);
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--text-main, #171717);
+  padding: 8px 11px;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+html body .motion-toggle input {
+  width: auto !important;
+}
+
+html body .motion-result {
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--line, #ded6c8);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.58);
+  padding: 10px;
+}
+
+html body .motion-result strong {
+  color: var(--text-main, #171717);
+}
+
+html body .motion-result p,
+html body .motion-result li,
+html body .motion-result pre {
+  color: var(--text-sub, #526179);
+  font-size: 0.8rem;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+html body .motion-result ul {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+html body .motion-result pre {
+  max-height: 220px;
+  overflow: auto;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 10px;
+  white-space: pre-wrap;
+}
+
+html body .motion-result-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+html body .motion-result-chips span,
+html body .motion-status {
+  width: fit-content;
+  border: 1px solid var(--line, #ded6c8);
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--text-sub, #526179) !important;
+  padding: 4px 8px;
+  font-size: 0.7rem !important;
+  font-weight: 900 !important;
+}
+
+html body .motion-status.done {
+  border-color: rgba(47, 111, 115, 0.3);
+  background: rgba(47, 111, 115, 0.12);
+  color: var(--coach, #2f6f73) !important;
+}
+
+@media (max-width: 640px) {
+  html body .motion-actions > * {
+    width: 100%;
+  }
+
+  html body .motion-toggle {
+    justify-content: center;
+  }
+}

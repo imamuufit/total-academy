@@ -5,6 +5,16 @@
   const DB_VERSION = 1;
   const STORE_NAME = "videos";
   const MAX_FILE_BYTES = 350 * 1024 * 1024;
+  const VISION_SCRIPT_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.js";
+  const VISION_MODULE_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/+esm";
+  const VISION_WASM_ROOT = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm";
+  const POSE_MODEL_URL = "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/latest/pose_landmarker_lite.task";
+  const poseConnections = [
+    [11, 12], [11, 13], [13, 15], [12, 14], [14, 16],
+    [11, 23], [12, 24], [23, 24],
+    [23, 25], [25, 27], [24, 26], [26, 28]
+  ];
+  let poseLandmarkerPromise = null;
 
   const checkItems = {
     SQ: ["深さ", "膝の軌道", "上体角度", "ボトムの安定", "切り返し", "バー軌道"],
@@ -108,6 +118,243 @@
       if (video.src) revokeObjectUrl(video.src);
       video.removeAttribute("src");
     });
+  }
+
+  function loadScriptOnce(src) {
+    const existing = document.querySelector(`script[src="${src}"]`);
+    if (existing) {
+      return existing.dataset.loaded === "true"
+        ? Promise.resolve()
+        : new Promise((resolve, reject) => {
+          existing.addEventListener("load", resolve, { once: true });
+          existing.addEventListener("error", reject, { once: true });
+        });
+    }
+    return new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = src;
+      script.async = true;
+      script.crossOrigin = "anonymous";
+      script.onload = () => {
+        script.dataset.loaded = "true";
+        resolve();
+      };
+      script.onerror = () => reject(new Error("MediaPipeの読み込みに失敗しました。"));
+      document.head.append(script);
+    });
+  }
+
+  function visionExport(name) {
+    return window[name] || window.vision?.[name] || window.tasksVision?.[name];
+  }
+
+  async function getPoseLandmarker() {
+    if (!poseLandmarkerPromise) {
+      poseLandmarkerPromise = (async () => {
+        await loadScriptOnce(VISION_SCRIPT_URL);
+        let FilesetResolver = visionExport("FilesetResolver");
+        let PoseLandmarker = visionExport("PoseLandmarker");
+        if (!FilesetResolver || !PoseLandmarker) {
+          const module = await import(VISION_MODULE_URL);
+          FilesetResolver = module.FilesetResolver;
+          PoseLandmarker = module.PoseLandmarker;
+        }
+        if (!FilesetResolver || !PoseLandmarker) {
+          throw new Error("MediaPipe Pose Landmarkerを初期化できませんでした。");
+        }
+        const resolver = await FilesetResolver.forVisionTasks(VISION_WASM_ROOT);
+        return PoseLandmarker.createFromOptions(resolver, {
+          baseOptions: {
+            modelAssetPath: POSE_MODEL_URL,
+            delegate: "GPU"
+          },
+          runningMode: "VIDEO",
+          numPoses: 1
+        });
+      })();
+    }
+    return poseLandmarkerPromise;
+  }
+
+  function point(landmarks, index) {
+    const value = landmarks?.[index];
+    return value && Number.isFinite(value.x) && Number.isFinite(value.y) ? value : null;
+  }
+
+  function angleBetween(a, b, c) {
+    if (!a || !b || !c) return null;
+    const ab = { x: a.x - b.x, y: a.y - b.y };
+    const cb = { x: c.x - b.x, y: c.y - b.y };
+    const dot = ab.x * cb.x + ab.y * cb.y;
+    const mag = Math.hypot(ab.x, ab.y) * Math.hypot(cb.x, cb.y);
+    if (!mag) return null;
+    return Math.round(Math.acos(Math.max(-1, Math.min(1, dot / mag))) * 180 / Math.PI);
+  }
+
+  function averageNumber(values) {
+    const numbers = values.filter((value) => Number.isFinite(value));
+    return numbers.length ? Math.round(numbers.reduce((sum, value) => sum + value, 0) / numbers.length) : null;
+  }
+
+  function torsoLeanDeg(landmarks) {
+    const leftShoulder = point(landmarks, 11);
+    const rightShoulder = point(landmarks, 12);
+    const leftHip = point(landmarks, 23);
+    const rightHip = point(landmarks, 24);
+    if (!leftShoulder || !rightShoulder || !leftHip || !rightHip) return null;
+    const shoulder = { x: (leftShoulder.x + rightShoulder.x) / 2, y: (leftShoulder.y + rightShoulder.y) / 2 };
+    const hip = { x: (leftHip.x + rightHip.x) / 2, y: (leftHip.y + rightHip.y) / 2 };
+    const dx = shoulder.x - hip.x;
+    const dy = shoulder.y - hip.y;
+    return Math.round(Math.atan2(Math.abs(dx), Math.abs(dy || 0.0001)) * 180 / Math.PI);
+  }
+
+  function asymmetryScore(landmarks) {
+    const pairs = [[11, 12], [23, 24], [25, 26], [27, 28]];
+    const diffs = pairs.map(([left, right]) => {
+      const a = point(landmarks, left);
+      const b = point(landmarks, right);
+      return a && b ? Math.abs(a.y - b.y) * 100 : null;
+    }).filter((value) => Number.isFinite(value));
+    return diffs.length ? Math.round(diffs.reduce((sum, value) => sum + value, 0) / diffs.length) : null;
+  }
+
+  function compactLandmarks(landmarks) {
+    return landmarks.map((item) => ({
+      x: Number(item.x.toFixed(4)),
+      y: Number(item.y.toFixed(4)),
+      z: Number((item.z || 0).toFixed(4)),
+      visibility: Number((item.visibility || 0).toFixed(3))
+    }));
+  }
+
+  function metricsFromLandmarks(landmarks) {
+    const leftHip = angleBetween(point(landmarks, 11), point(landmarks, 23), point(landmarks, 25));
+    const rightHip = angleBetween(point(landmarks, 12), point(landmarks, 24), point(landmarks, 26));
+    const leftKnee = angleBetween(point(landmarks, 23), point(landmarks, 25), point(landmarks, 27));
+    const rightKnee = angleBetween(point(landmarks, 24), point(landmarks, 26), point(landmarks, 28));
+    const leftElbow = angleBetween(point(landmarks, 11), point(landmarks, 13), point(landmarks, 15));
+    const rightElbow = angleBetween(point(landmarks, 12), point(landmarks, 14), point(landmarks, 16));
+    return {
+      hipAngle: averageNumber([leftHip, rightHip]),
+      kneeAngle: averageNumber([leftKnee, rightKnee]),
+      elbowAngle: averageNumber([leftElbow, rightElbow]),
+      torsoLean: torsoLeanDeg(landmarks),
+      asymmetryScore: asymmetryScore(landmarks)
+    };
+  }
+
+  function flag(label, condition, flags) {
+    if (condition) flags.push(label);
+  }
+
+  function buildMotionSummary(lift, metrics) {
+    const flags = [];
+    if (lift === "SQ") {
+      flag("torso_forward", metrics.torsoLean !== null && metrics.torsoLean >= 32, flags);
+      flag("depth_candidate", metrics.hipAngle !== null && metrics.kneeAngle !== null && metrics.hipAngle <= 75 && metrics.kneeAngle <= 90, flags);
+      flag("minor_asymmetry", metrics.asymmetryScore !== null && metrics.asymmetryScore >= 8, flags);
+      return {
+        flags,
+        title: "スクワット傾向",
+        lines: [
+          metrics.hipAngle !== null ? `股関節角度の目安: ${metrics.hipAngle}°` : "股関節角度: 確認不足",
+          metrics.kneeAngle !== null ? `膝角度の目安: ${metrics.kneeAngle}°` : "膝角度: 確認不足",
+          metrics.torsoLean !== null ? `体幹前傾: ${metrics.torsoLean}°` : "体幹前傾: 確認不足"
+        ],
+        buddyComment: flags.includes("torso_forward")
+          ? "ボトム周辺で体幹前傾が強めに見える可能性があります。次回は足裏全体に圧を残す意識で確認しましょう。"
+          : "大きな崩れは少なめに見えます。次回も同じ角度から撮ると比較しやすくなります。"
+      };
+    }
+    if (lift === "BP") {
+      flag("elbow_asymmetry", metrics.asymmetryScore !== null && metrics.asymmetryScore >= 7, flags);
+      flag("elbow_lockout_check", metrics.elbowAngle !== null && metrics.elbowAngle < 145, flags);
+      return {
+        flags,
+        title: "ベンチプレス傾向",
+        lines: [
+          metrics.elbowAngle !== null ? `肘角度の目安: ${metrics.elbowAngle}°` : "肘角度: 確認不足",
+          metrics.asymmetryScore !== null ? `左右差の目安: ${metrics.asymmetryScore}` : "左右差: 確認不足",
+          "胸での静止やバー軌道は動画本体で確認してください。"
+        ],
+        buddyComment: flags.includes("elbow_asymmetry")
+          ? "押し出しで左右差が出ている可能性があります。胸で止めた後、両手で同時に押す意識を確認しましょう。"
+          : "左右差は大きくなさそうです。次回は真横か斜め前から撮ると前腕角度を見やすくなります。"
+      };
+    }
+    if (lift === "DL") {
+      flag("torso_forward", metrics.torsoLean !== null && metrics.torsoLean >= 38, flags);
+      flag("minor_asymmetry", metrics.asymmetryScore !== null && metrics.asymmetryScore >= 8, flags);
+      return {
+        flags,
+        title: "デッドリフト傾向",
+        lines: [
+          metrics.hipAngle !== null ? `股関節角度の目安: ${metrics.hipAngle}°` : "股関節角度: 確認不足",
+          metrics.torsoLean !== null ? `背中の傾き目安: ${metrics.torsoLean}°` : "背中の傾き: 確認不足",
+          metrics.asymmetryScore !== null ? `左右差の目安: ${metrics.asymmetryScore}` : "左右差: 確認不足"
+        ],
+        buddyComment: flags.includes("torso_forward")
+          ? "引き始めで上体が強く倒れている可能性があります。広背筋でバーを近く保つ意識を確認しましょう。"
+          : "スタート姿勢は大きく崩れていないように見えます。膝通過付近も次回比較していきましょう。"
+      };
+    }
+    return {
+      flags,
+      title: "フォーム傾向",
+      lines: [
+        metrics.torsoLean !== null ? `体幹角度の目安: ${metrics.torsoLean}°` : "体幹角度: 確認不足",
+        metrics.asymmetryScore !== null ? `左右差の目安: ${metrics.asymmetryScore}` : "左右差: 確認不足"
+      ],
+      buddyComment: "全体の傾向を保存しました。次回も同じ角度で撮ると変化を見やすくなります。"
+    };
+  }
+
+  function drawPose(canvas, video, landmarks) {
+    const width = video.videoWidth || video.clientWidth || 640;
+    const height = video.videoHeight || video.clientHeight || 360;
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, width, height);
+    ctx.lineWidth = Math.max(3, width * 0.004);
+    ctx.strokeStyle = "rgba(180, 35, 24, 0.92)";
+    ctx.fillStyle = "rgba(47, 111, 115, 0.95)";
+    poseConnections.forEach(([start, end]) => {
+      const a = point(landmarks, start);
+      const b = point(landmarks, end);
+      if (!a || !b) return;
+      ctx.beginPath();
+      ctx.moveTo(a.x * width, a.y * height);
+      ctx.lineTo(b.x * width, b.y * height);
+      ctx.stroke();
+    });
+    landmarks.forEach((landmark) => {
+      if ((landmark.visibility || 0) < 0.25) return;
+      ctx.beginPath();
+      ctx.arc(landmark.x * width, landmark.y * height, Math.max(4, width * 0.006), 0, Math.PI * 2);
+      ctx.fill();
+    });
+  }
+
+  function motionResultMarkup(analysis) {
+    if (!analysis || analysis.status !== "completed") {
+      return `<p>解析結果はまだありません。動画を止めて「現在フレームを解析」を押してください。</p>`;
+    }
+    const lines = Array.isArray(analysis.lines) ? analysis.lines : [];
+    return `
+      <div class="motion-result-chips">
+        <span>信頼度: ${escapeHtml(analysis.confidence || "medium")}</span>
+        <span>${escapeHtml(analysis.keyFrames?.currentTime || "0.0")}秒付近</span>
+      </div>
+      <strong>${escapeHtml(analysis.title || "フォーム傾向")}</strong>
+      <ul>${lines.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}</ul>
+      <p>${escapeHtml(analysis.buddyComment || "")}</p>
+      <details class="compact-guide">
+        <summary>解析値を見る</summary>
+        <pre>${escapeHtml(JSON.stringify(analysis.metrics || {}, null, 2))}</pre>
+      </details>
+    `;
   }
 
   function requestToPromise(request) {
@@ -239,6 +486,7 @@
           <small>${escapeHtml(formatDate(record.date))}</small>
         </div>
         <strong>${escapeHtml(videoTitle(record))}</strong>
+        <p class="motion-status ${record.analysis?.status === "completed" ? "done" : ""}">解析：${record.analysis?.status === "completed" ? "完了" : "未解析"}</p>
         <p>撮影：${escapeHtml(record.angle || "-")}</p>
         <p>${escapeHtml(memo)}</p>
         <div class="video-card-actions">
@@ -287,7 +535,10 @@
           <div><p class="eyebrow">Video Form Note</p><h2>${escapeHtml(videoTitle(record))}</h2></div>
           <button class="text-button" value="close" type="submit">閉じる</button>
         </div>
-        <video controls playsinline preload="metadata" src="${escapeHtml(url)}"></video>
+        <div class="motion-video-frame">
+          <video controls playsinline preload="metadata" src="${escapeHtml(url)}"></video>
+          <canvas class="motion-overlay" data-motion-canvas></canvas>
+        </div>
         <div class="video-viewer-meta">
           <span>${escapeHtml(formatDate(record.date))}</span>
           <span>${escapeHtml(record.setType || "自由")}</span>
@@ -299,14 +550,85 @@
         </section>
         <label>メモ<textarea data-video-view-memo rows="3">${escapeHtml(record.memo || "")}</textarea></label>
         <label>Buddyメモ<textarea data-video-view-buddy rows="3">${escapeHtml(record.buddyMemo || "")}</textarea></label>
-        <details class="compact-guide">
-          <summary>解析機能（準備中）</summary>
-          <p>関節点、バー軌道、挙上速度、Buddyフォーム評価は今後追加予定です。まずは動画を残し、過去のフォームと比べよう。</p>
-        </details>
+        <section class="motion-analyzer-card" data-motion-card>
+          <div class="video-check-head">
+            <strong>Buddy Motion Analyzer β</strong>
+            <small>動画は外部送信せず、現在フレームだけを端末内で解析します。</small>
+          </div>
+          <p class="video-storage-note">AIフォーム解析は補助機能です。撮影角度、照明、服装、動画品質によって結果が変わります。最終判断は動画本体とコーチの確認を優先してください。</p>
+          <div class="motion-actions">
+            <button class="primary-button inline" type="button" data-motion-analyze="${escapeHtml(record.id)}">現在フレームを解析</button>
+            <label class="motion-toggle"><input type="checkbox" data-motion-overlay-toggle checked>骨格表示</label>
+          </div>
+          <div class="motion-result" data-motion-result>${motionResultMarkup(record.analysis)}</div>
+          <details class="compact-guide">
+            <summary>撮影ガイド</summary>
+            <p>SQは真横または斜め後ろ、BPは真横または斜め前、DLは真横または斜め前がおすすめです。全身とバーベルを画面に入れてください。</p>
+          </details>
+        </section>
         <button class="primary-button" type="button" data-video-review-save="${escapeHtml(record.id)}">フォーム確認を保存</button>
       </form>
     `;
     dialog.showModal();
+  }
+
+  async function analyzeMotion(button) {
+    const dialog = button.closest("dialog");
+    const record = await getVideoRecord(button.dataset.motionAnalyze);
+    const video = dialog?.querySelector("video");
+    const canvas = dialog?.querySelector("[data-motion-canvas]");
+    const resultBox = dialog?.querySelector("[data-motion-result]");
+    if (!record || !video || !canvas || !resultBox) return;
+    if (!video.videoWidth || !video.videoHeight) {
+      resultBox.innerHTML = `<p>動画の読み込み後に解析してください。</p>`;
+      return;
+    }
+    button.disabled = true;
+    button.textContent = "解析中...";
+    resultBox.innerHTML = `<p>MediaPipeを読み込んでいます。初回は少し時間がかかります。</p>`;
+    try {
+      const pose = await getPoseLandmarker();
+      const result = pose.detectForVideo(video, performance.now());
+      const landmarks = result.landmarks?.[0];
+      if (!landmarks?.length) {
+        resultBox.innerHTML = `<p>関節点を確認できませんでした。全身が映るフレームで再解析してください。</p>`;
+        return;
+      }
+      drawPose(canvas, video, landmarks);
+      const metrics = metricsFromLandmarks(landmarks);
+      const summary = buildMotionSummary(record.lift, metrics);
+      const analysis = {
+        status: "completed",
+        confidence: landmarks.filter((item) => (item.visibility || 0) >= 0.5).length >= 18 ? "high" : "medium",
+        keyFrames: {
+          currentTime: video.currentTime.toFixed(1),
+          start: null,
+          bottom: null,
+          finish: null
+        },
+        metrics,
+        flags: summary.flags,
+        title: summary.title,
+        lines: summary.lines,
+        buddyComment: summary.buddyComment,
+        poseKeypoints: compactLandmarks(landmarks),
+        barPathPoints: null,
+        velocityData: null,
+        updatedAt: new Date().toISOString()
+      };
+      record.analysis = analysis;
+      record.updatedAt = new Date().toISOString();
+      if (!record.buddyMemo) record.buddyMemo = summary.buddyComment;
+      await saveVideoRecord(record);
+      resultBox.innerHTML = motionResultMarkup(analysis);
+      renderLibrary();
+    } catch (error) {
+      console.error("Motion analysis failed", error);
+      resultBox.innerHTML = `<p>解析に失敗しました。オンライン接続、動画の明るさ、全身が映っているかを確認してください。</p>`;
+    } finally {
+      button.disabled = false;
+      button.textContent = "現在フレームを解析";
+    }
   }
 
   async function saveViewerReview(button) {
@@ -464,6 +786,13 @@
   document.addEventListener("click", (event) => {
     const saveReview = event.target.closest("[data-video-review-save]");
     if (saveReview) saveViewerReview(saveReview);
+    const analyze = event.target.closest("[data-motion-analyze]");
+    if (analyze) analyzeMotion(analyze);
+  });
+  document.addEventListener("change", (event) => {
+    if (!event.target.matches("[data-motion-overlay-toggle]")) return;
+    const canvas = event.target.closest("dialog")?.querySelector("[data-motion-canvas]");
+    if (canvas) canvas.classList.toggle("hidden", !event.target.checked);
   });
   window.addEventListener("beforeunload", clearObjectUrls);
 
