@@ -12,7 +12,7 @@
     <link rel="preload" as="image" href="home-bg-lite.jpg">
     <link rel="preload" as="image" href="icon-sheet-lite.jpg">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <link rel="stylesheet" href="styles.css?v=144">
+    <link rel="stylesheet" href="styles.css?v=145">
   </head>
   <body>
     <div class="app-shell">
@@ -328,6 +328,100 @@
 
             <button class="primary-button" type="submit">記録する</button>
           </form>
+
+          <section class="panel video-note-panel" id="videoNotePanel">
+            <div class="section-title">
+              <div>
+                <p class="eyebrow">Video Form Note</p>
+                <h2>動画フォームノート</h2>
+              </div>
+              <button class="text-button" id="videoNoteToggleBtn" type="button" aria-expanded="false">開く</button>
+            </div>
+            <p class="screen-note">今日のセットを、動きでも残そう。</p>
+            <div class="video-note-body hidden" id="videoNoteBody">
+              <div class="video-note-actions">
+                <button class="primary-button inline" id="videoAddModeBtn" type="button">動画を追加</button>
+                <button class="text-button" id="videoLibraryModeBtn" type="button">ライブラリ</button>
+              </div>
+
+              <form class="video-note-form" id="videoNoteForm">
+                <label class="video-file-label">
+                  動画ファイル
+                  <input id="videoFileInput" type="file" accept="video/*" required>
+                </label>
+                <video class="video-note-preview hidden" id="videoNotePreview" controls playsinline preload="metadata"></video>
+                <div class="video-note-form-grid">
+                  <label>種目
+                    <select id="videoLiftInput">
+                      <option value="SQ">SQ スクワット</option>
+                      <option value="BP">BP ベンチプレス</option>
+                      <option value="DL">DL デッドリフト</option>
+                      <option value="OTHER">その他</option>
+                    </select>
+                  </label>
+                  <label>日付<input id="videoDateInput" type="date" required></label>
+                  <label>重量 kg<input id="videoWeightInput" inputmode="decimal" type="number" min="0" step="0.5"></label>
+                  <label>回数<input id="videoRepsInput" inputmode="numeric" type="number" min="1" max="100" step="1"></label>
+                  <label>RPE<input id="videoRpeInput" inputmode="decimal" type="number" min="1" max="10" step="0.5"></label>
+                  <label>セット種別
+                    <select id="videoSetTypeInput">
+                      <option value="Top">Top</option>
+                      <option value="Back">Back</option>
+                      <option value="補助">補助</option>
+                      <option value="試技">試技</option>
+                      <option value="自由">自由</option>
+                    </select>
+                  </label>
+                  <label>撮影方向
+                    <select id="videoAngleInput">
+                      <option value="横">横</option>
+                      <option value="正面">正面</option>
+                      <option value="斜め前">斜め前</option>
+                      <option value="斜め後ろ">斜め後ろ</option>
+                      <option value="その他">その他</option>
+                    </select>
+                  </label>
+                </div>
+                <section class="video-check-editor">
+                  <div class="video-check-head">
+                    <strong>フォームチェック</strong>
+                    <small>良い・普通・課題あり・未確認</small>
+                  </div>
+                  <div class="video-check-grid" id="videoCheckGrid"></div>
+                </section>
+                <label>メモ<textarea id="videoMemoInput" rows="3" placeholder="ボトム、切り返し、バーの近さなど"></textarea></label>
+                <label>Buddyメモ<textarea id="videoBuddyMemoInput" rows="3" placeholder="次回も意識したいこと"></textarea></label>
+                <p class="video-storage-note">動画はこの端末内に保存されます。容量不足・ブラウザデータ削除・URL変更で消える場合があるため、元動画も端末に残してください。</p>
+                <div class="video-form-actions">
+                  <button class="primary-button" type="submit">動画記録を保存</button>
+                  <span id="videoStorageStatus" aria-live="polite"></span>
+                </div>
+              </form>
+
+              <section class="video-library hidden" id="videoLibrary">
+                <div class="video-library-tools">
+                  <label>種目
+                    <select id="videoFilterLift">
+                      <option value="ALL">すべて</option>
+                      <option value="SQ">SQ</option>
+                      <option value="BP">BP</option>
+                      <option value="DL">DL</option>
+                      <option value="OTHER">その他</option>
+                    </select>
+                  </label>
+                  <label>並び順
+                    <select id="videoSortOrder">
+                      <option value="new">新しい順</option>
+                      <option value="old">古い順</option>
+                    </select>
+                  </label>
+                  <button class="text-button" id="videoCompareBtn" type="button" disabled>2本を比較</button>
+                </div>
+                <div class="video-compare-view hidden" id="videoCompareView"></div>
+                <div class="video-library-grid" id="videoLibraryGrid"></div>
+              </section>
+            </div>
+          </section>
 
           <section class="quick-stats" id="quickStats"></section>
           <section class="panel compact-panel">
@@ -983,6 +1077,7 @@
       </form>
     </dialog>
 
-    <script src="app.js?v=144"></script>
+    <script src="app.js?v=145"></script>
+    <script src="video.js?v=145"></script>
   </body>
 </html>

@@ -15584,3 +15584,295 @@ html body[data-active-view="home"] .wellness-floating {
     line-height: 1.3 !important;
   }
 }
+
+/* v145: BIG3 video form note */
+html body .video-note-panel {
+  display: grid;
+  gap: 10px;
+}
+
+html body .video-note-body,
+html body .video-note-form,
+html body .video-library {
+  display: grid;
+  gap: 14px;
+}
+
+html body .video-note-body.hidden,
+html body .video-note-form.hidden,
+html body .video-library.hidden,
+html body .video-note-preview.hidden,
+html body .video-compare-view.hidden {
+  display: none !important;
+}
+
+html body .video-note-actions,
+html body .video-form-actions,
+html body .video-card-actions,
+html body .video-compare-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+html body .video-note-form-grid,
+html body .video-library-tools,
+html body .video-check-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+html body .video-note-form label,
+html body .video-library-tools label,
+html body .video-viewer-card label,
+html body .video-check-grid label {
+  display: grid;
+  gap: 6px;
+  color: var(--text-main, #171717);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+html body .video-note-panel :is(input, select, textarea),
+html body .video-viewer-card :is(input, select, textarea) {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #111827;
+  padding: 10px 11px;
+  font: inherit;
+}
+
+html body .video-file-label input {
+  min-height: 48px;
+  padding: 8px;
+}
+
+html body :is(.video-note-preview, .video-viewer-card video, .video-compare-column video) {
+  display: block;
+  width: 100%;
+  max-height: min(62vh, 620px);
+  border: 1px solid var(--line, #ded6c8);
+  border-radius: 12px;
+  background: #171717;
+  object-fit: contain;
+}
+
+html body .video-check-editor {
+  display: grid;
+  gap: 10px;
+  border: 1px solid var(--line, #ded6c8);
+  border-radius: 12px;
+  background: var(--surface-soft, #fff7ed);
+  padding: 12px;
+}
+
+html body .video-check-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+html body .video-check-head strong {
+  color: var(--text-main, #171717);
+}
+
+html body .video-check-head small,
+html body .video-storage-note,
+html body #videoStorageStatus {
+  color: var(--text-sub, #526179);
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+html body .video-form-actions {
+  justify-content: space-between;
+}
+
+html body .video-form-actions .primary-button {
+  min-width: min(260px, 100%);
+}
+
+html body .video-library-tools {
+  grid-template-columns: minmax(120px, 0.7fr) minmax(130px, 0.7fr) minmax(150px, auto);
+  align-items: end;
+}
+
+html body .video-library-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+html body .video-library-card,
+html body .video-compare-view,
+html body .video-compare-column {
+  border: 1px solid var(--line, #ded6c8);
+  border-radius: 14px;
+  background:
+    linear-gradient(90deg, rgba(180, 35, 24, 0.035), transparent 48%),
+    var(--surface, #fffaf2);
+  color: var(--text-main, #171717);
+  box-shadow: 0 8px 18px rgba(51, 42, 29, 0.06);
+}
+
+html body .video-library-card,
+html body .video-compare-column {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  padding: 12px;
+}
+
+html body .video-library-card strong,
+html body .video-compare-column strong {
+  color: var(--text-main, #171717);
+  font-size: 1rem;
+  line-height: 1.25;
+}
+
+html body .video-library-card p,
+html body .video-compare-column p,
+html body .video-compare-column small {
+  margin: 0;
+  color: var(--text-sub, #526179);
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+html body .video-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+html body .video-card-head span {
+  border-radius: 999px;
+  background: var(--button-dark, #22272e);
+  color: #ffffff;
+  padding: 4px 8px;
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+html body .video-card-head small {
+  color: var(--text-muted, #667085);
+  font-weight: 800;
+}
+
+html body .video-card-actions .text-button.selected {
+  border-color: var(--coach, #2f6f73) !important;
+  background: rgba(47, 111, 115, 0.12) !important;
+  color: var(--coach, #2f6f73) !important;
+}
+
+html body .video-empty {
+  grid-column: 1 / -1;
+  margin: 0;
+  border: 1px dashed var(--line-strong, #cbbda8);
+  border-radius: 12px;
+  color: var(--text-sub, #526179);
+  padding: 18px;
+  text-align: center;
+  font-weight: 800;
+}
+
+html body .video-compare-view {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+}
+
+html body .video-compare-head {
+  justify-content: space-between;
+}
+
+html body .video-compare-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+html body .video-viewer-dialog {
+  width: min(900px, calc(100vw - 24px));
+  max-height: calc(100vh - 24px);
+  border: 0;
+  border-radius: 16px;
+  background: transparent;
+  padding: 0;
+}
+
+html body .video-viewer-dialog::backdrop {
+  background: rgba(23, 23, 23, 0.72);
+}
+
+html body .video-viewer-card {
+  display: grid;
+  gap: 12px;
+  max-height: calc(100vh - 24px);
+  overflow-y: auto;
+  border: 1px solid var(--line, #ded6c8);
+  border-radius: 16px;
+  background: var(--surface, #fffaf2);
+  color: var(--text-main, #171717);
+  padding: 16px;
+}
+
+html body .video-viewer-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+html body .video-viewer-meta span {
+  border: 1px solid var(--line, #ded6c8);
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--text-sub, #526179);
+  padding: 5px 9px;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+@media (max-width: 820px) {
+  html body .video-library-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  html body .video-note-panel {
+    padding: 12px !important;
+  }
+
+  html body .video-note-form-grid,
+  html body .video-library-tools,
+  html body .video-check-grid,
+  html body .video-library-grid,
+  html body .video-compare-grid {
+    grid-template-columns: 1fr;
+  }
+
+  html body .video-note-actions > *,
+  html body .video-card-actions > *,
+  html body .video-library-tools button,
+  html body .video-form-actions .primary-button {
+    width: 100%;
+  }
+
+  html body .video-form-actions {
+    align-items: stretch;
+  }
+
+  html body .video-viewer-card {
+    padding: 12px;
+  }
+}
