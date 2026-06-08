@@ -14,6 +14,7 @@
     [11, 23], [12, 24], [23, 24],
     [23, 25], [25, 27], [24, 26], [26, 28]
   ];
+  let visionModulePromise = null;
   let poseLandmarkerPromise = null;
 
   const checkItems = {
@@ -148,10 +149,15 @@
     return window[name] || window.vision?.[name] || window.tasksVision?.[name];
   }
 
-  async function getPoseLandmarker() {
+  async function getPoseLandmarkerLegacy() {
     if (!poseLandmarkerPromise) {
       poseLandmarkerPromise = (async () => {
-        await loadScriptOnce(VISION_SCRIPT_URL);
+        try {
+          await loadScriptOnce(VISION_SCRIPT_URL);
+        } catch (error) {
+          console.warn("MediaPipe script load failed", error);
+          throw new Error("MediaPipeを読み込めませんでした。通信状態を確認して、もう一度試してください。");
+        }
         let FilesetResolver = visionExport("FilesetResolver");
         let PoseLandmarker = visionExport("PoseLandmarker");
         if (!FilesetResolver || !PoseLandmarker) {
@@ -171,6 +177,54 @@
           runningMode: "VIDEO",
           numPoses: 1
         });
+      })();
+    }
+    return poseLandmarkerPromise;
+  }
+
+  async function loadVisionModuleStable() {
+    if (!visionModulePromise) {
+      visionModulePromise = (async () => {
+        try {
+          const module = await import(VISION_MODULE_URL);
+          if (module.FilesetResolver && module.PoseLandmarker) return module;
+        } catch (error) {
+          console.warn("MediaPipe ESM import failed", error);
+        }
+        await loadScriptOnce(VISION_SCRIPT_URL);
+        const FilesetResolver = visionExport("FilesetResolver");
+        const PoseLandmarker = visionExport("PoseLandmarker");
+        if (!FilesetResolver || !PoseLandmarker) {
+          throw new Error("MediaPipeを読み込めませんでした。通信状態を確認して、もう一度試してください。");
+        }
+        return { FilesetResolver, PoseLandmarker };
+      })();
+    }
+    return visionModulePromise;
+  }
+
+  function createPoseLandmarkerStable(PoseLandmarker, resolver, delegate) {
+    return PoseLandmarker.createFromOptions(resolver, {
+      baseOptions: {
+        modelAssetPath: POSE_MODEL_URL,
+        delegate
+      },
+      runningMode: "VIDEO",
+      numPoses: 1
+    });
+  }
+
+  async function getPoseLandmarker() {
+    if (!poseLandmarkerPromise) {
+      poseLandmarkerPromise = (async () => {
+        const { FilesetResolver, PoseLandmarker } = await loadVisionModuleStable();
+        const resolver = await FilesetResolver.forVisionTasks(VISION_WASM_ROOT);
+        try {
+          return await createPoseLandmarkerStable(PoseLandmarker, resolver, "GPU");
+        } catch (error) {
+          console.warn("MediaPipe GPU delegate failed. Falling back to CPU.", error);
+          return createPoseLandmarkerStable(PoseLandmarker, resolver, "CPU");
+        }
       })();
     }
     return poseLandmarkerPromise;
@@ -524,11 +578,74 @@
     return dialog;
   }
 
+  function formatSeconds(value) {
+    const number = Number(value);
+    return Number.isFinite(number) ? `${number.toFixed(2)}s` : "-";
+  }
+
+  function manualVelocityMarkup(velocityData) {
+    if (!velocityData || !Number.isFinite(Number(velocityData.averageVelocity))) {
+      return `<p>開始フレームと終了フレームを指定すると、平均挙上速度を記録できます。</p>`;
+    }
+    return `
+      <div class="motion-result-chips">
+        <span>開始 ${escapeHtml(formatSeconds(velocityData.startTime))}</span>
+        <span>終了 ${escapeHtml(formatSeconds(velocityData.endTime))}</span>
+        <span>距離 ${escapeHtml(formatNumber(velocityData.distance))}m</span>
+      </div>
+      <strong>平均速度 ${escapeHtml(Number(velocityData.averageVelocity).toFixed(2))} m/s</strong>
+      <p>バー自動追跡ではなく、指定した区間から算出した簡易VBTメモです。</p>
+    `;
+  }
+
+  function vbtCardMarkup(record) {
+    const velocityData = record.analysis?.velocityData || {};
+    const distance = Number.isFinite(Number(velocityData.distance)) ? Number(velocityData.distance) : 0.5;
+    return `
+      <section class="manual-vbt-card" data-vbt-card>
+        <div class="video-check-head">
+          <strong>挙上速度メモ β</strong>
+          <small>開始・終了を手動指定</small>
+        </div>
+        <p class="video-storage-note">バー自動追跡ではありません。動画を止めて、開始と終了を押す簡易VBTです。</p>
+        <div class="vbt-controls">
+          <button class="text-button" type="button" data-vbt-mark="start" data-video-id="${escapeHtml(record.id)}">開始フレーム</button>
+          <button class="text-button" type="button" data-vbt-mark="end" data-video-id="${escapeHtml(record.id)}">終了フレーム</button>
+          <label>移動距離 m<input data-vbt-distance type="number" inputmode="decimal" min="0.05" max="2" step="0.01" value="${escapeHtml(distance)}"></label>
+          <button class="primary-button inline" type="button" data-vbt-save="${escapeHtml(record.id)}">速度を保存</button>
+        </div>
+        <div class="vbt-markers">
+          <span data-vbt-start>開始 ${escapeHtml(formatSeconds(velocityData.startTime))}</span>
+          <span data-vbt-end>終了 ${escapeHtml(formatSeconds(velocityData.endTime))}</span>
+        </div>
+        <div class="motion-result vbt-result" data-vbt-result>${manualVelocityMarkup(velocityData)}</div>
+      </section>
+    `;
+  }
+
+  function vbtState(dialog) {
+    return dialog?._vbtState || { startTime: null, endTime: null };
+  }
+
+  function setVbtState(dialog, nextState) {
+    dialog._vbtState = { ...vbtState(dialog), ...nextState };
+  }
+
+  function currentVideoTime(dialog) {
+    const video = dialog?.querySelector("video");
+    const value = Number(video?.currentTime);
+    return Number.isFinite(value) ? value : null;
+  }
+
   async function openViewer(id) {
     const record = await getVideoRecord(id);
     if (!record) return;
     const dialog = ensureViewerDialog();
     const url = createObjectUrl(record.videoBlob);
+    dialog._vbtState = {
+      startTime: Number.isFinite(Number(record.analysis?.velocityData?.startTime)) ? Number(record.analysis.velocityData.startTime) : null,
+      endTime: Number.isFinite(Number(record.analysis?.velocityData?.endTime)) ? Number(record.analysis.velocityData.endTime) : null
+    };
     dialog.innerHTML = `
       <form method="dialog" class="video-viewer-card">
         <div class="section-title">
@@ -561,6 +678,7 @@
             <label class="motion-toggle"><input type="checkbox" data-motion-overlay-toggle checked>骨格表示</label>
           </div>
           <div class="motion-result" data-motion-result>${motionResultMarkup(record.analysis)}</div>
+          ${vbtCardMarkup(record)}
           <details class="compact-guide">
             <summary>撮影ガイド</summary>
             <p>SQは真横または斜め後ろ、BPは真横または斜め前、DLは真横または斜め前がおすすめです。全身とバーベルを画面に入れてください。</p>
@@ -572,23 +690,29 @@
     dialog.showModal();
   }
 
-  async function analyzeMotion(button) {
+  async function analyzeMotionLegacy(button) {
     const dialog = button.closest("dialog");
     const record = await getVideoRecord(button.dataset.motionAnalyze);
     const video = dialog?.querySelector("video");
     const canvas = dialog?.querySelector("[data-motion-canvas]");
     const resultBox = dialog?.querySelector("[data-motion-result]");
     if (!record || !video || !canvas || !resultBox) return;
+    if (video.readyState < 2) {
+      resultBox.innerHTML = `<p>動画を一度再生するか、少し進めてから解析してください。</p>`;
+      return;
+    }
     if (!video.videoWidth || !video.videoHeight) {
       resultBox.innerHTML = `<p>動画の読み込み後に解析してください。</p>`;
       return;
     }
     button.disabled = true;
     button.textContent = "解析中...";
+    button.textContent = "解析中...";
     resultBox.innerHTML = `<p>MediaPipeを読み込んでいます。初回は少し時間がかかります。</p>`;
     try {
+      video.pause();
       const pose = await getPoseLandmarker();
-      const result = pose.detectForVideo(video, performance.now());
+      const result = pose.detectForVideo(video, Math.max(0, Math.round(video.currentTime * 1000)));
       const landmarks = result.landmarks?.[0];
       if (!landmarks?.length) {
         resultBox.innerHTML = `<p>関節点を確認できませんでした。全身が映るフレームで再解析してください。</p>`;
@@ -613,7 +737,7 @@
         buddyComment: summary.buddyComment,
         poseKeypoints: compactLandmarks(landmarks),
         barPathPoints: null,
-        velocityData: null,
+        velocityData: record.analysis?.velocityData || null,
         updatedAt: new Date().toISOString()
       };
       record.analysis = analysis;
@@ -624,7 +748,126 @@
       renderLibrary();
     } catch (error) {
       console.error("Motion analysis failed", error);
+      poseLandmarkerPromise = null;
+      const message = error?.message ? ` ${escapeHtml(error.message)}` : "";
+      resultBox.innerHTML = `<p>解析に失敗しました。通信状態を確認し、動画を少し進めて再度お試しください。${message}</p>`;
       resultBox.innerHTML = `<p>解析に失敗しました。オンライン接続、動画の明るさ、全身が映っているかを確認してください。</p>`;
+    } finally {
+      button.disabled = false;
+      button.textContent = "現在フレームを解析";
+      button.textContent = "現在フレームを解析";
+    }
+  }
+
+  function markVbtFrame(button) {
+    const dialog = button.closest("dialog");
+    const time = currentVideoTime(dialog);
+    if (time === null) return;
+    const type = button.dataset.vbtMark;
+    setVbtState(dialog, type === "start" ? { startTime: time } : { endTime: time });
+    const marker = dialog.querySelector(type === "start" ? "[data-vbt-start]" : "[data-vbt-end]");
+    if (marker) marker.textContent = `${type === "start" ? "開始" : "終了"} ${formatSeconds(time)}`;
+  }
+
+  async function saveVbtVelocity(button) {
+    const dialog = button.closest("dialog");
+    const record = await getVideoRecord(button.dataset.vbtSave);
+    if (!record) return;
+    const state = vbtState(dialog);
+    const distanceInput = dialog.querySelector("[data-vbt-distance]");
+    const resultBox = dialog.querySelector("[data-vbt-result]");
+    const distance = Number(distanceInput?.value);
+    const startTime = Number(state.startTime);
+    const endTime = Number(state.endTime);
+    if (!Number.isFinite(startTime) || !Number.isFinite(endTime)) {
+      if (resultBox) resultBox.innerHTML = `<p>開始フレームと終了フレームを指定してください。</p>`;
+      return;
+    }
+    const duration = endTime - startTime;
+    if (duration <= 0) {
+      if (resultBox) resultBox.innerHTML = `<p>終了フレームは開始フレームより後にしてください。</p>`;
+      return;
+    }
+    if (!Number.isFinite(distance) || distance <= 0) {
+      if (resultBox) resultBox.innerHTML = `<p>移動距離を入力してください。</p>`;
+      return;
+    }
+    const velocityData = {
+      mode: "manual",
+      startTime,
+      endTime,
+      distance,
+      averageVelocity: distance / duration,
+      updatedAt: new Date().toISOString()
+    };
+    record.analysis = {
+      ...(record.analysis || {}),
+      velocityData
+    };
+    record.updatedAt = new Date().toISOString();
+    await saveVideoRecord(record);
+    if (resultBox) resultBox.innerHTML = manualVelocityMarkup(velocityData);
+    button.textContent = "保存しました";
+    setTimeout(() => { button.textContent = "速度を保存"; }, 1200);
+    renderLibrary();
+  }
+
+  async function analyzeMotion(button) {
+    const dialog = button.closest("dialog");
+    const record = await getVideoRecord(button.dataset.motionAnalyze);
+    const video = dialog?.querySelector("video");
+    const canvas = dialog?.querySelector("[data-motion-canvas]");
+    const resultBox = dialog?.querySelector("[data-motion-result]");
+    if (!record || !video || !canvas || !resultBox) return;
+    if (video.readyState < 2 || !video.videoWidth || !video.videoHeight) {
+      resultBox.innerHTML = `<p>動画を一度再生するか、少し進めてから解析してください。</p>`;
+      return;
+    }
+    button.disabled = true;
+    button.textContent = "解析中...";
+    resultBox.innerHTML = `<p>MediaPipeを読み込んでいます。初回は少し時間がかかります。</p>`;
+    try {
+      video.pause();
+      const pose = await getPoseLandmarker();
+      const result = pose.detectForVideo(video, Math.max(0, Math.round(video.currentTime * 1000)));
+      const landmarks = result.landmarks?.[0];
+      if (!landmarks?.length) {
+        resultBox.innerHTML = `<p>関節点を確認できませんでした。全身が見えるフレームで再解析してください。</p>`;
+        return;
+      }
+      drawPose(canvas, video, landmarks);
+      const metrics = metricsFromLandmarks(landmarks);
+      const summary = buildMotionSummary(record.lift, metrics);
+      const analysis = {
+        status: "completed",
+        confidence: landmarks.filter((item) => (item.visibility || 0) >= 0.5).length >= 18 ? "high" : "medium",
+        keyFrames: {
+          currentTime: video.currentTime.toFixed(1),
+          start: null,
+          bottom: null,
+          finish: null
+        },
+        metrics,
+        flags: summary.flags,
+        title: summary.title,
+        lines: summary.lines,
+        buddyComment: summary.buddyComment,
+        poseKeypoints: compactLandmarks(landmarks),
+        barPathPoints: null,
+        velocityData: record.analysis?.velocityData || null,
+        updatedAt: new Date().toISOString()
+      };
+      record.analysis = analysis;
+      record.updatedAt = new Date().toISOString();
+      if (!record.buddyMemo) record.buddyMemo = summary.buddyComment;
+      await saveVideoRecord(record);
+      resultBox.innerHTML = motionResultMarkup(analysis);
+      renderLibrary();
+    } catch (error) {
+      console.error("Motion analysis failed", error);
+      poseLandmarkerPromise = null;
+      const message = error?.message ? ` ${escapeHtml(error.message)}` : "";
+      resultBox.innerHTML = `<p>解析に失敗しました。通信状態を確認し、動画を少し進めて再度お試しください。${message}</p>`;
     } finally {
       button.disabled = false;
       button.textContent = "現在フレームを解析";
@@ -784,6 +1027,10 @@
   els.compareBtn.addEventListener("click", renderComparison);
   els.library.addEventListener("click", handleLibraryClick);
   document.addEventListener("click", (event) => {
+    const vbtMark = event.target.closest("[data-vbt-mark]");
+    if (vbtMark) return markVbtFrame(vbtMark);
+    const vbtSave = event.target.closest("[data-vbt-save]");
+    if (vbtSave) return saveVbtVelocity(vbtSave);
     const saveReview = event.target.closest("[data-video-review-save]");
     if (saveReview) saveViewerReview(saveReview);
     const analyze = event.target.closest("[data-motion-analyze]");

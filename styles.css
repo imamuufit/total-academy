@@ -16010,3 +16010,65 @@ html body .motion-status.done {
     justify-content: center;
   }
 }
+
+/* v148: manual VBT memo */
+html body .manual-vbt-card {
+  display: grid;
+  gap: 10px;
+  border: 1px solid var(--line, #ded6c8);
+  border-left: 5px solid var(--accent, #b42318);
+  border-radius: 12px;
+  background:
+    linear-gradient(90deg, rgba(180, 35, 24, 0.045), transparent 46%),
+    var(--surface, #fffaf2);
+  padding: 12px;
+}
+
+html body .vbt-controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+html body .vbt-controls label {
+  display: grid !important;
+  gap: 5px !important;
+  width: 100% !important;
+  color: var(--text-main, #171717);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+html body .vbt-controls input {
+  min-height: 40px;
+}
+
+html body .vbt-markers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+html body .vbt-markers span {
+  border: 1px solid var(--line, #ded6c8);
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--text-sub, #526179);
+  padding: 5px 9px;
+  font-size: 0.74rem;
+  font-weight: 900;
+}
+
+html body .vbt-result strong {
+  font-size: 1.05rem;
+}
+
+@media (max-width: 640px) {
+  html body .vbt-controls {
+    grid-template-columns: 1fr;
+  }
+
+  html body .vbt-controls > * {
+    width: 100%;
+  }
+}

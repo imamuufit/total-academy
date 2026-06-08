@@ -1,581 +1,970 @@
---- v145/index.html
-+++ v147/index.html
-@@ -12,7 +12,7 @@
-     <link rel="preload" as="image" href="home-bg-lite.jpg">
-     <link rel="preload" as="image" href="icon-sheet-lite.jpg">
-     <link rel="apple-touch-icon" href="apple-touch-icon.png">
--    <link rel="stylesheet" href="styles.css?v=145">
-+    <link rel="stylesheet" href="styles.css?v=147">
-   </head>
-   <body>
-     <div class="app-shell">
-@@ -1077,7 +1077,7 @@
-       </form>
-     </dialog>
- 
--    <script src="app.js?v=145"></script>
--    <script src="video.js?v=145"></script>
-+    <script src="app.js?v=147"></script>
-+    <script src="video.js?v=147"></script>
-   </body>
- </html>
---- v145/styles.css
-+++ v147/styles.css
-@@ -15876,3 +15876,137 @@
-     padding: 12px;
-   }
- }
-+
-+/* v147: Buddy Motion Analyzer beta */
-+html body .motion-video-frame {
-+  position: relative;
-+  display: grid;
-+  border-radius: 12px;
-+  overflow: hidden;
-+  background: #171717;
-+}
-+
-+html body .motion-video-frame video,
-+html body .motion-video-frame canvas {
-+  grid-area: 1 / 1;
-+}
-+
-+html body .motion-overlay {
-+  width: 100%;
-+  height: 100%;
-+  pointer-events: none;
-+  object-fit: contain;
-+}
-+
-+html body .motion-overlay.hidden {
-+  display: none !important;
-+}
-+
-+html body .motion-analyzer-card {
-+  display: grid;
-+  gap: 10px;
-+  border: 1px solid var(--line, #ded6c8);
-+  border-left: 5px solid var(--coach, #2f6f73);
-+  border-radius: 12px;
-+  background:
-+    linear-gradient(90deg, rgba(47, 111, 115, 0.055), transparent 46%),
-+    var(--surface-soft, #fff7ed);
-+  padding: 12px;
-+}
-+
-+html body .motion-actions {
-+  display: flex;
-+  align-items: center;
-+  flex-wrap: wrap;
-+  gap: 8px;
-+}
-+
-+html body .motion-toggle {
-+  display: inline-flex !important;
-+  align-items: center;
-+  gap: 6px !important;
-+  width: auto !important;
-+  border: 1px solid var(--line, #ded6c8);
-+  border-radius: 999px;
-+  background: #ffffff;
-+  color: var(--text-main, #171717);
-+  padding: 8px 11px;
-+  font-size: 0.78rem;
-+  font-weight: 900;
-+}
-+
-+html body .motion-toggle input {
-+  width: auto !important;
-+}
-+
-+html body .motion-result {
-+  display: grid;
-+  gap: 8px;
-+  border: 1px solid var(--line, #ded6c8);
-+  border-radius: 10px;
-+  background: rgba(255, 255, 255, 0.58);
-+  padding: 10px;
-+}
-+
-+html body .motion-result strong {
-+  color: var(--text-main, #171717);
-+}
-+
-+html body .motion-result p,
-+html body .motion-result li,
-+html body .motion-result pre {
-+  color: var(--text-sub, #526179);
-+  font-size: 0.8rem;
-+  font-weight: 800;
-+  line-height: 1.45;
-+}
-+
-+html body .motion-result ul {
-+  display: grid;
-+  gap: 4px;
-+  margin: 0;
-+  padding-left: 1.1rem;
-+}
-+
-+html body .motion-result pre {
-+  max-height: 220px;
-+  overflow: auto;
-+  border-radius: 8px;
-+  background: #ffffff;
-+  padding: 10px;
-+  white-space: pre-wrap;
-+}
-+
-+html body .motion-result-chips {
-+  display: flex;
-+  flex-wrap: wrap;
-+  gap: 6px;
-+}
-+
-+html body .motion-result-chips span,
-+html body .motion-status {
-+  width: fit-content;
-+  border: 1px solid var(--line, #ded6c8);
-+  border-radius: 999px;
-+  background: #ffffff;
-+  color: var(--text-sub, #526179) !important;
-+  padding: 4px 8px;
-+  font-size: 0.7rem !important;
-+  font-weight: 900 !important;
-+}
-+
-+html body .motion-status.done {
-+  border-color: rgba(47, 111, 115, 0.3);
-+  background: rgba(47, 111, 115, 0.12);
-+  color: var(--coach, #2f6f73) !important;
-+}
-+
-+@media (max-width: 640px) {
-+  html body .motion-actions > * {
-+    width: 100%;
-+  }
-+
-+  html body .motion-toggle {
-+    justify-content: center;
-+  }
-+}
---- v145/video.js
-+++ v147/video.js
-@@ -5,6 +5,16 @@
-   const DB_VERSION = 1;
-   const STORE_NAME = "videos";
-   const MAX_FILE_BYTES = 350 * 1024 * 1024;
-+  const VISION_SCRIPT_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.js";
-+  const VISION_MODULE_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/+esm";
-+  const VISION_WASM_ROOT = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm";
-+  const POSE_MODEL_URL = "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/latest/pose_landmarker_lite.task";
-+  const poseConnections = [
-+    [11, 12], [11, 13], [13, 15], [12, 14], [14, 16],
-+    [11, 23], [12, 24], [23, 24],
-+    [23, 25], [25, 27], [24, 26], [26, 28]
-+  ];
-+  let poseLandmarkerPromise = null;
- 
-   const checkItems = {
-     SQ: ["深さ", "膝の軌道", "上体角度", "ボトムの安定", "切り返し", "バー軌道"],
-@@ -110,6 +120,243 @@
-     });
-   }
- 
-+  function loadScriptOnce(src) {
-+    const existing = document.querySelector(`script[src="${src}"]`);
-+    if (existing) {
-+      return existing.dataset.loaded === "true"
-+        ? Promise.resolve()
-+        : new Promise((resolve, reject) => {
-+          existing.addEventListener("load", resolve, { once: true });
-+          existing.addEventListener("error", reject, { once: true });
-+        });
-+    }
-+    return new Promise((resolve, reject) => {
-+      const script = document.createElement("script");
-+      script.src = src;
-+      script.async = true;
-+      script.crossOrigin = "anonymous";
-+      script.onload = () => {
-+        script.dataset.loaded = "true";
-+        resolve();
-+      };
-+      script.onerror = () => reject(new Error("MediaPipeの読み込みに失敗しました。"));
-+      document.head.append(script);
-+    });
-+  }
-+
-+  function visionExport(name) {
-+    return window[name] || window.vision?.[name] || window.tasksVision?.[name];
-+  }
-+
-+  async function getPoseLandmarker() {
-+    if (!poseLandmarkerPromise) {
-+      poseLandmarkerPromise = (async () => {
-+        await loadScriptOnce(VISION_SCRIPT_URL);
-+        let FilesetResolver = visionExport("FilesetResolver");
-+        let PoseLandmarker = visionExport("PoseLandmarker");
-+        if (!FilesetResolver || !PoseLandmarker) {
-+          const module = await import(VISION_MODULE_URL);
-+          FilesetResolver = module.FilesetResolver;
-+          PoseLandmarker = module.PoseLandmarker;
-+        }
-+        if (!FilesetResolver || !PoseLandmarker) {
-+          throw new Error("MediaPipe Pose Landmarkerを初期化できませんでした。");
-+        }
-+        const resolver = await FilesetResolver.forVisionTasks(VISION_WASM_ROOT);
-+        return PoseLandmarker.createFromOptions(resolver, {
-+          baseOptions: {
-+            modelAssetPath: POSE_MODEL_URL,
-+            delegate: "GPU"
-+          },
-+          runningMode: "VIDEO",
-+          numPoses: 1
-+        });
-+      })();
-+    }
-+    return poseLandmarkerPromise;
-+  }
-+
-+  function point(landmarks, index) {
-+    const value = landmarks?.[index];
-+    return value && Number.isFinite(value.x) && Number.isFinite(value.y) ? value : null;
-+  }
-+
-+  function angleBetween(a, b, c) {
-+    if (!a || !b || !c) return null;
-+    const ab = { x: a.x - b.x, y: a.y - b.y };
-+    const cb = { x: c.x - b.x, y: c.y - b.y };
-+    const dot = ab.x * cb.x + ab.y * cb.y;
-+    const mag = Math.hypot(ab.x, ab.y) * Math.hypot(cb.x, cb.y);
-+    if (!mag) return null;
-+    return Math.round(Math.acos(Math.max(-1, Math.min(1, dot / mag))) * 180 / Math.PI);
-+  }
-+
-+  function averageNumber(values) {
-+    const numbers = values.filter((value) => Number.isFinite(value));
-+    return numbers.length ? Math.round(numbers.reduce((sum, value) => sum + value, 0) / numbers.length) : null;
-+  }
-+
-+  function torsoLeanDeg(landmarks) {
-+    const leftShoulder = point(landmarks, 11);
-+    const rightShoulder = point(landmarks, 12);
-+    const leftHip = point(landmarks, 23);
-+    const rightHip = point(landmarks, 24);
-+    if (!leftShoulder || !rightShoulder || !leftHip || !rightHip) return null;
-+    const shoulder = { x: (leftShoulder.x + rightShoulder.x) / 2, y: (leftShoulder.y + rightShoulder.y) / 2 };
-+    const hip = { x: (leftHip.x + rightHip.x) / 2, y: (leftHip.y + rightHip.y) / 2 };
-+    const dx = shoulder.x - hip.x;
-+    const dy = shoulder.y - hip.y;
-+    return Math.round(Math.atan2(Math.abs(dx), Math.abs(dy || 0.0001)) * 180 / Math.PI);
-+  }
-+
-+  function asymmetryScore(landmarks) {
-+    const pairs = [[11, 12], [23, 24], [25, 26], [27, 28]];
-+    const diffs = pairs.map(([left, right]) => {
-+      const a = point(landmarks, left);
-+      const b = point(landmarks, right);
-+      return a && b ? Math.abs(a.y - b.y) * 100 : null;
-+    }).filter((value) => Number.isFinite(value));
-+    return diffs.length ? Math.round(diffs.reduce((sum, value) => sum + value, 0) / diffs.length) : null;
-+  }
-+
-+  function compactLandmarks(landmarks) {
-+    return landmarks.map((item) => ({
-+      x: Number(item.x.toFixed(4)),
-+      y: Number(item.y.toFixed(4)),
-+      z: Number((item.z || 0).toFixed(4)),
-+      visibility: Number((item.visibility || 0).toFixed(3))
-+    }));
-+  }
-+
-+  function metricsFromLandmarks(landmarks) {
-+    const leftHip = angleBetween(point(landmarks, 11), point(landmarks, 23), point(landmarks, 25));
-+    const rightHip = angleBetween(point(landmarks, 12), point(landmarks, 24), point(landmarks, 26));
-+    const leftKnee = angleBetween(point(landmarks, 23), point(landmarks, 25), point(landmarks, 27));
-+    const rightKnee = angleBetween(point(landmarks, 24), point(landmarks, 26), point(landmarks, 28));
-+    const leftElbow = angleBetween(point(landmarks, 11), point(landmarks, 13), point(landmarks, 15));
-+    const rightElbow = angleBetween(point(landmarks, 12), point(landmarks, 14), point(landmarks, 16));
-+    return {
-+      hipAngle: averageNumber([leftHip, rightHip]),
-+      kneeAngle: averageNumber([leftKnee, rightKnee]),
-+      elbowAngle: averageNumber([leftElbow, rightElbow]),
-+      torsoLean: torsoLeanDeg(landmarks),
-+      asymmetryScore: asymmetryScore(landmarks)
-+    };
-+  }
-+
-+  function flag(label, condition, flags) {
-+    if (condition) flags.push(label);
-+  }
-+
-+  function buildMotionSummary(lift, metrics) {
-+    const flags = [];
-+    if (lift === "SQ") {
-+      flag("torso_forward", metrics.torsoLean !== null && metrics.torsoLean >= 32, flags);
-+      flag("depth_candidate", metrics.hipAngle !== null && metrics.kneeAngle !== null && metrics.hipAngle <= 75 && metrics.kneeAngle <= 90, flags);
-+      flag("minor_asymmetry", metrics.asymmetryScore !== null && metrics.asymmetryScore >= 8, flags);
-+      return {
-+        flags,
-+        title: "スクワット傾向",
-+        lines: [
-+          metrics.hipAngle !== null ? `股関節角度の目安: ${metrics.hipAngle}°` : "股関節角度: 確認不足",
-+          metrics.kneeAngle !== null ? `膝角度の目安: ${metrics.kneeAngle}°` : "膝角度: 確認不足",
-+          metrics.torsoLean !== null ? `体幹前傾: ${metrics.torsoLean}°` : "体幹前傾: 確認不足"
-+        ],
-+        buddyComment: flags.includes("torso_forward")
-+          ? "ボトム周辺で体幹前傾が強めに見える可能性があります。次回は足裏全体に圧を残す意識で確認しましょう。"
-+          : "大きな崩れは少なめに見えます。次回も同じ角度から撮ると比較しやすくなります。"
-+      };
-+    }
-+    if (lift === "BP") {
-+      flag("elbow_asymmetry", metrics.asymmetryScore !== null && metrics.asymmetryScore >= 7, flags);
-+      flag("elbow_lockout_check", metrics.elbowAngle !== null && metrics.elbowAngle < 145, flags);
-+      return {
-+        flags,
-+        title: "ベンチプレス傾向",
-+        lines: [
-+          metrics.elbowAngle !== null ? `肘角度の目安: ${metrics.elbowAngle}°` : "肘角度: 確認不足",
-+          metrics.asymmetryScore !== null ? `左右差の目安: ${metrics.asymmetryScore}` : "左右差: 確認不足",
-+          "胸での静止やバー軌道は動画本体で確認してください。"
-+        ],
-+        buddyComment: flags.includes("elbow_asymmetry")
-+          ? "押し出しで左右差が出ている可能性があります。胸で止めた後、両手で同時に押す意識を確認しましょう。"
-+          : "左右差は大きくなさそうです。次回は真横か斜め前から撮ると前腕角度を見やすくなります。"
-+      };
-+    }
-+    if (lift === "DL") {
-+      flag("torso_forward", metrics.torsoLean !== null && metrics.torsoLean >= 38, flags);
-+      flag("minor_asymmetry", metrics.asymmetryScore !== null && metrics.asymmetryScore >= 8, flags);
-+      return {
-+        flags,
-+        title: "デッドリフト傾向",
-+        lines: [
-+          metrics.hipAngle !== null ? `股関節角度の目安: ${metrics.hipAngle}°` : "股関節角度: 確認不足",
-+          metrics.torsoLean !== null ? `背中の傾き目安: ${metrics.torsoLean}°` : "背中の傾き: 確認不足",
-+          metrics.asymmetryScore !== null ? `左右差の目安: ${metrics.asymmetryScore}` : "左右差: 確認不足"
-+        ],
-+        buddyComment: flags.includes("torso_forward")
-+          ? "引き始めで上体が強く倒れている可能性があります。広背筋でバーを近く保つ意識を確認しましょう。"
-+          : "スタート姿勢は大きく崩れていないように見えます。膝通過付近も次回比較していきましょう。"
-+      };
-+    }
-+    return {
-+      flags,
-+      title: "フォーム傾向",
-+      lines: [
-+        metrics.torsoLean !== null ? `体幹角度の目安: ${metrics.torsoLean}°` : "体幹角度: 確認不足",
-+        metrics.asymmetryScore !== null ? `左右差の目安: ${metrics.asymmetryScore}` : "左右差: 確認不足"
-+      ],
-+      buddyComment: "全体の傾向を保存しました。次回も同じ角度で撮ると変化を見やすくなります。"
-+    };
-+  }
-+
-+  function drawPose(canvas, video, landmarks) {
-+    const width = video.videoWidth || video.clientWidth || 640;
-+    const height = video.videoHeight || video.clientHeight || 360;
-+    canvas.width = width;
-+    canvas.height = height;
-+    const ctx = canvas.getContext("2d");
-+    ctx.clearRect(0, 0, width, height);
-+    ctx.lineWidth = Math.max(3, width * 0.004);
-+    ctx.strokeStyle = "rgba(180, 35, 24, 0.92)";
-+    ctx.fillStyle = "rgba(47, 111, 115, 0.95)";
-+    poseConnections.forEach(([start, end]) => {
-+      const a = point(landmarks, start);
-+      const b = point(landmarks, end);
-+      if (!a || !b) return;
-+      ctx.beginPath();
-+      ctx.moveTo(a.x * width, a.y * height);
-+      ctx.lineTo(b.x * width, b.y * height);
-+      ctx.stroke();
-+    });
-+    landmarks.forEach((landmark) => {
-+      if ((landmark.visibility || 0) < 0.25) return;
-+      ctx.beginPath();
-+      ctx.arc(landmark.x * width, landmark.y * height, Math.max(4, width * 0.006), 0, Math.PI * 2);
-+      ctx.fill();
-+    });
-+  }
-+
-+  function motionResultMarkup(analysis) {
-+    if (!analysis || analysis.status !== "completed") {
-+      return `<p>解析結果はまだありません。動画を止めて「現在フレームを解析」を押してください。</p>`;
-+    }
-+    const lines = Array.isArray(analysis.lines) ? analysis.lines : [];
-+    return `
-+      <div class="motion-result-chips">
-+        <span>信頼度: ${escapeHtml(analysis.confidence || "medium")}</span>
-+        <span>${escapeHtml(analysis.keyFrames?.currentTime || "0.0")}秒付近</span>
-+      </div>
-+      <strong>${escapeHtml(analysis.title || "フォーム傾向")}</strong>
-+      <ul>${lines.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}</ul>
-+      <p>${escapeHtml(analysis.buddyComment || "")}</p>
-+      <details class="compact-guide">
-+        <summary>解析値を見る</summary>
-+        <pre>${escapeHtml(JSON.stringify(analysis.metrics || {}, null, 2))}</pre>
-+      </details>
-+    `;
-+  }
-+
-   function requestToPromise(request) {
-     return new Promise((resolve, reject) => {
-       request.onsuccess = () => resolve(request.result);
-@@ -239,6 +486,7 @@
-           <small>${escapeHtml(formatDate(record.date))}</small>
-         </div>
-         <strong>${escapeHtml(videoTitle(record))}</strong>
-+        <p class="motion-status ${record.analysis?.status === "completed" ? "done" : ""}">解析：${record.analysis?.status === "completed" ? "完了" : "未解析"}</p>
-         <p>撮影：${escapeHtml(record.angle || "-")}</p>
-         <p>${escapeHtml(memo)}</p>
-         <div class="video-card-actions">
-@@ -287,7 +535,10 @@
-           <div><p class="eyebrow">Video Form Note</p><h2>${escapeHtml(videoTitle(record))}</h2></div>
-           <button class="text-button" value="close" type="submit">閉じる</button>
-         </div>
--        <video controls playsinline preload="metadata" src="${escapeHtml(url)}"></video>
-+        <div class="motion-video-frame">
-+          <video controls playsinline preload="metadata" src="${escapeHtml(url)}"></video>
-+          <canvas class="motion-overlay" data-motion-canvas></canvas>
-+        </div>
-         <div class="video-viewer-meta">
-           <span>${escapeHtml(formatDate(record.date))}</span>
-           <span>${escapeHtml(record.setType || "自由")}</span>
-@@ -299,14 +550,85 @@
-         </section>
-         <label>メモ<textarea data-video-view-memo rows="3">${escapeHtml(record.memo || "")}</textarea></label>
-         <label>Buddyメモ<textarea data-video-view-buddy rows="3">${escapeHtml(record.buddyMemo || "")}</textarea></label>
--        <details class="compact-guide">
--          <summary>解析機能（準備中）</summary>
--          <p>関節点、バー軌道、挙上速度、Buddyフォーム評価は今後追加予定です。まずは動画を残し、過去のフォームと比べよう。</p>
--        </details>
-+        <section class="motion-analyzer-card" data-motion-card>
-+          <div class="video-check-head">
-+            <strong>Buddy Motion Analyzer β</strong>
-+            <small>動画は外部送信せず、現在フレームだけを端末内で解析します。</small>
-+          </div>
-+          <p class="video-storage-note">AIフォーム解析は補助機能です。撮影角度、照明、服装、動画品質によって結果が変わります。最終判断は動画本体とコーチの確認を優先してください。</p>
-+          <div class="motion-actions">
-+            <button class="primary-button inline" type="button" data-motion-analyze="${escapeHtml(record.id)}">現在フレームを解析</button>
-+            <label class="motion-toggle"><input type="checkbox" data-motion-overlay-toggle checked>骨格表示</label>
-+          </div>
-+          <div class="motion-result" data-motion-result>${motionResultMarkup(record.analysis)}</div>
-+          <details class="compact-guide">
-+            <summary>撮影ガイド</summary>
-+            <p>SQは真横または斜め後ろ、BPは真横または斜め前、DLは真横または斜め前がおすすめです。全身とバーベルを画面に入れてください。</p>
-+          </details>
-+        </section>
-         <button class="primary-button" type="button" data-video-review-save="${escapeHtml(record.id)}">フォーム確認を保存</button>
-       </form>
-     `;
-     dialog.showModal();
-+  }
-+
-+  async function analyzeMotion(button) {
-+    const dialog = button.closest("dialog");
-+    const record = await getVideoRecord(button.dataset.motionAnalyze);
-+    const video = dialog?.querySelector("video");
-+    const canvas = dialog?.querySelector("[data-motion-canvas]");
-+    const resultBox = dialog?.querySelector("[data-motion-result]");
-+    if (!record || !video || !canvas || !resultBox) return;
-+    if (!video.videoWidth || !video.videoHeight) {
-+      resultBox.innerHTML = `<p>動画の読み込み後に解析してください。</p>`;
-+      return;
-+    }
-+    button.disabled = true;
-+    button.textContent = "解析中...";
-+    resultBox.innerHTML = `<p>MediaPipeを読み込んでいます。初回は少し時間がかかります。</p>`;
-+    try {
-+      const pose = await getPoseLandmarker();
-+      const result = pose.detectForVideo(video, performance.now());
-+      const landmarks = result.landmarks?.[0];
-+      if (!landmarks?.length) {
-+        resultBox.innerHTML = `<p>関節点を確認できませんでした。全身が映るフレームで再解析してください。</p>`;
-+        return;
-+      }
-+      drawPose(canvas, video, landmarks);
-+      const metrics = metricsFromLandmarks(landmarks);
-+      const summary = buildMotionSummary(record.lift, metrics);
-+      const analysis = {
-+        status: "completed",
-+        confidence: landmarks.filter((item) => (item.visibility || 0) >= 0.5).length >= 18 ? "high" : "medium",
-+        keyFrames: {
-+          currentTime: video.currentTime.toFixed(1),
-+          start: null,
-+          bottom: null,
-+          finish: null
-+        },
-+        metrics,
-+        flags: summary.flags,
-+        title: summary.title,
-+        lines: summary.lines,
-+        buddyComment: summary.buddyComment,
-+        poseKeypoints: compactLandmarks(landmarks),
-+        barPathPoints: null,
-+        velocityData: null,
-+        updatedAt: new Date().toISOString()
-+      };
-+      record.analysis = analysis;
-+      record.updatedAt = new Date().toISOString();
-+      if (!record.buddyMemo) record.buddyMemo = summary.buddyComment;
-+      await saveVideoRecord(record);
-+      resultBox.innerHTML = motionResultMarkup(analysis);
-+      renderLibrary();
-+    } catch (error) {
-+      console.error("Motion analysis failed", error);
-+      resultBox.innerHTML = `<p>解析に失敗しました。オンライン接続、動画の明るさ、全身が映っているかを確認してください。</p>`;
-+    } finally {
-+      button.disabled = false;
-+      button.textContent = "現在フレームを解析";
-+    }
-   }
- 
-   async function saveViewerReview(button) {
-@@ -464,6 +786,13 @@
-   document.addEventListener("click", (event) => {
-     const saveReview = event.target.closest("[data-video-review-save]");
-     if (saveReview) saveViewerReview(saveReview);
-+    const analyze = event.target.closest("[data-motion-analyze]");
-+    if (analyze) analyzeMotion(analyze);
-+  });
-+  document.addEventListener("change", (event) => {
-+    if (!event.target.matches("[data-motion-overlay-toggle]")) return;
-+    const canvas = event.target.closest("dialog")?.querySelector("[data-motion-canvas]");
-+    if (canvas) canvas.classList.toggle("hidden", !event.target.checked);
-   });
-   window.addEventListener("beforeunload", clearObjectUrls);
- 
---- v145/sw.js
-+++ v147/sw.js
-@@ -1,14 +1,14 @@
--const CACHE_NAME = "platform-buddy-v145";
-+const CACHE_NAME = "platform-buddy-v147";
- const CORE_ASSETS = [
-   "./",
-   "index.html",
--  "index.html?v=145",
-+  "index.html?v=147",
-   "styles.css",
--  "styles.css?v=145",
-+  "styles.css?v=147",
-   "app.js",
--  "app.js?v=145",
-+  "app.js?v=147",
-   "video.js",
--  "video.js?v=145",
-+  "video.js?v=147",
-   "manifest.webmanifest",
-   "icon.svg",
-   "apple-touch-icon.png",
---- v145/manifest.webmanifest
-+++ v147/manifest.webmanifest
-@@ -2,7 +2,7 @@
-   "name": "Platform Buddy",
-   "short_name": "Buddy",
-   "description": "BIG3の現在地と目標を見える化し、PRサイクル、記録、分析、大会準備までつなげて管理できるパワーリフティング向けPWAです。",
--  "start_url": "./index.html?v=145",
-+  "start_url": "./index.html?v=147",
-   "scope": "./",
-   "display": "standalone",
-   "background_color": "#f4efe6",
+--- v147/index.html
++++ v148/index.html
+Comparing files PLATFORM-BUDDY-V147-WORK\index.html and PLATFORM-BUDDY-V148-WORK\INDEX.HTML
+***** PLATFORM-BUDDY-V147-WORK\index.html
+   14:      <link rel="apple-touch-icon" href="apple-touch-icon.png">
+   15:      <link rel="stylesheet" href="styles.css?v=147">
+   16:    </head>
+***** PLATFORM-BUDDY-V148-WORK\INDEX.HTML
+   14:      <link rel="apple-touch-icon" href="apple-touch-icon.png">
+   15:      <link rel="stylesheet" href="styles.css?v=148">
+   16:    </head>
+*****
+
+***** PLATFORM-BUDDY-V147-WORK\index.html
+ 1183:  
+ 1184:      <script src="app.js?v=147"></script>
+ 1185:      <script src="video.js?v=147"></script>
+ 1186:    </body>
+***** PLATFORM-BUDDY-V148-WORK\INDEX.HTML
+ 1183:  
+ 1184:      <script src="app.js?v=148"></script>
+ 1185:      <script src="video.js?v=148"></script>
+ 1186:    </body>
+*****
+
+
+--- v147/styles.css
++++ v148/styles.css
+Comparing files PLATFORM-BUDDY-V147-WORK\styles.css and PLATFORM-BUDDY-V148-WORK\STYLES.CSS
+***** PLATFORM-BUDDY-V147-WORK\styles.css
+***** PLATFORM-BUDDY-V148-WORK\STYLES.CSS
+16015:  
+16016:  /* v148: manual VBT memo */
+16017:  html body .manual-vbt-card {
+16018:    display: grid;
+16019:    gap: 10px;
+16020:    border: 1px solid var(--line, #ded6c8);
+16021:    border-left: 5px solid var(--accent, #b42318);
+16022:    border-radius: 12px;
+16023:    background:
+16024:      linear-gradient(90deg, rgba(180, 35, 24, 0.045), transparent 46%),
+16025:      var(--surface, #fffaf2);
+16026:    padding: 12px;
+16027:  }
+16028:  
+16029:  html body .vbt-controls {
+16030:    display: grid;
+16031:    grid-template-columns: repeat(2, minmax(0, 1fr));
+16032:    gap: 8px;
+16033:  }
+16034:  
+16035:  html body .vbt-controls label {
+16036:    display: grid !important;
+16037:    gap: 5px !important;
+16038:    width: 100% !important;
+16039:    color: var(--text-main, #171717);
+16040:    font-size: 0.78rem;
+16041:    font-weight: 900;
+16042:  }
+16043:  
+16044:  html body .vbt-controls input {
+16045:    min-height: 40px;
+16046:  }
+16047:  
+16048:  html body .vbt-markers {
+16049:    display: flex;
+16050:    flex-wrap: wrap;
+16051:    gap: 6px;
+16052:  }
+16053:  
+16054:  html body .vbt-markers span {
+16055:    border: 1px solid var(--line, #ded6c8);
+16056:    border-radius: 999px;
+16057:    background: #ffffff;
+16058:    color: var(--text-sub, #526179);
+16059:    padding: 5px 9px;
+16060:    font-size: 0.74rem;
+16061:    font-weight: 900;
+16062:  }
+16063:  
+16064:  html body .vbt-result strong {
+16065:    font-size: 1.05rem;
+16066:  }
+16067:  
+16068:  @media (max-width: 640px) {
+16069:    html body .vbt-controls {
+16070:      grid-template-columns: 1fr;
+16071:    }
+16072:  
+16073:    html body .vbt-controls > * {
+16074:      width: 100%;
+16075:    }
+16076:  }
+*****
+
+
+--- v147/video.js
++++ v148/video.js
+Comparing files PLATFORM-BUDDY-V147-WORK\video.js and PLATFORM-BUDDY-V148-WORK\VIDEO.JS
+***** PLATFORM-BUDDY-V147-WORK\video.js
+   17:    ];
+   18:    let poseLandmarkerPromise = null;
+***** PLATFORM-BUDDY-V148-WORK\VIDEO.JS
+   17:    ];
+   18:    let visionModulePromise = null;
+   19:    let poseLandmarkerPromise = null;
+*****
+
+***** PLATFORM-BUDDY-V147-WORK\video.js
+  152:  
+  153:    async function getPoseLandmarker() {
+  154:      if (!poseLandmarkerPromise) {
+***** PLATFORM-BUDDY-V148-WORK\VIDEO.JS
+  153:  
+  154:    async function getPoseLandmarkerLegacy() {
+  155:      if (!poseLandmarkerPromise) {
+*****
+
+***** PLATFORM-BUDDY-V147-WORK\video.js
+  155:        poseLandmarkerPromise = (async () => {
+  156:          await loadScriptOnce(VISION_SCRIPT_URL);
+  157:          let FilesetResolver = visionExport("FilesetResolver");
+***** PLATFORM-BUDDY-V148-WORK\VIDEO.JS
+  156:        poseLandmarkerPromise = (async () => {
+  157:          try {
+  158:            await loadScriptOnce(VISION_SCRIPT_URL);
+  159:          } catch (error) {
+  160:            console.warn("MediaPipe script load failed", error);
+  161:            throw new Error("MediaPipea??ea-a??e??a??a??a??a??a???a??a??a??e??a?!c???a??a??c??oea?a??a?|a??a??a??a?C?ao|ec|a??a?|a??a
+  162:  ??a??a??a??");
+  163:          }
+  164:          let FilesetResolver = visionExport("FilesetResolver");
+*****
+
+***** PLATFORM-BUDDY-V147-WORK\video.js
+  180:  
+  181:    function point(landmarks, index) {
+  182:      const value = landmarks?.[index];
+  183:      return value && Number.isFinite(value.x) && Number.isFinite(value.y) ? value : null;
+  184:    }
+***** PLATFORM-BUDDY-V148-WORK\VIDEO.JS
+  187:  
+  188:    async function loadVisionModuleStable() {
+  189:      if (!visionModulePromise) {
+  190:        visionModulePromise = (async () => {
+  191:          try {
+  192:            const module = await import(VISION_MODULE_URL);
+  193:            if (module.FilesetResolver && module.PoseLandmarker) return module;
+  194:          } catch (error) {
+  195:            console.warn("MediaPipe ESM import failed", error);
+  196:          }
+  197:          await loadScriptOnce(VISION_SCRIPT_URL);
+  198:          const FilesetResolver = visionExport("FilesetResolver");
+  199:          const PoseLandmarker = visionExport("PoseLandmarker");
+  200:          if (!FilesetResolver || !PoseLandmarker) {
+  201:            throw new Error("MediaPipea??ea-a??e??a??a??a??a??a???a??a??a??e??a?!c???a??a??c??oea?a??a?|a??a??a??a?C?ao|ec|a??a?|a??a
+  202:  ??a??a??a??");
+  203:          }
+  204:          return { FilesetResolver, PoseLandmarker };
+  205:        })();
+  206:      }
+  207:      return visionModulePromise;
+  208:    }
+*****
+
+***** PLATFORM-BUDDY-V147-WORK\video.js
+  185:  
+  186:    function angleBetween(a, b, c) {
+  187:      if (!a || !b || !c) return null;
+  188:      const ab = { x: a.x - b.x, y: a.y - b.y };
+  189:      const cb = { x: c.x - b.x, y: c.y - b.y };
+  190:      const dot = ab.x * cb.x + ab.y * cb.y;
+  191:      const mag = Math.hypot(ab.x, ab.y) * Math.hypot(cb.x, cb.y);
+  192:      if (!mag) return null;
+  193:      return Math.round(Math.acos(Math.max(-1, Math.min(1, dot / mag))) * 180 / Math.PI);
+  194:    }
+***** PLATFORM-BUDDY-V148-WORK\VIDEO.JS
+  209:  
+  210:    function createPoseLandmarkerStable(PoseLandmarker, resolver, delegate) {
+  211:      return PoseLandmarker.createFromOptions(resolver, {
+  212:        baseOptions: {
+  213:          modelAssetPath: POSE_MODEL_URL,
+  214:          delegate
+  215:        },
+  216:        runningMode: "VIDEO",
+  217:        numPoses: 1
+  218:      });
+  219:    }
+*****
+
+***** PLATFORM-BUDDY-V147-WORK\video.js
+  195:  
+  196:    function averageNumber(values) {
+  197:      const numbers = values.filter((value) => Number.isFinite(value));
+  198:      return numbers.length ? Math.round(numbers.reduce((sum, value) => sum + value, 0) / numbers.length) : null;
+  199:    }
+***** PLATFORM-BUDDY-V148-WORK\VIDEO.JS
+  220:  
+  221:    async function getPoseLandmarker() {
+  222:      if (!poseLandmarkerPromise) {
+  223:        poseLandmarkerPromise = (async () => {
+  224:          const { FilesetResolver, PoseLandmarker } = await loadVisionModuleStable();
+  225:          const resolver = await FilesetResolver.forVisionTasks(VISION_WASM_ROOT);
+  226:          try {
+  227:            return await createPoseLandmarkerStable(PoseLandmarker, resolver, "GPU");
+  228:          } catch (error) {
+  229:            console.warn("MediaPipe GPU delegate failed. Falling back to CPU.", error);
+  230:            return createPoseLandmarkerStable(PoseLandmarker, resolver, "CPU");
+  231:          }
+  232:        })();
+  233:      }
+  234:      return poseLandmarkerPromise;
+  235:    }
+*****
+
+***** PLATFORM-BUDDY-V147-WORK\video.js
+  200:  
+  201:    function torsoLeanDeg(landmarks) {
+  202:      const leftShoulder = point(landmarks, 11);
+  203:      const rightShoulder = point(landmarks, 12);
+  204:      const leftHip = point(landmarks, 23);
+  205:      const rightHip = point(landmarks, 24);
+  206:      if (!leftShoulder || !rightShoulder || !leftHip || !rightHip) return null;
+  207:      const shoulder = { x: (leftShoulder.x + rightShoulder.x) / 2, y: (leftShoulder.y + rightShoulder.y) / 2 };
+  208:      const hip = { x: (leftHip.x + rightHip.x) / 2, y: (leftHip.y + rightHip.y) / 2 };
+  209:      const dx = shoulder.x - hip.x;
+  210:      const dy = shoulder.y - hip.y;
+  211:      return Math.round(Math.atan2(Math.abs(dx), Math.abs(dy || 0.0001)) * 180 / Math.PI);
+  212:    }
+***** PLATFORM-BUDDY-V148-WORK\VIDEO.JS
+  236:  
+  237:    function point(landmarks, index) {
+  238:      const value = landmarks?.[index];
+  239:      return value && Number.isFinite(value.x) && Number.isFinite(value.y) ? value : null;
+  240:    }
+*****
+
+***** PLATFORM-BUDDY-V147-WORK\video.js
+  213:  
+  214:    function asymmetryScore(landmarks) {
+  215:      const pairs = [[11, 12], [23, 24], [25, 26], [27, 28]];
+  216:      const diffs = pairs.map(([left, right]) => {
+  217:        const a = point(landmarks, left);
+  218:        const b = point(landmarks, right);
+  219:        return a && b ? Math.abs(a.y - b.y) * 100 : null;
+  220:      }).filter((value) => Number.isFinite(value));
+  221:      return diffs.length ? Math.round(diffs.reduce((sum, value) => sum + value, 0) / diffs.length) : null;
+  222:    }
+***** PLATFORM-BUDDY-V148-WORK\VIDEO.JS
+  241:  
+  242:    function angleBetween(a, b, c) {
+  243:      if (!a || !b || !c) return null;
+  244:      const ab = { x: a.x - b.x, y: a.y - b.y };
+  245:      const cb = { x: c.x - b.x, y: c.y - b.y };
+  246:      const dot = ab.x * cb.x + ab.y * cb.y;
+  247:      const mag = Math.hypot(ab.x, ab.y) * Math.hypot(cb.x, cb.y);
+  248:      if (!mag) return null;
+  249:      return Math.round(Math.acos(Math.max(-1, Math.min(1, dot / mag))) * 180 / Math.PI);
+  250:    }
+*****
+
+***** PLATFORM-BUDDY-V147-WORK\video.js
+  223:  
+  224:    function compactLandmarks(landmarks) {
+  225:      return landmarks.map((item) => ({
+  226:        x: Number(item.x.toFixed(4)),
+  227:        y: Number(item.y.toFixed(4)),
+  228:        z: Number((item.z || 0).toFixed(4)),
+  229:        visibility: Number((item.visibility || 0).toFixed(3))
+  230:      }));
+  231:    }
+***** PLATFORM-BUDDY-V148-WORK\VIDEO.JS
+  251:  
+  252:    function averageNumber(values) {
+  253:      const numbers = values.filter((value) => Number.isFinite(value));
+  254:      return numbers.length ? Math.round(numbers.reduce((sum, value) => sum + value, 0) / numbers.length) : null;
+  255:    }
+*****
+
+***** PLATFORM-BUDDY-V147-WORK\video.js
+  232:  
+  233:    function metricsFromLandmarks(landmarks) {
+  234:      const leftHip = angleBetween(point(landmarks, 11), point(landmarks, 23), point(landmarks, 25));
+  235:      const rightHip = angleBetween(point(landmarks, 12), point(landmarks, 24), point(landmarks, 26));
+  236:      const leftKnee = angleBetween(point(landmarks, 23), point(landmarks, 25), point(landmarks, 27));
+  237:      const rightKnee = angleBetween(point(landmarks, 24), point(landmarks, 26), point(landmarks, 28));
+  238:      const leftElbow = angleBetween(point(landmarks, 11), point(landmarks, 13), point(landmarks, 15));
+  239:      const rightElbow = angleBetween(point(landmarks, 12), point(landmarks, 14), point(landmarks, 16));
+  240:      return {
+  241:        hipAngle: averageNumber([leftHip, rightHip]),
+  242:        kneeAngle: averageNumber([leftKnee, rightKnee]),
+  243:        elbowAngle: averageNumber([leftElbow, rightElbow]),
+  244:        torsoLean: torsoLeanDeg(landmarks),
+  245:        asymmetryScore: asymmetryScore(landmarks)
+  246:      };
+  247:    }
+***** PLATFORM-BUDDY-V148-WORK\VIDEO.JS
+  256:  
+  257:    function torsoLeanDeg(landmarks) {
+  258:      const leftShoulder = point(landmarks, 11);
+  259:      const rightShoulder = point(landmarks, 12);
+  260:      const leftHip = point(landmarks, 23);
+  261:      const rightHip = point(landmarks, 24);
+  262:      if (!leftShoulder || !rightShoulder || !leftHip || !rightHip) return null;
+  263:      const shoulder = { x: (leftShoulder.x + rightShoulder.x) / 2, y: (leftShoulder.y + rightShoulder.y) / 2 };
+  264:      const hip = { x: (leftHip.x + rightHip.x) / 2, y: (leftHip.y + rightHip.y) / 2 };
+  265:      const dx = shoulder.x - hip.x;
+  266:      const dy = shoulder.y - hip.y;
+  267:      return Math.round(Math.atan2(Math.abs(dx), Math.abs(dy || 0.0001)) * 180 / Math.PI);
+  268:    }
+*****
+
+***** PLATFORM-BUDDY-V147-WORK\video.js
+  248:  
+  249:    function flag(label, condition, flags) {
+  250:      if (condition) flags.push(label);
+  251:    }
+***** PLATFORM-BUDDY-V148-WORK\VIDEO.JS
+  269:  
+  270:    function asymmetryScore(landmarks) {
+  271:      const pairs = [[11, 12], [23, 24], [25, 26], [27, 28]];
+  272:      const diffs = pairs.map(([left, right]) => {
+  273:        const a = point(landmarks, left);
+  274:        const b = point(landmarks, right);
+  275:        return a && b ? Math.abs(a.y - b.y) * 100 : null;
+  276:      }).filter((value) => Number.isFinite(value));
+  277:      return diffs.length ? Math.round(diffs.reduce((sum, value) => sum + value, 0) / diffs.length) : null;
+  278:    }
+*****
+
+***** PLATFORM-BUDDY-V147-WORK\video.js
+  252:  
+  253:    function buildMotionSummary(lift, metrics) {
+***** PLATFORM-BUDDY-V148-WORK\VIDEO.JS
+  279:  
+  280:    function compactLandmarks(landmarks) {
+  281:      return landmarks.map((item) => ({
+  282:        x: Number(item.x.toFixed(4)),
+  283:        y: Number(item.y.toFixed(4)),
+  284:        z: Number((item.z || 0).toFixed(4)),
+  285:        visibility: Number((item.visibility || 0).toFixed(3))
+  286:      }));
+  287:    }
+  288:  
+  289:    function metricsFromLandmarks(landmarks) {
+  290:      const leftHip = angleBetween(point(landmarks, 11), point(landmarks, 23), point(landmarks, 25));
+  291:      const rightHip = angleBetween(point(landmarks, 12), point(landmarks, 24), point(landmarks, 26));
+  292:      const leftKnee = angleBetween(point(landmarks, 23), point(landmarks, 25), point(landmarks, 27));
+  293:      const rightKnee = angleBetween(point(landmarks, 24), point(landmarks, 26), point(landmarks, 28));
+  294:      const leftElbow = angleBetween(point(landmarks, 11), point(landmarks, 13), point(landmarks, 15));
+  295:      const rightElbow = angleBetween(point(landmarks, 12), point(landmarks, 14), point(landmarks, 16));
+  296:      return {
+  297:        hipAngle: averageNumber([leftHip, rightHip]),
+  298:        kneeAngle: averageNumber([leftKnee, rightKnee]),
+  299:        elbowAngle: averageNumber([leftElbow, rightElbow]),
+  300:        torsoLean: torsoLeanDeg(landmarks),
+  301:        asymmetryScore: asymmetryScore(landmarks)
+  302:      };
+  303:    }
+  304:  
+  305:    function flag(label, condition, flags) {
+  306:      if (condition) flags.push(label);
+  307:    }
+  308:  
+  309:    function buildMotionSummary(lift, metrics) {
+*****
+
+***** PLATFORM-BUDDY-V147-WORK\video.js
+  542:  
+  543:    async function openViewer(id) {
+  544:      const record = await getVideoRecord(id);
+  545:      if (!record) return;
+  546:      const dialog = ensureViewerDialog();
+  547:      const url = createObjectUrl(record.videoBlob);
+  548:      dialog.innerHTML = `
+  549:        <form method="dialog" class="video-viewer-card">
+  550:          <div class="section-title">
+  551:            <div><p class="eyebrow">Video Form Note</p><h2>${escapeHtml(videoTitle(record))}</h2></div>
+  552:            <button class="text-button" value="close" type="submit">e??a??a??</button>
+  553:          </div>
+  554:          <div class="motion-video-frame">
+  555:            <video controls playsinline preload="metadata" src="${escapeHtml(url)}"></video>
+  556:            <canvas class="motion-overlay" data-motion-canvas></canvas>
+  557:          </div>
+  558:          <div class="video-viewer-meta">
+  559:            <span>${escapeHtml(formatDate(record.date))}</span>
+  560:            <span>${escapeHtml(record.setType || "e?ac??}")}</span>
+  561:            <span>a?Ra??}i??${escapeHtml(record.angle || "-")}</span>
+  562:          </div>
+  563:          <section class="video-check-editor">
+  564:            <div class="video-check-head"><strong>a??a?ca??a??a??a???a??a??P</strong><small>e|?e??a??a?|a??La???a???a??a??a??</small><
+  565:  /div>
+  566:            <div class="video-check-grid">${checkGridMarkup(record.lift, record.check || {})}</div>
+  567:          </section>
+  568:          <label>a?!a???<textarea data-video-view-memo rows="3">${escapeHtml(record.memo || "")}</textarea></label>
+  569:          <label>Buddya?!a???<textarea data-video-view-buddy rows="3">${escapeHtml(record.buddyMemo || "")}</textarea></label>
+  570:          <section class="motion-analyzer-card" data-motion-card>
+  571:            <div class="video-check-head">
+  572:              <strong>Buddy Motion Analyzer I2</strong>
+  573:              <small>a??c???a??Pa??e??Ne??a?!a??a??a??c??a??Na??a???a??a??a??a??a??c??Pa???a??a???e????a??a??a??a??a??</small>
+  574:            </div>
+  575:            <p class="video-storage-note">AIa??a?ca??a??e????a??a??Pe???a?cac?e??a???a??a??a?Ra??}e???ao|a??c???a??a??a??e???a??a??c???a??e
+  576:  3aa???a??a???a?|c???a??a??a??a??a??a??a??a??a??c???a??a?-a??Pa??c???a???a??a??Na?3a??a??a?Rc??oea?a??a?aa??a??a?|a??a??a??a??a??</p>
+  577:            <div class="motion-actions">
+  578:              <button class="primary-button inline" type="button" data-motion-analyze="${escapeHtml(record.id)}">c??a??Na??a???a??a
+  579:  ??a??e????a??</button>
+  580:              <label class="motion-toggle"><input type="checkbox" data-motion-overlay-toggle checked>ea?Na??e!?Nc?o</label>
+  581:            </div>
+  582:            <div class="motion-result" data-motion-result>${motionResultMarkup(record.analysis)}</div>
+  583:            <details class="compact-guide">
+  584:              <summary>a?Ra??}a???a??a??</summary>
+  585:              <p>SQa??Pc??a?Naa??a??a??Pa??a??a??a??a??BPa??Pc??a?Naa??a??a??Pa??a??a??a??DLa??Pc??a?Naa??a??a??Pa??a??a??a??a??a??a??a??a
+  586:  ???a??a??a??Neo??a??Na??a??a??a???a??c???e???a???a?\a??a?|a??a??a??a??a??</p>
+  587:            </details>
+  588:          </section>
+  589:          <button class="primary-button" type="button" data-video-review-save="${escapeHtml(record.id)}">a??a?ca??a??c??oea?a??a??
+  590:  a-?</button>
+  591:        </form>
+  592:      `;
+  593:      dialog.showModal();
+  594:    }
+***** PLATFORM-BUDDY-V148-WORK\VIDEO.JS
+  598:  
+  599:    function formatSeconds(value) {
+  600:      const number = Number(value);
+  601:      return Number.isFinite(number) ? `${number.toFixed(2)}s` : "-";
+  602:    }
+*****
+
+***** PLATFORM-BUDDY-V147-WORK\video.js
+  595:  
+  596:    async function analyzeMotion(button) {
+  597:      const dialog = button.closest("dialog");
+  598:      const record = await getVideoRecord(button.dataset.motionAnalyze);
+  599:      const video = dialog?.querySelector("video");
+  600:      const canvas = dialog?.querySelector("[data-motion-canvas]");
+  601:      const resultBox = dialog?.querySelector("[data-motion-result]");
+  602:      if (!record || !video || !canvas || !resultBox) return;
+  603:      if (!video.videoWidth || !video.videoHeight) {
+  604:        resultBox.innerHTML = `<p>a??c???a?Rea-a??e??a??a??a???e????a??a??a?|a??a??a??a??a??</p>`;
+  605:        return;
+  606:      }
+  607:      button.disabled = true;
+  608:      button.textContent = "e????a??a?C-...";
+  609:      resultBox.innerHTML = `<p>MediaPipea??ea-a??e??a??a???a??a??a??a??a??a??a??Pa???a??a??e??a??a??a??a??a??a??a??</p>`;
+  610:      try {
+  611:        const pose = await getPoseLandmarker();
+  612:        const result = pose.detectForVideo(video, performance.now());
+  613:        const landmarks = result.landmarks?.[0];
+  614:        if (!landmarks?.length) {
+  615:          resultBox.innerHTML = `<p>e???c?P?c?1a??c??oea?a???a??a??a??a??a???a??a??a??a??Neo??a??a??a??a??a???a??a??a???a??e????a??a??a?|a??
+  616:  a??a??a??a??</p>`;
+  617:          return;
+  618:        }
+  619:        drawPose(canvas, video, landmarks);
+  620:        const metrics = metricsFromLandmarks(landmarks);
+  621:        const summary = buildMotionSummary(record.lift, metrics);
+  622:        const analysis = {
+  623:          status: "completed",
+  624:          confidence: landmarks.filter((item) => (item.visibility || 0) >= 0.5).length >= 18 ? "high" : "medium",
+  625:          keyFrames: {
+  626:            currentTime: video.currentTime.toFixed(1),
+  627:            start: null,
+  628:            bottom: null,
+  629:            finish: null
+  630:          },
+  631:          metrics,
+  632:          flags: summary.flags,
+  633:          title: summary.title,
+  634:          lines: summary.lines,
+  635:          buddyComment: summary.buddyComment,
+  636:          poseKeypoints: compactLandmarks(landmarks),
+  637:          barPathPoints: null,
+  638:          velocityData: null,
+  639:          updatedAt: new Date().toISOString()
+  640:        };
+  641:        record.analysis = analysis;
+  642:        record.updatedAt = new Date().toISOString();
+  643:        if (!record.buddyMemo) record.buddyMemo = summary.buddyComment;
+  644:        await saveVideoRecord(record);
+  645:        resultBox.innerHTML = motionResultMarkup(analysis);
+  646:        renderLibrary();
+  647:      } catch (error) {
+  648:        console.error("Motion analysis failed", error);
+  649:        resultBox.innerHTML = `<p>e????a??a???a??}a??a??a??a??a??a??a?aa?3a?ca??a?3a?\c???a??a??c???a?Ra??a??a??a??a??Neo??a??a??a???a?|a?
+  650:  ?a??a??a??c??oea?a??a?|a??a??a??a??a??</p>`;
+  651:      } finally {
+  652:        button.disabled = false;
+  653:        button.textContent = "c??a??Na??a???a??a??a??e????a??";
+  654:      }
+  655:    }
+***** PLATFORM-BUDDY-V148-WORK\VIDEO.JS
+  603:  
+  604:    function manualVelocityMarkup(velocityData) {
+  605:      if (!velocityData || !Number.isFinite(Number(velocityData.averageVelocity))) {
+  606:        return `<p>e??a???a??a???a??a??a??Nc???ao?a??a???a??a??a??a??aR?a??a??a??Na??a13a??a??a?C?e??ao|a??e?N?e?2a???a??a??a??a??</p>`;
+  607:      }
+  608:      return `
+  609:        <div class="motion-result-chips">
+  610:          <span>e??a??? ${escapeHtml(formatSeconds(velocityData.startTime))}</span>
+  611:          <span>c???ao? ${escapeHtml(formatSeconds(velocityData.endTime))}</span>
+  612:          <span>e?E?e??? ${escapeHtml(formatNumber(velocityData.distance))}m</span>
+  613:        </div>
+  614:        <strong>a13a??e??ao| ${escapeHtml(Number(velocityData.averageVelocity).toFixed(2))} m/s</strong>
+  615:        <p>a??a??e?aa??e??e?E!a???a??Pa?aa??a??a??aR?a??a??a?oe??a??a??cR?a?oa??a??c??!a??VBTa?!a???a???a??a??</p>
+  616:      `;
+  617:    }
+*****
+
+***** PLATFORM-BUDDY-V147-WORK\video.js
+  656:  
+  657:    async function saveViewerReview(button) {
+  658:      const dialog = button.closest("dialog");
+  659:      const record = await getVideoRecord(button.dataset.videoReviewSave);
+  660:      if (!record) return;
+  661:      record.check = readCheckValues(dialog);
+  662:      record.memo = dialog.querySelector("[data-video-view-memo]").value.trim();
+  663:      record.buddyMemo = dialog.querySelector("[data-video-view-buddy]").value.trim();
+  664:      record.updatedAt = new Date().toISOString();
+  665:      await saveVideoRecord(record);
+  666:      button.textContent = "a??a-?a??a??a??a??";
+  667:      setTimeout(() => { button.textContent = "a??a?ca??a??c??oea?a??a??a-?"; }, 1200);
+  668:      renderLibrary();
+  669:    }
+  670:  
+  671:    function compareColumnMarkup(record, url) {
+  672:      return `
+  673:        <article class="video-compare-column">
+  674:          <strong>${escapeHtml(videoTitle(record))}</strong>
+  675:          <small>${escapeHtml(formatDate(record.date))} / a?Ra??}i??${escapeHtml(record.angle || "-")}</small>
+  676:          <video controls playsinline preload="metadata" src="${escapeHtml(url)}"></video>
+  677:          <p>${escapeHtml(record.buddyMemo || record.memo || "a?!a???a?aa??")}</p>
+  678:        </article>
+  679:      `;
+***** PLATFORM-BUDDY-V148-WORK\VIDEO.JS
+  618:  
+  619:    function vbtCardMarkup(record) {
+  620:      const velocityData = record.analysis?.velocityData || {};
+  621:      const distance = Number.isFinite(Number(velocityData.distance)) ? Number(velocityData.distance) : 0.5;
+  622:      return `
+  623:        <section class="manual-vbt-card" data-vbt-card>
+  624:          <div class="video-check-head">
+  625:            <strong>a??a?C?e??ao|a?!a??? I2</strong>
+  626:            <small>e??a???a???c???ao?a??a??a??a??aR?</small>
+  627:          </div>
+  628:          <p class="video-storage-note">a??a??e?aa??e??e?E!a???a??Pa??a??a??a??a??a??a??c???a??a-??a??a?|a??e??a???a??Nc???ao?a??a??a??c??
+  629:  !a??VBTa???a??a??</p>
+  630:          <div class="vbt-controls">
+  631:            <button class="text-button" type="button" data-vbt-mark="start" data-video-id="${escapeHtml(record.id)}">e??a???a??a???
+  632:  a??a??</button>
+  633:            <button class="text-button" type="button" data-vbt-mark="end" data-video-id="${escapeHtml(record.id)}">c???ao?a??a???a?
+  634:  ?a??</button>
+  635:            <label>c????a??e?E?e??? m<input data-vbt-distance type="number" inputmode="decimal" min="0.05" max="2" step="0.01" value=
+  636:  "${escapeHtml(distance)}"></label>
+  637:            <button class="primary-button inline" type="button" data-vbt-save="${escapeHtml(record.id)}">e??ao|a??a??a-?</button>
+  638:          </div>
+  639:          <div class="vbt-markers">
+  640:            <span data-vbt-start>e??a??? ${escapeHtml(formatSeconds(velocityData.startTime))}</span>
+  641:            <span data-vbt-end>c???ao? ${escapeHtml(formatSeconds(velocityData.endTime))}</span>
+  642:          </div>
+  643:          <div class="motion-result vbt-result" data-vbt-result>${manualVelocityMarkup(velocityData)}</div>
+  644:        </section>
+  645:      `;
+*****
+
+***** PLATFORM-BUDDY-V147-WORK\video.js
+  681:  
+  682:    async function renderComparison() {
+  683:      cleanupContainerVideos(els.compareView);
+  684:      const ids = [...selectedForCompare];
+  685:      if (ids.length !== 2) return;
+  686:      const records = await Promise.all(ids.map(getVideoRecord));
+  687:      if (records.some((record) => !record)) return;
+  688:      const urls = records.map((record) => createObjectUrl(record.videoBlob));
+  689:      els.compareView.innerHTML = `
+  690:        <div class="video-compare-head">
+  691:          <strong>a??c???a?P?e??</strong>
+  692:          <button class="text-button compact" type="button" data-video-compare-close>a?P?e??a??e??a??a??</button>
+  693:        </div>
+  694:        <div class="video-compare-grid">
+  695:          ${compareColumnMarkup(records[0], urls[0])}
+  696:          ${compareColumnMarkup(records[1], urls[1])}
+  697:        </div>
+  698:      `;
+  699:      els.compareView.classList.remove("hidden");
+  700:      els.compareView.scrollIntoView({ behavior: "smooth", block: "start" });
+  701:    }
+***** PLATFORM-BUDDY-V148-WORK\VIDEO.JS
+  647:  
+  648:    function vbtState(dialog) {
+  649:      return dialog?._vbtState || { startTime: null, endTime: null };
+  650:    }
+*****
+
+***** PLATFORM-BUDDY-V147-WORK\video.js
+  702:  
+  703:    async function handleSave(event) {
+  704:      event.preventDefault();
+  705:      const file = els.file.files?.[0];
+  706:      if (!file) return updateStorageStatus("a??c???a??a?!a??a???a??e??Ca??a???a??a??a??a??a??");
+  707:      if (!file.type.startsWith("video/")) return updateStorageStatus("a??c???a??a?!a??a???a??e??Ca??a???a??a??a??a??a??");
+  708:      if (file.size > MAX_FILE_BYTES) return updateStorageStatus("a??c???a??a???a??a??a??a??a??a??350MBa??\a?C?a??c?RaR?a???a??a?|a??a
+  709:  ??a??a??a??");
+  710:  
+  711:      const record = {
+  712:        id: createId(),
+  713:        createdAt: new Date().toISOString(),
+  714:        updatedAt: new Date().toISOString(),
+  715:        date: els.date.value || today(),
+  716:        lift: els.lift.value,
+  717:        weight: Number(els.weight.value || 0),
+  718:        reps: Number(els.reps.value || 0),
+  719:        rpe: Number(els.rpe.value || 0),
+  720:        setType: els.setType.value,
+  721:        angle: els.angle.value,
+  722:        memo: els.memo.value.trim(),
+  723:        buddyMemo: els.buddyMemo.value.trim(),
+  724:        videoName: file.name,
+  725:        videoType: file.type,
+  726:        videoSize: file.size,
+  727:        videoBlob: file,
+  728:        check: readCheckValues(els.checkGrid),
+  729:        analysis: {
+  730:          status: "not_analyzed",
+  731:          poseKeypoints: null,
+  732:          barPathPoints: null,
+  733:          velocityData: null
+  734:        }
+  735:      };
+  736:  
+  737:      try {
+  738:        await saveVideoRecord(record);
+  739:        resetForm();
+  740:        updateStorageStatus("a??a-?a??a??a??a??a??");
+  741:        showMode("library");
+  742:      } catch (error) {
+  743:        console.error("Video save failed", error);
+  744:        updateStorageStatus("a??a-?a???a??a??a??a??a???a??a??a??c??Pa???aR1e??a??c??oea?a??a?|a??a??a??a??a??");
+  745:      }
+  746:    }
+***** PLATFORM-BUDDY-V148-WORK\VIDEO.JS
+  651:  
+  652:    function setVbtState(dialog, nextState) {
+  653:      dialog._vbtState = { ...vbtState(dialog), ...nextState };
+  654:    }
+*****
+
+***** PLATFORM-BUDDY-V147-WORK\video.js
+  747:  
+  748:    function resetForm() {
+  749:      if (els.preview.src) revokeObjectUrl(els.preview.src);
+  750:      els.form.reset();
+  751:      els.date.value = today();
+  752:      els.preview.removeAttribute("src");
+  753:      els.preview.classList.add("hidden");
+  754:      renderCheckGrid();
+  755:    }
+***** PLATFORM-BUDDY-V148-WORK\VIDEO.JS
+  655:  
+  656:    function currentVideoTime(dialog) {
+  657:      const video = dialog?.querySelector("video");
+  658:      const value = Number(video?.currentTime);
+  659:      return Number.isFinite(value) ? value : null;
+  660:    }
+*****
+
+***** PLATFORM-BUDDY-V147-WORK\video.js
+  756:  
+  757:    async function handleLibraryClick(event) {
+  758:      const view = event.target.closest("[data-video-view]");
+  759:      if (view) return openViewer(view.dataset.videoView);
+  760:  
+  761:      const compare = event.target.closest("[data-video-compare]");
+  762:      if (compare) {
+  763:        const id = compare.dataset.videoCompare;
+  764:        if (selectedForCompare.has(id)) selectedForCompare.delete(id);
+  765:        else if (selectedForCompare.size < 2) selectedForCompare.add(id);
+  766:        else return updateStorageStatus("a?P?e??a???a??a??a??c???a??P2a???a??a???a???a??a??");
+  767:        return renderLibrary();
+  768:      }
+  769:  
+  770:      const remove = event.target.closest("[data-video-delete]");
+  771:      if (remove) {
+  772:        if (!confirm("a??a?Ra??c???e?N?e?2a??a??e??a??a??a??a??i??")) return;
+  773:        await deleteVideoRecord(remove.dataset.videoDelete);
+  774:        selectedForCompare.delete(remove.dataset.videoDelete);
+  775:        els.compareView.classList.add("hidden");
+  776:        return renderLibrary();
+  777:      }
+  778:  
+  779:      if (event.target.closest("[data-video-compare-close]")) {
+  780:        cleanupContainerVideos(els.compareView);
+  781:        els.compareView.innerHTML = "";
+  782:        els.compareView.classList.add("hidden");
+  783:      }
+  784:    }
+***** PLATFORM-BUDDY-V148-WORK\VIDEO.JS
+  661:  
+  662:    async function openViewer(id) {
+  663:      const record = await getVideoRecord(id);
+  664:      if (!record) return;
+  665:      const dialog = ensureViewerDialog();
+  666:      const url = createObjectUrl(record.videoBlob);
+  667:      dialog._vbtState = {
+  668:        startTime: Number.isFinite(Number(record.analysis?.velocityData?.startTime)) ? Number(record.analysis.velocityData.startT
+  669:  ime) : null,
+  670:        endTime: Number.isFinite(Number(record.analysis?.velocityData?.endTime)) ? Number(record.analysis.velocityData.endTime) :
+  671:   null
+  672:      };
+  673:      dialog.innerHTML = `
+  674:        <form method="dialog" class="video-viewer-card">
+  675:          <div class="section-title">
+  676:            <div><p class="eyebrow">Video Form Note</p><h2>${escapeHtml(videoTitle(record))}</h2></div>
+  677:            <button class="text-button" value="close" type="submit">e??a??a??</button>
+  678:          </div>
+  679:          <div class="motion-video-frame">
+  680:            <video controls playsinline preload="metadata" src="${escapeHtml(url)}"></video>
+  681:            <canvas class="motion-overlay" data-motion-canvas></canvas>
+  682:          </div>
+  683:          <div class="video-viewer-meta">
+  684:            <span>${escapeHtml(formatDate(record.date))}</span>
+  685:            <span>${escapeHtml(record.setType || "e?ac??}")}</span>
+  686:            <span>a?Ra??}i??${escapeHtml(record.angle || "-")}</span>
+  687:          </div>
+  688:          <section class="video-check-editor">
+  689:            <div class="video-check-head"><strong>a??a?ca??a??a??a???a??a??P</strong><small>e|?e??a??a?|a??La???a???a??a??a??</small><
+  690:  /div>
+  691:            <div class="video-check-grid">${checkGridMarkup(record.lift, record.check || {})}</div>
+  692:          </section>
+  693:          <label>a?!a???<textarea data-video-view-memo rows="3">${escapeHtml(record.memo || "")}</textarea></label>
+  694:          <label>Buddya?!a???<textarea data-video-view-buddy rows="3">${escapeHtml(record.buddyMemo || "")}</textarea></label>
+  695:          <section class="motion-analyzer-card" data-motion-card>
+  696:            <div class="video-check-head">
+  697:              <strong>Buddy Motion Analyzer I2</strong>
+  698:              <small>a??c???a??Pa??e??Ne??a?!a??a??a??c??a??Na??a???a??a??a??a??a??c??Pa???a??a???e????a??a??a??a??a??</small>
+  699:            </div>
+  700:            <p class="video-storage-note">AIa??a?ca??a??e????a??a??Pe???a?cac?e??a???a??a??a?Ra??}e???ao|a??c???a??a??a??e???a??a??c???a??e
+  701:  3aa???a??a???a?|c???a??a??a??a??a??a??a??a??a??c???a??a?-a??Pa??c???a???a??a??Na?3a??a??a?Rc??oea?a??a?aa??a??a?|a??a??a??a??a??</p>
+  702:            <div class="motion-actions">
+  703:              <button class="primary-button inline" type="button" data-motion-analyze="${escapeHtml(record.id)}">c??a??Na??a???a??a
+  704:  ??a??e????a??</button>
+  705:              <label class="motion-toggle"><input type="checkbox" data-motion-overlay-toggle checked>ea?Na??e!?Nc?o</label>
+  706:            </div>
+  707:            <div class="motion-result" data-motion-result>${motionResultMarkup(record.analysis)}</div>
+  708:            ${vbtCardMarkup(record)}
+  709:            <details class="compact-guide">
+  710:              <summary>a?Ra??}a???a??a??</summary>
+  711:              <p>SQa??Pc??a?Naa??a??a??Pa??a??a??a??a??BPa??Pc??a?Naa??a??a??Pa??a??a??a??DLa??Pc??a?Naa??a??a??Pa??a??a??a??a??a??a??a??a
+  712:  ???a??a??a??Neo??a??Na??a??a??a???a??c???e???a???a?\a??a?|a??a??a??a??a??</p>
+  713:            </details>
+  714:          </section>
+  715:          <button class="primary-button" type="button" data-video-review-save="${escapeHtml(record.id)}">a??a?ca??a??c??oea?a??a??
+  716:  a-?</button>
+  717:        </form>
+  718:      `;
+  719:      dialog.showModal();
+  720:    }
+*****
+
+***** PLATFORM-BUDDY-V147-WORK\video.js
+  785:  
+  786:    els.toggle.addEventListener("click", () => {
+  787:      const open = els.body.classList.toggle("hidden") === false;
+  788:      els.toggle.textContent = open ? "e??a??a??" : "e??a??";
+  789:      els.toggle.setAttribute("aria-expanded", String(open));
+  790:      if (open) updateStorageStatus();
+  791:    });
+  792:    els.addMode.addEventListener("click", () => showMode("add"));
+  793:    els.libraryMode.addEventListener("click", () => showMode("library"));
+  794:    els.lift.addEventListener("change", () => renderCheckGrid());
+  795:    els.file.addEventListener("change", () => {
+  796:      if (els.preview.src) revokeObjectUrl(els.preview.src);
+  797:      const file = els.file.files?.[0];
+  798:      if (!file) {
+  799:        els.preview.classList.add("hidden");
+  800:        return;
+***** PLATFORM-BUDDY-V148-WORK\VIDEO.JS
+  721:  
+  722:    async function analyzeMotionLegacy(button) {
+  723:      const dialog = button.closest("dialog");
+  724:      const record = await getVideoRecord(button.dataset.motionAnalyze);
+  725:      const video = dialog?.querySelector("video");
+  726:      const canvas = dialog?.querySelector("[data-motion-canvas]");
+  727:      const resultBox = dialog?.querySelector("[data-motion-result]");
+  728:      if (!record || !video || !canvas || !resultBox) return;
+  729:      if (video.readyState < 2) {
+  730:        resultBox.innerHTML = `<p>a??c???a??a?C?ao|a??c??a??a??a??a??a???a??e?2a??a?|a??a??e????a??a??a?|a??a??a??a??a??</p>`;
+  731:        return;
+*****
+
+Resync Failed.  Files are too different.
+***** PLATFORM-BUDDY-V147-WORK\video.js
+  801:      }
+  802:      els.preview.src = createObjectUrl(file);
+  803:      els.preview.classList.remove("hidden");
+  804:    });
+  805:    els.form.addEventListener("submit", handleSave);
+  806:    els.filterLift.addEventListener("change", renderLibrary);
+  807:    els.sortOrder.addEventListener("change", renderLibrary);
+  808:    els.compareBtn.addEventListener("click", renderComparison);
+  809:    els.library.addEventListener("click", handleLibraryClick);
+  810:    document.addEventListener("click", (event) => {
+  811:      const saveReview = event.target.closest("[data-video-review-save]");
+  812:      if (saveReview) saveViewerReview(saveReview);
+  813:      const analyze = event.target.closest("[data-motion-analyze]");
+  814:      if (analyze) analyzeMotion(analyze);
+  815:    });
+  816:    document.addEventListener("change", (event) => {
+  817:      if (!event.target.matches("[data-motion-overlay-toggle]")) return;
+  818:      const canvas = event.target.closest("dialog")?.querySelector("[data-motion-canvas]");
+  819:      if (canvas) canvas.classList.toggle("hidden", !event.target.checked);
+  820:    });
+  821:    window.addEventListener("beforeunload", clearObjectUrls);
+  822:  
+  823:    els.date.value = today();
+  824:    renderCheckGrid();
+  825:    updateStorageStatus();
+  826:  })();
+***** PLATFORM-BUDDY-V148-WORK\VIDEO.JS
+  732:      }
+  733:      if (!video.videoWidth || !video.videoHeight) {
+  734:        resultBox.innerHTML = `<p>a??c???a?Rea-a??e??a??a??a???e????a??a??a?|a??a??a??a??a??</p>`;
+  735:        return;
+  736:      }
+  737:      button.disabled = true;
+  738:      button.textContent = "e????a??a?C-...";
+  739:      button.textContent = "e????a??a?C-...";
+  740:      resultBox.innerHTML = `<p>MediaPipea??ea-a??e??a??a???a??a??a??a??a??a??a??Pa???a??a??e??a??a??a??a??a??a??a??</p>`;
+  741:      try {
+  742:        video.pause();
+  743:        const pose = await getPoseLandmarker();
+  744:        const result = pose.detectForVideo(video, Math.max(0, Math.round(video.currentTime * 1000)));
+  745:        const landmarks = result.landmarks?.[0];
+  746:        if (!landmarks?.length) {
+  747:          resultBox.innerHTML = `<p>e???c?P?c?1a??c??oea?a???a??a??a??a??a???a??a??a??a??Neo??a??a??a??a??a???a??a??a???a??e????a??a??a?|a??
+  748:  a??a??a??a??</p>`;
+  749:          return;
+  750:        }
+  751:        drawPose(canvas, video, landmarks);
+  752:        const metrics = metricsFromLandmarks(landmarks);
+  753:        const summary = buildMotionSummary(record.lift, metrics);
+  754:        const analysis = {
+  755:          status: "completed",
+  756:          confidence: landmarks.filter((item) => (item.visibility || 0) >= 0.5).length >= 18 ? "high" : "medium",
+  757:          keyFrames: {
+  758:            currentTime: video.currentTime.toFixed(1),
+  759:            start: null,
+  760:            bottom: null,
+  761:            finish: null
+  762:          },
+  763:          metrics,
+  764:          flags: summary.flags,
+  765:          title: summary.title,
+  766:          lines: summary.lines,
+  767:          buddyComment: summary.buddyComment,
+  768:          poseKeypoints: compactLandmarks(landmarks),
+  769:          barPathPoints: null,
+  770:          velocityData: record.analysis?.velocityData || null,
+  771:          updatedAt: new Date().toISOString()
+  772:        };
+  773:        record.analysis = analysis;
+  774:        record.updatedAt = new Date().toISOString();
+  775:        if (!record.buddyMemo) record.buddyMemo = summary.buddyComment;
+  776:        await saveVideoRecord(record);
+  777:        resultBox.innerHTML = motionResultMarkup(analysis);
+  778:        renderLibrary();
+  779:      } catch (error) {
+  780:        console.error("Motion analysis failed", error);
+  781:        poseLandmarkerPromise = null;
+  782:        const message = error?.message ? ` ${escapeHtml(error.message)}` : "";
+  783:        resultBox.innerHTML = `<p>e????a??a???a??}a??a??a??a??a??a??e??a?!c???a??a??c??oea?a??a??a??c???a??a???a??e?2a??a?|a??ao|a??ec|a?
+  784:  ?a??a??a??a??a??${message}</p>`;
+  785:        resultBox.innerHTML = `<p>e????a??a???a??}a??a??a??a??a??a??a?aa?3a?ca??a?3a?\c???a??a??c???a?Ra??a??a??a??a??Neo??a??a??a???a?|a?
+  786:  ?a??a??a??c??oea?a??a?|a??a??a??a??a??</p>`;
+  787:      } finally {
+  788:        button.disabled = false;
+  789:        button.textContent = "c??a??Na??a???a??a??a??e????a??";
+  790:        button.textContent = "c??a??Na??a???a??a??a??e????a??";
+  791:      }
+  792:    }
+  793:  
+  794:    function markVbtFrame(button) {
+  795:      const dialog = button.closest("dialog");
+  796:      const time = currentVideoTime(dialog);
+  797:      if (time === null) return;
+  798:      const type = button.dataset.vbtMark;
+  799:      setVbtState(dialog, type === "start" ? { startTime: time } : { endTime: time });
+  800:      const marker = dialog.querySelector(type === "start" ? "[data-vbt-start]" : "[data-vbt-end]");
+  801:      if (marker) marker.textContent = `${type === "start" ? "e??a???" : "c???ao?"} ${formatSeconds(time)}`;
+  802:    }
+  803:  
+  804:    async function saveVbtVelocity(button) {
+  805:      const dialog = button.closest("dialog");
+  806:      const record = await getVideoRecord(button.dataset.vbtSave);
+  807:      if (!record) return;
+  808:      const state = vbtState(dialog);
+  809:      const distanceInput = dialog.querySelector("[data-vbt-distance]");
+  810:      const resultBox = dialog.querySelector("[data-vbt-result]");
+  811:      const distance = Number(distanceInput?.value);
+  812:      const startTime = Number(state.startTime);
+  813:      const endTime = Number(state.endTime);
+  814:      if (!Number.isFinite(startTime) || !Number.isFinite(endTime)) {
+  815:        if (resultBox) resultBox.innerHTML = `<p>e??a???a??a???a??a??a??Nc???ao?a??a???a??a??a??a??aR?a??a?|a??a??a??a??a??</p>`;
+  816:        return;
+  817:      }
+  818:      const duration = endTime - startTime;
+  819:      if (duration <= 0) {
+  820:        if (resultBox) resultBox.innerHTML = `<p>c???ao?a??a???a??a??a??Pe??a???a??a???a??a??a??a??a??a???a??a?|a??a??a??a??a??</p>`;
+  821:        return;
+  822:      }
+  823:      if (!Number.isFinite(distance) || distance <= 0) {
+  824:        if (resultBox) resultBox.innerHTML = `<p>c????a??e?E?e???a??a?\a??a??a?|a??a??a??a??a??</p>`;
+  825:        return;
+  826:      }
+  827:      const velocityData = {
+  828:        mode: "manual",
+  829:        startTime,
+  830:        endTime,
+  831:        distance,
+*****
+
+
+--- v147/sw.js
++++ v148/sw.js
+Comparing files PLATFORM-BUDDY-V147-WORK\sw.js and PLATFORM-BUDDY-V148-WORK\SW.JS
+***** PLATFORM-BUDDY-V147-WORK\sw.js
+    1:  const CACHE_NAME = "platform-buddy-v147";
+    2:  const CORE_ASSETS = [
+***** PLATFORM-BUDDY-V148-WORK\SW.JS
+    1:  const CACHE_NAME = "platform-buddy-v148";
+    2:  const CORE_ASSETS = [
+*****
+
+***** PLATFORM-BUDDY-V147-WORK\sw.js
+    4:    "index.html",
+    5:    "index.html?v=147",
+    6:    "styles.css",
+    7:    "styles.css?v=147",
+    8:    "app.js",
+    9:    "app.js?v=147",
+   10:    "video.js",
+   11:    "video.js?v=147",
+   12:    "manifest.webmanifest",
+***** PLATFORM-BUDDY-V148-WORK\SW.JS
+    4:    "index.html",
+    5:    "index.html?v=148",
+    6:    "styles.css",
+    7:    "styles.css?v=148",
+    8:    "app.js",
+    9:    "app.js?v=148",
+   10:    "video.js",
+   11:    "video.js?v=148",
+   12:    "manifest.webmanifest",
+*****
+
+
+--- v147/manifest.webmanifest
++++ v148/manifest.webmanifest
+Comparing files PLATFORM-BUDDY-V147-WORK\manifest.webmanifest and PLATFORM-BUDDY-V148-WORK\MANIFEST.WEBMANIFEST
+***** PLATFORM-BUDDY-V147-WORK\manifest.webmanifest
+    5:  ?|cR!c??a???a??a??a??a??Pa??a?aa??a??a???a?3a???a??a??PWAa???a??a??",
+    6:    "start_url": "./index.html?v=147",
+    7:    "scope": "./",
+***** PLATFORM-BUDDY-V148-WORK\MANIFEST.WEBMANIFEST
+    5:  ?|cR!c??a???a??a??a??a??Pa??a?aa??a??a???a?3a???a??a??PWAa???a??a??",
+    6:    "start_url": "./index.html?v=148",
+    7:    "scope": "./",
+*****
+
+
