@@ -1,4 +1,4 @@
-Platform Buddy v154 DIFF
+Platform Buddy v155 DIFF
 
 Changed files:
 - index.html
@@ -8,43 +8,41 @@ Changed files:
 - manifest.webmanifest
 
 index.html:
-- Added VBT as a main tab between LOG and DATA.
-- Moved the VBT workspace out of LOG into the dedicated VBT view.
-- Added compact VBT Dashboard and Quick Action sections.
-- Added a recent-library-first layout with hidden advanced filters.
-- Added collapsed RPE, measurement caution, learning, and profile detail sections.
-- Added a compact VBT state card to HOME.
-- Added a compact VBT summary to DATA.
-- Updated query versions to v154.
+- Split the VBT page into a desktop work column and insight/learning column.
+- Kept the mobile order focused on dashboard, actions, workspace, and library first.
+- Expanded the RPE/velocity, measurement caution, and learning-card accordion content.
+- Clarified that standard two-point measurement is preferred over auto tracking beta.
+- Updated query versions to v155.
 
 video.js:
-- Added compact VBT dashboard state, latest record, Buddy judgment, and next-action cards.
-- Added compact HOME VBT status and DATA VBT summary rendering.
-- Added BIG3 personal velocity profile summary and collapsed detail values.
-- Limited the initial VBT Library display to the latest three videos.
-- Added "すべて見る" to reveal filters and the full library.
-- Moved full VBT history into a closed accordion.
-- Added short Buddy copy and line-limited library comments.
-- Added safe abnormal-value handling for 0.00m/s, under 0.10m/s, short travel, and overly long ranges.
-- Abnormal values now show "測定範囲を確認" and avoid strong RPE judgments.
-- Kept the v153 trim, portrait-video canvas alignment, and plate-edge tracking fixes.
+- Added standard manual two-point VBT measurement as the primary workflow.
+- Added separate start-point and end-point selection on the video.
+- Calculates mean velocity from vertical pixel travel, plate-diameter calibration, and selected duration.
+- Added measurement warnings for long ranges, short travel, and velocities outside 0.10-1.20 m/s.
+- Preserved existing auto-track-beta records and treats missing confidence as unknown.
+- Added auto tracking confidence levels: high, middle, and low.
+- Reduced auto-tracking template drift by keeping the initial reference template.
+- Added path smoothing/outlier correction and removed path-length noise from velocity calculation.
+- Changed the red auto path to a dashed, explicitly labeled reference line.
+- Enlarged video markers and added distinct start/end marker colors and labels.
+- Added result chips for measurement mode, speed, distance, time, and confidence.
+- Added method labels to VBT history and library cards.
 - Does not use localStorage.
 - Does not touch platform-pr-v3.
 - Does not change app.js.
 
 styles.css:
-- Added reusable compact VBT card, grid, accordion, line-clamp, and action-row styles.
-- Added 4-column desktop, 2-column tablet, and 1-column mobile VBT dashboard/library layouts.
-- Updated the main tab bar for six tabs.
-- Limited mobile video height and made the viewer close header sticky.
-- Added compact HOME VBT and DATA VBT summary styling.
+- Added responsive two-column VBT workspace/insight layout for desktop.
+- Kept a single-column, work-first layout for tablet/mobile.
+- Added readable learning content, caution card, auto-beta details, and warning styles.
+- Updated the viewer control layout for the four-step standard measurement flow.
 
 sw.js:
-- Updated cache name to platform-buddy-v154.
-- Updated cached versioned assets to v154.
+- Updated cache name to platform-buddy-v155.
+- Updated cached versioned assets to v155.
 
 manifest.webmanifest:
-- Updated start_url to ./index.html?v=154.
+- Updated start_url to ./index.html?v=155.
 
 Validation:
 - node --check video.js passed.
@@ -52,13 +50,13 @@ Validation:
 - node --check sw.js passed.
 - manifest.webmanifest JSON parse passed.
 - No duplicate HTML ids.
-- VBT workspace is inside vbtView and no longer inside logView.
-- app.js SHA256 matches v152/v153.
+- VBT layout wrapper counts and HTML div/aside tag counts match.
+- app.js SHA256 matches v154.
 - No localStorage / platform-pr-v3 references in video.js.
-- No v153 cache/query references remain in shipped files.
-- In-app Browser and bundled Playwright were unavailable in this environment, so final visual verification requires device upload.
+- No v154 cache/query references remain in shipped files.
+- In-app Browser connection failed in the Windows sandbox, so final visual/video interaction verification requires device upload.
 
-Known follow-ups:
-- PLAN per-exercise velocity chips are not included in v154.
-- Detailed RPE x Velocity Coach calibration remains a future enhancement.
-- Two-video comparison retains the existing video-first comparison flow.
+Known limitations:
+- Auto tracking beta is image-template tracking, not a trained AI model, and remains reference-only.
+- Plate-diameter pixel estimation can vary with glare, plate color, and camera angle.
+- Standard two-point measurement is most reliable when one rep is isolated and the same filming conditions are reused.

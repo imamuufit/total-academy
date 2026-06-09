@@ -12,7 +12,7 @@
     <link rel="preload" as="image" href="home-bg-lite.jpg">
     <link rel="preload" as="image" href="icon-sheet-lite.jpg">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <link rel="stylesheet" href="styles.css?v=154">
+    <link rel="stylesheet" href="styles.css?v=155">
   </head>
   <body>
     <div class="app-shell">
@@ -348,7 +348,7 @@
           <section class="vbt-dashboard-section pb-section" aria-labelledby="vbtDashboardTitle">
             <div class="vbt-page-head">
               <div>
-                <p class="eyebrow">VBT Studio β</p>
+                <p class="eyebrow">VBT Studio</p>
                 <h2 id="vbtDashboardTitle">速度で今日を判断する</h2>
               </div>
               <p>推定値は、同じ条件での比較に使おう。</p>
@@ -356,11 +356,13 @@
             <div class="vbt-dashboard-grid pb-grid" id="vbtDashboard"></div>
           </section>
 
+          <div class="vbt-main-layout">
+            <div class="vbt-work-column">
           <section class="vbt-quick-section pb-section">
             <div class="video-check-head"><strong>Quick Action</strong><small>次にやること</small></div>
             <div class="vbt-quick-actions pb-action-row">
-              <button class="primary-button" id="videoAddModeBtn" type="button">動画を追加</button>
-              <button class="text-button" id="vbtQuickMeasureBtn" type="button">測定する</button>
+              <button class="primary-button" id="videoAddModeBtn" type="button">新しい動画</button>
+              <button class="text-button" id="vbtQuickMeasureBtn" type="button">最新を測定</button>
               <button class="text-button" id="videoLibraryModeBtn" type="button">ライブラリ</button>
               <button class="text-button" id="vbtQuickCompareBtn" type="button">2本比較</button>
             </div>
@@ -440,6 +442,8 @@
             </div>
           </section>
 
+            </div>
+            <aside class="vbt-insight-column">
           <section class="vbt-profile-summary pb-section" id="vbtProfileSummary"></section>
 
           <details class="pb-accordion vbt-detail-section">
@@ -448,16 +452,45 @@
           </details>
           <details class="pb-accordion vbt-detail-section">
             <summary>RPEと速度の見方</summary>
-            <p>主観RPEと速度の差は、疲労やフォームを見直す材料です。</p>
+            <p class="vbt-detail-lead">速度はRPEを補正する材料です。</p>
+            <div class="vbt-learning-body">
+              <p>同じ重量でも最終レップ速度が落ちれば、余力が少ない可能性があります。種目や撮影条件による差もあるため、個人内で比べます。</p>
+              <ul>
+                <li>RPE7は、あと3回ほどできる感覚が目安</li>
+                <li>速度とRPEがずれた日は、疲労やフォームを確認</li>
+                <li>同じ条件の記録が増えるほど判断しやすくなる</li>
+              </ul>
+            </div>
           </details>
           <details class="pb-accordion vbt-detail-section">
             <summary>測定時の注意</summary>
-            <p>速度は推定値です。撮影位置・プレート・トリミング条件をそろえて比較してください。</p>
+            <p class="vbt-detail-lead">同じ撮影条件で比べることが大切です。</p>
+            <div class="vbt-learning-body">
+              <p>カメラ位置、プレート径、開始・終了位置が変わると速度も変わります。</p>
+              <ul>
+                <li>カメラは横方向に固定</li>
+                <li>まずは1レップだけ測る</li>
+                <li>標準2点測定を優先する</li>
+                <li>自動追跡βの赤線は参考表示</li>
+              </ul>
+            </div>
           </details>
           <details class="pb-accordion vbt-detail-section">
             <summary>学習カード</summary>
-            <article class="vbt-learning-card"><strong>今日の1枚：速度低下</strong><p>同じセット内で速度が落ちるほど疲労が進んでいます。まずは再現性を優先。</p></article>
+            <div class="vbt-learning-grid">
+              <article class="vbt-learning-card"><strong>RPE7とは？</strong><p>競技フォームを保ったまま、あと3回ほどできる余力が目安です。</p></article>
+              <article class="vbt-learning-card"><strong>最終レップを見る理由</strong><p>セット内の速度低下から、その日の疲労を捉えやすくなります。</p></article>
+              <article class="vbt-learning-card"><strong>速度低下20%</strong><p>疲労が進んだ目安です。目的に合わせてセット継続を判断します。</p></article>
+              <article class="vbt-learning-card"><strong>測定がぶれる理由</strong><p>撮影角度、影、プレート径、測定範囲をそろえて比較します。</p></article>
+              <article class="vbt-learning-card"><strong>赤線を過信しない</strong><p>自動追跡βは参考です。ずれたら標準2点測定を使います。</p></article>
+            </div>
           </details>
+          <section class="pb-section vbt-caution-card">
+            <div class="video-check-head"><strong>測定時の注意</strong><small>比較条件をそろえる</small></div>
+            <p>同じ種目・同じ角度・同じプレートで比較してください。VBTは推定値で、医療・安全判断を代替しません。</p>
+          </section>
+            </aside>
+          </div>
         </section>
 
         <section class="view" id="analysisView">
@@ -1103,7 +1136,7 @@
       </form>
     </dialog>
 
-    <script src="app.js?v=154"></script>
-    <script src="video.js?v=154"></script>
+    <script src="app.js?v=155"></script>
+    <script src="video.js?v=155"></script>
   </body>
 </html>

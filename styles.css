@@ -16201,7 +16201,7 @@ html body .vbt-history-card :is(small, p) {
   }
 }
 
-/* v154: VBT main workspace */
+/* v155: VBT main workspace */
 html body .tabbar {
   grid-template-columns: repeat(6, minmax(0, 1fr));
 }
@@ -16210,6 +16210,104 @@ html body #vbtView {
   width: min(100%, 1160px);
   margin-inline: auto;
   padding-top: 0;
+}
+
+/* v155: reliable two-point VBT workflow */
+html body .vbt-main-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.75fr);
+  gap: 16px;
+  align-items: start;
+}
+
+html body :is(.vbt-work-column, .vbt-insight-column) {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+html body .vbt-insight-column .pb-accordion {
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+html body .vbt-detail-lead {
+  margin-bottom: 8px !important;
+  color: var(--text-main, #171717) !important;
+  font-weight: 900 !important;
+}
+
+html body .vbt-learning-body {
+  display: grid;
+  gap: 8px;
+}
+
+html body .vbt-learning-body ul {
+  margin: 0 0 14px;
+  padding-left: 1.2em;
+}
+
+html body .vbt-learning-body li {
+  color: var(--text-sub, #526179);
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1.55;
+}
+
+html body .vbt-learning-grid {
+  display: grid;
+  gap: 8px;
+}
+
+html body .vbt-learning-card {
+  border: 1px solid var(--line, #ded6c8);
+  border-radius: 9px;
+  background: var(--surface-soft, #fff7ed);
+  padding: 10px;
+}
+
+html body .vbt-caution-card {
+  box-shadow: none;
+}
+
+html body .manual-vbt-card .vbt-controls {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+html body .manual-vbt-card .vbt-controls > label,
+html body .manual-vbt-card .vbt-controls > .primary-button {
+  grid-column: 1 / -1;
+}
+
+html body .vbt-auto-details {
+  margin-top: 10px;
+  border: 1px dashed var(--line-strong, #cbbda8);
+  border-radius: 9px;
+  background: var(--surface-soft, #fff7ed);
+  padding: 10px;
+}
+
+html body .vbt-auto-details summary {
+  cursor: pointer;
+  color: var(--text-main, #171717);
+  font-weight: 900;
+}
+
+html body .vbt-auto-details p {
+  color: var(--text-sub, #526179);
+  font-size: 0.8rem;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+html body .vbt-auto-details button {
+  margin: 6px 6px 0 0;
+}
+
+html body .vbt-result-warning {
+  border-left: 3px solid var(--accent, #b42318);
+  background: rgba(180, 35, 24, 0.06);
+  padding: 8px 10px;
 }
 
 html body :is(.pb-section, .pb-card, .pb-compact-card, .pb-accordion) {
@@ -16435,6 +16533,10 @@ html body .video-viewer-card .vbt-video-frame video {
 }
 
 @media (max-width: 1023px) {
+  html body .vbt-main-layout {
+    grid-template-columns: 1fr;
+  }
+
   html body .pb-grid,
   html body #vbtView .video-library-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -16459,6 +16561,18 @@ html body .video-viewer-card .vbt-video-frame video {
 
   html body #vbtView {
     gap: 10px;
+  }
+
+  html body .vbt-main-layout {
+    gap: 10px;
+  }
+
+  html body .manual-vbt-card .vbt-controls {
+    grid-template-columns: 1fr;
+  }
+
+  html body .manual-vbt-card .vbt-controls > * {
+    grid-column: auto;
   }
 
   html body .pb-section,
