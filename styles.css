@@ -13594,6 +13594,61 @@ html body .vbt-personal-compare {
   padding: 12px;
 }
 
+/* v159: plate time-series and multi-rep velocity results */
+html body .vbt-rep-table-wrap {
+  width: 100%;
+  margin-top: 12px;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+html body .vbt-rep-table {
+  width: 100%;
+  min-width: 620px;
+  border-collapse: collapse;
+  background: var(--surface, #fffaf2);
+  color: var(--text-main, #171717);
+  font-variant-numeric: tabular-nums;
+}
+
+html body .vbt-rep-table :is(th, td) {
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--line, #ded6c8);
+  text-align: right;
+  white-space: nowrap;
+}
+
+html body .vbt-rep-table :is(th, td):first-child,
+html body .vbt-rep-table :is(th, td):last-child {
+  text-align: left;
+}
+
+html body .vbt-rep-table th {
+  color: var(--text-sub, #526179);
+  font-size: 0.75rem;
+}
+
+html body .vbt-rep-table td {
+  color: var(--text-main, #171717);
+  font-weight: 800;
+}
+
+@media (max-width: 640px) {
+  html body .vbt-rep-table-wrap {
+    margin-inline: -4px;
+    padding-bottom: 4px;
+  }
+
+  html body .vbt-roi-actions {
+    grid-template-columns: 1fr;
+  }
+
+  html body .vbt-roi-actions > * {
+    width: 100%;
+  }
+}
+
 html body .vbt-personal-compare > :is(strong, p) {
   margin: 0;
 }
@@ -16767,5 +16822,19 @@ html body .video-viewer-card .vbt-video-frame video {
 
   html body .video-viewer-card .vbt-video-frame video {
     max-height: 48vh;
+  }
+}
+
+/* v159 final mobile contract */
+@media (max-width: 640px) {
+  html body .vbt-roi-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  html body .vbt-roi-actions > * {
+    width: 100%;
+    min-width: 0;
   }
 }

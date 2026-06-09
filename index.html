@@ -12,7 +12,7 @@
     <link rel="preload" as="image" href="home-bg-lite.jpg">
     <link rel="preload" as="image" href="icon-sheet-lite.jpg">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <link rel="stylesheet" href="styles.css?v=157">
+    <link rel="stylesheet" href="styles.css?v=159">
   </head>
   <body>
     <div class="app-shell">
@@ -478,12 +478,12 @@
             <summary>測定時の注意</summary>
             <p class="vbt-detail-lead">同じ撮影条件で比べることが大切です。</p>
             <div class="vbt-learning-body">
-              <p>カメラ位置、プレート径、開始・終了位置が変わると速度も変わります。</p>
+              <p>カメラ位置、プレート径、緑枠の位置が変わると速度も変わります。</p>
               <ul>
                 <li>カメラは横方向に固定</li>
-                <li>まずは1レップだけ測る</li>
-                <li>標準2点測定を優先する</li>
-                <li>自動追跡βの赤線は参考表示</li>
+                <li>1レップでも複数レップでも解析可能</li>
+                <li>種目ごとのスタート位置でプレートを囲む</li>
+                <li>最終レップ挙上速度をRPE比較に使う</li>
               </ul>
             </div>
           </details>
@@ -494,17 +494,17 @@
               <article class="vbt-learning-card"><strong>最終レップを見る理由</strong><p>セット内の速度低下から、その日の疲労を捉えやすくなります。</p></article>
               <article class="vbt-learning-card"><strong>速度低下20%</strong><p>疲労が進んだ目安です。目的に合わせてセット継続を判断します。</p></article>
               <article class="vbt-learning-card"><strong>測定がぶれる理由</strong><p>撮影角度、影、プレート径、測定範囲をそろえて比較します。</p></article>
-              <article class="vbt-learning-card"><strong>赤線を過信しない</strong><p>自動追跡βは参考です。ずれたら標準2点測定を使います。</p></article>
+              <article class="vbt-learning-card"><strong>軌跡を確認する</strong><p>軌跡がプレートから外れたら、緑枠と動画範囲を見直します。</p></article>
             </div>
           </details>
           <details class="pb-accordion vbt-detail-section">
-            <summary>プレートROI追跡の使い方</summary>
-            <p class="vbt-detail-lead">緑枠で、追跡してほしいプレートを指定します。</p>
+            <summary>プレート追跡の使い方</summary>
+            <p class="vbt-detail-lead">スタート位置のプレートを囲み、各レップを解析します。</p>
             <div class="vbt-learning-body">
               <ul>
-                <li>動画は測りたい1レップだけに切る</li>
-                <li>緑枠を見えているプレート外周に合わせる</li>
-                <li>赤線は推定プレート軌跡。ずれたら手動2点で確認する</li>
+                <li>SQは立位、BPはラックアップ後トップ、DLは床から開始</li>
+                <li>緑枠をスタート位置のプレート外周に合わせる</li>
+                <li>下降速度と挙上速度をレップごとに表示</li>
               </ul>
             </div>
           </details>
@@ -1159,7 +1159,7 @@
       </form>
     </dialog>
 
-    <script src="app.js?v=157"></script>
-    <script src="video.js?v=157"></script>
+    <script src="app.js?v=159"></script>
+    <script src="video.js?v=159"></script>
   </body>
 </html>

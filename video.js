@@ -249,21 +249,25 @@
     const velocityData = record?.analysis?.velocityData || record || {};
     const measurement = velocityData.measurement || record?.measurement || velocityData;
     const calibration = velocityData.calibration || record?.calibration || {};
-    const averageVelocity = Number(measurement.meanVelocity ?? velocityData.meanVelocity ?? record?.averageVelocity);
+    const primaryVbtMetric = measurement.primaryVbtMetric || velocityData.primaryVbtMetric || record?.primaryVbtMetric || {};
+    const setAverageVelocity = Number(measurement.meanVelocity ?? velocityData.meanVelocity ?? record?.averageVelocity);
+    const profileVelocity = Number(primaryVbtMetric.lastRepConcentricMeanVelocity ?? record?.lastRepVelocity ?? setAverageVelocity);
     const durationSeconds = Number(measurement.durationSeconds ?? record?.durationSeconds);
     const distanceMeters = Number(measurement.distanceMeters ?? record?.distanceMeters);
     const trackingConfidence = velocityData.trackingConfidence || measurement.trackingConfidence || record?.trackingConfidence || "unknown";
     const plateDiameterCm = Number(calibration.plateDiameterCm ?? measurement.plateDiameterCm ?? record?.plateDiameterCm);
-    const valid = Number.isFinite(averageVelocity)
-      && averageVelocity >= 0.1
-      && averageVelocity <= 1.2
+    const requiresDetectedRep = (velocityData.mode || measurement.mode || record?.measurementMode) === "plate-roi-timeseries";
+    const valid = Number.isFinite(profileVelocity)
+      && profileVelocity >= 0.1
+      && profileVelocity <= 1.2
       && Number.isFinite(durationSeconds)
       && durationSeconds > 0
-      && durationSeconds <= 12
+      && durationSeconds <= Math.max(12, (Number(record?.reps ?? velocityData.reps) || 1) * 6)
       && Number.isFinite(distanceMeters)
       && distanceMeters >= 0.05
       && distanceMeters <= 1.2
       && trackingConfidence !== "low"
+      && (!requiresDetectedRep || Number(measurement.detectedReps || primaryVbtMetric.repCountDetected) > 0)
       && (!Number.isFinite(plateDiameterCm) || (plateDiameterCm >= 30 && plateDiameterCm <= 60));
     const repVelocities = measurement.repVelocities || [];
     return {
@@ -275,10 +279,11 @@
       reps: Number(record?.reps ?? velocityData.reps) || 0,
       subjectiveRpe: hasFiniteNumber(record?.subjectiveRpe ?? record?.rpe ?? velocityData.rpe) ? Number(record?.subjectiveRpe ?? record?.rpe ?? velocityData.rpe) : null,
       tag: record?.tag || record?.setType || null,
-      averageVelocity: Number.isFinite(averageVelocity) ? averageVelocity : null,
-      lastRepVelocity: Number(repVelocities.at(-1)?.meanVelocity) || null,
-      peakVelocity: Number(record?.peakVelocity) || null,
-      velocityLossPercent: Number(record?.velocityLossPercent) || null,
+      averageVelocity: Number.isFinite(profileVelocity) ? profileVelocity : null,
+      setAverageVelocity: Number.isFinite(setAverageVelocity) ? setAverageVelocity : null,
+      lastRepVelocity: Number(primaryVbtMetric.lastRepConcentricMeanVelocity ?? repVelocities.at(-1)?.meanVelocity) || null,
+      peakVelocity: Number(primaryVbtMetric.bestRepConcentricMeanVelocity ?? record?.peakVelocity) || null,
+      velocityLossPercent: Number(primaryVbtMetric.velocityLossPercent ?? record?.velocityLossPercent) || null,
       measurementMode: velocityData.mode || measurement.mode || record?.measurementMode || "unknown",
       trackingConfidence,
       validVelocity: valid,
@@ -544,6 +549,213 @@
     return filtered;
   }
 
+  function getVbtStartGuide(lift) {
+    switch (lift) {
+      case "SQ":
+        return {
+          title: "立位スタートのプレートを囲む",
+          shortGuide: "スクワットはトップから始まり、下降→挙上を解析します。",
+          detailGuide: "ボトムを最初に指定する必要はありません。立位スタート時のプレートを緑枠で囲んでください。",
+          movementPattern: "top-bottom-top"
+        };
+      case "BP":
+        return {
+          title: "ラックアップ後トップのプレートを囲む",
+          shortGuide: "ベンチはトップから始まり、下降→胸上→挙上を解析します。",
+          detailGuide: "ラックアップ後トップのプレートを囲んでください。胸からロックアウトまでを挙上として解析します。",
+          movementPattern: "top-bottom-top"
+        };
+      case "DL":
+        return {
+          title: "床位置のプレートを囲む",
+          shortGuide: "デッドリフトは床から始まり、挙上→下降を解析します。",
+          detailGuide: "床にあるプレートを緑枠で囲んでください。床からロックアウトまでを挙上として解析します。",
+          movementPattern: "bottom-top-bottom"
+        };
+      default:
+        return {
+          title: "開始位置の対象を囲む",
+          shortGuide: "対象物の移動から速度を解析します。",
+          detailGuide: "測定したい動作の開始位置で対象物を囲んでください。",
+          movementPattern: "auto"
+        };
+    }
+  }
+
+  function smoothTrackPath(path) {
+    if (!Array.isArray(path) || path.length < 5) return path || [];
+    const medianPass = path.map((point, index) => {
+      const from = Math.max(0, index - 2);
+      const to = Math.min(path.length, index + 3);
+      const window = path.slice(from, to);
+      return {
+        ...point,
+        x: median(window.map((item) => item.x)),
+        y: median(window.map((item) => item.y))
+      };
+    });
+    return medianPass.map((point, index) => {
+      const from = Math.max(0, index - 1);
+      const to = Math.min(medianPass.length, index + 2);
+      const window = medianPass.slice(from, to);
+      return {
+        ...point,
+        x: window.reduce((sum, item) => sum + item.x, 0) / window.length,
+        y: window.reduce((sum, item) => sum + item.y, 0) / window.length
+      };
+    });
+  }
+
+  function pathTurningPoints(path) {
+    if (!Array.isArray(path) || path.length < 3) return [];
+    const yRange = Math.max(...path.map((point) => point.y)) - Math.min(...path.map((point) => point.y));
+    const epsilon = Math.max(0.75, yRange * 0.015);
+    const turns = [{ index: 0, type: "start", point: path[0] }];
+    let direction = 0;
+    for (let index = 1; index < path.length; index += 1) {
+      const delta = path[index].y - path[index - 1].y;
+      const nextDirection = Math.abs(delta) <= epsilon ? direction : Math.sign(delta);
+      if (direction && nextDirection && nextDirection !== direction) {
+        turns.push({
+          index: index - 1,
+          type: direction > 0 ? "max" : "min",
+          point: path[index - 1]
+        });
+      }
+      direction = nextDirection || direction;
+    }
+    turns.push({ index: path.length - 1, type: "end", point: path.at(-1) });
+    return turns;
+  }
+
+  function detectRepPhases(path, lift, expectedReps) {
+    const smoothed = smoothTrackPath(path);
+    if (smoothed.length < 5) return [];
+    const guide = getVbtStartGuide(lift);
+    const pattern = guide.movementPattern === "auto" ? "top-bottom-top" : guide.movementPattern;
+    const turns = pathTurningPoints(smoothed);
+    const yRange = Math.max(...smoothed.map((point) => point.y)) - Math.min(...smoothed.map((point) => point.y));
+    const minimumTravel = Math.max(3, yRange * 0.16);
+    const phases = [];
+    const middleType = pattern === "bottom-top-bottom" ? "min" : "max";
+    const endType = pattern === "bottom-top-bottom" ? "max" : "min";
+    let startIndex = 0;
+
+    for (let turnIndex = 1; turnIndex < turns.length - 1; turnIndex += 1) {
+      const middle = turns[turnIndex];
+      if (middle.type !== middleType) continue;
+      const end = turns.slice(turnIndex + 1).find((turn) => turn.type === endType || turn.type === "end");
+      if (!end) continue;
+      const firstTravel = Math.abs(smoothed[middle.index].y - smoothed[startIndex].y);
+      const secondTravel = Math.abs(smoothed[end.index].y - smoothed[middle.index].y);
+      if (firstTravel < minimumTravel || secondTravel < minimumTravel) continue;
+      phases.push(pattern === "bottom-top-bottom"
+        ? {
+            repIndex: phases.length + 1,
+            concentric: { startIndex, endIndex: middle.index },
+            eccentric: { startIndex: middle.index, endIndex: end.index }
+          }
+        : {
+            repIndex: phases.length + 1,
+            eccentric: { startIndex, endIndex: middle.index },
+            concentric: { startIndex: middle.index, endIndex: end.index }
+          });
+      startIndex = end.index;
+      turnIndex = turns.findIndex((turn) => turn.index === end.index) - 1;
+      if (Number(expectedReps) > 0 && phases.length >= Number(expectedReps) + 2) break;
+    }
+    return phases;
+  }
+
+  function phaseVelocityMetric(path, phase, metersPerPixel) {
+    if (!phase || phase.endIndex <= phase.startIndex) return null;
+    const segment = path.slice(phase.startIndex, phase.endIndex + 1);
+    const duration = segment.at(-1).time - segment[0].time;
+    const distanceMeters = Math.abs(segment.at(-1).y - segment[0].y) * metersPerPixel;
+    const velocities = segment.slice(1).map((point, index) => {
+      const deltaTime = point.time - segment[index].time;
+      return deltaTime > 0 ? Math.abs(point.y - segment[index].y) * metersPerPixel / deltaTime : null;
+    }).filter(Number.isFinite);
+    return {
+      startTime: segment[0].time,
+      endTime: segment.at(-1).time,
+      duration,
+      distanceMeters,
+      meanVelocity: duration > 0 ? distanceMeters / duration : null,
+      peakVelocity: velocities.length ? Math.max(...velocities) : null
+    };
+  }
+
+  function calculateRepVelocityMetrics(repPhases, calibration) {
+    const path = calibration.path || [];
+    const metersPerPixel = Number(calibration.metersPerPixel);
+    return repPhases.map((phase) => {
+      const eccentric = phaseVelocityMetric(path, phase.eccentric, metersPerPixel);
+      const concentric = phaseVelocityMetric(path, phase.concentric, metersPerPixel);
+      const totalRomMeters = Math.max(eccentric?.distanceMeters || 0, concentric?.distanceMeters || 0);
+      const confidence = totalRomMeters < 0.05 ? "low" : totalRomMeters < 0.10 ? "middle" : "high";
+      const warning = totalRomMeters < 0.05
+        ? "可動域が短すぎます。プレート追跡を確認してください。"
+        : totalRomMeters < 0.10
+          ? "可動域が短めです。検出位置を確認してください。"
+          : totalRomMeters > 1.2
+            ? "可動域が大きすぎます。スケールを確認してください。"
+            : null;
+      return {
+        repIndex: phase.repIndex,
+        eccentric,
+        concentric,
+        totalRomMeters,
+        pauseDuration: Math.max(0, (concentric?.startTime || 0) - (eccentric?.endTime || 0)) || null,
+        confidence,
+        warning
+      };
+    });
+  }
+
+  function getPrimaryVbtMetric(metrics) {
+    const velocities = (metrics || []).map((metric) => metric.concentric?.meanVelocity).filter(Number.isFinite);
+    const best = velocities.length ? Math.max(...velocities) : null;
+    const last = velocities.at(-1) ?? null;
+    return {
+      lastRepConcentricMeanVelocity: last,
+      bestRepConcentricMeanVelocity: best,
+      firstRepConcentricMeanVelocity: velocities[0] ?? null,
+      velocityLossPercent: best > 0 && last !== null ? ((best - last) / best) * 100 : null,
+      repCountDetected: velocities.length
+    };
+  }
+
+  function validateRepDetection(metrics, expectedReps) {
+    const detected = metrics?.length || 0;
+    if (!detected) return "レップ検出が不安定です。緑枠がプレートから外れていないか確認してください。";
+    if (Number(expectedReps) > 0 && detected !== Number(expectedReps)) {
+      return `検出レップ数は${detected}/${Number(expectedReps)}です。トリミング範囲と緑枠を確認してください。`;
+    }
+    const warning = metrics.find((metric) => metric.warning)?.warning;
+    return warning || null;
+  }
+
+  function renderRepVelocityTable(metrics) {
+    if (!metrics?.length) return "";
+    return `
+      <div class="vbt-rep-table-wrap">
+        <table class="vbt-rep-table">
+          <thead><tr><th>Rep</th><th>下降MV</th><th>挙上MV</th><th>挙上PV</th><th>ROM</th><th>判定</th></tr></thead>
+          <tbody>${metrics.map((metric) => `
+            <tr>
+              <td>${metric.repIndex}</td>
+              <td>${Number.isFinite(metric.eccentric?.meanVelocity) ? metric.eccentric.meanVelocity.toFixed(2) : "-"}</td>
+              <td>${Number.isFinite(metric.concentric?.meanVelocity) ? metric.concentric.meanVelocity.toFixed(2) : "-"}</td>
+              <td>${Number.isFinite(metric.concentric?.peakVelocity) ? metric.concentric.peakVelocity.toFixed(2) : "-"}</td>
+              <td>${Number.isFinite(metric.totalRomMeters) ? `${Math.round(metric.totalRomMeters * 100)}cm` : "-"}</td>
+              <td>${escapeHtml(metric.warning || (metric.repIndex === metrics.length ? "Last" : "OK"))}</td>
+            </tr>`).join("")}
+          </tbody>
+        </table>
+      </div>`;
+  }
+
   function measurementWarning({ durationSeconds, distanceMeters, meanVelocity, reps }) {
     const warnings = [];
     if (durationSeconds > 8 && Number(reps || 0) <= 1) warnings.push("開始と終了が広すぎる可能性があります。");
@@ -553,17 +765,20 @@
     return warnings.join(" ");
   }
 
-  function autoTrackingConfidence({ path, plateDiameterPixels, verticalTravelPixels, pathTravelPixels, scores }) {
+  function autoTrackingConfidence({ path, plateDiameterPixels, verticalTravelPixels, pathTravelPixels, scores, expectedReps = 1 }) {
     const jumps = path.slice(1).filter((point, index) => pixelDistance(path[index], point) > Math.max(18, plateDiameterPixels * 0.4)).length;
     const scoreMedian = median(scores) ?? Infinity;
     const driftRatio = verticalTravelPixels > 0 ? pathTravelPixels / verticalTravelPixels : Infinity;
+    const expectedTravelRatio = Math.max(1, Number(expectedReps) || 1) * 2;
+    const lowDriftLimit = Math.max(3.2, expectedTravelRatio * 1.8);
+    const highDriftLimit = Math.max(1.8, expectedTravelRatio * 1.25);
     const low = jumps > Math.max(2, path.length * 0.18)
       || scoreMedian > 2400
-      || driftRatio > 3.2
+      || driftRatio > lowDriftLimit
       || verticalTravelPixels < plateDiameterPixels * 0.12;
     const high = jumps === 0
       && scoreMedian < 1100
-      && driftRatio < 1.8
+      && driftRatio < highDriftLimit
       && verticalTravelPixels >= plateDiameterPixels * 0.25;
     return low ? "low" : high ? "high" : "middle";
   }
@@ -573,6 +788,7 @@
   }
 
   function measurementModeLabel(mode) {
+    if (mode === "plate-roi-timeseries") return "プレート追跡";
     if (mode === "plate-roi-track") return "プレートROI追跡";
     if (mode === "manual-2point") return "手動2点";
     return "中心点追跡β";
@@ -705,7 +921,7 @@
     const referenceTemplate = sampleGrayRoi(grayFrame(first.ctx), scaledRoi);
     if (!referenceTemplate) throw new Error("緑枠が動画端に近すぎます。少し内側へ移動してください。");
 
-    const sampleCount = clamp(Math.round((end - start) * 12), 10, 72);
+    const sampleCount = clamp(Math.round((end - start) * 15), 18, 240);
     const rawPath = [];
     let currentRoi = { ...scaledRoi };
     const searchRadiusX = Math.max(12, scaledRoi.width * 0.75);
@@ -737,37 +953,52 @@
       }
       currentRoi = bestRoi;
       const center = roiCenter(bestRoi);
-      rawPath.push({ time, x: center.x / frame.scale, y: center.y / frame.scale, score: Math.round(bestScore) });
+      rawPath.push({
+        time,
+        x: center.x / frame.scale,
+        y: center.y / frame.scale,
+        score: Math.round(bestScore),
+        confidence: Number.isFinite(bestScore) ? 1 / (1 + bestScore / 1000) : null
+      });
     }
 
     const plateDiameterPixels = Math.max(plateRoi.width, plateRoi.height);
-    const path = smoothTrackingPath(rawPath, plateDiameterPixels);
+    const path = smoothTrackPath(smoothTrackingPath(rawPath, plateDiameterPixels));
     const verticalTravelPixels = Math.max(...path.map((point) => point.y)) - Math.min(...path.map((point) => point.y));
     const pathTravelPixels = path.slice(1).reduce((sum, point, index) => sum + pixelDistance(path[index], point), 0);
     if (verticalTravelPixels < Math.max(3, plateDiameterPixels * 0.035)) {
       throw new Error("プレートの上下移動を捉えられませんでした。緑枠と測定範囲を確認してください。");
     }
     const metersPerPixel = (plateDiameterCm / 100) / plateDiameterPixels;
-    const distanceMeters = verticalTravelPixels * metersPerPixel;
+    const repPhases = detectRepPhases(path, record.lift, record.reps);
+    const repMetrics = calculateRepVelocityMetrics(repPhases, { path, metersPerPixel });
+    const primaryVbtMetric = getPrimaryVbtMetric(repMetrics);
+    const repWarning = validateRepDetection(repMetrics, record.reps);
+    const concentricVelocities = repMetrics.map((metric) => metric.concentric?.meanVelocity).filter(Number.isFinite);
+    const distanceMeters = repMetrics.length
+      ? repMetrics.reduce((sum, metric) => sum + metric.totalRomMeters, 0) / repMetrics.length
+      : verticalTravelPixels * metersPerPixel;
     const durationSeconds = end - start;
-    const meanVelocity = distanceMeters / durationSeconds;
+    const meanVelocity = concentricVelocities.length
+      ? concentricVelocities.reduce((sum, velocity) => sum + velocity, 0) / concentricVelocities.length
+      : distanceMeters / durationSeconds;
     const trackingConfidence = autoTrackingConfidence({
       path,
       plateDiameterPixels,
       verticalTravelPixels,
       pathTravelPixels,
-      scores: rawPath.map((point) => point.score)
+      scores: rawPath.map((point) => point.score),
+      expectedReps: record.reps
     });
-    const baseWarning = measurementWarning({ durationSeconds, distanceMeters, meanVelocity, reps: record.reps });
     const trackingWarning = [
       aspectWarning,
       trackingConfidence === "low" ? "追跡の信頼度が低めです。手動2点測定でも確認してください。" : null,
-      baseWarning || null
+      repWarning || null
     ].filter(Boolean).join(" ");
 
     return {
-      mode: "plate-roi-track",
-      trackingMode: "plate-roi-track",
+      mode: "plate-roi-timeseries",
+      trackingMode: "plate-roi-timeseries",
       trackingConfidence,
       trackingWarning: trackingWarning || null,
       lift: record.lift,
@@ -784,7 +1015,11 @@
         roiAspectRatio: plateRoi.width / plateRoi.height
       },
       measurement: {
-        mode: "plate-roi-track",
+        mode: "plate-roi-timeseries",
+        lift: record.lift,
+        expectedReps: Number(record.reps) || null,
+        detectedReps: repMetrics.length,
+        startRoi: plateRoi,
         startTime: start,
         endTime: end,
         durationSeconds,
@@ -796,13 +1031,29 @@
         warning: trackingWarning || null,
         plateDiameterCm,
         plateDiameterPixels,
-        repVelocities: [{ rep: 1, meanVelocity, distanceMeters, durationSeconds }]
+        metersPerPixel,
+        trackPath: path,
+        repMetrics,
+        primaryVbtMetric,
+        repVelocities: repMetrics.map((metric) => ({
+          rep: metric.repIndex,
+          meanVelocity: metric.concentric?.meanVelocity,
+          peakVelocity: metric.concentric?.peakVelocity,
+          eccentricMeanVelocity: metric.eccentric?.meanVelocity,
+          distanceMeters: metric.totalRomMeters,
+          durationSeconds: metric.concentric?.duration
+        }))
       },
+      primaryVbtMetric,
       meanVelocity,
       buddyComment: vbtVelocityComment(record.lift, meanVelocity),
       rpeComment: vbtRpeComment(record.lift, meanVelocity, record.rpe),
       updatedAt: new Date().toISOString()
     };
+  }
+
+  function trackPlateTimeSeries(dialog, record) {
+    return trackPlateRoiPath(dialog, record);
   }
 
   function estimatePlateDiameterPixels(video, point) {
@@ -923,7 +1174,7 @@
     });
     const warning = measurementWarning({ durationSeconds, distanceMeters, meanVelocity, reps: record.reps });
     const trackingWarning = trackingConfidence === "low"
-      ? "自動追跡βの信頼度が低いです。標準2点測定で確認してください。"
+      ? "追跡の信頼度が低いです。緑枠を見直すか、手動2点で確認してください。"
       : warning || null;
     return {
       mode: "center-point-beta",
@@ -1061,12 +1312,14 @@
     const mode = data.mode || data.trackingMode || data.measurement?.mode || "auto-track-beta";
     const confidence = data.trackingConfidence || data.measurement?.trackingConfidence || "unknown";
     const warning = data.warning || data.trackingWarning || data.measurement?.warning || "";
-    const modeLabel = mode === "plate-roi-track"
-      ? "プレートROI追跡"
+    const modeLabel = mode === "plate-roi-timeseries" || mode === "plate-roi-track"
+      ? "プレート追跡"
       : mode === "manual-2point"
         ? "手動2点"
         : "中心点追跡β";
     const plateDiameterCm = data.plateDiameterCm || data.calibration?.plateDiameterCm || data.measurement?.plateDiameterCm;
+    const repMetrics = data.repMetrics || data.measurement?.repMetrics || [];
+    const primary = data.primaryVbtMetric || data.measurement?.primaryVbtMetric || getPrimaryVbtMetric(repMetrics);
     if (!validVelocity(data)) {
       return `
         <div class="motion-result-chips">
@@ -1082,7 +1335,11 @@
     return `
       <div class="motion-result-chips">
         <span>${escapeHtml(modeLabel)}</span>
-        <span>${escapeHtml(Number(data.meanVelocity).toFixed(2))} m/s</span>
+        <span>セット平均 ${escapeHtml(Number(data.meanVelocity).toFixed(2))} m/s</span>
+        ${Number.isFinite(primary.lastRepConcentricMeanVelocity) ? `<span>最終Rep ${primary.lastRepConcentricMeanVelocity.toFixed(2)} m/s</span>` : ""}
+        ${Number.isFinite(primary.bestRepConcentricMeanVelocity) ? `<span>最速Rep ${primary.bestRepConcentricMeanVelocity.toFixed(2)} m/s</span>` : ""}
+        ${Number.isFinite(primary.velocityLossPercent) ? `<span>速度低下 ${primary.velocityLossPercent.toFixed(0)}%</span>` : ""}
+        ${Number.isFinite(primary.repCountDetected) ? `<span>検出 ${primary.repCountDetected}Rep</span>` : ""}
         <span>ROM ${escapeHtml(formatNumber(data.distanceMeters))}m</span>
         <span>${escapeHtml(formatSeconds(data.durationSeconds))}</span>
         ${plateDiameterCm ? `<span>プレート ${escapeHtml(Number(plateDiameterCm).toFixed(1))}cm</span>` : ""}
@@ -1091,7 +1348,9 @@
       <strong>${escapeHtml(vbtVelocityComment(data.lift, Number(data.meanVelocity)))}</strong>
       <p>${escapeHtml(vbtRpeComment(data.lift, Number(data.meanVelocity), data.rpe))}</p>
       ${warning ? `<p class="vbt-result-warning">${escapeHtml(warning)}</p>` : ""}
-      ${reps.length ? `<div class="vbt-rep-list">${reps.map((rep) => `<span>Rep ${escapeHtml(rep.rep)} ${escapeHtml(Number(rep.meanVelocity).toFixed(2))} m/s</span>`).join("")}</div>` : ""}
+      ${renderRepVelocityTable(repMetrics)}
+      ${!repMetrics.length && reps.length ? `<div class="vbt-rep-list">${reps.map((rep) => `<span>Rep ${escapeHtml(rep.rep)} ${escapeHtml(Number(rep.meanVelocity).toFixed(2))} m/s</span>`).join("")}</div>` : ""}
+      <p class="vbt-profile-note">下降速度はテンポ確認用。RPEプロフィールには最終レップの挙上平均速度を使います。</p>
     `;
   }
 
@@ -1102,18 +1361,19 @@
     const calibration = velocityData.calibration || {};
     const measurement = velocityData.measurement || velocityData;
     const plateDiameterCm = hasFiniteNumber(calibration.plateDiameterCm) ? Number(calibration.plateDiameterCm) : DEFAULT_PLATE_DIAMETER_CM;
+    const startGuide = getVbtStartGuide(record.lift);
     return `
       <section class="manual-vbt-card" data-vbt-card>
         <div class="video-check-head">
           <strong>VBT Studio</strong>
-          <small>緑枠でプレートを囲んで測る</small>
+          <small>プレート時系列追跡</small>
         </div>
         <section class="vbt-trim-panel">
           <div class="video-check-head">
             <strong>1. 動画をトリミング</strong>
             <small>運動中だけに絞る</small>
           </div>
-          <p class="video-storage-note">開始・終了スライダーで、測りたい1レップだけにします。</p>
+          <p class="video-storage-note">1レップまたは複数レップの動作全体を残し、前後の不要部分だけを除きます。</p>
           <div class="vbt-trim-sliders">
             <label><span>開始</span><input data-vbt-trim-range="start" type="range" min="0" max="1" step="0.01" value="0"></label>
             <label><span>終了</span><input data-vbt-trim-range="end" type="range" min="0" max="1" step="0.01" value="1"></label>
@@ -1126,8 +1386,8 @@
         </section>
         <section class="vbt-roi-panel">
           <div class="video-check-head">
-            <strong>2. プレートを緑枠で囲む</strong>
-            <small>推奨モード</small>
+            <strong>2. ${escapeHtml(startGuide.title)}</strong>
+            <small>プレート追跡</small>
           </div>
           <div class="vbt-plate-controls">
             <label>プレート径
@@ -1139,10 +1399,11 @@
             </label>
             <label>直径 cm<input data-vbt-plate-cm type="number" inputmode="decimal" min="30" max="60" step="0.1" value="${escapeHtml(plateDiameterCm)}"></label>
           </div>
-          <p class="video-storage-note">動画上の緑枠を、見えているプレート外周に合わせます。</p>
+          <p class="video-storage-note">${escapeHtml(startGuide.shortGuide)} ${escapeHtml(startGuide.detailGuide)}</p>
+          <p class="vbt-profile-note">最初に囲むのはボトムではなく、種目ごとのスタートポジションです。動画の最初をボトムに合わせる必要はありません。</p>
           <div class="vbt-roi-actions">
             <button class="text-button" type="button" data-vbt-roi-init>緑枠を表示</button>
-            <button class="primary-button inline" type="button" data-vbt-roi-track="${escapeHtml(record.id)}">3. 追跡する</button>
+            <button class="primary-button inline" type="button" data-vbt-roi-track="${escapeHtml(record.id)}">3. プレートを追跡して解析</button>
             <button class="text-button" type="button" data-vbt-reset>やり直す</button>
           </div>
         </section>
@@ -1150,18 +1411,13 @@
           <span data-vbt-pick-status>${calibration.plateRoi ? "緑枠を保存済み" : "緑枠は未設定"}</span>
         </div>
         <details class="compact-guide vbt-auto-details">
-          <summary>追跡がずれるとき</summary>
-          <p>手動2点なら、開始と終了の位置から安定して速度を確認できます。</p>
+          <summary>自動検出が難しいとき</summary>
+          <p>緑枠とトリミングを見直し、難しい場合だけ手動2点で確認します。</p>
           <div class="vbt-controls">
             <button class="text-button" type="button" data-vbt-pick="start">開始点を選ぶ</button>
             <button class="text-button" type="button" data-vbt-pick="end">終了点を選ぶ</button>
-            <button class="primary-button inline" type="button" data-vbt-manual="${escapeHtml(record.id)}">手動2点で測る</button>
+            <button class="primary-button inline" type="button" data-vbt-manual="${escapeHtml(record.id)}">手動2点で確認</button>
           </div>
-          <details class="compact-guide vbt-legacy-details">
-            <summary>実験的な中心点追跡β</summary>
-            <button class="text-button" type="button" data-vbt-pick="target">中心点を選ぶ</button>
-            <button class="text-button" type="button" data-vbt-auto="${escapeHtml(record.id)}">中心点追跡β</button>
-          </details>
         </details>
         <div class="motion-result vbt-result" data-vbt-result>${vbtResultMarkup({ ...measurement, ...velocityData, lift: record.lift, rpe: record.rpe })}</div>
       </section>
@@ -1181,7 +1437,7 @@
       roiDrag: null,
       startPoint: measurement.startPoint || null,
       endPoint: measurement.endPoint || null,
-      path: measurement.path || [],
+      path: measurement.trackPath || measurement.path || [],
       trackingConfidence: measurement.trackingConfidence || velocityData.trackingConfidence || "unknown",
       trackingMode: measurement.mode || velocityData.mode || (calibration.plateRoi ? "plate-roi-track" : "manual-2point"),
       startTime: hasFiniteNumber(measurement.startTime) ? Number(measurement.startTime) : null,
@@ -1341,7 +1597,7 @@
     ctx.lineWidth = Math.max(4 * scale.x, 4);
     ctx.lineCap = "round";
     if (state.path?.length > 1) {
-      const estimatedPath = state.trackingMode === "auto-track-beta" || state.trackingMode === "center-point-beta" || state.trackingMode === "plate-roi-track";
+      const estimatedPath = state.trackingMode === "auto-track-beta" || state.trackingMode === "center-point-beta" || state.trackingMode === "plate-roi-track" || state.trackingMode === "plate-roi-timeseries";
       ctx.strokeStyle = estimatedPath
         ? state.trackingConfidence === "low" ? "rgba(180, 35, 24, 0.30)" : "rgba(180, 35, 24, 0.70)"
         : "rgba(245, 158, 11, 0.94)";
@@ -1355,7 +1611,7 @@
       ctx.setLineDash([]);
       if (estimatedPath) {
         const anchor = state.path[0];
-        const label = state.trackingMode === "plate-roi-track" ? "推定プレート軌跡" : "中心点追跡β 参考線";
+        const label = state.trackingMode === "plate-roi-track" || state.trackingMode === "plate-roi-timeseries" ? "プレート軌跡" : "中心点追跡β 参考線";
         ctx.font = `900 ${Math.max(13 * scale.x, 16)}px system-ui`;
         ctx.strokeStyle = "rgba(23, 23, 23, 0.82)";
         ctx.lineWidth = Math.max(4 * scale.x, 3);
@@ -1505,7 +1761,7 @@
     const updated = vbtState(dialog);
     if (marker) marker.textContent = `開始 ${updated.startPoint ? "選択済み" : "未選択"} / 終了 ${updated.endPoint ? "選択済み" : "未選択"}`;
     const guide = dialog.querySelector("[data-vbt-video-guide]");
-    if (guide) guide.textContent = updated.startPoint && updated.endPoint ? "4. 標準2点測定を押す" : "次の点を選んでください";
+    if (guide) guide.textContent = updated.startPoint && updated.endPoint ? "手動2点で確認を押す" : "次の点を選んでください";
     setVbtState(dialog, { pickMode: null });
     canvas.classList.remove("active");
     dialog.querySelectorAll("[data-vbt-pick]").forEach((item) => item.classList.remove("selected"));
@@ -1631,7 +1887,7 @@
       const velocityData = mode === "manual-2point"
         ? await measureManualTwoPoint(dialog, record)
         : mode === "plate-roi-track"
-          ? await trackPlateRoiPath(dialog, record)
+          ? await trackPlateTimeSeries(dialog, record)
           : await trackPlatePath(dialog, record);
       record.analysis = { ...(record.analysis || {}), velocityData };
       record.updatedAt = new Date().toISOString();
@@ -1652,9 +1908,17 @@
         tag: record.setType || null,
         videoName: record.videoName || "",
         averageVelocity: velocityData.meanVelocity,
-        lastRepVelocity: velocityData.measurement?.repVelocities?.at(-1)?.meanVelocity || null,
-        peakVelocity: null,
-        velocityLossPercent: null,
+        lastRepVelocity: velocityData.primaryVbtMetric?.lastRepConcentricMeanVelocity
+          ?? velocityData.measurement?.repVelocities?.at(-1)?.meanVelocity
+          ?? null,
+        peakVelocity: Math.max(
+          ...((velocityData.measurement?.repMetrics || [])
+            .map((metric) => metric.concentric?.peakVelocity)
+            .filter(Number.isFinite)),
+          0
+        ) || null,
+        velocityLossPercent: velocityData.primaryVbtMetric?.velocityLossPercent ?? null,
+        primaryVbtMetric: velocityData.primaryVbtMetric || null,
         measurementMode: velocityData.mode || mode,
         validVelocity: validVelocity(velocityData),
         plateDiameterCm: velocityData.calibration?.plateDiameterCm || null,
@@ -1674,12 +1938,17 @@
         trackingMode: velocityData.mode || mode
       });
       drawVbtOverlay(dialog);
-      if (guide) guide.textContent = `平均速度 ${velocityData.meanVelocity.toFixed(2)} m/s`;
+      if (guide) {
+        const detected = velocityData.primaryVbtMetric?.repCountDetected;
+        guide.textContent = detected
+          ? `${detected}レップ解析 / 最終 ${velocityData.primaryVbtMetric.lastRepConcentricMeanVelocity.toFixed(2)} m/s`
+          : `平均速度 ${velocityData.meanVelocity.toFixed(2)} m/s`;
+      }
       const profileRecords = await loadVbtRecords();
       resultBox.innerHTML = vbtResultMarkup({ ...velocityData, ...velocityData.measurement, lift: record.lift, rpe: record.rpe })
         + velocityComparisonMarkup(profileRecords, savedVbtRecord);
       button.textContent = "保存しました";
-      const idleLabel = mode === "manual-2point" ? "手動2点で測る" : mode === "plate-roi-track" ? "3. 追跡する" : "中心点追跡β";
+      const idleLabel = mode === "manual-2point" ? "手動2点で確認" : mode === "plate-roi-track" ? "3. プレートを追跡して解析" : "中心点追跡β";
       setTimeout(() => { button.textContent = idleLabel; button.disabled = false; }, 1200);
       renderLibrary();
       renderVbtHistory();
@@ -1687,7 +1956,7 @@
       resultBox.innerHTML = `<p>${escapeHtml(error.message || "速度を計算できませんでした。")}</p>`;
       const guide = dialog.querySelector("[data-vbt-video-guide]");
       if (guide) guide.textContent = error.message || "緑枠と測定範囲を確認してください";
-      button.textContent = mode === "manual-2point" ? "手動2点で測る" : mode === "plate-roi-track" ? "3. 追跡する" : "中心点追跡β";
+      button.textContent = mode === "manual-2point" ? "手動2点で確認" : mode === "plate-roi-track" ? "3. プレートを追跡して解析" : "中心点追跡β";
       button.disabled = false;
     }
   }

@@ -1,57 +1,68 @@
-﻿Platform Buddy v157 DIFF
+Platform Buddy v159
+Plate time-series tracking and multi-rep VBT analysis
 
-Changed files:
-- index.html
-- styles.css
-- video.js
-- sw.js
-- manifest.webmanifest
+Summary
+- Changed the standard VBT workflow from two-point measurement to plate time-series tracking.
+- The user selects the plate at the lift-specific start position.
+- The tracked vertical path is smoothed and split into reps by lift movement pattern.
+- Each rep now reports eccentric and concentric velocity metrics.
+- The last-rep concentric mean velocity is used by the personal RPE velocity profile.
+- Manual two-point measurement remains only as a fallback.
 
-index.html:
-- Reframed VBT Studio as a post-set RPE x velocity profile tool.
-- Added a concise explanation that Platform Buddy is not real-time VBT.
-- Updated query versions to v157.
+Changed functions in video.js
+- getVbtStartGuide(lift)
+  Returns SQ/BP/DL-specific start-position instructions and movement patterns.
+- trackPlateTimeSeries(dialog, record)
+  Runs the standard plate time-series analysis workflow.
+- smoothTrackPath(path)
+  Applies median and moving-average smoothing to the tracked path.
+- pathTurningPoints(path)
+  Finds vertical direction changes used for rep segmentation.
+- detectRepPhases(path, lift, expectedReps)
+  Splits SQ/BP top-bottom-top and DL bottom-top-bottom movements into reps.
+- phaseVelocityMetric(path, phase, metersPerPixel)
+  Calculates mean/peak velocity, duration, and distance for one phase.
+- calculateRepVelocityMetrics(repPhases, calibration)
+  Produces eccentric/concentric metrics, ROM, confidence, and warnings per rep.
+- getPrimaryVbtMetric(metrics)
+  Produces last/best/first concentric velocity, velocity loss, and detected reps.
+- validateRepDetection(metrics, expectedReps)
+  Warns when rep detection is unstable or does not match expected reps.
+- renderRepVelocityTable(metrics)
+  Renders the multi-rep velocity table.
+- trackPlateRoiPath(dialog, record)
+  Increased time-series sampling and connected rep detection and metrics.
+- autoTrackingConfidence(...)
+  Adjusted path-travel confidence thresholds for multi-rep round trips.
+- adaptVbtRecord(record)
+  Preserves legacy records and uses final-rep concentric velocity for RPE profiles.
+- vbtResultMarkup(data)
+  Displays set average, last/best rep, velocity loss, and per-rep results.
+- vbtCardMarkup(record)
+  Shows lift-specific start-position guidance and the new standard workflow.
+- saveVbtVelocity(button, mode)
+  Saves primary VBT metrics and multi-rep measurement data.
 
-video.js:
-- Added adaptVbtRecord() to normalize existing and new VBT records without rewriting old data.
-- Added valid-record filtering that excludes low confidence, abnormal velocity, abnormal distance, and invalid duration/calibration values.
-- Added Exact Profile and Similar Set Profile comparisons.
-- Added lift-specific RPE velocity profiles with general guidance until 10 valid personal records exist.
-- Added personal comparison comments and RPE/velocity mismatch classification.
-- Added a "past self comparison" panel to measured video details and measurement results.
-- Updated VBT history comments to use personal-profile comparisons.
-- Updated VBT dashboard, HOME VBT card, profile cards, and DATA VBT summary to show profile progress.
-- Strengthened newly saved VBT records with normalized profile fields while keeping legacy fields and existing IndexedDB records.
-- Does not use localStorage.
-- Does not touch platform-pr-v3.
-- Does not change app.js.
+Data compatibility
+- Existing video and VBT records remain supported.
+- New records use measurement.mode = "plate-roi-timeseries".
+- Existing averageVelocity stores set-average concentric velocity.
+- lastRepVelocity and primaryVbtMetric.lastRepConcentricMeanVelocity store the profile metric.
+- platform-pr-v3 and app.js were not changed.
 
-styles.css:
-- Added responsive personal comparison cards and RPE profile styles.
-- Kept the existing IRON NOTE and ROI tracking design.
-
-sw.js:
-- Updated cache name to platform-buddy-v157.
-- Updated cached versioned assets to v157.
-
-manifest.webmanifest:
-- Updated start_url to ./index.html?v=157.
-- Repaired the corrupted description string so the manifest remains valid JSON.
-
-Validation:
-- node --check video.js passed.
-- node --check app.js passed.
-- node --check sw.js passed.
+Validation
+- video.js, app.js, and sw.js syntax checks passed.
+- Synthetic path test detected SQ 5/5 reps and DL 3/3 reps.
+- Synthetic tests produced per-rep eccentric/concentric metrics and primary VBT metrics.
+- index.html details/section tag counts match.
 - manifest.webmanifest JSON parse passed.
-- Profile adapter/exact/similar/RPE/comment/mismatch function counts are exactly one.
-- HTML details and section tag counts match.
-- app.js SHA256 matches v156.
-- No localStorage / platform-pr-v3 references in video.js.
-- No v156 cache/query references remain in shipped files.
-- In-app Browser connection failed in the Windows sandbox, so final visual verification requires device upload.
+- PWA cache/query/start_url are aligned to v159.
+- app.js SHA256 matches v157.
 
-Known limitations:
-- Platform Buddy remains a post-set video-analysis VBT tool, not real-time VBT hardware.
-- RPE velocity profiles become meaningfully personal after repeated measurements under similar filming conditions.
-- lastRepVelocity is populated only when per-rep velocity data exists; current one-rep analyses usually equal average velocity.
-- Peak velocity, velocity-loss percentage, MVT estimation, e1RM linkage, and live next-set automation remain future work.
+Known limitations
+- Tracking quality still depends on camera stability, lighting, plate visibility, and a correct ROI.
+- Real-video accuracy must be verified after device upload with SQ/BP/DL sample videos.
+- Manual top/bottom marker correction is not implemented yet.
+- Pause detection is stored as optional and is not yet reliable enough for coaching decisions.
+- Velocity curve graphs and overlay-video export remain future work.
+- This remains post-set video analysis, not real-time VBT hardware.
