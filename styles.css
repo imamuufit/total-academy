@@ -15937,27 +15937,6 @@ html body .vbt-video-guide {
   pointer-events: none;
 }
 
-html body .vbt-video-actions {
-  position: absolute;
-  z-index: 4;
-  left: 12px;
-  right: 12px;
-  bottom: 12px;
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  pointer-events: none;
-}
-
-html body .vbt-video-actions .text-button {
-  min-height: 38px;
-  border-color: rgba(255, 250, 242, 0.52);
-  background: rgba(255, 250, 242, 0.9);
-  color: var(--text-main, #171717);
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
-  pointer-events: auto;
-}
-
 html body .vbt-video-status {
   margin: 8px 0 0;
   color: var(--text-sub, #526179);
@@ -16039,6 +16018,59 @@ html body .manual-vbt-card {
     linear-gradient(90deg, rgba(180, 35, 24, 0.045), transparent 46%),
     var(--surface, #fffaf2);
   padding: 12px;
+}
+
+html body .vbt-trim-panel {
+  display: grid;
+  gap: 10px;
+  border: 1px solid var(--line, #ded6c8);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.62);
+  padding: 11px;
+}
+
+html body .vbt-trim-panel .video-storage-note {
+  margin: 0;
+}
+
+html body .vbt-trim-sliders {
+  display: grid;
+  gap: 9px;
+}
+
+html body .vbt-trim-sliders label {
+  display: grid !important;
+  grid-template-columns: 38px 1fr;
+  align-items: center;
+  gap: 8px !important;
+  color: var(--text-main, #171717);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+html body .vbt-trim-sliders input[type="range"] {
+  width: 100%;
+  min-height: 30px;
+  padding: 0;
+  accent-color: var(--accent, #b42318);
+  touch-action: pan-x;
+}
+
+html body .vbt-trim-summary {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+html body .vbt-trim-summary span {
+  border: 1px solid var(--line, #ded6c8);
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--text-sub, #526179);
+  padding: 5px 9px;
+  font-size: 0.74rem;
+  font-weight: 900;
 }
 
 html body .vbt-trim-card {

@@ -1,4 +1,4 @@
-Platform Buddy v152 DIFF
+Platform Buddy v153 DIFF
 
 Changed files:
 - index.html
@@ -8,46 +8,45 @@ Changed files:
 - manifest.webmanifest
 
 index.html:
-- Removed the shooting angle selector from the VBT upload form.
-- Updated query versions to v152.
+- Updated query versions to v153.
 
 video.js:
-- Removed shooting angle handling from new VBT records, library cards, viewer metadata, comparison cards, and VBT history records.
-- Replaced the separate trim sliders with a video-cursor workflow:
-  - pause/seek the video
-  - tap "開始にする"
-  - pause/seek later
-  - tap "終了にする"
-- Added in-video guidance text so the next action appears directly over the video.
-- Added in-video start/end buttons over the video frame.
-- When choosing plate center, the video automatically jumps to the selected analysis start time.
-- Improved beta tracking:
-  - updates the tracking template across frames
-  - searches a wider area
-  - avoids saving a false 0.00 m/s result when tracking did not move
-  - shows an actionable error asking the user to reselect the plate center at the analysis start position
+- Restored the requested three-step VBT flow:
+  - trim the video with start/end sliders
+  - select the plate center
+  - run automatic measurement
+- Fixed the analysis-range failure caused by unset or legacy trim-end values being treated as 0 seconds.
+- Legacy invalid trim ranges now fall back to the video duration, so existing uploads can be measured again.
+- Aligned the tap/trajectory canvas with the actual displayed video content for portrait videos and object-fit letterboxing.
+- Expanded the tracking template to include the plate edge and nearby visual features instead of tracking only the featureless black center.
+- Added a stable reference template to reduce tracking drift between frames.
+- Estimated plate diameter at the analysis start frame for more reliable scale calibration.
+- Removed the obsolete cursor-based start/end handlers and overlay-button styling.
+- Reset now restores the full video trim range.
+- Measurement errors are shown directly in the in-video guide.
 - Kept VBT as beta/reference measurement, not a validated precision device.
 - Does not use localStorage.
 - Does not touch platform-pr-v3.
 - Does not change app.js.
 
 styles.css:
-- Added video-overlay guidance styling.
-- Added in-video start/end action button styling.
-- Removed unused trim range slider styling.
+- Added compact start/end trim slider styling for desktop and mobile.
+- Removed obsolete in-video start/end action button styling.
 
 sw.js:
-- Updated cache name to platform-buddy-v152.
-- Updated cached versioned assets to v152.
+- Updated cache name to platform-buddy-v153.
+- Updated cached versioned assets to v153.
 
 manifest.webmanifest:
-- Updated start_url to ./index.html?v=152.
+- Updated start_url to ./index.html?v=153.
 
 Validation:
 - node --check video.js passed.
 - node --check app.js passed.
 - node --check sw.js passed.
-- app.js SHA256 matches v151.
+- manifest.webmanifest JSON parse passed.
+- app.js SHA256 matches v152.
 - No localStorage / platform-pr-v3 references in video.js.
-- No MediaPipe / Motion Analyzer strings remain.
-- No v151 cache/query references remain in shipped files.
+- No obsolete data-vbt-trim handlers or vbt-video-actions remain.
+- No v152 cache/query references remain in shipped files.
+- No sample video was available in the workspace, so real-video velocity accuracy requires device verification.

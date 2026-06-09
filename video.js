@@ -69,6 +69,10 @@
     return Number.isInteger(number) ? String(number) : String(number.toFixed(1)).replace(/\.0$/, "");
   }
 
+  function hasFiniteNumber(value) {
+    return value !== null && value !== undefined && value !== "" && Number.isFinite(Number(value));
+  }
+
   function mediaStatusMessage(type, detail = "") {
     const messages = {
       loading: "動画を読み込み中です。",
@@ -328,19 +332,26 @@
     const state = vbtState(dialog);
     if (!video?.videoWidth || !video?.videoHeight) throw new Error("動画を読み込んでから計測してください。");
     if (!state.targetPoint) throw new Error("プレート中心を1回タップしてください。");
-    const start = Number.isFinite(Number(state.trimStart)) ? Number(state.trimStart) : 0;
-    const end = Number.isFinite(Number(state.trimEnd)) ? Number(state.trimEnd) : Number(video.duration);
-    if (!Number.isFinite(end) || end <= start + 0.2) throw new Error("解析範囲を少し広げてください。");
+    const start = hasFiniteNumber(state.trimStart) ? Number(state.trimStart) : 0;
+    const savedEnd = hasFiniteNumber(state.trimEnd) ? Number(state.trimEnd) : Number(video.duration);
+    const end = savedEnd > start + 0.2 ? savedEnd : Number(video.duration);
+    if (!Number.isFinite(end) || end <= start + 0.2) throw new Error("動画を読み込んでから、運動中が入るよう範囲を調整してください。");
     const plateDiameterCm = Number(dialog.querySelector("[data-vbt-plate-cm]")?.value || DEFAULT_PLATE_DIAMETER_CM);
     if (!Number.isFinite(plateDiameterCm) || plateDiameterCm <= 0) throw new Error("プレート径を確認してください。");
 
     await seekVideo(video, start);
     const first = frameCanvas(video, 320);
     const scale = first.scale;
-    const patchSize = 21;
     let current = { x: state.targetPoint.x * scale, y: state.targetPoint.y * scale };
+    const estimatedPlatePixels = estimatePlateDiameterPixels(video, state.targetPoint);
+    const fallbackPlatePixels = Math.max(60, Math.min(video.videoWidth, video.videoHeight) * 0.18);
+    const trackingPlatePixels = Number.isFinite(estimatedPlatePixels) && estimatedPlatePixels > 20 ? estimatedPlatePixels : fallbackPlatePixels;
+    const trackingPlatePixelsAtScale = trackingPlatePixels * scale;
+    let patchSize = clamp(Math.round(trackingPlatePixelsAtScale * 1.12), 31, 51);
+    if (patchSize % 2 === 0) patchSize += 1;
     let template = getGrayPatch(first.ctx, Math.round(current.x), Math.round(current.y), patchSize);
     if (!template) throw new Error("プレート中心が画面端に近すぎます。少し中央寄りをタップしてください。");
+    const referenceTemplate = template;
 
     const sampleCount = clamp(Math.round((end - start) * 10), 8, 60);
     const path = [];
@@ -350,11 +361,11 @@
       const frame = frameCanvas(video, 320);
       let best = current;
       let bestScore = Infinity;
-      const radius = 34;
-      for (let dy = -radius; dy <= radius; dy += 4) {
-        for (let dx = -radius; dx <= radius; dx += 4) {
+      const radius = clamp(Math.round(patchSize * 1.2), 36, 62);
+      for (let dy = -radius; dy <= radius; dy += 5) {
+        for (let dx = -radius; dx <= radius; dx += 5) {
           const candidate = getGrayPatch(frame.ctx, Math.round(current.x + dx), Math.round(current.y + dy), patchSize);
-          const score = patchScore(template, candidate);
+          const score = (patchScore(template, candidate) * 0.7) + (patchScore(referenceTemplate, candidate) * 0.3);
           if (score < bestScore) {
             bestScore = score;
             best = { x: current.x + dx, y: current.y + dy };
@@ -370,8 +381,6 @@
     if (verticalTravelPixels < 2 && pathTravelPixels < 4) {
       throw new Error("プレートを追跡できませんでした。解析開始位置でプレート中心を選び直してください。");
     }
-    const estimatedPlatePixels = estimatePlateDiameterPixels(video, state.targetPoint);
-    const fallbackPlatePixels = Math.max(60, Math.min(video.videoWidth, video.videoHeight) * 0.18);
     const plateDiameterPixels = Number.isFinite(estimatedPlatePixels) && estimatedPlatePixels > 20 ? estimatedPlatePixels : fallbackPlatePixels;
     const metersPerPixel = (plateDiameterCm / 100) / plateDiameterPixels;
     const distanceMeters = Math.max(verticalTravelPixels, pathTravelPixels * 0.35) * metersPerPixel;
@@ -424,7 +433,7 @@
   }
 
   function vbtResultMarkup(data) {
-    if (!data || !Number.isFinite(Number(data.meanVelocity))) {
+    if (!data || !hasFiniteNumber(data.meanVelocity)) {
       return `<p>動画の範囲を合わせ、プレート中心を1回タップして自動計測します。</p>`;
     }
     const reps = data.repVelocities || data.measurement?.repVelocities || [];
@@ -444,14 +453,29 @@
     const velocityData = record.analysis?.velocityData || {};
     const calibration = velocityData.calibration || {};
     const measurement = velocityData.measurement || velocityData;
-    const plateDiameterCm = Number.isFinite(Number(calibration.plateDiameterCm)) ? Number(calibration.plateDiameterCm) : DEFAULT_PLATE_DIAMETER_CM;
+    const plateDiameterCm = hasFiniteNumber(calibration.plateDiameterCm) ? Number(calibration.plateDiameterCm) : DEFAULT_PLATE_DIAMETER_CM;
     return `
       <section class="manual-vbt-card" data-vbt-card>
         <div class="video-check-head">
           <strong>VBT Studio β</strong>
           <small>範囲を切って、自動計測する</small>
         </div>
-        <p class="video-storage-note">再生カーソルで測りたい範囲を決め、プレート中心を1回タップします。</p>
+        <section class="vbt-trim-panel">
+          <div class="video-check-head">
+            <strong>1. 動画をトリミング</strong>
+            <small>運動中だけに絞る</small>
+          </div>
+          <p class="video-storage-note">ラックアップ前とセット終了後を、開始・終了スライダーで外してください。</p>
+          <div class="vbt-trim-sliders">
+            <label><span>開始</span><input data-vbt-trim-range="start" type="range" min="0" max="1" step="0.01" value="0"></label>
+            <label><span>終了</span><input data-vbt-trim-range="end" type="range" min="0" max="1" step="0.01" value="1"></label>
+          </div>
+          <div class="vbt-trim-summary">
+            <span data-vbt-trim-start>開始 ${escapeHtml(formatSeconds(measurement.trim?.start))}</span>
+            <span data-vbt-trim-end>終了 ${escapeHtml(formatSeconds(measurement.trim?.end))}</span>
+            <button class="text-button compact" type="button" data-vbt-preview-range>範囲を再生</button>
+          </div>
+        </section>
         <div class="vbt-controls">
           <label>プレート径 cm<input data-vbt-plate-cm type="number" inputmode="decimal" min="10" max="60" step="0.1" value="${escapeHtml(plateDiameterCm)}"></label>
           <button class="text-button" type="button" data-vbt-pick="target">2. プレート中心を選ぶ</button>
@@ -474,10 +498,10 @@
       pickMode: null,
       targetPoint: calibration.targetPoint || calibration.plateA || null,
       path: measurement.path || [],
-      startTime: Number.isFinite(Number(measurement.startTime)) ? Number(measurement.startTime) : null,
-      endTime: Number.isFinite(Number(measurement.endTime)) ? Number(measurement.endTime) : null,
-      trimStart: Number.isFinite(Number(measurement.trim?.start)) ? Number(measurement.trim.start) : null,
-      trimEnd: Number.isFinite(Number(measurement.trim?.end)) ? Number(measurement.trim.end) : null
+      startTime: hasFiniteNumber(measurement.startTime) ? Number(measurement.startTime) : null,
+      endTime: hasFiniteNumber(measurement.endTime) ? Number(measurement.endTime) : null,
+      trimStart: hasFiniteNumber(measurement.trim?.start) ? Number(measurement.trim.start) : null,
+      trimEnd: hasFiniteNumber(measurement.trim?.end) ? Number(measurement.trim.end) : null
     };
   }
 
@@ -495,6 +519,19 @@
     if (!video || !canvas || !video.videoWidth || !video.videoHeight) return false;
     if (canvas.width !== video.videoWidth) canvas.width = video.videoWidth;
     if (canvas.height !== video.videoHeight) canvas.height = video.videoHeight;
+    const videoBox = video.getBoundingClientRect();
+    const frameBox = video.parentElement?.getBoundingClientRect();
+    if (videoBox.width && videoBox.height && frameBox) {
+      const scale = Math.min(videoBox.width / video.videoWidth, videoBox.height / video.videoHeight);
+      const contentWidth = video.videoWidth * scale;
+      const contentHeight = video.videoHeight * scale;
+      canvas.style.width = `${contentWidth}px`;
+      canvas.style.height = `${contentHeight}px`;
+      canvas.style.left = `${videoBox.left - frameBox.left + (videoBox.width - contentWidth) / 2}px`;
+      canvas.style.top = `${videoBox.top - frameBox.top + (videoBox.height - contentHeight) / 2}px`;
+      canvas.style.right = "auto";
+      canvas.style.bottom = "auto";
+    }
     return true;
   }
 
@@ -545,7 +582,7 @@
     const video = dialog?.querySelector("video");
     const state = vbtState(dialog);
     setVbtState(dialog, { pickMode: "target" });
-    if (video && Number.isFinite(Number(state.trimStart))) video.currentTime = Number(state.trimStart);
+    if (video && hasFiniteNumber(state.trimStart)) video.currentTime = Number(state.trimStart);
     video?.pause();
     dialog.querySelector("[data-vbt-canvas]")?.classList.add("active");
     dialog.querySelectorAll("[data-vbt-pick]").forEach((item) => item.classList.toggle("selected", item === button));
@@ -588,33 +625,8 @@
     if (trimEnd) trimEnd.textContent = "解析終了 -";
     dialog.querySelectorAll("[data-vbt-pick]").forEach((item) => item.classList.remove("selected"));
     dialog.querySelector("[data-vbt-canvas]")?.classList.remove("active");
+    syncTrimControls(dialog);
     drawVbtOverlay(dialog);
-  }
-
-  function setVbtTrimPoint(button) {
-    const dialog = button.closest("dialog");
-    const video = dialog?.querySelector("video");
-    const time = Number(video?.currentTime);
-    if (!dialog || !Number.isFinite(time)) return;
-    const type = button.dataset.vbtTrim;
-    if (type === "start") {
-      setVbtState(dialog, { trimStart: time });
-      const target = dialog.querySelector("[data-vbt-trim-start]");
-      if (target) target.textContent = `解析開始 ${formatSeconds(time)}`;
-      const status = dialog.querySelector("[data-vbt-video-status]");
-      if (status) status.textContent = mediaStatusMessage("trimStart", formatSeconds(time));
-      const guide = dialog.querySelector("[data-vbt-video-guide]");
-      if (guide) guide.textContent = "終了位置で一時停止して、終了にする";
-    }
-    if (type === "end") {
-      setVbtState(dialog, { trimEnd: time });
-      const target = dialog.querySelector("[data-vbt-trim-end]");
-      if (target) target.textContent = `解析終了 ${formatSeconds(time)}`;
-      const status = dialog.querySelector("[data-vbt-video-status]");
-      if (status) status.textContent = mediaStatusMessage("trimEnd", formatSeconds(time));
-      const guide = dialog.querySelector("[data-vbt-video-guide]");
-      if (guide) guide.textContent = "プレート中心を選ぶへ進む";
-    }
   }
 
   function syncTrimControls(dialog) {
@@ -622,13 +634,61 @@
     const state = vbtState(dialog);
     const duration = Number(video?.duration);
     if (!Number.isFinite(duration) || duration <= 0) return;
-    const startValue = Number.isFinite(Number(state.trimStart)) ? Number(state.trimStart) : 0;
-    const endValue = Number.isFinite(Number(state.trimEnd)) ? Number(state.trimEnd) : duration;
+    const startValue = hasFiniteNumber(state.trimStart) ? Number(state.trimStart) : 0;
+    const savedEnd = hasFiniteNumber(state.trimEnd) ? Number(state.trimEnd) : duration;
+    const endValue = savedEnd > startValue + 0.2 ? savedEnd : duration;
     const start = dialog.querySelector("[data-vbt-trim-start]");
     const end = dialog.querySelector("[data-vbt-trim-end]");
     if (start) start.textContent = `解析開始 ${formatSeconds(startValue)}`;
     if (end) end.textContent = `解析終了 ${formatSeconds(endValue)}`;
+    dialog.querySelectorAll("[data-vbt-trim-range]").forEach((input) => {
+      input.max = String(duration);
+      input.value = input.dataset.vbtTrimRange === "start" ? String(startValue) : String(endValue);
+    });
     setVbtState(dialog, { trimStart: startValue, trimEnd: endValue });
+  }
+
+  function handleTrimRange(input) {
+    const dialog = input.closest("dialog");
+    const video = dialog?.querySelector("video");
+    const duration = Number(video?.duration);
+    if (!dialog || !video || !Number.isFinite(duration) || duration <= 0) return;
+    const state = vbtState(dialog);
+    let start = hasFiniteNumber(state.trimStart) ? Number(state.trimStart) : 0;
+    let end = hasFiniteNumber(state.trimEnd) ? Number(state.trimEnd) : duration;
+    if (input.dataset.vbtTrimRange === "start") start = Number(input.value);
+    if (input.dataset.vbtTrimRange === "end") end = Number(input.value);
+    const minimumRange = Math.min(0.5, duration * 0.15);
+    if (start > end - minimumRange) {
+      if (input.dataset.vbtTrimRange === "start") start = Math.max(0, end - minimumRange);
+      else end = Math.min(duration, start + minimumRange);
+    }
+    setVbtState(dialog, { trimStart: start, trimEnd: end, targetPoint: null, path: [] });
+    syncTrimControls(dialog);
+    video.currentTime = input.dataset.vbtTrimRange === "start" ? start : end;
+    const status = dialog.querySelector("[data-vbt-pick-status]");
+    if (status) status.textContent = "トリミング後、プレート中心を選択";
+    const guide = dialog.querySelector("[data-vbt-video-guide]");
+    if (guide) guide.textContent = "1. 運動中だけになるよう範囲を調整";
+    drawVbtOverlay(dialog);
+  }
+
+  function previewTrimRange(button) {
+    const dialog = button.closest("dialog");
+    const video = dialog?.querySelector("video");
+    const state = vbtState(dialog);
+    if (!video) return;
+    const start = hasFiniteNumber(state.trimStart) ? Number(state.trimStart) : 0;
+    const end = hasFiniteNumber(state.trimEnd) ? Number(state.trimEnd) : Number(video.duration);
+    video.currentTime = start;
+    video.play();
+    const stopAtEnd = () => {
+      if (video.currentTime >= end || video.ended) {
+        video.pause();
+        video.removeEventListener("timeupdate", stopAtEnd);
+      }
+    };
+    video.addEventListener("timeupdate", stopAtEnd);
   }
 
   async function saveVbtVelocity(button) {
@@ -670,7 +730,7 @@
     } catch (error) {
       resultBox.innerHTML = `<p>${escapeHtml(error.message || "速度を計算できませんでした。")}</p>`;
       const guide = dialog.querySelector("[data-vbt-video-guide]");
-      if (guide) guide.textContent = "プレート中心を選び直してください";
+      if (guide) guide.textContent = error.message || "プレート中心を選び直してください";
       button.textContent = "3. 自動計測β";
       button.disabled = false;
     }
@@ -780,11 +840,7 @@
         <div class="vbt-video-frame">
           <video controls playsinline preload="metadata" src="${escapeHtml(url)}"></video>
           <canvas class="vbt-overlay" data-vbt-canvas></canvas>
-          <div class="vbt-video-guide" data-vbt-video-guide>1. 動画を止めて開始位置を決める</div>
-          <div class="vbt-video-actions">
-            <button class="text-button" type="button" data-vbt-trim="start">開始にする</button>
-            <button class="text-button" type="button" data-vbt-trim="end">終了にする</button>
-          </div>
+          <div class="vbt-video-guide" data-vbt-video-guide>1. 下のスライダーで運動中だけに絞る</div>
         </div>
         <p class="vbt-video-status" data-vbt-video-status>${escapeHtml(mediaStatusMessage("loading"))}</p>
         <div class="video-viewer-meta">
@@ -946,8 +1002,8 @@
   document.addEventListener("click", (event) => {
     const vbtPick = event.target.closest("[data-vbt-pick]");
     if (vbtPick) return setVbtPickMode(vbtPick);
-    const vbtTrim = event.target.closest("[data-vbt-trim]");
-    if (vbtTrim) return setVbtTrimPoint(vbtTrim);
+    const previewRange = event.target.closest("[data-vbt-preview-range]");
+    if (previewRange) return previewTrimRange(previewRange);
     const vbtReset = event.target.closest("[data-vbt-reset]");
     if (vbtReset) return resetVbt(vbtReset);
     const vbtSave = event.target.closest("[data-vbt-auto]");
@@ -960,6 +1016,9 @@
   });
   document.addEventListener("pointerup", (event) => {
     if (event.target.matches("[data-vbt-canvas]")) handleVbtCanvasPointer(event);
+  });
+  document.addEventListener("input", (event) => {
+    if (event.target.matches("[data-vbt-trim-range]")) handleTrimRange(event.target);
   });
   window.addEventListener("beforeunload", clearObjectUrls);
 
