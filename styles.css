@@ -16200,3 +16200,324 @@ html body .vbt-history-card :is(small, p) {
     grid-template-columns: 1fr;
   }
 }
+
+/* v154: VBT main workspace */
+html body .tabbar {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+html body #vbtView {
+  width: min(100%, 1160px);
+  margin-inline: auto;
+  padding-top: 0;
+}
+
+html body :is(.pb-section, .pb-card, .pb-compact-card, .pb-accordion) {
+  border: 1px solid var(--line, #ded6c8);
+  border-radius: 12px;
+  background:
+    linear-gradient(90deg, rgba(180, 35, 24, 0.035), transparent 48%),
+    var(--surface, #fffaf2);
+  color: var(--text-main, #171717);
+  box-shadow: 0 8px 18px rgba(51, 42, 29, 0.05);
+}
+
+html body .pb-section {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
+html body .pb-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+html body .pb-card,
+html body .pb-compact-card {
+  display: grid;
+  align-content: start;
+  gap: 7px;
+  padding: 14px;
+}
+
+html body .pb-card {
+  min-height: 130px;
+  max-height: 180px;
+}
+
+html body .pb-card span,
+html body .pb-compact-card span,
+html body .pb-card small,
+html body .pb-compact-card small {
+  color: var(--text-muted, #667085);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+html body .pb-card strong,
+html body .pb-compact-card strong {
+  color: var(--text-main, #171717);
+  font-size: 1.15rem;
+  line-height: 1.2;
+}
+
+html body .pb-card p,
+html body .pb-compact-card p,
+html body .pb-accordion p {
+  margin: 0;
+  color: var(--text-sub, #526179);
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+html body .pb-action-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+html body .pb-action-row button {
+  min-height: 44px;
+}
+
+html body .pb-accordion {
+  padding: 0;
+  overflow: hidden;
+}
+
+html body .pb-accordion summary {
+  cursor: pointer;
+  color: var(--text-main, #171717);
+  padding: 13px 15px;
+  font-size: 0.92rem;
+  font-weight: 900;
+}
+
+html body .pb-accordion > :not(summary) {
+  margin: 0 15px 14px;
+}
+
+html body .pb-line-clamp-1,
+html body .pb-line-clamp-2 {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+}
+
+html body .pb-line-clamp-1 {
+  -webkit-line-clamp: 1;
+}
+
+html body .pb-line-clamp-2 {
+  -webkit-line-clamp: 2;
+}
+
+html body .vbt-page-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+html body .vbt-page-head h2,
+html body .vbt-page-head p {
+  margin: 0;
+}
+
+html body .vbt-page-head h2 {
+  font-size: clamp(1.35rem, 3vw, 1.6rem);
+}
+
+html body .vbt-page-head p {
+  color: var(--text-sub, #526179);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+html body .vbt-dashboard-card button {
+  align-self: end;
+  width: fit-content;
+  min-height: 34px;
+}
+
+html body #vbtView .video-note-panel {
+  padding: 16px;
+}
+
+html body #vbtView .video-library-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+html body #vbtView .video-library-card {
+  min-height: 170px;
+  max-height: 230px;
+  overflow: hidden;
+}
+
+html body .video-library-buddy {
+  margin: 0;
+  color: var(--text-sub, #526179);
+  font-size: 0.76rem;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+html body .vbt-library-all {
+  width: fit-content;
+  min-height: 40px;
+  justify-self: center;
+}
+
+html body .vbt-profile-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+html body .vbt-profile-details,
+html body .vbt-data-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+html body .vbt-data-summary {
+  display: grid;
+  gap: 10px;
+}
+
+html body .vbt-data-grid article {
+  display: grid;
+  gap: 5px;
+  border: 1px solid var(--line, #ded6c8);
+  border-radius: 10px;
+  background: var(--surface, #fffaf2);
+  padding: 10px;
+}
+
+html body .vbt-data-grid article :is(span, small) {
+  color: var(--text-sub, #526179);
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+html body .vbt-learning-card {
+  display: grid;
+  gap: 6px;
+}
+
+html body .home-vbt-card {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  margin-top: 0;
+}
+
+html body .home-vbt-card button {
+  min-height: 40px;
+}
+
+html body .video-viewer-card > .section-title:first-child {
+  position: sticky;
+  z-index: 8;
+  top: -16px;
+  margin: -16px -16px 0;
+  border-bottom: 1px solid var(--line, #ded6c8);
+  background: rgba(255, 250, 242, 0.96);
+  padding: 12px 16px;
+  backdrop-filter: blur(10px);
+}
+
+html body .video-viewer-card .vbt-video-frame video {
+  max-height: min(55vh, 620px);
+}
+
+@media (max-width: 1023px) {
+  html body .pb-grid,
+  html body #vbtView .video-library-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  html body .pb-action-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  html body .tabbar {
+    gap: 2px;
+    padding-inline: 4px;
+  }
+
+  html body .tabbar .tab {
+    min-width: 0;
+    padding-inline: 3px !important;
+    font-size: 0.62rem !important;
+  }
+
+  html body #vbtView {
+    gap: 10px;
+  }
+
+  html body .pb-section,
+  html body #vbtView .video-note-panel {
+    padding: 12px;
+  }
+
+  html body .pb-grid,
+  html body #vbtView .video-library-grid {
+    grid-template-columns: 1fr;
+  }
+
+  html body .pb-card {
+    min-height: auto;
+    max-height: none;
+    padding: 12px;
+  }
+
+  html body .vbt-page-head {
+    display: grid;
+  }
+
+  html body .vbt-page-head p {
+    max-width: 34ch;
+  }
+
+  html body .vbt-profile-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  html body .vbt-profile-details,
+  html body .vbt-data-grid {
+    grid-template-columns: 1fr;
+  }
+
+  html body .vbt-profile-grid .pb-compact-card {
+    padding: 9px;
+  }
+
+  html body .vbt-profile-grid .pb-compact-card strong {
+    font-size: 0.88rem;
+  }
+
+  html body .home-vbt-card {
+    grid-template-columns: 1fr auto;
+    padding: 12px;
+  }
+
+  html body .video-viewer-card {
+    padding: 10px;
+  }
+
+  html body .video-viewer-card > .section-title:first-child {
+    top: -10px;
+    margin: -10px -10px 0;
+    padding: 10px;
+  }
+
+  html body .video-viewer-card .vbt-video-frame video {
+    max-height: 48vh;
+  }
+}

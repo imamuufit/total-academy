@@ -1,4 +1,4 @@
-Platform Buddy v153 DIFF
+Platform Buddy v154 DIFF
 
 Changed files:
 - index.html
@@ -8,45 +8,57 @@ Changed files:
 - manifest.webmanifest
 
 index.html:
-- Updated query versions to v153.
+- Added VBT as a main tab between LOG and DATA.
+- Moved the VBT workspace out of LOG into the dedicated VBT view.
+- Added compact VBT Dashboard and Quick Action sections.
+- Added a recent-library-first layout with hidden advanced filters.
+- Added collapsed RPE, measurement caution, learning, and profile detail sections.
+- Added a compact VBT state card to HOME.
+- Added a compact VBT summary to DATA.
+- Updated query versions to v154.
 
 video.js:
-- Restored the requested three-step VBT flow:
-  - trim the video with start/end sliders
-  - select the plate center
-  - run automatic measurement
-- Fixed the analysis-range failure caused by unset or legacy trim-end values being treated as 0 seconds.
-- Legacy invalid trim ranges now fall back to the video duration, so existing uploads can be measured again.
-- Aligned the tap/trajectory canvas with the actual displayed video content for portrait videos and object-fit letterboxing.
-- Expanded the tracking template to include the plate edge and nearby visual features instead of tracking only the featureless black center.
-- Added a stable reference template to reduce tracking drift between frames.
-- Estimated plate diameter at the analysis start frame for more reliable scale calibration.
-- Removed the obsolete cursor-based start/end handlers and overlay-button styling.
-- Reset now restores the full video trim range.
-- Measurement errors are shown directly in the in-video guide.
-- Kept VBT as beta/reference measurement, not a validated precision device.
+- Added compact VBT dashboard state, latest record, Buddy judgment, and next-action cards.
+- Added compact HOME VBT status and DATA VBT summary rendering.
+- Added BIG3 personal velocity profile summary and collapsed detail values.
+- Limited the initial VBT Library display to the latest three videos.
+- Added "すべて見る" to reveal filters and the full library.
+- Moved full VBT history into a closed accordion.
+- Added short Buddy copy and line-limited library comments.
+- Added safe abnormal-value handling for 0.00m/s, under 0.10m/s, short travel, and overly long ranges.
+- Abnormal values now show "測定範囲を確認" and avoid strong RPE judgments.
+- Kept the v153 trim, portrait-video canvas alignment, and plate-edge tracking fixes.
 - Does not use localStorage.
 - Does not touch platform-pr-v3.
 - Does not change app.js.
 
 styles.css:
-- Added compact start/end trim slider styling for desktop and mobile.
-- Removed obsolete in-video start/end action button styling.
+- Added reusable compact VBT card, grid, accordion, line-clamp, and action-row styles.
+- Added 4-column desktop, 2-column tablet, and 1-column mobile VBT dashboard/library layouts.
+- Updated the main tab bar for six tabs.
+- Limited mobile video height and made the viewer close header sticky.
+- Added compact HOME VBT and DATA VBT summary styling.
 
 sw.js:
-- Updated cache name to platform-buddy-v153.
-- Updated cached versioned assets to v153.
+- Updated cache name to platform-buddy-v154.
+- Updated cached versioned assets to v154.
 
 manifest.webmanifest:
-- Updated start_url to ./index.html?v=153.
+- Updated start_url to ./index.html?v=154.
 
 Validation:
 - node --check video.js passed.
 - node --check app.js passed.
 - node --check sw.js passed.
 - manifest.webmanifest JSON parse passed.
-- app.js SHA256 matches v152.
+- No duplicate HTML ids.
+- VBT workspace is inside vbtView and no longer inside logView.
+- app.js SHA256 matches v152/v153.
 - No localStorage / platform-pr-v3 references in video.js.
-- No obsolete data-vbt-trim handlers or vbt-video-actions remain.
-- No v152 cache/query references remain in shipped files.
-- No sample video was available in the workspace, so real-video velocity accuracy requires device verification.
+- No v153 cache/query references remain in shipped files.
+- In-app Browser and bundled Playwright were unavailable in this environment, so final visual verification requires device upload.
+
+Known follow-ups:
+- PLAN per-exercise velocity chips are not included in v154.
+- Detailed RPE x Velocity Coach calibration remains a future enhancement.
+- Two-video comparison retains the existing video-first comparison flow.

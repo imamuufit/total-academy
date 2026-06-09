@@ -10,6 +10,7 @@
 
   const selectedForCompare = new Set();
   const activeObjectUrls = new Set();
+  let libraryShowAll = false;
 
   const els = {
     panel: document.querySelector("#videoNotePanel"),
@@ -32,7 +33,16 @@
     filterLift: document.querySelector("#videoFilterLift"),
     sortOrder: document.querySelector("#videoSortOrder"),
     compareBtn: document.querySelector("#videoCompareBtn"),
-    compareView: document.querySelector("#videoCompareView")
+    compareView: document.querySelector("#videoCompareView"),
+    libraryTools: document.querySelector("#videoLibraryTools"),
+    libraryAll: document.querySelector("#videoLibraryAllBtn"),
+    quickMeasure: document.querySelector("#vbtQuickMeasureBtn"),
+    quickCompare: document.querySelector("#vbtQuickCompareBtn"),
+    dashboard: document.querySelector("#vbtDashboard"),
+    profileSummary: document.querySelector("#vbtProfileSummary"),
+    profileDetails: document.querySelector("#vbtProfileDetails"),
+    dataSummary: document.querySelector("#vbtDataSummary"),
+    homeCard: document.querySelector("#homeVbtCard")
   };
 
   if (!els.panel || !("indexedDB" in window)) {
@@ -220,6 +230,7 @@
     els.libraryMode.classList.toggle("primary-button", !adding);
     els.libraryMode.classList.toggle("text-button", adding);
     if (!adding) renderLibrary();
+    els.panel?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   function videoTitle(record) {
@@ -227,6 +238,104 @@
     const reps = record.reps ? ` x ${formatNumber(record.reps)}` : "";
     const rpe = record.rpe ? ` @${formatNumber(record.rpe)}` : "";
     return `${liftLabel(record.lift)} ${weight}${reps}${rpe}`;
+  }
+
+  function validVelocity(record) {
+    const measurement = record?.measurement || record?.analysis?.velocityData?.measurement || record?.analysis?.velocityData || record || {};
+    const velocity = Number(measurement.meanVelocity);
+    const duration = Number(measurement.durationSeconds);
+    const distance = Number(measurement.distanceMeters);
+    return Number.isFinite(velocity) && velocity >= 0.1 && Number.isFinite(duration) && duration > 0 && duration <= 12 && Number.isFinite(distance) && distance >= 0.05;
+  }
+
+  function velocityValue(record) {
+    const measurement = record?.measurement || record?.analysis?.velocityData?.measurement || record?.analysis?.velocityData || record || {};
+    return Number(measurement.meanVelocity);
+  }
+
+  function compactBuddyCopy(record) {
+    if (!record || !validVelocity(record)) return "測定範囲を確認して、もう一度測ろう。";
+    const velocity = velocityValue(record);
+    const rpe = Number(record.rpe);
+    if (Number.isFinite(rpe) && rpe <= 7.5 && velocity < 0.25) return "主観より少し重め。次セットはフォーム優先。";
+    if (velocity >= 0.45) return "よく動いています。同じ条件で積み上げよう。";
+    if (velocity >= 0.25) return "安定した速度です。同重量維持がおすすめ。";
+    return "今日はやや重め。無理せず同重量か少し下げよう。";
+  }
+
+  function nextActionCopy(record) {
+    if (!record || !validVelocity(record)) return "測定やり直し";
+    const velocity = velocityValue(record);
+    if (velocity >= 0.45) return "+2.5kg または同重量";
+    if (velocity >= 0.25) return "同重量維持";
+    return "-2.5kg / フォーム確認";
+  }
+
+  function latestRecord(records) {
+    return [...records].sort((a, b) => String(b.createdAt || b.date || "").localeCompare(String(a.createdAt || a.date || "")))[0] || null;
+  }
+
+  function dashboardCard(label, value, copy, action = "") {
+    return `
+      <article class="pb-card vbt-dashboard-card">
+        <span>${escapeHtml(label)}</span>
+        <strong>${escapeHtml(value)}</strong>
+        <p class="pb-line-clamp-2">${escapeHtml(copy)}</p>
+        ${action}
+      </article>
+    `;
+  }
+
+  async function renderVbtDashboard() {
+    const [vbtRecords, videos] = await Promise.all([loadVbtRecords(), loadVideoRecords()]);
+    const latestVbt = latestRecord(vbtRecords);
+    const latestVideo = latestRecord(videos);
+    const measured = latestVbt && validVelocity(latestVbt);
+    const status = !latestVbt ? "未測定" : measured ? (velocityValue(latestVbt) >= 0.25 ? "良好" : "やや重い") : "再測定推奨";
+    const latestTitle = latestVbt ? `${liftLabel(latestVbt.lift)} ${formatNumber(latestVbt.weight)}kg x ${formatNumber(latestVbt.reps)}` : (latestVideo ? videoTitle(latestVideo) : "記録なし");
+    const latestSpeed = measured ? `${velocityValue(latestVbt).toFixed(2)} m/s` : "未測定";
+    if (els.dashboard) {
+      els.dashboard.innerHTML = [
+        dashboardCard("今日のVBT状態", status, compactBuddyCopy(latestVbt), `<button class="text-button compact" type="button" data-vbt-dashboard-action="measure">測定する</button>`),
+        dashboardCard("最新記録", latestTitle, `${latestSpeed} / ${formatDate(latestVbt?.date || latestVideo?.date)}`),
+        dashboardCard("Buddy判定", measured ? "信頼度：中" : "判定保留", compactBuddyCopy(latestVbt)),
+        dashboardCard("次の行動", nextActionCopy(latestVbt), "1つ選んで、次のセットへ。")
+      ].join("");
+    }
+    if (els.homeCard) {
+      els.homeCard.innerHTML = `
+        <div><span>VBT状態</span><strong>${escapeHtml(status)} / ${escapeHtml(latestSpeed)}</strong><p class="pb-line-clamp-2">${escapeHtml(compactBuddyCopy(latestVbt))}</p></div>
+        <button class="text-button compact" type="button" data-view-target="vbt">VBTへ</button>
+      `;
+    }
+    if (els.profileSummary) {
+      const cards = ["SQ", "BP", "DL"].map((lift) => {
+        const liftRecords = vbtRecords.filter((record) => record.lift === lift && validVelocity(record));
+        const latest = latestRecord(liftRecords);
+        return `<article class="pb-compact-card"><span>${lift}</span><strong>${latest ? `${velocityValue(latest).toFixed(2)} m/s` : "未測定"}</strong><small>${liftRecords.length}件</small></article>`;
+      }).join("");
+      els.profileSummary.innerHTML = `<div class="video-check-head"><strong>個人速度プロフィール</strong><small>BIG3簡易表示</small></div><div class="vbt-profile-grid">${cards}</div>`;
+    }
+    if (els.profileDetails) {
+      els.profileDetails.innerHTML = ["SQ", "BP", "DL"].map((lift) => {
+        const liftRecords = vbtRecords.filter((record) => record.lift === lift && validVelocity(record));
+        const speeds = liftRecords.map(velocityValue);
+        const average = speeds.length ? speeds.reduce((sum, value) => sum + value, 0) / speeds.length : null;
+        const fastest = speeds.length ? Math.max(...speeds) : null;
+        const rpeCount = liftRecords.filter((record) => Number(record.rpe) > 0).length;
+        return `<article class="pb-compact-card"><strong>${lift}</strong><p>平均 ${average === null ? "-" : average.toFixed(2)} / 最速 ${fastest === null ? "-" : fastest.toFixed(2)} m/s</p><small>RPE入力 ${rpeCount}件</small></article>`;
+      }).join("");
+    }
+    if (els.dataSummary) {
+      const cards = ["SQ", "BP", "DL"].map((lift) => {
+        const liftRecords = vbtRecords.filter((record) => record.lift === lift && validVelocity(record));
+        const latest = latestRecord(liftRecords);
+        const speeds = liftRecords.map(velocityValue);
+        const average = speeds.length ? speeds.reduce((sum, value) => sum + value, 0) / speeds.length : null;
+        return `<article><span>${lift}</span><strong>${latest ? `${velocityValue(latest).toFixed(2)} m/s` : "未測定"}</strong><small>${liftRecords.length}件 / 平均 ${average === null ? "-" : average.toFixed(2)}</small></article>`;
+      }).join("");
+      els.dataSummary.innerHTML = `<div class="video-check-head"><strong>VBTサマリー</strong><small>速度の現在地</small></div><div class="vbt-data-grid">${cards}</div>`;
+    }
   }
 
   function formatSeconds(value) {
@@ -435,6 +544,16 @@
   function vbtResultMarkup(data) {
     if (!data || !hasFiniteNumber(data.meanVelocity)) {
       return `<p>動画の範囲を合わせ、プレート中心を1回タップして自動計測します。</p>`;
+    }
+    if (!validVelocity(data)) {
+      return `
+        <div class="motion-result-chips">
+          <span>速度 ${escapeHtml(Number(data.meanVelocity || 0).toFixed(2))} m/s</span>
+          <span>測定範囲を確認</span>
+        </div>
+        <strong>再測定推奨</strong>
+        <p>開始・終了位置、プレート中心、撮影条件を確認してください。</p>
+      `;
     }
     const reps = data.repVelocities || data.measurement?.repVelocities || [];
     return `
@@ -739,18 +858,20 @@
   function ensureVbtHistorySection() {
     let section = document.querySelector("#vbtHistoryPanel");
     if (section || !els.body) return section;
-    section = document.createElement("section");
+    section = document.createElement("details");
     section.id = "vbtHistoryPanel";
-    section.className = "vbt-history-panel";
+    section.className = "vbt-history-panel pb-accordion";
     section.innerHTML = `
-      <div class="video-check-head"><strong>VBT履歴</strong><small>BIG3の速度メモ</small></div>
-      <div class="vbt-history-filter">
-        <button class="text-button selected" type="button" data-vbt-filter="ALL">すべて</button>
-        <button class="text-button" type="button" data-vbt-filter="SQ">SQ</button>
-        <button class="text-button" type="button" data-vbt-filter="BP">BP</button>
-        <button class="text-button" type="button" data-vbt-filter="DL">DL</button>
+      <summary>VBT履歴の詳細</summary>
+      <div class="vbt-history-detail">
+        <div class="vbt-history-filter">
+          <button class="text-button selected" type="button" data-vbt-filter="ALL">すべて</button>
+          <button class="text-button" type="button" data-vbt-filter="SQ">SQ</button>
+          <button class="text-button" type="button" data-vbt-filter="BP">BP</button>
+          <button class="text-button" type="button" data-vbt-filter="DL">DL</button>
+        </div>
+        <div class="vbt-history-list" id="vbtHistoryList"></div>
       </div>
-      <div class="vbt-history-list" id="vbtHistoryList"></div>
     `;
     els.body.append(section);
     return section;
@@ -759,10 +880,11 @@
   function vbtHistoryMarkup(record) {
     const measurement = record.measurement || {};
     const velocity = Number(measurement.meanVelocity);
+    const isValid = validVelocity(record);
     return `
       <article class="vbt-history-card">
         <strong>${escapeHtml(liftLabel(record.lift))} ${record.weight ? `${escapeHtml(formatNumber(record.weight))}kg` : ""}${record.reps ? ` x ${escapeHtml(formatNumber(record.reps))}` : ""}${record.rpe ? ` @${escapeHtml(formatNumber(record.rpe))}` : ""}</strong>
-        <span>平均速度 ${Number.isFinite(velocity) ? escapeHtml(velocity.toFixed(2)) : "-"} m/s</span>
+        <span>${isValid ? `平均速度 ${escapeHtml(velocity.toFixed(2))} m/s` : "測定範囲を確認"}</span>
         <small>${escapeHtml(formatDate(record.date))}</small>
         <p>${escapeHtml(record.buddyComment || vbtVelocityComment(record.lift, velocity))}</p>
       </article>
@@ -782,6 +904,7 @@
   function libraryCardMarkup(record) {
     const checked = selectedForCompare.has(record.id);
     const velocity = Number(record.analysis?.velocityData?.measurement?.meanVelocity ?? record.analysis?.velocityData?.meanVelocity);
+    const isValid = validVelocity(record);
     return `
       <article class="video-library-card">
         <div class="video-card-head">
@@ -789,7 +912,8 @@
           <small>${escapeHtml(formatDate(record.date))}</small>
         </div>
         <strong>${escapeHtml(videoTitle(record))}</strong>
-        <p class="motion-status ${Number.isFinite(velocity) ? "done" : ""}">VBT: ${Number.isFinite(velocity) ? `${escapeHtml(velocity.toFixed(2))} m/s` : "未計測"}</p>
+        <p class="motion-status ${isValid ? "done" : ""}">VBT: ${isValid ? `${escapeHtml(velocity.toFixed(2))} m/s` : (Number.isFinite(velocity) ? "要確認" : "未計測")}</p>
+        <p class="video-library-buddy pb-line-clamp-2">${escapeHtml(compactBuddyCopy(record))}</p>
         <div class="video-card-actions">
           <button class="primary-button inline" type="button" data-video-view="${escapeHtml(record.id)}">見る</button>
           <button class="text-button ${checked ? "selected" : ""}" type="button" data-video-compare="${escapeHtml(record.id)}">${checked ? "比較から外す" : "比較に追加"}</button>
@@ -803,11 +927,25 @@
     let records = await loadVideoRecords();
     if (els.filterLift.value !== "ALL") records = records.filter((record) => record.lift === els.filterLift.value);
     records.sort((a, b) => String(a.date || "").localeCompare(String(b.date || "")) * (els.sortOrder.value === "old" ? 1 : -1));
-    els.libraryGrid.innerHTML = records.length
-      ? records.map(libraryCardMarkup).join("")
+    const visibleRecords = libraryShowAll ? records : records.slice(0, 3);
+    els.libraryGrid.innerHTML = visibleRecords.length
+      ? visibleRecords.map(libraryCardMarkup).join("")
       : `<p class="video-empty">まだ動画はありません。今日のセットを1本残してみよう。</p>`;
+    els.libraryTools?.classList.toggle("hidden", !libraryShowAll);
+    if (els.libraryAll) {
+      els.libraryAll.classList.toggle("hidden", records.length <= 3 && !libraryShowAll);
+      els.libraryAll.textContent = libraryShowAll ? "直近3件に戻す" : "すべて見る";
+    }
     els.compareBtn.disabled = selectedForCompare.size !== 2;
     await updateStorageStatus();
+    await renderVbtDashboard();
+  }
+
+  async function openLatestForMeasurement() {
+    const records = await loadVideoRecords();
+    const latest = latestRecord(records);
+    if (latest) return openViewer(latest.id);
+    showMode("add");
   }
 
   function ensureViewerDialog() {
@@ -929,6 +1067,7 @@
       updateStorageStatus("保存しました。VBT確認を開きます。");
       showMode("library");
       await renderLibrary();
+      await renderVbtDashboard();
       await openViewer(record.id);
     } catch (error) {
       console.error("Video save failed", error);
@@ -973,7 +1112,7 @@
     }
   }
 
-  els.toggle.addEventListener("click", () => {
+  els.toggle?.addEventListener("click", () => {
     const open = els.body.classList.toggle("hidden") === false;
     els.toggle.textContent = open ? "閉じる" : "開く";
     els.toggle.setAttribute("aria-expanded", String(open));
@@ -984,6 +1123,16 @@
   });
   els.addMode.addEventListener("click", () => showMode("add"));
   els.libraryMode.addEventListener("click", () => showMode("library"));
+  els.quickMeasure?.addEventListener("click", openLatestForMeasurement);
+  els.quickCompare?.addEventListener("click", () => {
+    libraryShowAll = true;
+    showMode("library");
+    renderLibrary();
+  });
+  els.libraryAll?.addEventListener("click", () => {
+    libraryShowAll = !libraryShowAll;
+    renderLibrary();
+  });
   els.file.addEventListener("change", () => {
     if (els.preview.src) revokeObjectUrl(els.preview.src);
     const file = els.file.files?.[0];
@@ -1008,6 +1157,8 @@
     if (vbtReset) return resetVbt(vbtReset);
     const vbtSave = event.target.closest("[data-vbt-auto]");
     if (vbtSave) return saveVbtVelocity(vbtSave);
+    const dashboardAction = event.target.closest("[data-vbt-dashboard-action]");
+    if (dashboardAction?.dataset.vbtDashboardAction === "measure") return openLatestForMeasurement();
     const vbtFilter = event.target.closest("[data-vbt-filter]");
     if (vbtFilter) {
       document.querySelectorAll("[data-vbt-filter]").forEach((item) => item.classList.toggle("selected", item === vbtFilter));
@@ -1025,4 +1176,6 @@
   els.date.value = today();
   updateStorageStatus();
   renderVbtHistory();
+  renderLibrary();
+  renderVbtDashboard();
 })();

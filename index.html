@@ -12,7 +12,7 @@
     <link rel="preload" as="image" href="home-bg-lite.jpg">
     <link rel="preload" as="image" href="icon-sheet-lite.jpg">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <link rel="stylesheet" href="styles.css?v=153">
+    <link rel="stylesheet" href="styles.css?v=154">
   </head>
   <body>
     <div class="app-shell">
@@ -267,12 +267,14 @@
           <button class="tab active" type="button" data-view="home">HOME</button>
           <button class="tab" type="button" data-view="plan">PLAN</button>
           <button class="tab" type="button" data-view="log">LOG</button>
+          <button class="tab" type="button" data-view="vbt">VBT</button>
           <button class="tab" type="button" data-view="analysis">DATA</button>
           <button class="tab" type="button" data-view="knowledge">MEET</button>
         </nav>
 
         <section class="view active" id="homeView">
           <section class="home-dashboard" id="homeDashboard" aria-live="polite"></section>
+          <section class="home-vbt-card pb-compact-card" id="homeVbtCard" aria-live="polite"></section>
         </section>
 
         <section class="view" id="logView">
@@ -329,22 +331,50 @@
             <button class="primary-button" type="submit">記録する</button>
           </form>
 
+          <section class="quick-stats" id="quickStats"></section>
+          <section class="panel compact-panel">
+            <div class="section-title">
+              <div>
+                <p class="eyebrow">Log Archive</p>
+                <h2>履歴・データ管理</h2>
+              </div>
+              <button class="text-button" type="button" data-view-target="history">開く</button>
+            </div>
+            <p class="screen-note">履歴、バックアップ、Excelはここ。</p>
+          </section>
+        </section>
+
+        <section class="view" id="vbtView">
+          <section class="vbt-dashboard-section pb-section" aria-labelledby="vbtDashboardTitle">
+            <div class="vbt-page-head">
+              <div>
+                <p class="eyebrow">VBT Studio β</p>
+                <h2 id="vbtDashboardTitle">速度で今日を判断する</h2>
+              </div>
+              <p>推定値は、同じ条件での比較に使おう。</p>
+            </div>
+            <div class="vbt-dashboard-grid pb-grid" id="vbtDashboard"></div>
+          </section>
+
+          <section class="vbt-quick-section pb-section">
+            <div class="video-check-head"><strong>Quick Action</strong><small>次にやること</small></div>
+            <div class="vbt-quick-actions pb-action-row">
+              <button class="primary-button" id="videoAddModeBtn" type="button">動画を追加</button>
+              <button class="text-button" id="vbtQuickMeasureBtn" type="button">測定する</button>
+              <button class="text-button" id="videoLibraryModeBtn" type="button">ライブラリ</button>
+              <button class="text-button" id="vbtQuickCompareBtn" type="button">2本比較</button>
+            </div>
+          </section>
+
           <section class="panel video-note-panel" id="videoNotePanel">
             <div class="section-title">
               <div>
-                <p class="eyebrow">VBT Studio</p>
-                <h2>動画フォーム/VBTノート</h2>
+                <p class="eyebrow">VBT Workspace</p>
+                <h2>動画と測定</h2>
               </div>
-              <button class="text-button" id="videoNoteToggleBtn" type="button" aria-expanded="false">開く</button>
             </div>
-            <p class="screen-note">動画でフォームと速度を残そう。</p>
-            <div class="video-note-body hidden" id="videoNoteBody">
-              <div class="video-note-actions">
-                <button class="primary-button inline" id="videoAddModeBtn" type="button">VBT動画を追加</button>
-                <button class="text-button" id="videoLibraryModeBtn" type="button">ライブラリ</button>
-              </div>
-
-              <form class="video-note-form" id="videoNoteForm">
+            <div class="video-note-body" id="videoNoteBody">
+              <form class="video-note-form hidden" id="videoNoteForm">
                 <label class="video-file-label">
                   動画ファイル
                   <input id="videoFileInput" type="file" accept="video/*" required>
@@ -373,15 +403,19 @@
                     </select>
                   </label>
                 </div>
-                <p class="video-storage-note">動画はこの端末内に保存されます。容量不足・ブラウザデータ削除・URL変更で消える場合があるため、元動画も端末に残してください。</p>
+                <details class="pb-accordion">
+                  <summary>保存について</summary>
+                  <p class="video-storage-note">動画はこの端末内に保存されます。元動画も端末に残してください。</p>
+                </details>
                 <div class="video-form-actions">
-                  <button class="primary-button" type="submit">保存してVBT確認</button>
+                  <button class="primary-button" type="submit">保存して測定</button>
                   <span id="videoStorageStatus" aria-live="polite"></span>
                 </div>
               </form>
 
-              <section class="video-library hidden" id="videoLibrary">
-                <div class="video-library-tools">
+              <section class="video-library" id="videoLibrary">
+                <div class="video-check-head"><strong>VBT Library</strong><small>直近3件</small></div>
+                <div class="video-library-tools hidden" id="videoLibraryTools">
                   <label>種目
                     <select id="videoFilterLift">
                       <option value="ALL">すべて</option>
@@ -401,21 +435,29 @@
                 </div>
                 <div class="video-compare-view hidden" id="videoCompareView"></div>
                 <div class="video-library-grid" id="videoLibraryGrid"></div>
+                <button class="text-button vbt-library-all" id="videoLibraryAllBtn" type="button">すべて見る</button>
               </section>
             </div>
           </section>
 
-          <section class="quick-stats" id="quickStats"></section>
-          <section class="panel compact-panel">
-            <div class="section-title">
-              <div>
-                <p class="eyebrow">Log Archive</p>
-                <h2>履歴・データ管理</h2>
-              </div>
-              <button class="text-button" type="button" data-view-target="history">開く</button>
-            </div>
-            <p class="screen-note">履歴、バックアップ、Excelはここ。</p>
-          </section>
+          <section class="vbt-profile-summary pb-section" id="vbtProfileSummary"></section>
+
+          <details class="pb-accordion vbt-detail-section">
+            <summary>個人速度プロフィール</summary>
+            <div class="vbt-profile-details" id="vbtProfileDetails"></div>
+          </details>
+          <details class="pb-accordion vbt-detail-section">
+            <summary>RPEと速度の見方</summary>
+            <p>主観RPEと速度の差は、疲労やフォームを見直す材料です。</p>
+          </details>
+          <details class="pb-accordion vbt-detail-section">
+            <summary>測定時の注意</summary>
+            <p>速度は推定値です。撮影位置・プレート・トリミング条件をそろえて比較してください。</p>
+          </details>
+          <details class="pb-accordion vbt-detail-section">
+            <summary>学習カード</summary>
+            <article class="vbt-learning-card"><strong>今日の1枚：速度低下</strong><p>同じセット内で速度が落ちるほど疲労が進んでいます。まずは再現性を優先。</p></article>
+          </details>
         </section>
 
         <section class="view" id="analysisView">
@@ -443,6 +485,8 @@
           </section>
 
           <section class="metric-grid" id="metricGrid"></section>
+
+          <section class="panel vbt-data-summary" id="vbtDataSummary" aria-live="polite"></section>
 
           <section class="panel academy-evaluation-panel">
             <div class="section-title">
@@ -1059,7 +1103,7 @@
       </form>
     </dialog>
 
-    <script src="app.js?v=153"></script>
-    <script src="video.js?v=153"></script>
+    <script src="app.js?v=154"></script>
+    <script src="video.js?v=154"></script>
   </body>
 </html>
