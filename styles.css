@@ -15920,6 +15920,44 @@ html body .vbt-overlay.active {
   pointer-events: auto;
 }
 
+html body .vbt-video-guide {
+  position: absolute;
+  z-index: 3;
+  left: 12px;
+  top: 12px;
+  max-width: min(82%, 420px);
+  border: 1px solid rgba(255, 250, 242, 0.46);
+  border-radius: 999px;
+  background: rgba(23, 23, 23, 0.72);
+  color: #fffaf2;
+  padding: 7px 11px;
+  font-size: 0.8rem;
+  font-weight: 900;
+  line-height: 1.25;
+  pointer-events: none;
+}
+
+html body .vbt-video-actions {
+  position: absolute;
+  z-index: 4;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  pointer-events: none;
+}
+
+html body .vbt-video-actions .text-button {
+  min-height: 38px;
+  border-color: rgba(255, 250, 242, 0.52);
+  background: rgba(255, 250, 242, 0.9);
+  color: var(--text-main, #171717);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
+  pointer-events: auto;
+}
+
 html body .vbt-video-status {
   margin: 8px 0 0;
   color: var(--text-sub, #526179);
@@ -16010,26 +16048,6 @@ html body .vbt-trim-card {
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.56);
   padding: 10px;
-}
-
-html body .vbt-trim-range {
-  display: grid;
-  gap: 8px;
-}
-
-html body .vbt-trim-range label {
-  display: grid !important;
-  grid-template-columns: 44px 1fr;
-  align-items: center;
-  gap: 8px !important;
-  color: var(--text-main, #171717);
-  font-size: 0.78rem;
-  font-weight: 900;
-}
-
-html body .vbt-trim-range input[type="range"] {
-  width: 100%;
-  accent-color: var(--accent, #b42318);
 }
 
 html body .vbt-controls {

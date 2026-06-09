@@ -1,4 +1,4 @@
-Platform Buddy v151 DIFF
+Platform Buddy v152 DIFF
 
 Changed files:
 - index.html
@@ -8,47 +8,46 @@ Changed files:
 - manifest.webmanifest
 
 index.html:
-- Removed the video-form check options from the upload form.
-- Removed video memo and Buddy memo fields from the upload form.
-- Updated version query strings to v151.
+- Removed the shooting angle selector from the VBT upload form.
+- Updated query versions to v152.
 
 video.js:
-- Removed the form-check option data and related rendering calls from the VBT/video flow.
-- Removed memo/Buddy memo saving from new video records.
-- Removed the form-check editor, memo fields, and review-save button from the video viewer.
-- Simplified VBT Studio into three visible actions:
-  1. adjust the analysis range with start/end sliders
-  2. tap the plate center once
-  3. run automatic measurement beta
-- Replaced manual plate-edge/start/end point controls with a one-point plate-center workflow.
-- Added automatic beta tracking:
-  - samples video frames inside the selected range
-  - tracks the selected plate area across frames
-  - estimates plate diameter from the selected frame when possible
-  - draws the tracked path on the video overlay
-  - calculates mean velocity and a Rep 1 velocity chip
-- Keeps the measurement marked as beta/reference-use, not a validated precision VBT device.
+- Removed shooting angle handling from new VBT records, library cards, viewer metadata, comparison cards, and VBT history records.
+- Replaced the separate trim sliders with a video-cursor workflow:
+  - pause/seek the video
+  - tap "開始にする"
+  - pause/seek later
+  - tap "終了にする"
+- Added in-video guidance text so the next action appears directly over the video.
+- Added in-video start/end buttons over the video frame.
+- When choosing plate center, the video automatically jumps to the selected analysis start time.
+- Improved beta tracking:
+  - updates the tracking template across frames
+  - searches a wider area
+  - avoids saving a false 0.00 m/s result when tracking did not move
+  - shows an actionable error asking the user to reselect the plate center at the analysis start position
+- Kept VBT as beta/reference measurement, not a validated precision device.
 - Does not use localStorage.
 - Does not touch platform-pr-v3.
 - Does not change app.js.
 
 styles.css:
-- Reworked VBT controls for the simplified flow.
-- Added range-slider styling for analysis trimming.
-- Added rep velocity chip styling.
-- Kept smartphone layout to one column for VBT controls.
+- Added video-overlay guidance styling.
+- Added in-video start/end action button styling.
+- Removed unused trim range slider styling.
 
 sw.js:
-- Updated cache name to platform-buddy-v151.
-- Updated cached versioned assets to v151.
+- Updated cache name to platform-buddy-v152.
+- Updated cached versioned assets to v152.
 
 manifest.webmanifest:
-- Updated start_url to ./index.html?v=151.
+- Updated start_url to ./index.html?v=152.
 
 Validation:
 - node --check video.js passed.
 - node --check app.js passed.
 - node --check sw.js passed.
-- app.js SHA256 matches v150.
-- No MediaPipe / Motion Analyzer strings remain.
+- app.js SHA256 matches v151.
 - No localStorage / platform-pr-v3 references in video.js.
+- No MediaPipe / Motion Analyzer strings remain.
+- No v151 cache/query references remain in shipped files.
