@@ -1,4 +1,4 @@
-Platform Buddy v155 DIFF
+﻿Platform Buddy v156 DIFF
 
 Changed files:
 - index.html
@@ -8,55 +8,51 @@ Changed files:
 - manifest.webmanifest
 
 index.html:
-- Split the VBT page into a desktop work column and insight/learning column.
-- Kept the mobile order focused on dashboard, actions, workspace, and library first.
-- Expanded the RPE/velocity, measurement caution, and learning-card accordion content.
-- Clarified that standard two-point measurement is preferred over auto tracking beta.
-- Updated query versions to v155.
+- Added a compact learning accordion for plate ROI tracking.
+- Clarified that the green ROI identifies the plate and the red line is an estimated plate path.
+- Updated query versions to v156.
 
 video.js:
-- Added standard manual two-point VBT measurement as the primary workflow.
-- Added separate start-point and end-point selection on the video.
-- Calculates mean velocity from vertical pixel travel, plate-diameter calibration, and selected duration.
-- Added measurement warnings for long ranges, short travel, and velocities outside 0.10-1.20 m/s.
-- Preserved existing auto-track-beta records and treats missing confidence as unknown.
-- Added auto tracking confidence levels: high, middle, and low.
-- Reduced auto-tracking template drift by keeping the initial reference template.
-- Added path smoothing/outlier correction and removed path-length noise from velocity calculation.
-- Changed the red auto path to a dashed, explicitly labeled reference line.
-- Enlarged video markers and added distinct start/end marker colors and labels.
-- Added result chips for measurement mode, speed, distance, time, and confidence.
-- Added method labels to VBT history and library cards.
+- Added recommended plate-roi-track mode while preserving manual-2point and center-point-beta compatibility.
+- Added default green plate ROI creation, video-bound clamping, drag movement, and four-corner resizing.
+- Added large touch hit areas for ROI handles on mobile.
+- Added plate diameter presets for 45.0cm, 43.0cm, and custom values.
+- Added plate diameter validation and mm-entry guidance.
+- Added ROI aspect-ratio warning and saved ROI width, height, and aspect ratio calibration data.
+- Added trackPlateRoiPath(dialog, record), which searches around the previous ROI and measures vertical ROI-center travel.
+- Added confidence scoring, low-confidence fallback guidance, and estimated-path labeling.
+- Added result chips for method, speed, ROM, time, plate diameter, and confidence.
+- Updated VBT history/library method labels for ROI, manual two-point, and center-point beta modes.
 - Does not use localStorage.
 - Does not touch platform-pr-v3.
 - Does not change app.js.
 
 styles.css:
-- Added responsive two-column VBT workspace/insight layout for desktop.
-- Kept a single-column, work-first layout for tablet/mobile.
-- Added readable learning content, caution card, auto-beta details, and warning styles.
-- Updated the viewer control layout for the four-step standard measurement flow.
+- Added green ROI panel, plate controls, ROI action layout, and mobile-friendly control sizing.
+- Added ROI canvas interaction state and touch behavior.
+- Kept the existing IRON NOTE visual system.
 
 sw.js:
-- Updated cache name to platform-buddy-v155.
-- Updated cached versioned assets to v155.
+- Updated cache name to platform-buddy-v156.
+- Updated cached versioned assets to v156.
 
 manifest.webmanifest:
-- Updated start_url to ./index.html?v=155.
+- Updated start_url to ./index.html?v=156.
 
 Validation:
 - node --check video.js passed.
 - node --check app.js passed.
 - node --check sw.js passed.
 - manifest.webmanifest JSON parse passed.
-- No duplicate HTML ids.
-- VBT layout wrapper counts and HTML div/aside tag counts match.
-- app.js SHA256 matches v154.
+- ROI tracking/drawing/initialization function counts are exactly one.
+- HTML details and section tag counts match.
+- app.js SHA256 matches v155.
 - No localStorage / platform-pr-v3 references in video.js.
-- No v154 cache/query references remain in shipped files.
+- No v155 cache/query references remain in shipped files.
 - In-app Browser connection failed in the Windows sandbox, so final visual/video interaction verification requires device upload.
 
 Known limitations:
-- Auto tracking beta is image-template tracking, not a trained AI model, and remains reference-only.
-- Plate-diameter pixel estimation can vary with glare, plate color, and camera angle.
-- Standard two-point measurement is most reliable when one rep is isolated and the same filming conditions are reused.
+- Plate ROI tracking is image-template tracking, not a trained AI model.
+- Glare, shadows, background similarity, camera movement, and an inaccurate ROI can reduce confidence.
+- The red line is an estimated plate path and is not a definitive bar path.
+- Manual two-point measurement remains the recommended fallback when ROI tracking drifts.

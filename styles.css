@@ -15920,6 +15920,11 @@ html body .vbt-overlay.active {
   pointer-events: auto;
 }
 
+html body .vbt-overlay.roi-active {
+  cursor: move;
+  touch-action: none;
+}
+
 html body .vbt-video-guide {
   position: absolute;
   z-index: 3;
@@ -16201,7 +16206,7 @@ html body .vbt-history-card :is(small, p) {
   }
 }
 
-/* v155: VBT main workspace */
+/* v156: VBT main workspace */
 html body .tabbar {
   grid-template-columns: repeat(6, minmax(0, 1fr));
 }
@@ -16212,7 +16217,7 @@ html body #vbtView {
   padding-top: 0;
 }
 
-/* v155: reliable two-point VBT workflow */
+/* v156: reliable fallback VBT workflow */
 html body .vbt-main-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.75fr);
@@ -16308,6 +16313,83 @@ html body .vbt-result-warning {
   border-left: 3px solid var(--accent, #b42318);
   background: rgba(180, 35, 24, 0.06);
   padding: 8px 10px;
+}
+
+/* v156: plate ROI tracking */
+html body .vbt-roi-panel {
+  display: grid;
+  gap: 10px;
+  border: 1px solid rgba(21, 127, 59, 0.32);
+  border-left: 5px solid var(--green, #157f3b);
+  border-radius: 10px;
+  background:
+    linear-gradient(90deg, rgba(21, 127, 59, 0.07), transparent 52%),
+    var(--surface-soft, #fff7ed);
+  padding: 12px;
+}
+
+html body .vbt-plate-controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+html body .vbt-plate-controls label {
+  display: grid !important;
+  gap: 5px !important;
+  color: var(--text-main, #171717);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+html body .vbt-plate-controls :is(input, select) {
+  width: 100%;
+  min-height: 44px;
+  background: #ffffff;
+  color: var(--text-main, #171717);
+}
+
+html body .vbt-roi-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.25fr) minmax(0, 0.7fr);
+  gap: 8px;
+}
+
+html body .vbt-roi-actions > * {
+  min-height: 48px;
+}
+
+html body .vbt-legacy-details {
+  margin-top: 10px;
+  border-top: 1px solid var(--line, #ded6c8);
+  padding-top: 9px;
+}
+
+html body .vbt-legacy-details summary {
+  color: var(--text-sub, #526179);
+  font-size: 0.78rem;
+}
+
+html body .vbt-markers span {
+  max-width: 100%;
+  white-space: normal;
+}
+
+@media (max-width: 640px) {
+  html body .vbt-plate-controls,
+  html body .vbt-roi-actions {
+    grid-template-columns: 1fr;
+  }
+
+  html body .vbt-roi-actions > *,
+  html body .vbt-plate-controls :is(input, select) {
+    min-height: 52px;
+  }
+
+  html body .vbt-video-guide {
+    max-width: calc(100% - 24px);
+    border-radius: 9px;
+  }
 }
 
 html body :is(.pb-section, .pb-card, .pb-compact-card, .pb-accordion) {

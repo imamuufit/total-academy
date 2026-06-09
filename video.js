@@ -402,7 +402,13 @@
   }
 
   function confidenceLabel(value) {
-    return { high: "高", middle: "中", low: "低", unknown: "不明" }[value] || "不明";
+    return { high: "高", middle: "中", low: "低", unknown: "未判定" }[value] || "未判定";
+  }
+
+  function measurementModeLabel(mode) {
+    if (mode === "plate-roi-track") return "プレートROI追跡";
+    if (mode === "manual-2point") return "手動2点";
+    return "中心点追跡β";
   }
 
   function frameCanvas(video, width = 320) {
@@ -436,6 +442,200 @@
       score += diff * diff;
     }
     return score / a.length;
+  }
+
+  function clampPlateRoi(roi, videoWidth, videoHeight) {
+    const minSize = Math.max(36, Math.min(videoWidth, videoHeight) * 0.06);
+    const width = clamp(Number(roi?.width) || minSize, minSize, videoWidth);
+    const height = clamp(Number(roi?.height) || minSize, minSize, videoHeight);
+    return {
+      x: clamp(Number(roi?.x) || 0, 0, Math.max(0, videoWidth - width)),
+      y: clamp(Number(roi?.y) || 0, 0, Math.max(0, videoHeight - height)),
+      width,
+      height
+    };
+  }
+
+  function defaultPlateRoi(video) {
+    const size = Math.max(72, Math.min(video.videoWidth, video.videoHeight) * 0.24);
+    return clampPlateRoi({
+      x: (video.videoWidth - size) / 2,
+      y: (video.videoHeight - size) / 2,
+      width: size,
+      height: size
+    }, video.videoWidth, video.videoHeight);
+  }
+
+  function roiCenter(roi) {
+    return roi ? { x: roi.x + roi.width / 2, y: roi.y + roi.height / 2 } : null;
+  }
+
+  function roiAspectWarning(roi) {
+    if (!roi?.width || !roi?.height) return null;
+    const ratio = roi.width / roi.height;
+    return ratio < 0.65 || ratio > 1.55
+      ? "緑枠が大きく歪んでいます。できるだけプレート外周に合わせてください。"
+      : null;
+  }
+
+  function readPlateDiameterCm(dialog) {
+    const value = Number(dialog.querySelector("[data-vbt-plate-cm]")?.value || DEFAULT_PLATE_DIAMETER_CM);
+    if (value >= 300 && value <= 600) {
+      throw new Error("mmではなくcmで入力します。通常のプレートは45.0cmです。");
+    }
+    if (!Number.isFinite(value) || value <= 0 || value >= 100) {
+      throw new Error("プレート径はcmで入力してください。通常は45.0cmです。");
+    }
+    if (value >= 30 && value <= 60) return value;
+    throw new Error("プレート径を確認してください。30〜60cmを目安に入力します。");
+  }
+
+  function grayFrame(ctx) {
+    const image = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height).data;
+    const gray = new Uint8Array(ctx.canvas.width * ctx.canvas.height);
+    for (let i = 0, j = 0; i < image.length; i += 4, j += 1) {
+      gray[j] = Math.round(image[i] * 0.299 + image[i + 1] * 0.587 + image[i + 2] * 0.114);
+    }
+    return { gray, width: ctx.canvas.width, height: ctx.canvas.height };
+  }
+
+  function sampleGrayRoi(frame, roi, sampleSize = 18) {
+    if (!frame?.gray || !roi) return null;
+    if (roi.x < 0 || roi.y < 0 || roi.x + roi.width >= frame.width || roi.y + roi.height >= frame.height) return null;
+    const values = new Uint8Array(sampleSize * sampleSize);
+    for (let sy = 0; sy < sampleSize; sy += 1) {
+      for (let sx = 0; sx < sampleSize; sx += 1) {
+        const x = clamp(Math.round(roi.x + ((sx + 0.5) / sampleSize) * roi.width), 0, frame.width - 1);
+        const y = clamp(Math.round(roi.y + ((sy + 0.5) / sampleSize) * roi.height), 0, frame.height - 1);
+        values[sy * sampleSize + sx] = frame.gray[y * frame.width + x];
+      }
+    }
+    return values;
+  }
+
+  async function trackPlateRoiPath(dialog, record) {
+    const video = dialog.querySelector("video");
+    const state = vbtState(dialog);
+    if (!video?.videoWidth || !video?.videoHeight) throw new Error("動画を読み込んでから追跡してください。");
+    if (!state.plateRoi) throw new Error("緑枠をプレート外周に合わせてください。");
+    const start = hasFiniteNumber(state.trimStart) ? Number(state.trimStart) : 0;
+    const savedEnd = hasFiniteNumber(state.trimEnd) ? Number(state.trimEnd) : Number(video.duration);
+    const end = savedEnd > start + 0.2 ? savedEnd : Number(video.duration);
+    if (!Number.isFinite(end) || end <= start + 0.2) throw new Error("測定範囲を少し広げてください。");
+    const plateDiameterCm = readPlateDiameterCm(dialog);
+    const plateRoi = clampPlateRoi(state.plateRoi, video.videoWidth, video.videoHeight);
+    const aspectWarning = roiAspectWarning(plateRoi);
+
+    await seekVideo(video, start);
+    const first = frameCanvas(video, 320);
+    const scale = first.scale;
+    const scaledRoi = {
+      x: plateRoi.x * scale,
+      y: plateRoi.y * scale,
+      width: plateRoi.width * scale,
+      height: plateRoi.height * scale
+    };
+    const referenceTemplate = sampleGrayRoi(grayFrame(first.ctx), scaledRoi);
+    if (!referenceTemplate) throw new Error("緑枠が動画端に近すぎます。少し内側へ移動してください。");
+
+    const sampleCount = clamp(Math.round((end - start) * 12), 10, 72);
+    const rawPath = [];
+    let currentRoi = { ...scaledRoi };
+    const searchRadiusX = Math.max(12, scaledRoi.width * 0.75);
+    const searchRadiusY = Math.max(18, scaledRoi.height * 1.25);
+    const step = clamp(Math.round(Math.min(scaledRoi.width, scaledRoi.height) * 0.12), 3, 8);
+
+    for (let i = 0; i <= sampleCount; i += 1) {
+      const time = start + ((end - start) * i) / sampleCount;
+      await seekVideo(video, time);
+      const frame = frameCanvas(video, 320);
+      const gray = grayFrame(frame.ctx);
+      let bestRoi = currentRoi;
+      let bestScore = Infinity;
+      for (let dy = -searchRadiusY; dy <= searchRadiusY; dy += step) {
+        for (let dx = -searchRadiusX; dx <= searchRadiusX; dx += step) {
+          const candidateRoi = {
+            x: currentRoi.x + dx,
+            y: currentRoi.y + dy,
+            width: currentRoi.width,
+            height: currentRoi.height
+          };
+          const candidate = sampleGrayRoi(gray, candidateRoi);
+          const score = patchScore(referenceTemplate, candidate);
+          if (score < bestScore) {
+            bestScore = score;
+            bestRoi = candidateRoi;
+          }
+        }
+      }
+      currentRoi = bestRoi;
+      const center = roiCenter(bestRoi);
+      rawPath.push({ time, x: center.x / frame.scale, y: center.y / frame.scale, score: Math.round(bestScore) });
+    }
+
+    const plateDiameterPixels = Math.max(plateRoi.width, plateRoi.height);
+    const path = smoothTrackingPath(rawPath, plateDiameterPixels);
+    const verticalTravelPixels = Math.max(...path.map((point) => point.y)) - Math.min(...path.map((point) => point.y));
+    const pathTravelPixels = path.slice(1).reduce((sum, point, index) => sum + pixelDistance(path[index], point), 0);
+    if (verticalTravelPixels < Math.max(3, plateDiameterPixels * 0.035)) {
+      throw new Error("プレートの上下移動を捉えられませんでした。緑枠と測定範囲を確認してください。");
+    }
+    const metersPerPixel = (plateDiameterCm / 100) / plateDiameterPixels;
+    const distanceMeters = verticalTravelPixels * metersPerPixel;
+    const durationSeconds = end - start;
+    const meanVelocity = distanceMeters / durationSeconds;
+    const trackingConfidence = autoTrackingConfidence({
+      path,
+      plateDiameterPixels,
+      verticalTravelPixels,
+      pathTravelPixels,
+      scores: rawPath.map((point) => point.score)
+    });
+    const baseWarning = measurementWarning({ durationSeconds, distanceMeters, meanVelocity, reps: record.reps });
+    const trackingWarning = [
+      aspectWarning,
+      trackingConfidence === "low" ? "追跡の信頼度が低めです。手動2点測定でも確認してください。" : null,
+      baseWarning || null
+    ].filter(Boolean).join(" ");
+
+    return {
+      mode: "plate-roi-track",
+      trackingMode: "plate-roi-track",
+      trackingConfidence,
+      trackingWarning: trackingWarning || null,
+      lift: record.lift,
+      weight: Number(record.weight) || null,
+      reps: Number(record.reps) || null,
+      rpe: Number(record.rpe) || null,
+      calibration: {
+        plateDiameterCm,
+        plateDiameterPixels,
+        metersPerPixel,
+        plateRoi,
+        roiWidthPixels: plateRoi.width,
+        roiHeightPixels: plateRoi.height,
+        roiAspectRatio: plateRoi.width / plateRoi.height
+      },
+      measurement: {
+        mode: "plate-roi-track",
+        startTime: start,
+        endTime: end,
+        durationSeconds,
+        distanceMeters,
+        meanVelocity,
+        path,
+        trim: { start, end },
+        trackingConfidence,
+        warning: trackingWarning || null,
+        plateDiameterCm,
+        plateDiameterPixels,
+        repVelocities: [{ rep: 1, meanVelocity, distanceMeters, durationSeconds }]
+      },
+      meanVelocity,
+      buddyComment: vbtVelocityComment(record.lift, meanVelocity),
+      rpeComment: vbtRpeComment(record.lift, meanVelocity, record.rpe),
+      updatedAt: new Date().toISOString()
+    };
   }
 
   function estimatePlateDiameterPixels(video, point) {
@@ -499,8 +699,7 @@
     const savedEnd = hasFiniteNumber(state.trimEnd) ? Number(state.trimEnd) : Number(video.duration);
     const end = savedEnd > start + 0.2 ? savedEnd : Number(video.duration);
     if (!Number.isFinite(end) || end <= start + 0.2) throw new Error("動画を読み込んでから、運動中が入るよう範囲を調整してください。");
-    const plateDiameterCm = Number(dialog.querySelector("[data-vbt-plate-cm]")?.value || DEFAULT_PLATE_DIAMETER_CM);
-    if (!Number.isFinite(plateDiameterCm) || plateDiameterCm <= 0) throw new Error("プレート径を確認してください。");
+    const plateDiameterCm = readPlateDiameterCm(dialog);
 
     await seekVideo(video, start);
     const first = frameCanvas(video, 320);
@@ -560,8 +759,8 @@
       ? "自動追跡βの信頼度が低いです。標準2点測定で確認してください。"
       : warning || null;
     return {
-      mode: "auto-track-beta",
-      trackingMode: "auto-track-beta",
+      mode: "center-point-beta",
+      trackingMode: "center-point-beta",
       trackingConfidence,
       trackingWarning,
       lift: record.lift,
@@ -570,7 +769,7 @@
       rpe: Number(record.rpe) || null,
       calibration: { plateDiameterCm, plateDiameterPixels, metersPerPixel, targetPoint, estimatedPlatePixels: estimatedPlatePixels || null },
       measurement: {
-        mode: "auto-track-beta",
+        mode: "center-point-beta",
         startTime: start,
         endTime: end,
         durationSeconds,
@@ -597,8 +796,7 @@
     const startTime = hasFiniteNumber(state.trimStart) ? Number(state.trimStart) : 0;
     const endTime = hasFiniteNumber(state.trimEnd) ? Number(state.trimEnd) : Number(video.duration);
     if (!Number.isFinite(endTime) || endTime <= startTime + 0.1) throw new Error("開始と終了の間隔を少し広げてください。");
-    const plateDiameterCm = Number(dialog.querySelector("[data-vbt-plate-cm]")?.value || DEFAULT_PLATE_DIAMETER_CM);
-    if (!Number.isFinite(plateDiameterCm) || plateDiameterCm <= 0) throw new Error("プレート径を確認してください。");
+    const plateDiameterCm = readPlateDiameterCm(dialog);
 
     await seekVideo(video, startTime);
     const estimatedPlatePixels = estimatePlateDiameterPixels(video, state.startPoint);
@@ -686,32 +884,41 @@
     return "申告RPEと速度のズレは大きくなさそうです。";
   }
 
+
+
+
   function vbtResultMarkup(data) {
     if (!data || !hasFiniteNumber(data.meanVelocity)) {
-      return `<p>範囲を決め、開始点と終了点を選ぶと標準2点測定できます。</p>`;
+      return `<p>動画を切り、プレートを緑枠で囲むと測定できます。</p>`;
     }
     const mode = data.mode || data.trackingMode || data.measurement?.mode || "auto-track-beta";
     const confidence = data.trackingConfidence || data.measurement?.trackingConfidence || "unknown";
     const warning = data.warning || data.trackingWarning || data.measurement?.warning || "";
-    const modeLabel = mode === "manual-2point" ? "標準2点" : "自動追跡β";
+    const modeLabel = mode === "plate-roi-track"
+      ? "プレートROI追跡"
+      : mode === "manual-2point"
+        ? "手動2点"
+        : "中心点追跡β";
+    const plateDiameterCm = data.plateDiameterCm || data.calibration?.plateDiameterCm || data.measurement?.plateDiameterCm;
     if (!validVelocity(data)) {
       return `
         <div class="motion-result-chips">
           <span>${escapeHtml(modeLabel)}</span>
           <span>速度 ${escapeHtml(Number(data.meanVelocity || 0).toFixed(2))} m/s</span>
-          <span>測定範囲を確認</span>
+          <span>再測定を確認</span>
         </div>
-        <strong>再測定推奨</strong>
-        <p>${escapeHtml(warning || "開始・終了位置、プレート中心、撮影条件を確認してください。")}</p>
+        <strong>もう一度測ろう</strong>
+        <p>${escapeHtml(warning || "緑枠、測定範囲、撮影条件を確認してください。")}</p>
       `;
     }
     const reps = data.repVelocities || data.measurement?.repVelocities || [];
     return `
       <div class="motion-result-chips">
         <span>${escapeHtml(modeLabel)}</span>
-        <span>速度 ${escapeHtml(Number(data.meanVelocity).toFixed(2))} m/s</span>
-        <span>距離 ${escapeHtml(formatNumber(data.distanceMeters))}m</span>
-        <span>時間 ${escapeHtml(formatSeconds(data.durationSeconds))}</span>
+        <span>${escapeHtml(Number(data.meanVelocity).toFixed(2))} m/s</span>
+        <span>ROM ${escapeHtml(formatNumber(data.distanceMeters))}m</span>
+        <span>${escapeHtml(formatSeconds(data.durationSeconds))}</span>
+        ${plateDiameterCm ? `<span>プレート ${escapeHtml(Number(plateDiameterCm).toFixed(1))}cm</span>` : ""}
         <span>信頼度 ${escapeHtml(confidenceLabel(confidence))}</span>
       </div>
       <strong>${escapeHtml(vbtVelocityComment(data.lift, Number(data.meanVelocity)))}</strong>
@@ -720,6 +927,8 @@
       ${reps.length ? `<div class="vbt-rep-list">${reps.map((rep) => `<span>Rep ${escapeHtml(rep.rep)} ${escapeHtml(Number(rep.meanVelocity).toFixed(2))} m/s</span>`).join("")}</div>` : ""}
     `;
   }
+
+
 
   function vbtCardMarkup(record) {
     const velocityData = record.analysis?.velocityData || {};
@@ -730,14 +939,14 @@
       <section class="manual-vbt-card" data-vbt-card>
         <div class="video-check-head">
           <strong>VBT Studio</strong>
-          <small>標準2点測定を優先</small>
+          <small>緑枠でプレートを囲んで測る</small>
         </div>
         <section class="vbt-trim-panel">
           <div class="video-check-head">
             <strong>1. 動画をトリミング</strong>
             <small>運動中だけに絞る</small>
           </div>
-          <p class="video-storage-note">ラックアップ前とセット終了後を、開始・終了スライダーで外してください。</p>
+          <p class="video-storage-note">開始・終了スライダーで、測りたい1レップだけにします。</p>
           <div class="vbt-trim-sliders">
             <label><span>開始</span><input data-vbt-trim-range="start" type="range" min="0" max="1" step="0.01" value="0"></label>
             <label><span>終了</span><input data-vbt-trim-range="end" type="range" min="0" max="1" step="0.01" value="1"></label>
@@ -748,26 +957,50 @@
             <button class="text-button compact" type="button" data-vbt-preview-range>範囲を再生</button>
           </div>
         </section>
-        <div class="vbt-controls">
-          <label>プレート径 cm<input data-vbt-plate-cm type="number" inputmode="decimal" min="10" max="60" step="0.1" value="${escapeHtml(plateDiameterCm)}"></label>
-          <button class="text-button" type="button" data-vbt-pick="start">2. 開始点を選ぶ</button>
-          <button class="text-button" type="button" data-vbt-pick="end">3. 終了点を選ぶ</button>
-          <button class="primary-button inline" type="button" data-vbt-manual="${escapeHtml(record.id)}">4. 標準2点測定</button>
-          <button class="text-button" type="button" data-vbt-reset>やり直す</button>
-        </div>
+        <section class="vbt-roi-panel">
+          <div class="video-check-head">
+            <strong>2. プレートを緑枠で囲む</strong>
+            <small>推奨モード</small>
+          </div>
+          <div class="vbt-plate-controls">
+            <label>プレート径
+              <select data-vbt-plate-preset>
+                <option value="45" ${Math.abs(plateDiameterCm - 45) < 0.05 ? "selected" : ""}>45.0cm</option>
+                <option value="43" ${Math.abs(plateDiameterCm - 43) < 0.05 ? "selected" : ""}>43.0cm</option>
+                <option value="custom" ${Math.abs(plateDiameterCm - 45) >= 0.05 && Math.abs(plateDiameterCm - 43) >= 0.05 ? "selected" : ""}>カスタム</option>
+              </select>
+            </label>
+            <label>直径 cm<input data-vbt-plate-cm type="number" inputmode="decimal" min="30" max="60" step="0.1" value="${escapeHtml(plateDiameterCm)}"></label>
+          </div>
+          <p class="video-storage-note">動画上の緑枠を、見えているプレート外周に合わせます。</p>
+          <div class="vbt-roi-actions">
+            <button class="text-button" type="button" data-vbt-roi-init>緑枠を表示</button>
+            <button class="primary-button inline" type="button" data-vbt-roi-track="${escapeHtml(record.id)}">3. 追跡する</button>
+            <button class="text-button" type="button" data-vbt-reset>やり直す</button>
+          </div>
+        </section>
         <div class="vbt-markers">
-          <span data-vbt-pick-status>開始点・終了点は未選択</span>
+          <span data-vbt-pick-status>${calibration.plateRoi ? "緑枠を保存済み" : "緑枠は未設定"}</span>
         </div>
         <details class="compact-guide vbt-auto-details">
-          <summary>自動追跡βを試す</summary>
-          <p>赤い参考線は背景や影でずれることがあります。速度判断は標準2点測定を優先してください。</p>
-          <button class="text-button" type="button" data-vbt-pick="target">開始位置の中心を選ぶ</button>
-          <button class="text-button" type="button" data-vbt-auto="${escapeHtml(record.id)}">自動追跡β</button>
+          <summary>追跡がずれるとき</summary>
+          <p>手動2点なら、開始と終了の位置から安定して速度を確認できます。</p>
+          <div class="vbt-controls">
+            <button class="text-button" type="button" data-vbt-pick="start">開始点を選ぶ</button>
+            <button class="text-button" type="button" data-vbt-pick="end">終了点を選ぶ</button>
+            <button class="primary-button inline" type="button" data-vbt-manual="${escapeHtml(record.id)}">手動2点で測る</button>
+          </div>
+          <details class="compact-guide vbt-legacy-details">
+            <summary>実験的な中心点追跡β</summary>
+            <button class="text-button" type="button" data-vbt-pick="target">中心点を選ぶ</button>
+            <button class="text-button" type="button" data-vbt-auto="${escapeHtml(record.id)}">中心点追跡β</button>
+          </details>
         </details>
-        <div class="motion-result vbt-result" data-vbt-result>${vbtResultMarkup({ ...measurement, lift: record.lift, rpe: record.rpe })}</div>
+        <div class="motion-result vbt-result" data-vbt-result>${vbtResultMarkup({ ...measurement, ...velocityData, lift: record.lift, rpe: record.rpe })}</div>
       </section>
     `;
   }
+
 
   function initialVbtState(record) {
     const velocityData = record.analysis?.velocityData || {};
@@ -776,11 +1009,14 @@
     return {
       pickMode: null,
       targetPoint: calibration.targetPoint || calibration.plateA || null,
+      plateRoi: calibration.plateRoi || null,
+      roiMode: null,
+      roiDrag: null,
       startPoint: measurement.startPoint || null,
       endPoint: measurement.endPoint || null,
       path: measurement.path || [],
       trackingConfidence: measurement.trackingConfidence || velocityData.trackingConfidence || "unknown",
-      trackingMode: measurement.mode || velocityData.mode || "manual-2point",
+      trackingMode: measurement.mode || velocityData.mode || (calibration.plateRoi ? "plate-roi-track" : "manual-2point"),
       startTime: hasFiniteNumber(measurement.startTime) ? Number(measurement.startTime) : null,
       endTime: hasFiniteNumber(measurement.endTime) ? Number(measurement.endTime) : null,
       trimStart: hasFiniteNumber(measurement.trim?.start) ? Number(measurement.trim.start) : null,
@@ -868,6 +1104,66 @@
     ctx.restore();
   }
 
+  function roiHandles(roi) {
+    if (!roi) return [];
+    return [
+      { name: "nw", x: roi.x, y: roi.y },
+      { name: "ne", x: roi.x + roi.width, y: roi.y },
+      { name: "sw", x: roi.x, y: roi.y + roi.height },
+      { name: "se", x: roi.x + roi.width, y: roi.y + roi.height }
+    ];
+  }
+
+  function drawPlateRoi(ctx, roi) {
+    if (!roi) return;
+    const scale = getCanvasVisualScale(ctx.canvas);
+    const lineWidth = Math.max(4 * scale.x, 3);
+    const handleRadius = Math.max(14 * scale.x, 10);
+    const center = roiCenter(roi);
+    ctx.save();
+    ctx.fillStyle = "rgba(21, 127, 59, 0.14)";
+    ctx.strokeStyle = "rgba(34, 197, 94, 0.98)";
+    ctx.lineWidth = lineWidth;
+    ctx.fillRect(roi.x, roi.y, roi.width, roi.height);
+    ctx.strokeRect(roi.x, roi.y, roi.width, roi.height);
+    ctx.beginPath();
+    ctx.moveTo(center.x - roi.width * 0.12, center.y);
+    ctx.lineTo(center.x + roi.width * 0.12, center.y);
+    ctx.moveTo(center.x, center.y - roi.height * 0.12);
+    ctx.lineTo(center.x, center.y + roi.height * 0.12);
+    ctx.stroke();
+    roiHandles(roi).forEach((handle) => {
+      ctx.beginPath();
+      ctx.fillStyle = "#fffaf2";
+      ctx.strokeStyle = "rgba(34, 197, 94, 0.98)";
+      ctx.lineWidth = lineWidth;
+      ctx.arc(handle.x, handle.y, handleRadius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+    });
+    ctx.font = `900 ${Math.max(13 * scale.x, 16)}px system-ui`;
+    ctx.strokeStyle = "rgba(23, 23, 23, 0.82)";
+    ctx.lineWidth = Math.max(4 * scale.x, 3);
+    ctx.strokeText("プレートROI", roi.x + 8 * scale.x, Math.max(24 * scale.x, roi.y - 10 * scale.x));
+    ctx.fillStyle = "#fffaf2";
+    ctx.fillText("プレートROI", roi.x + 8 * scale.x, Math.max(24 * scale.x, roi.y - 10 * scale.x));
+    ctx.restore();
+  }
+
+  function roiHitTarget(canvas, roi, point) {
+    if (!roi || !point) return null;
+    const scale = getCanvasVisualScale(canvas);
+    const radius = Math.max(28 * scale.x, 24);
+    const handle = roiHandles(roi).find((item) => pixelDistance(item, point) <= radius);
+    if (handle) return { type: "resize", handle: handle.name };
+    if (point.x >= roi.x && point.x <= roi.x + roi.width && point.y >= roi.y && point.y <= roi.y + roi.height) {
+      return { type: "move", handle: null };
+    }
+    return null;
+  }
+
+
+
   function drawVbtOverlay(dialog) {
     const canvas = dialog?.querySelector("[data-vbt-canvas]");
     if (!canvas || !syncVbtCanvas(dialog)) return;
@@ -878,11 +1174,11 @@
     ctx.lineWidth = Math.max(4 * scale.x, 4);
     ctx.lineCap = "round";
     if (state.path?.length > 1) {
-      const autoPath = state.trackingMode === "auto-track-beta";
-      ctx.strokeStyle = autoPath
-        ? state.trackingConfidence === "low" ? "rgba(180, 35, 24, 0.35)" : "rgba(180, 35, 24, 0.72)"
+      const estimatedPath = state.trackingMode === "auto-track-beta" || state.trackingMode === "center-point-beta" || state.trackingMode === "plate-roi-track";
+      ctx.strokeStyle = estimatedPath
+        ? state.trackingConfidence === "low" ? "rgba(180, 35, 24, 0.30)" : "rgba(180, 35, 24, 0.70)"
         : "rgba(245, 158, 11, 0.94)";
-      ctx.setLineDash(autoPath ? [12 * scale.x, 9 * scale.x] : []);
+      ctx.setLineDash(estimatedPath ? [12 * scale.x, 9 * scale.x] : []);
       ctx.beginPath();
       state.path.forEach((point, index) => {
         if (index === 0) ctx.moveTo(point.x, point.y);
@@ -890,14 +1186,15 @@
       });
       ctx.stroke();
       ctx.setLineDash([]);
-      if (autoPath) {
+      if (estimatedPath) {
         const anchor = state.path[0];
+        const label = state.trackingMode === "plate-roi-track" ? "推定プレート軌跡" : "中心点追跡β 参考線";
         ctx.font = `900 ${Math.max(13 * scale.x, 16)}px system-ui`;
         ctx.strokeStyle = "rgba(23, 23, 23, 0.82)";
         ctx.lineWidth = Math.max(4 * scale.x, 3);
-        ctx.strokeText("自動追跡β 参考線", anchor.x + 12 * scale.x, anchor.y - 16 * scale.x);
+        ctx.strokeText(label, anchor.x + 12 * scale.x, anchor.y - 16 * scale.x);
         ctx.fillStyle = "rgba(255, 250, 242, 0.98)";
-        ctx.fillText("自動追跡β 参考線", anchor.x + 12 * scale.x, anchor.y - 16 * scale.x);
+        ctx.fillText(label, anchor.x + 12 * scale.x, anchor.y - 16 * scale.x);
       }
     } else if (state.startPoint && state.endPoint) {
       ctx.strokeStyle = "rgba(245, 158, 11, 0.94)";
@@ -909,7 +1206,98 @@
     drawPoint(ctx, state.startPoint, "開始", "#2563eb");
     drawPoint(ctx, state.endPoint, "終了", "#157f3b");
     if (!state.startPoint && !state.endPoint) drawPoint(ctx, state.targetPoint, "中心", "#b42318");
+    drawPlateRoi(ctx, state.plateRoi);
   }
+
+  function initializePlateRoi(button) {
+    const dialog = button.closest("dialog");
+    const video = dialog?.querySelector("video");
+    if (!dialog || !video?.videoWidth || !video?.videoHeight) return;
+    const state = vbtState(dialog);
+    const roi = state.plateRoi ? clampPlateRoi(state.plateRoi, video.videoWidth, video.videoHeight) : defaultPlateRoi(video);
+    setVbtState(dialog, {
+      plateRoi: roi,
+      roiMode: null,
+      roiDrag: null,
+      pickMode: null,
+      path: [],
+      trackingConfidence: "unknown",
+      trackingMode: "plate-roi-track"
+    });
+    if (hasFiniteNumber(state.trimStart)) video.currentTime = Number(state.trimStart);
+    video.pause();
+    dialog.querySelector("[data-vbt-canvas]")?.classList.add("active", "roi-active");
+    const status = dialog.querySelector("[data-vbt-pick-status]");
+    if (status) status.textContent = roiAspectWarning(roi) || "緑枠をドラッグし、四隅でサイズを合わせます。";
+    const guide = dialog.querySelector("[data-vbt-video-guide]");
+    if (guide) guide.textContent = "緑枠をプレート外周に合わせる";
+    drawVbtOverlay(dialog);
+  }
+
+  function handleRoiPointerDown(event) {
+    const dialog = event.target.closest("dialog");
+    const canvas = event.target.closest("[data-vbt-canvas]");
+    if (!dialog || !canvas || !syncVbtCanvas(dialog)) return false;
+    const state = vbtState(dialog);
+    if (!state.plateRoi || state.pickMode) return false;
+    const point = canvasPointFromEvent(canvas, event);
+    const target = roiHitTarget(canvas, state.plateRoi, point);
+    if (!target) return false;
+    event.preventDefault();
+    canvas.setPointerCapture?.(event.pointerId);
+    setVbtState(dialog, {
+      roiMode: target.type,
+      roiDrag: { start: point, roi: { ...state.plateRoi }, handle: target.handle }
+    });
+    return true;
+  }
+
+  function handleRoiPointerMove(event) {
+    const dialog = event.target.closest("dialog");
+    const canvas = event.target.closest("[data-vbt-canvas]");
+    const state = vbtState(dialog);
+    if (!dialog || !canvas || !state.roiMode || !state.roiDrag) return false;
+    event.preventDefault();
+    const video = dialog.querySelector("video");
+    const point = canvasPointFromEvent(canvas, event);
+    const start = state.roiDrag.start;
+    const original = state.roiDrag.roi;
+    const dx = point.x - start.x;
+    const dy = point.y - start.y;
+    let next = { ...original };
+    if (state.roiMode === "move") {
+      next.x += dx;
+      next.y += dy;
+    } else {
+      const handle = state.roiDrag.handle;
+      const left = handle.includes("w") ? original.x + dx : original.x;
+      const right = handle.includes("e") ? original.x + original.width + dx : original.x + original.width;
+      const top = handle.includes("n") ? original.y + dy : original.y;
+      const bottom = handle.includes("s") ? original.y + original.height + dy : original.y + original.height;
+      next = { x: Math.min(left, right), y: Math.min(top, bottom), width: Math.abs(right - left), height: Math.abs(bottom - top) };
+    }
+    next = clampPlateRoi(next, video.videoWidth, video.videoHeight);
+    setVbtState(dialog, { plateRoi: next, path: [], trackingMode: "plate-roi-track" });
+    const status = dialog.querySelector("[data-vbt-pick-status]");
+    if (status) status.textContent = roiAspectWarning(next) || "緑枠をプレート外周に合わせています。";
+    drawVbtOverlay(dialog);
+    return true;
+  }
+
+  function handleRoiPointerUp(event) {
+    const dialog = event.target.closest("dialog");
+    const canvas = event.target.closest("[data-vbt-canvas]");
+    const state = vbtState(dialog);
+    if (!dialog || !canvas || !state.roiMode) return false;
+    event.preventDefault();
+    canvas.releasePointerCapture?.(event.pointerId);
+    setVbtState(dialog, { roiMode: null, roiDrag: null });
+    const status = dialog.querySelector("[data-vbt-pick-status]");
+    if (status) status.textContent = roiAspectWarning(vbtState(dialog).plateRoi) || "緑枠を設定しました。追跡できます。";
+    drawVbtOverlay(dialog);
+    return true;
+  }
+
 
   function setVbtPickMode(button) {
     const dialog = button.closest("dialog");
@@ -940,7 +1328,7 @@
     const next = {
       path: [],
       trackingConfidence: state.pickMode === "target" ? state.trackingConfidence : "unknown",
-      trackingMode: state.pickMode === "target" ? "auto-track-beta" : "manual-2point"
+      trackingMode: state.pickMode === "target" ? "center-point-beta" : "manual-2point"
     };
     if (state.pickMode === "start") next.startPoint = point;
     else if (state.pickMode === "end") next.endPoint = point;
@@ -962,6 +1350,9 @@
     setVbtState(dialog, {
       pickMode: null,
       targetPoint: null,
+      plateRoi: null,
+      roiMode: null,
+      roiDrag: null,
       startPoint: null,
       endPoint: null,
       path: [],
@@ -981,7 +1372,7 @@
     if (trimStart) trimStart.textContent = "解析開始 -";
     if (trimEnd) trimEnd.textContent = "解析終了 -";
     dialog.querySelectorAll("[data-vbt-pick]").forEach((item) => item.classList.remove("selected"));
-    dialog.querySelector("[data-vbt-canvas]")?.classList.remove("active");
+    dialog.querySelector("[data-vbt-canvas]")?.classList.remove("active", "roi-active");
     syncTrimControls(dialog);
     drawVbtOverlay(dialog);
   }
@@ -1028,7 +1419,7 @@
       endPoint: null,
       path: [],
       trackingConfidence: "unknown",
-      trackingMode: "manual-2point"
+      trackingMode: state.plateRoi ? "plate-roi-track" : "manual-2point"
     });
     syncTrimControls(dialog);
     video.currentTime = input.dataset.vbtTrimRange === "start" ? start : end;
@@ -1057,21 +1448,24 @@
     video.addEventListener("timeupdate", stopAtEnd);
   }
 
+
   async function saveVbtVelocity(button, mode = "auto-track-beta") {
     const dialog = button.closest("dialog");
-    const record = await getVideoRecord(button.dataset.vbtAuto || button.dataset.vbtManual || button.dataset.vbtSave);
+    const record = await getVideoRecord(button.dataset.vbtRoiTrack || button.dataset.vbtAuto || button.dataset.vbtManual || button.dataset.vbtSave);
     const resultBox = dialog?.querySelector("[data-vbt-result]");
     if (!record || !dialog || !resultBox) return;
     try {
       button.disabled = true;
       button.textContent = "計測中...";
       const guide = dialog.querySelector("[data-vbt-video-guide]");
-      if (guide) guide.textContent = mode === "manual-2point" ? "開始点と終了点から計算しています" : "参考軌跡を追跡しています";
+      if (guide) guide.textContent = mode === "plate-roi-track" ? "緑枠のプレートを追跡しています" : mode === "manual-2point" ? "開始点と終了点から計算しています" : "中心点を追跡しています";
       const videoStatus = dialog.querySelector("[data-vbt-video-status]");
       if (videoStatus) videoStatus.textContent = mediaStatusMessage("tracking");
       const velocityData = mode === "manual-2point"
         ? await measureManualTwoPoint(dialog, record)
-        : await trackPlatePath(dialog, record);
+        : mode === "plate-roi-track"
+          ? await trackPlateRoiPath(dialog, record)
+          : await trackPlatePath(dialog, record);
       record.analysis = { ...(record.analysis || {}), velocityData };
       record.updatedAt = new Date().toISOString();
       await saveVideoRecord(record);
@@ -1091,6 +1485,7 @@
         startPoint: mode === "manual-2point" ? velocityData.measurement.startPoint || null : null,
         endPoint: mode === "manual-2point" ? velocityData.measurement.endPoint || null : null,
         targetPoint: velocityData.calibration?.targetPoint || null,
+        plateRoi: velocityData.calibration?.plateRoi || vbtState(dialog).plateRoi || null,
         path: velocityData.measurement.path || [],
         trackingConfidence: velocityData.trackingConfidence || "unknown",
         trackingMode: velocityData.mode || mode
@@ -1099,22 +1494,32 @@
       if (guide) guide.textContent = `平均速度 ${velocityData.meanVelocity.toFixed(2)} m/s`;
       resultBox.innerHTML = vbtResultMarkup({ ...velocityData, ...velocityData.measurement, lift: record.lift, rpe: record.rpe });
       button.textContent = "保存しました";
-      const idleLabel = mode === "manual-2point" ? "4. 標準2点測定" : "自動追跡β";
+      const idleLabel = mode === "manual-2point" ? "手動2点で測る" : mode === "plate-roi-track" ? "3. 追跡する" : "中心点追跡β";
       setTimeout(() => { button.textContent = idleLabel; button.disabled = false; }, 1200);
       renderLibrary();
       renderVbtHistory();
     } catch (error) {
       resultBox.innerHTML = `<p>${escapeHtml(error.message || "速度を計算できませんでした。")}</p>`;
       const guide = dialog.querySelector("[data-vbt-video-guide]");
-      if (guide) guide.textContent = error.message || "プレート中心を選び直してください";
-      button.textContent = mode === "manual-2point" ? "4. 標準2点測定" : "自動追跡β";
+      if (guide) guide.textContent = error.message || "緑枠と測定範囲を確認してください";
+      button.textContent = mode === "manual-2point" ? "手動2点で測る" : mode === "plate-roi-track" ? "3. 追跡する" : "中心点追跡β";
       button.disabled = false;
     }
   }
 
+
+
   function saveManualVbt(button) {
     return saveVbtVelocity(button, "manual-2point");
   }
+
+  function syncPlatePreset(select) {
+    const dialog = select.closest("dialog");
+    const input = dialog?.querySelector("[data-vbt-plate-cm]");
+    if (!input || select.value === "custom") return;
+    input.value = select.value;
+  }
+
 
   function ensureVbtHistorySection() {
     let section = document.querySelector("#vbtHistoryPanel");
@@ -1146,7 +1551,7 @@
       <article class="vbt-history-card">
         <strong>${escapeHtml(liftLabel(record.lift))} ${record.weight ? `${escapeHtml(formatNumber(record.weight))}kg` : ""}${record.reps ? ` x ${escapeHtml(formatNumber(record.reps))}` : ""}${record.rpe ? ` @${escapeHtml(formatNumber(record.rpe))}` : ""}</strong>
         <span>${isValid ? `平均速度 ${escapeHtml(velocity.toFixed(2))} m/s` : "測定範囲を確認"}</span>
-        <small>${escapeHtml(formatDate(record.date))} / ${escapeHtml((record.mode || record.measurement?.mode) === "manual-2point" ? "標準2点" : "旧自動追跡β")}</small>
+        <small>${escapeHtml(formatDate(record.date))} / ${escapeHtml(measurementModeLabel(record.mode || record.measurement?.mode))}</small>
         <p>${escapeHtml(record.buddyComment || vbtVelocityComment(record.lift, velocity))}</p>
       </article>
     `;
@@ -1175,7 +1580,7 @@
         </div>
         <strong>${escapeHtml(videoTitle(record))}</strong>
         <p class="motion-status ${isValid ? "done" : ""}">VBT: ${isValid ? `${escapeHtml(velocity.toFixed(2))} m/s` : (Number.isFinite(velocity) ? "要確認" : "未計測")}</p>
-        ${measurementMode ? `<small>${escapeHtml(measurementMode === "manual-2point" ? "標準2点測定" : "自動追跡β")}</small>` : ""}
+        ${measurementMode ? `<small>${escapeHtml(measurementModeLabel(measurementMode))}</small>` : ""}
         <p class="video-library-buddy pb-line-clamp-2">${escapeHtml(compactBuddyCopy(record))}</p>
         <div class="video-card-actions">
           <button class="primary-button inline" type="button" data-video-view="${escapeHtml(record.id)}">見る</button>
@@ -1412,6 +1817,10 @@
   els.compareBtn.addEventListener("click", renderComparison);
   els.library.addEventListener("click", handleLibraryClick);
   document.addEventListener("click", (event) => {
+    const roiInit = event.target.closest("[data-vbt-roi-init]");
+    if (roiInit) return initializePlateRoi(roiInit);
+    const roiTrack = event.target.closest("[data-vbt-roi-track]");
+    if (roiTrack) return saveVbtVelocity(roiTrack, "plate-roi-track");
     const vbtPick = event.target.closest("[data-vbt-pick]");
     if (vbtPick) return setVbtPickMode(vbtPick);
     const previewRange = event.target.closest("[data-vbt-preview-range]");
@@ -1421,7 +1830,7 @@
     const vbtManual = event.target.closest("[data-vbt-manual]");
     if (vbtManual) return saveManualVbt(vbtManual);
     const vbtSave = event.target.closest("[data-vbt-auto]");
-    if (vbtSave) return saveVbtVelocity(vbtSave, "auto-track-beta");
+    if (vbtSave) return saveVbtVelocity(vbtSave, "center-point-beta");
     const dashboardAction = event.target.closest("[data-vbt-dashboard-action]");
     if (dashboardAction?.dataset.vbtDashboardAction === "measure") return openLatestForMeasurement();
     const vbtFilter = event.target.closest("[data-vbt-filter]");
@@ -1430,11 +1839,19 @@
       return renderVbtHistory(vbtFilter.dataset.vbtFilter);
     }
   });
+  document.addEventListener("pointerdown", (event) => {
+    if (event.target.matches("[data-vbt-canvas]")) handleRoiPointerDown(event);
+  });
+  document.addEventListener("pointermove", (event) => {
+    if (event.target.matches("[data-vbt-canvas]")) handleRoiPointerMove(event);
+  });
   document.addEventListener("pointerup", (event) => {
-    if (event.target.matches("[data-vbt-canvas]")) handleVbtCanvasPointer(event);
+    if (!event.target.matches("[data-vbt-canvas]")) return;
+    if (!handleRoiPointerUp(event)) handleVbtCanvasPointer(event);
   });
   document.addEventListener("input", (event) => {
     if (event.target.matches("[data-vbt-trim-range]")) handleTrimRange(event.target);
+    if (event.target.matches("[data-vbt-plate-preset]")) syncPlatePreset(event.target);
   });
   window.addEventListener("beforeunload", clearObjectUrls);
 

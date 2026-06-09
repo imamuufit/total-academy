@@ -1,3 +1,5 @@
+﻿Platform Buddy v156 - changed files
+
 index.html
 styles.css
 video.js
@@ -5,3 +7,7 @@ sw.js
 manifest.webmanifest
 changed-files.txt
 DIFF
+
+app.js: unchanged
+platform-pr-v3: unchanged
+assets/images: not included
