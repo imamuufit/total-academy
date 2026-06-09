@@ -13581,6 +13581,58 @@ html body .knowledge-library-body .knowledge-grid {
   }
 }
 
+/* v157: personal RPE x velocity profile */
+html body .vbt-personal-compare {
+  display: grid;
+  gap: 9px;
+  border: 1px solid rgba(47, 111, 115, 0.34);
+  border-left: 5px solid var(--coach, #2f6f73);
+  border-radius: 10px;
+  background:
+    linear-gradient(90deg, rgba(47, 111, 115, 0.08), transparent 52%),
+    var(--surface, #fffaf2);
+  padding: 12px;
+}
+
+html body .vbt-personal-compare > :is(strong, p) {
+  margin: 0;
+}
+
+html body .vbt-personal-compare p,
+html body .vbt-profile-note {
+  color: var(--text-sub, #526179);
+  font-size: 0.8rem;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+html body .vbt-rpe-profile {
+  display: grid;
+  gap: 4px;
+}
+
+html body .vbt-rpe-profile p {
+  margin: 0;
+}
+
+html body .vbt-profile-note {
+  margin: 0;
+  border-top: 1px solid var(--line, #ded6c8);
+  padding-top: 9px;
+}
+
+@media (max-width: 640px) {
+  html body .vbt-personal-compare .motion-result-chips {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  html body .vbt-personal-compare .motion-result-chips span {
+    width: 100%;
+    text-align: center;
+  }
+}
+
 /* v138: reduce first-view density and make hidden overflow discoverable */
 html body main,
 html body :is(.topbar, .meet-prep-announcement) {
@@ -16206,7 +16258,7 @@ html body .vbt-history-card :is(small, p) {
   }
 }
 
-/* v156: VBT main workspace */
+/* v157: VBT main workspace */
 html body .tabbar {
   grid-template-columns: repeat(6, minmax(0, 1fr));
 }
@@ -16217,7 +16269,7 @@ html body #vbtView {
   padding-top: 0;
 }
 
-/* v156: reliable fallback VBT workflow */
+/* v157: reliable fallback VBT workflow */
 html body .vbt-main-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.75fr);
@@ -16315,7 +16367,7 @@ html body .vbt-result-warning {
   padding: 8px 10px;
 }
 
-/* v156: plate ROI tracking */
+/* v157: plate ROI tracking */
 html body .vbt-roi-panel {
   display: grid;
   gap: 10px;

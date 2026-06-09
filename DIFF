@@ -1,4 +1,4 @@
-﻿Platform Buddy v156 DIFF
+﻿Platform Buddy v157 DIFF
 
 Changed files:
 - index.html
@@ -8,51 +8,50 @@ Changed files:
 - manifest.webmanifest
 
 index.html:
-- Added a compact learning accordion for plate ROI tracking.
-- Clarified that the green ROI identifies the plate and the red line is an estimated plate path.
-- Updated query versions to v156.
+- Reframed VBT Studio as a post-set RPE x velocity profile tool.
+- Added a concise explanation that Platform Buddy is not real-time VBT.
+- Updated query versions to v157.
 
 video.js:
-- Added recommended plate-roi-track mode while preserving manual-2point and center-point-beta compatibility.
-- Added default green plate ROI creation, video-bound clamping, drag movement, and four-corner resizing.
-- Added large touch hit areas for ROI handles on mobile.
-- Added plate diameter presets for 45.0cm, 43.0cm, and custom values.
-- Added plate diameter validation and mm-entry guidance.
-- Added ROI aspect-ratio warning and saved ROI width, height, and aspect ratio calibration data.
-- Added trackPlateRoiPath(dialog, record), which searches around the previous ROI and measures vertical ROI-center travel.
-- Added confidence scoring, low-confidence fallback guidance, and estimated-path labeling.
-- Added result chips for method, speed, ROM, time, plate diameter, and confidence.
-- Updated VBT history/library method labels for ROI, manual two-point, and center-point beta modes.
+- Added adaptVbtRecord() to normalize existing and new VBT records without rewriting old data.
+- Added valid-record filtering that excludes low confidence, abnormal velocity, abnormal distance, and invalid duration/calibration values.
+- Added Exact Profile and Similar Set Profile comparisons.
+- Added lift-specific RPE velocity profiles with general guidance until 10 valid personal records exist.
+- Added personal comparison comments and RPE/velocity mismatch classification.
+- Added a "past self comparison" panel to measured video details and measurement results.
+- Updated VBT history comments to use personal-profile comparisons.
+- Updated VBT dashboard, HOME VBT card, profile cards, and DATA VBT summary to show profile progress.
+- Strengthened newly saved VBT records with normalized profile fields while keeping legacy fields and existing IndexedDB records.
 - Does not use localStorage.
 - Does not touch platform-pr-v3.
 - Does not change app.js.
 
 styles.css:
-- Added green ROI panel, plate controls, ROI action layout, and mobile-friendly control sizing.
-- Added ROI canvas interaction state and touch behavior.
-- Kept the existing IRON NOTE visual system.
+- Added responsive personal comparison cards and RPE profile styles.
+- Kept the existing IRON NOTE and ROI tracking design.
 
 sw.js:
-- Updated cache name to platform-buddy-v156.
-- Updated cached versioned assets to v156.
+- Updated cache name to platform-buddy-v157.
+- Updated cached versioned assets to v157.
 
 manifest.webmanifest:
-- Updated start_url to ./index.html?v=156.
+- Updated start_url to ./index.html?v=157.
+- Repaired the corrupted description string so the manifest remains valid JSON.
 
 Validation:
 - node --check video.js passed.
 - node --check app.js passed.
 - node --check sw.js passed.
 - manifest.webmanifest JSON parse passed.
-- ROI tracking/drawing/initialization function counts are exactly one.
+- Profile adapter/exact/similar/RPE/comment/mismatch function counts are exactly one.
 - HTML details and section tag counts match.
-- app.js SHA256 matches v155.
+- app.js SHA256 matches v156.
 - No localStorage / platform-pr-v3 references in video.js.
-- No v155 cache/query references remain in shipped files.
-- In-app Browser connection failed in the Windows sandbox, so final visual/video interaction verification requires device upload.
+- No v156 cache/query references remain in shipped files.
+- In-app Browser connection failed in the Windows sandbox, so final visual verification requires device upload.
 
 Known limitations:
-- Plate ROI tracking is image-template tracking, not a trained AI model.
-- Glare, shadows, background similarity, camera movement, and an inaccurate ROI can reduce confidence.
-- The red line is an estimated plate path and is not a definitive bar path.
-- Manual two-point measurement remains the recommended fallback when ROI tracking drifts.
+- Platform Buddy remains a post-set video-analysis VBT tool, not real-time VBT hardware.
+- RPE velocity profiles become meaningfully personal after repeated measurements under similar filming conditions.
+- lastRepVelocity is populated only when per-rep velocity data exists; current one-rep analyses usually equal average velocity.
+- Peak velocity, velocity-loss percentage, MVT estimation, e1RM linkage, and live next-set automation remain future work.

@@ -7,6 +7,11 @@
   const VBT_STORE_NAME = "vbtRecords";
   const MAX_FILE_BYTES = 350 * 1024 * 1024;
   const DEFAULT_PLATE_DIAMETER_CM = 45;
+  const GENERAL_RPE_VELOCITY = {
+    SQ: { 7: "0.42〜0.52", 8: "0.32〜0.42", 9: "0.24〜0.32" },
+    BP: { 7: "0.32〜0.42", 8: "0.22〜0.32", 9: "0.14〜0.22" },
+    DL: { 7: "0.40〜0.52", 8: "0.30〜0.40", 9: "0.20〜0.30" }
+  };
 
   const selectedForCompare = new Set();
   const activeObjectUrls = new Set();
@@ -240,17 +245,170 @@
     return `${liftLabel(record.lift)} ${weight}${reps}${rpe}`;
   }
 
+  function adaptVbtRecord(record) {
+    const velocityData = record?.analysis?.velocityData || record || {};
+    const measurement = velocityData.measurement || record?.measurement || velocityData;
+    const calibration = velocityData.calibration || record?.calibration || {};
+    const averageVelocity = Number(measurement.meanVelocity ?? velocityData.meanVelocity ?? record?.averageVelocity);
+    const durationSeconds = Number(measurement.durationSeconds ?? record?.durationSeconds);
+    const distanceMeters = Number(measurement.distanceMeters ?? record?.distanceMeters);
+    const trackingConfidence = velocityData.trackingConfidence || measurement.trackingConfidence || record?.trackingConfidence || "unknown";
+    const plateDiameterCm = Number(calibration.plateDiameterCm ?? measurement.plateDiameterCm ?? record?.plateDiameterCm);
+    const valid = Number.isFinite(averageVelocity)
+      && averageVelocity >= 0.1
+      && averageVelocity <= 1.2
+      && Number.isFinite(durationSeconds)
+      && durationSeconds > 0
+      && durationSeconds <= 12
+      && Number.isFinite(distanceMeters)
+      && distanceMeters >= 0.05
+      && distanceMeters <= 1.2
+      && trackingConfidence !== "low"
+      && (!Number.isFinite(plateDiameterCm) || (plateDiameterCm >= 30 && plateDiameterCm <= 60));
+    const repVelocities = measurement.repVelocities || [];
+    return {
+      ...record,
+      videoId: record?.videoId || (record?.analysis?.velocityData ? record.id : null),
+      lift: record?.lift || velocityData.lift || "OTHER",
+      liftLabel: liftLabel(record?.lift || velocityData.lift),
+      weightKg: Number(record?.weightKg ?? record?.weight ?? velocityData.weight) || 0,
+      reps: Number(record?.reps ?? velocityData.reps) || 0,
+      subjectiveRpe: hasFiniteNumber(record?.subjectiveRpe ?? record?.rpe ?? velocityData.rpe) ? Number(record?.subjectiveRpe ?? record?.rpe ?? velocityData.rpe) : null,
+      tag: record?.tag || record?.setType || null,
+      averageVelocity: Number.isFinite(averageVelocity) ? averageVelocity : null,
+      lastRepVelocity: Number(repVelocities.at(-1)?.meanVelocity) || null,
+      peakVelocity: Number(record?.peakVelocity) || null,
+      velocityLossPercent: Number(record?.velocityLossPercent) || null,
+      measurementMode: velocityData.mode || measurement.mode || record?.measurementMode || "unknown",
+      trackingConfidence,
+      validVelocity: valid,
+      plateDiameterCm: Number.isFinite(plateDiameterCm) ? plateDiameterCm : null,
+      distanceMeters: Number.isFinite(distanceMeters) ? distanceMeters : null,
+      durationSeconds: Number.isFinite(durationSeconds) ? durationSeconds : null,
+      notes: record?.notes || ""
+    };
+  }
+
   function validVelocity(record) {
-    const measurement = record?.measurement || record?.analysis?.velocityData?.measurement || record?.analysis?.velocityData || record || {};
-    const velocity = Number(measurement.meanVelocity);
-    const duration = Number(measurement.durationSeconds);
-    const distance = Number(measurement.distanceMeters);
-    return Number.isFinite(velocity) && velocity >= 0.1 && Number.isFinite(duration) && duration > 0 && duration <= 12 && Number.isFinite(distance) && distance >= 0.05;
+    return adaptVbtRecord(record).validVelocity;
   }
 
   function velocityValue(record) {
-    const measurement = record?.measurement || record?.analysis?.velocityData?.measurement || record?.analysis?.velocityData || record || {};
-    return Number(measurement.meanVelocity);
+    return Number(adaptVbtRecord(record).averageVelocity);
+  }
+
+  function getValidVbtRecords(records) {
+    return records.map(adaptVbtRecord).filter((record) => record.validVelocity);
+  }
+
+  function velocityStats(records) {
+    const values = records.map((record) => record.averageVelocity).filter(Number.isFinite).sort((a, b) => a - b);
+    if (!values.length) return null;
+    return {
+      count: values.length,
+      meanVelocity: values.reduce((sum, value) => sum + value, 0) / values.length,
+      medianVelocity: median(values),
+      fastestVelocity: values.at(-1),
+      slowestVelocity: values[0],
+      latestVelocity: records[0]?.averageVelocity ?? values.at(-1),
+      confidence: values.length >= 5 ? "high" : values.length >= 3 ? "middle" : "low",
+      records
+    };
+  }
+
+  function getExactVelocityProfile(records, targetRecord) {
+    const target = adaptVbtRecord(targetRecord);
+    if (!target.lift || !target.weightKg || !target.reps || target.subjectiveRpe === null) return null;
+    return velocityStats(getValidVbtRecords(records).filter((record) =>
+      record.id !== target.id
+      && (!target.videoId || record.videoId !== target.videoId)
+      && record.lift === target.lift
+      && Math.abs(record.weightKg - target.weightKg) < 0.01
+      && record.reps === target.reps
+      && record.subjectiveRpe !== null
+      && Math.abs(record.subjectiveRpe - target.subjectiveRpe) <= 0.5
+    ));
+  }
+
+  function getSimilarVelocityProfile(records, targetRecord) {
+    const target = adaptVbtRecord(targetRecord);
+    if (!target.lift || !target.weightKg || !target.reps || target.subjectiveRpe === null) return null;
+    return velocityStats(getValidVbtRecords(records).filter((record) =>
+      record.id !== target.id
+      && (!target.videoId || record.videoId !== target.videoId)
+      && record.lift === target.lift
+      && Math.abs(record.weightKg - target.weightKg) <= 5
+      && Math.abs(record.reps - target.reps) <= 1
+      && record.subjectiveRpe !== null
+      && Math.abs(record.subjectiveRpe - target.subjectiveRpe) <= 0.5
+    ));
+  }
+
+  function getLiftRpeVelocityProfile(records, lift) {
+    const valid = getValidVbtRecords(records).filter((record) => record.lift === lift && record.subjectiveRpe !== null);
+    return [7, 8, 9].map((rpe) => {
+      const group = valid.filter((record) => Math.abs(record.subjectiveRpe - rpe) <= 0.5);
+      return { rpe, ...velocityStats(group) };
+    }).filter((profile) => profile.count);
+  }
+
+  function getVbtProfileStatus(records, lift) {
+    const valid = getValidVbtRecords(records).filter((record) => record.lift === lift);
+    return { lift, count: valid.length, ready: valid.length >= 5, personal: valid.length >= 10 };
+  }
+
+  function generalRpeProfileMarkup(lift) {
+    const profile = GENERAL_RPE_VELOCITY[lift] || GENERAL_RPE_VELOCITY.SQ;
+    return [7, 8, 9].map((rpe) => `<p>@${rpe}：${profile[rpe]}m/s 一般目安</p>`).join("");
+  }
+
+  function getVelocityComparison(records, targetRecord) {
+    const target = adaptVbtRecord(targetRecord);
+    if (!target.validVelocity) return { type: "invalid", target, profile: null, difference: null, judgment: "要確認" };
+    const exact = getExactVelocityProfile(records, target);
+    const similar = exact?.count >= 3 ? null : getSimilarVelocityProfile(records, target);
+    const profile = exact?.count ? exact : similar;
+    if (!profile?.count) return { type: "building", target, profile: null, difference: null, judgment: "作成中" };
+    const difference = target.averageVelocity - profile.meanVelocity;
+    const judgment = difference <= -0.05 ? "今日は重め" : difference >= 0.05 ? "出力は良好" : "いつも通り";
+    return { type: exact?.count ? "exact" : "similar", target, profile, difference, judgment };
+  }
+
+  function getVelocityProfileComment(records, targetRecord) {
+    const comparison = getVelocityComparison(records, targetRecord);
+    if (comparison.type === "invalid") return "速度が通常範囲を外れています。この記録はプロフィール計算に含めません。";
+    if (comparison.type === "building") return "個人速度プロフィール作成中です。同じ条件を3〜5件残すと比較精度が上がります。";
+    const label = comparison.type === "exact" ? "同条件" : "類似セット";
+    const difference = `${comparison.difference >= 0 ? "+" : ""}${comparison.difference.toFixed(2)}m/s`;
+    return `${label}平均${comparison.profile.meanVelocity.toFixed(2)}m/sに対して今日は${comparison.target.averageVelocity.toFixed(2)}m/s。差は${difference}、${comparison.judgment}です。`;
+  }
+
+  function getRpeVelocityMismatch(records, targetRecord) {
+    const comparison = getVelocityComparison(records, targetRecord);
+    if (comparison.difference === null) return "unknown";
+    if (comparison.difference <= -0.05) return "slower-than-usual";
+    if (comparison.difference >= 0.05) return "faster-than-usual";
+    return "matched";
+  }
+
+  function velocityComparisonMarkup(records, targetRecord) {
+    const comparison = getVelocityComparison(records, targetRecord);
+    if (comparison.type === "invalid" || comparison.type === "building") {
+      return `<section class="vbt-personal-compare"><strong>過去の自分と比較</strong><p>${escapeHtml(getVelocityProfileComment(records, targetRecord))}</p></section>`;
+    }
+    return `
+      <section class="vbt-personal-compare">
+        <div class="video-check-head"><strong>過去の自分と比較</strong><small>${comparison.type === "exact" ? "同条件" : "類似セット"}</small></div>
+        <div class="motion-result-chips">
+          <span>平均 ${comparison.profile.meanVelocity.toFixed(2)}m/s</span>
+          <span>今日 ${comparison.target.averageVelocity.toFixed(2)}m/s</span>
+          <span>差 ${comparison.difference >= 0 ? "+" : ""}${comparison.difference.toFixed(2)}m/s</span>
+          <span>${escapeHtml(comparison.judgment)}</span>
+          <span>${comparison.profile.count}件</span>
+        </div>
+        <p>${escapeHtml(getVelocityProfileComment(records, targetRecord))}</p>
+      </section>
+    `;
   }
 
   function compactBuddyCopy(record) {
@@ -288,53 +446,62 @@
 
   async function renderVbtDashboard() {
     const [vbtRecords, videos] = await Promise.all([loadVbtRecords(), loadVideoRecords()]);
-    const latestVbt = latestRecord(vbtRecords);
+    const adaptedRecords = vbtRecords.map(adaptVbtRecord);
+    const validRecords = getValidVbtRecords(vbtRecords);
+    const latestVbt = latestRecord(adaptedRecords);
     const latestVideo = latestRecord(videos);
     const measured = latestVbt && validVelocity(latestVbt);
     const status = !latestVbt ? "未測定" : measured ? (velocityValue(latestVbt) >= 0.25 ? "良好" : "やや重い") : "再測定推奨";
     const latestTitle = latestVbt ? `${liftLabel(latestVbt.lift)} ${formatNumber(latestVbt.weight)}kg x ${formatNumber(latestVbt.reps)}` : (latestVideo ? videoTitle(latestVideo) : "記録なし");
     const latestSpeed = measured ? `${velocityValue(latestVbt).toFixed(2)} m/s` : "未測定";
+    const latestComparison = latestVbt ? getVelocityProfileComment(vbtRecords, latestVbt) : "同じ条件の記録を増やそう。";
     if (els.dashboard) {
       els.dashboard.innerHTML = [
-        dashboardCard("今日のVBT状態", status, compactBuddyCopy(latestVbt), `<button class="text-button compact" type="button" data-vbt-dashboard-action="measure">測定する</button>`),
+        dashboardCard("今日の速度", status, latestComparison, `<button class="text-button compact" type="button" data-vbt-dashboard-action="measure">測定する</button>`),
         dashboardCard("最新記録", latestTitle, `${latestSpeed} / ${formatDate(latestVbt?.date || latestVideo?.date)}`),
-        dashboardCard("Buddy判定", measured ? `信頼度：${confidenceLabel(latestVbt.trackingConfidence || latestVbt.measurement?.trackingConfidence || "unknown")}` : "判定保留", compactBuddyCopy(latestVbt)),
-        dashboardCard("次の行動", nextActionCopy(latestVbt), "1つ選んで、次のセットへ。")
+        dashboardCard("プロフィール", `${validRecords.length}件`, validRecords.length >= 10 ? "個人基準を優先して比較します。" : "記録が増えるほどRPE判断が鋭くなります。"),
+        dashboardCard("次の行動", nextActionCopy(latestVbt), "過去の自分と比べて判断しよう。")
       ].join("");
     }
     if (els.homeCard) {
+      const profileText = ["SQ", "BP", "DL"].map((lift) => {
+        const profile = getVbtProfileStatus(vbtRecords, lift);
+        return `${lift}：${profile.ready ? `${profile.count}件` : `作成中 ${profile.count}/5件`}`;
+      }).join(" / ");
       els.homeCard.innerHTML = `
-        <div><span>VBT状態</span><strong>${escapeHtml(status)} / ${escapeHtml(latestSpeed)}</strong><p class="pb-line-clamp-2">${escapeHtml(compactBuddyCopy(latestVbt))}</p></div>
+        <div><span>VBT Profile</span><strong>${escapeHtml(profileText)}</strong><p class="pb-line-clamp-2">速度ログが増えるほど、RPE判断が鋭くなります。</p></div>
         <button class="text-button compact" type="button" data-view-target="vbt">VBTへ</button>
       `;
     }
     if (els.profileSummary) {
       const cards = ["SQ", "BP", "DL"].map((lift) => {
-        const liftRecords = vbtRecords.filter((record) => record.lift === lift && validVelocity(record));
-        const latest = latestRecord(liftRecords);
-        return `<article class="pb-compact-card"><span>${lift}</span><strong>${latest ? `${velocityValue(latest).toFixed(2)} m/s` : "未測定"}</strong><small>${liftRecords.length}件</small></article>`;
+        const profile = getVbtProfileStatus(vbtRecords, lift);
+        return `<article class="pb-compact-card"><span>${lift}</span><strong>${profile.ready ? "判定可能" : "作成中"}</strong><small>${profile.count}${profile.ready ? "件" : "/5件"}</small></article>`;
       }).join("");
-      els.profileSummary.innerHTML = `<div class="video-check-head"><strong>個人速度プロフィール</strong><small>BIG3簡易表示</small></div><div class="vbt-profile-grid">${cards}</div>`;
+      els.profileSummary.innerHTML = `<div class="video-check-head"><strong>個人速度プロフィール</strong><small>自分の@8を育てる</small></div><div class="vbt-profile-grid">${cards}</div>`;
     }
     if (els.profileDetails) {
       els.profileDetails.innerHTML = ["SQ", "BP", "DL"].map((lift) => {
-        const liftRecords = vbtRecords.filter((record) => record.lift === lift && validVelocity(record));
-        const speeds = liftRecords.map(velocityValue);
-        const average = speeds.length ? speeds.reduce((sum, value) => sum + value, 0) / speeds.length : null;
-        const fastest = speeds.length ? Math.max(...speeds) : null;
-        const rpeCount = liftRecords.filter((record) => Number(record.rpe) > 0).length;
-        return `<article class="pb-compact-card"><strong>${lift}</strong><p>平均 ${average === null ? "-" : average.toFixed(2)} / 最速 ${fastest === null ? "-" : fastest.toFixed(2)} m/s</p><small>RPE入力 ${rpeCount}件</small></article>`;
+        const profiles = getLiftRpeVelocityProfile(vbtRecords, lift);
+        const validCount = validRecords.filter((record) => record.lift === lift).length;
+        const rpeCount = validRecords.filter((record) => record.lift === lift && record.subjectiveRpe !== null).length;
+        const personalReady = validCount >= 10;
+        return `<article class="pb-compact-card vbt-rpe-profile"><strong>${lift} Profile</strong>${personalReady && profiles.length ? profiles.map((profile) => `<p>@${profile.rpe}：${profile.meanVelocity.toFixed(2)}m/s 平均 ${profile.count}件</p>`).join("") : generalRpeProfileMarkup(lift)}<small>${personalReady ? "個人データ優先" : "プロフィール作成中"} / 有効 ${validCount}件 / RPE入力 ${rpeCount}件</small></article>`;
       }).join("");
     }
     if (els.dataSummary) {
       const cards = ["SQ", "BP", "DL"].map((lift) => {
-        const liftRecords = vbtRecords.filter((record) => record.lift === lift && validVelocity(record));
+        const liftRecords = validRecords.filter((record) => record.lift === lift);
+        const profile = getVbtProfileStatus(vbtRecords, lift);
         const latest = latestRecord(liftRecords);
-        const speeds = liftRecords.map(velocityValue);
-        const average = speeds.length ? speeds.reduce((sum, value) => sum + value, 0) / speeds.length : null;
-        return `<article><span>${lift}</span><strong>${latest ? `${velocityValue(latest).toFixed(2)} m/s` : "未測定"}</strong><small>${liftRecords.length}件 / 平均 ${average === null ? "-" : average.toFixed(2)}</small></article>`;
+        const rpeCount = liftRecords.filter((record) => record.subjectiveRpe !== null).length;
+        return `<article><span>${lift}</span><strong>${profile.ready ? `${profile.count}件` : `作成中 ${profile.count}/5`}</strong><small>最新 ${latest ? `${latest.averageVelocity.toFixed(2)}m/s` : "-"} / RPE ${rpeCount}件</small></article>`;
       }).join("");
-      els.dataSummary.innerHTML = `<div class="video-check-head"><strong>VBTサマリー</strong><small>速度の現在地</small></div><div class="vbt-data-grid">${cards}</div>`;
+      const mismatchCount = adaptedRecords.filter((record) => {
+        const comparison = getVelocityComparison(vbtRecords, record);
+        return comparison.difference !== null && Math.abs(comparison.difference) >= 0.05;
+      }).length;
+      els.dataSummary.innerHTML = `<div class="video-check-head"><strong>VBT Profile</strong><small>RPE×速度ログ</small></div><div class="vbt-data-grid">${cards}</div><p class="vbt-profile-note">速度と過去平均のズレ：${mismatchCount}件</p>`;
     }
   }
 
@@ -1469,18 +1636,34 @@
       record.analysis = { ...(record.analysis || {}), velocityData };
       record.updatedAt = new Date().toISOString();
       await saveVideoRecord(record);
-      await saveVbtRecord({
+      const savedVbtRecord = {
         id: createId("vbt"),
         videoId: record.id,
         createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
         date: record.date || today(),
         lift: record.lift,
+        liftLabel: liftLabel(record.lift),
         weight: Number(record.weight) || null,
+        weightKg: Number(record.weight) || null,
         reps: Number(record.reps) || null,
         rpe: Number(record.rpe) || null,
+        subjectiveRpe: Number(record.rpe) || null,
+        tag: record.setType || null,
         videoName: record.videoName || "",
+        averageVelocity: velocityData.meanVelocity,
+        lastRepVelocity: velocityData.measurement?.repVelocities?.at(-1)?.meanVelocity || null,
+        peakVelocity: null,
+        velocityLossPercent: null,
+        measurementMode: velocityData.mode || mode,
+        validVelocity: validVelocity(velocityData),
+        plateDiameterCm: velocityData.calibration?.plateDiameterCm || null,
+        distanceMeters: velocityData.measurement?.distanceMeters || null,
+        durationSeconds: velocityData.measurement?.durationSeconds || null,
+        notes: "",
         ...velocityData
-      });
+      };
+      await saveVbtRecord(savedVbtRecord);
       setVbtState(dialog, {
         startPoint: mode === "manual-2point" ? velocityData.measurement.startPoint || null : null,
         endPoint: mode === "manual-2point" ? velocityData.measurement.endPoint || null : null,
@@ -1492,7 +1675,9 @@
       });
       drawVbtOverlay(dialog);
       if (guide) guide.textContent = `平均速度 ${velocityData.meanVelocity.toFixed(2)} m/s`;
-      resultBox.innerHTML = vbtResultMarkup({ ...velocityData, ...velocityData.measurement, lift: record.lift, rpe: record.rpe });
+      const profileRecords = await loadVbtRecords();
+      resultBox.innerHTML = vbtResultMarkup({ ...velocityData, ...velocityData.measurement, lift: record.lift, rpe: record.rpe })
+        + velocityComparisonMarkup(profileRecords, savedVbtRecord);
       button.textContent = "保存しました";
       const idleLabel = mode === "manual-2point" ? "手動2点で測る" : mode === "plate-roi-track" ? "3. 追跡する" : "中心点追跡β";
       setTimeout(() => { button.textContent = idleLabel; button.disabled = false; }, 1200);
@@ -1543,16 +1728,16 @@
     return section;
   }
 
-  function vbtHistoryMarkup(record) {
-    const measurement = record.measurement || {};
-    const velocity = Number(measurement.meanVelocity);
+  function vbtHistoryMarkup(record, records) {
+    const adapted = adaptVbtRecord(record);
+    const velocity = adapted.averageVelocity;
     const isValid = validVelocity(record);
     return `
       <article class="vbt-history-card">
-        <strong>${escapeHtml(liftLabel(record.lift))} ${record.weight ? `${escapeHtml(formatNumber(record.weight))}kg` : ""}${record.reps ? ` x ${escapeHtml(formatNumber(record.reps))}` : ""}${record.rpe ? ` @${escapeHtml(formatNumber(record.rpe))}` : ""}</strong>
+        <strong>${escapeHtml(liftLabel(adapted.lift))} ${adapted.weightKg ? `${escapeHtml(formatNumber(adapted.weightKg))}kg` : ""}${adapted.reps ? ` x ${escapeHtml(formatNumber(adapted.reps))}` : ""}${adapted.subjectiveRpe ? ` @${escapeHtml(formatNumber(adapted.subjectiveRpe))}` : ""}</strong>
         <span>${isValid ? `平均速度 ${escapeHtml(velocity.toFixed(2))} m/s` : "測定範囲を確認"}</span>
-        <small>${escapeHtml(formatDate(record.date))} / ${escapeHtml(measurementModeLabel(record.mode || record.measurement?.mode))}</small>
-        <p>${escapeHtml(record.buddyComment || vbtVelocityComment(record.lift, velocity))}</p>
+        <small>${escapeHtml(formatDate(adapted.date))} / ${escapeHtml(measurementModeLabel(adapted.measurementMode))}</small>
+        <p>${escapeHtml(getVelocityProfileComment(records, adapted))}</p>
       </article>
     `;
   }
@@ -1564,7 +1749,7 @@
     let records = await loadVbtRecords();
     if (filter !== "ALL") records = records.filter((record) => record.lift === filter);
     records.sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
-    list.innerHTML = records.length ? records.slice(0, 20).map(vbtHistoryMarkup).join("") : `<p class="video-empty">まだVBT記録はありません。</p>`;
+    list.innerHTML = records.length ? records.slice(0, 20).map((record) => vbtHistoryMarkup(record, records)).join("") : `<p class="video-empty">まだVBT記録はありません。</p>`;
   }
 
   function libraryCardMarkup(record) {
@@ -1634,6 +1819,7 @@
   async function openViewer(id) {
     const record = await getVideoRecord(id);
     if (!record) return;
+    const profileRecords = await loadVbtRecords();
     const dialog = ensureViewerDialog();
     const url = createObjectUrl(record.videoBlob);
     dialog._vbtState = initialVbtState(record);
@@ -1654,6 +1840,7 @@
           <span>${escapeHtml(record.setType || "自由")}</span>
         </div>
         ${vbtCardMarkup(record)}
+        ${record.analysis?.velocityData ? velocityComparisonMarkup(profileRecords, record) : ""}
       </form>
     `;
     dialog.showModal();
