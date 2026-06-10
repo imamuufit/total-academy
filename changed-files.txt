@@ -1,13 +1,10 @@
-Platform Buddy v164 - changed files
+Platform Buddy v165 - changed files
 
-index.html
-video.js
-sw.js
-manifest.webmanifest
-changed-files.txt
-DIFF
+- index.html
+- styles.css
+- video.js
+- sw.js
+- manifest.webmanifest
 
-app.js: unchanged
-styles.css: unchanged
-platform-pr-v3: unchanged
-assets/images: not included
+Purpose:
+Qwik VBT型の1画面1タスク導線へ寄せるため、VBT Studioをウィザード型UIへ再構成しました。

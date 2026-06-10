@@ -1637,24 +1637,234 @@
     `;
   }
 
+
+  function vbtWizardInitialStep(record) {
+    const velocityData = record.analysis?.velocityData || {};
+    const measurement = velocityData.measurement || velocityData;
+    const hasResult = Boolean(velocityData.meanVelocity || velocityData.primaryVbtMetric || measurement.repMetrics?.length);
+    return hasResult ? "result" : "trim";
+  }
+
+  function vbtWizardStepLabel(step) {
+    return {
+      trim: "動画をトリミング",
+      "auto-detect-loading": "プレートを検出中",
+      "auto-detect-confirm": "プレートを確認",
+      "manual-plate": "プレートを指定",
+      "set-info": "セット情報",
+      analyzing: "解析中",
+      result: "VBT結果"
+    }[step] || "VBT";
+  }
+
+  function updateVbtWizardChrome(dialog) {
+    const state = vbtState(dialog);
+    const step = state.wizardStep || "trim";
+    dialog?.querySelectorAll("[data-vbt-step]").forEach((screen) => {
+      screen.classList.toggle("active", screen.dataset.vbtStep === step);
+    });
+    dialog?.querySelectorAll("[data-vbt-step-dot]").forEach((dot) => {
+      dot.classList.toggle("active", dot.dataset.vbtStepDot === step);
+      dot.classList.toggle("done", vbtWizardStepOrder(dot.dataset.vbtStepDot) < vbtWizardStepOrder(step));
+    });
+    const title = dialog?.querySelector("[data-vbt-wizard-title]");
+    if (title) title.textContent = vbtWizardStepLabel(step);
+    const guide = dialog?.querySelector("[data-vbt-video-guide]");
+    if (guide) guide.textContent = vbtWizardStepLabel(step);
+  }
+
+  function vbtWizardStepOrder(step) {
+    const order = ["trim", "auto-detect-loading", "auto-detect-confirm", "manual-plate", "set-info", "analyzing", "result"];
+    const index = order.indexOf(step);
+    return index >= 0 ? index : 0;
+  }
+
+  function setVbtWizardStep(dialog, step) {
+    if (!dialog) return;
+    setVbtState(dialog, { wizardStep: step });
+    updateVbtWizardChrome(dialog);
+    if (step === "manual-plate") {
+      const video = dialog.querySelector("video");
+      const state = vbtState(dialog);
+      if (video?.videoWidth && video?.videoHeight && !state.plateRoi) {
+        setVbtState(dialog, { plateRoi: defaultPlateRoi(video), trackingMode: "plate-roi-track" });
+      }
+      dialog.querySelector("[data-vbt-canvas]")?.classList.add("active", "roi-active");
+      drawVbtOverlay(dialog);
+      drawRoiPreview(dialog);
+    }
+    if (step === "auto-detect-confirm") {
+      dialog.querySelector("[data-vbt-canvas]")?.classList.add("active", "roi-active");
+      drawVbtOverlay(dialog);
+      drawRoiPreview(dialog);
+    }
+    const active = dialog.querySelector(`[data-vbt-step="${step}"]`);
+    active?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function getTrimDurationWarning(dialog, record) {
+    const state = vbtState(dialog);
+    const reps = Math.max(1, Number(record?.reps) || 1);
+    const start = hasFiniteNumber(state.trimStart) ? Number(state.trimStart) : 0;
+    const end = hasFiniteNumber(state.trimEnd) ? Number(state.trimEnd) : Number(dialog?.querySelector("video")?.duration);
+    const duration = end - start;
+    const max = reps * 7 + 4;
+    if (Number.isFinite(duration) && duration > max) {
+      return "解析範囲が長めです。セット前後の歩きや待機が混ざると速度が低く出ます。動作部分だけに絞ると精度が上がります。";
+    }
+    return "";
+  }
+
+  function detectPlateCandidateFromFrame(frame, options = {}) {
+    if (!frame?.ctx || !frame?.canvas) return null;
+    const { canvas, ctx, scale } = frame;
+    const width = canvas.width;
+    const height = canvas.height;
+    const data = ctx.getImageData(0, 0, width, height).data;
+    const minSide = Math.min(width, height);
+    const sizeMin = Math.max(28, Math.round(minSide * 0.14));
+    const sizeMax = Math.max(sizeMin + 4, Math.round(minSide * 0.30));
+    const lift = options.lift || "SQ";
+    const preferSides = lift === "OTHER" ? 0.05 : 0.18;
+    let best = null;
+    const luminanceAt = (x, y) => {
+      const index = (clamp(Math.round(y), 0, height - 1) * width + clamp(Math.round(x), 0, width - 1)) * 4;
+      return data[index] * 0.299 + data[index + 1] * 0.587 + data[index + 2] * 0.114;
+    };
+    for (let size = sizeMin; size <= sizeMax; size += Math.max(6, Math.round(sizeMin * 0.20))) {
+      const step = Math.max(8, Math.round(size * 0.32));
+      for (let y = Math.round(height * 0.08); y <= height - size - 2; y += step) {
+        for (let x = 2; x <= width - size - 2; x += step) {
+          const centerX = x + size / 2;
+          const centerY = y + size / 2;
+          const sideBias = Math.abs(centerX / width - 0.5) * preferSides * 100;
+          let dark = 0;
+          let edge = 0;
+          let samples = 0;
+          const sampleStep = Math.max(4, Math.round(size / 8));
+          for (let yy = y; yy < y + size; yy += sampleStep) {
+            for (let xx = x; xx < x + size; xx += sampleStep) {
+              const lum = luminanceAt(xx, yy);
+              const right = luminanceAt(xx + sampleStep, yy);
+              const down = luminanceAt(xx, yy + sampleStep);
+              if (lum < 92) dark += 1;
+              edge += Math.abs(lum - right) + Math.abs(lum - down);
+              samples += 1;
+            }
+          }
+          const darkRatio = samples ? dark / samples : 0;
+          const edgeScore = samples ? edge / samples : 0;
+          const topPenalty = centerY < height * 0.10 ? 20 : 0;
+          const score = darkRatio * 72 + edgeScore * 0.34 + sideBias - topPenalty;
+          if (!best || score > best.score) {
+            best = { x, y, width: size, height: size, score, darkRatio, edgeScore };
+          }
+        }
+      }
+    }
+    if (!best || best.score < 26) return null;
+    const roi = clampPlateRoi({
+      x: best.x / scale,
+      y: best.y / scale,
+      width: best.width / scale,
+      height: best.height / scale
+    }, Math.round(width / scale), Math.round(height / scale));
+    const confidence = best.score > 64 ? "high" : best.score > 42 ? "middle" : "low";
+    return { roi, score: best.score, confidence };
+  }
+
+  async function runAutoPlateDetection(button) {
+    const dialog = button.closest("dialog");
+    const video = dialog?.querySelector("video");
+    const record = await getVideoRecord(button.dataset.vbtAutoDetect);
+    if (!dialog || !video || !record) return;
+    const previousText = button.textContent;
+    try {
+      button.disabled = true;
+      button.textContent = "検出中...";
+      setVbtWizardStep(dialog, "auto-detect-loading");
+      const state = vbtState(dialog);
+      const start = hasFiniteNumber(state.trimStart) ? Number(state.trimStart) : 0;
+      await seekVideo(video, start + 0.05, 2500);
+      const frame = frameCanvas(video, 360);
+      const candidate = detectPlateCandidateFromFrame(frame, { lift: record.lift });
+      if (!candidate) {
+        setVbtState(dialog, {
+          autoDetectionConfidence: "failed",
+          autoDetectionMessage: "自動検出が難しいようです。手動で最大プレートを囲んでください。"
+        });
+        setVbtWizardStep(dialog, "manual-plate");
+        return;
+      }
+      setVbtState(dialog, {
+        plateRoi: candidate.roi,
+        autoPlateCandidate: candidate,
+        autoDetectionConfidence: candidate.confidence,
+        autoDetectionMessage: candidate.confidence === "low"
+          ? "候補は見つかりましたが、手動確認を推奨します。"
+          : "候補を検出しました。緑枠が最大プレートを囲んでいるか確認してください。",
+        trackingMode: "plate-roi-track"
+      });
+      const note = dialog.querySelector("[data-vbt-auto-note]");
+      if (note) note.textContent = vbtState(dialog).autoDetectionMessage;
+      setVbtWizardStep(dialog, "auto-detect-confirm");
+    } catch (error) {
+      setVbtState(dialog, {
+        autoDetectionConfidence: "failed",
+        autoDetectionMessage: error.message || "自動検出できませんでした。手動で指定してください。"
+      });
+      setVbtWizardStep(dialog, "manual-plate");
+    } finally {
+      button.disabled = false;
+      button.textContent = previousText;
+    }
+  }
+
+  function confirmAutoDetectedPlate(button) {
+    const dialog = button.closest("dialog");
+    if (!dialog) return;
+    const status = dialog.querySelector("[data-vbt-pick-status]");
+    if (status) status.textContent = "プレート候補を確定しました。";
+    setVbtWizardStep(dialog, "set-info");
+  }
+
+  function showManualPlateSelection(button) {
+    const dialog = button.closest("dialog");
+    if (!dialog) return;
+    setVbtWizardStep(dialog, "manual-plate");
+  }
+
   function vbtCardMarkup(record) {
     const velocityData = record.analysis?.velocityData || {};
     const calibration = velocityData.calibration || {};
     const measurement = velocityData.measurement || velocityData;
     const plateDiameterCm = hasFiniteNumber(calibration.plateDiameterCm) ? Number(calibration.plateDiameterCm) : DEFAULT_PLATE_DIAMETER_CM;
     const startGuide = getVbtStartGuide(record.lift);
+    const initialStep = vbtWizardInitialStep(record);
+    const resultMarkup = vbtResultMarkup({ ...measurement, ...velocityData, lift: record.lift, rpe: record.rpe });
+    const setSummary = `${liftLabel(record.lift)} ${formatNumber(record.weight)}kg × ${formatNumber(record.reps)} @${formatNumber(record.rpe)}`;
     return `
-      <section class="manual-vbt-card" data-vbt-card>
-        <div class="video-check-head">
-          <strong>VBT Studio</strong>
-          <small>プレート時系列追跡</small>
-        </div>
-        <section class="vbt-trim-panel">
-          <div class="video-check-head">
-            <strong>1. 動画をトリミング</strong>
-            <small>運動中だけに絞る</small>
+      <section class="manual-vbt-card vbt-wizard" data-vbt-card data-vbt-wizard-root>
+        <header class="vbt-wizard-header">
+          <div>
+            <span class="vbt-result-kicker">VBT WIZARD</span>
+            <strong data-vbt-wizard-title>${escapeHtml(vbtWizardStepLabel(initialStep))}</strong>
+            <p>1画面1タスクで、動画追加から結果保存まで進めます。</p>
           </div>
-          <p class="video-storage-note">1レップまたは複数レップの動作全体を残し、前後の不要部分だけを除きます。</p>
+          <div class="vbt-wizard-progress" aria-label="VBT手順">
+            <span data-vbt-step-dot="trim" class="${initialStep === "trim" ? "active" : ""}">1</span>
+            <span data-vbt-step-dot="auto-detect-confirm">2</span>
+            <span data-vbt-step-dot="set-info">3</span>
+            <span data-vbt-step-dot="result" class="${initialStep === "result" ? "active" : ""}">4</span>
+          </div>
+        </header>
+
+        <section class="vbt-wizard-screen ${initialStep === "trim" ? "active" : ""}" data-vbt-step="trim">
+          <div class="video-check-head">
+            <strong>動画をトリミング</strong>
+            <small>セット動作だけ残す</small>
+          </div>
+          <p class="video-storage-note">測定したいセット全体だけを残します。スクワットとベンチはトップから始まってOKです。</p>
           <div class="vbt-trim-sliders">
             <label><span>開始</span><input data-vbt-trim-range="start" type="range" min="0" max="1" step="0.01" value="0"></label>
             <label><span>終了</span><input data-vbt-trim-range="end" type="range" min="0" max="1" step="0.01" value="1"></label>
@@ -1664,12 +1874,42 @@
             <span data-vbt-trim-end>終了 ${escapeHtml(formatSeconds(measurement.trim?.end))}</span>
             <button class="text-button compact" type="button" data-vbt-preview-range>範囲を再生</button>
           </div>
-        </section>
-        <section class="vbt-roi-panel">
-          <div class="video-check-head">
-            <strong>2. ${escapeHtml(startGuide.title)}</strong>
-            <small>プレート追跡</small>
+          <p class="vbt-profile-note" data-vbt-trim-warning>長すぎる範囲は、セット前後の待機を速度計算に混ぜる原因になります。</p>
+          <div class="vbt-wizard-actions">
+            <button class="primary-button inline vbt-wizard-primary" type="button" data-vbt-auto-detect="${escapeHtml(record.id)}">決定してプレート検出</button>
           </div>
+        </section>
+
+        <section class="vbt-wizard-screen" data-vbt-step="auto-detect-loading">
+          <div class="vbt-wizard-loading">
+            <strong>プレートを検出中</strong>
+            <p>動画内の最大プレート位置を探しています。うまく検出できない時だけ、手動で指定できます。</p>
+          </div>
+        </section>
+
+        <section class="vbt-wizard-screen" data-vbt-step="auto-detect-confirm">
+          <div class="video-check-head">
+            <strong>プレートを確認</strong>
+            <small>自動検出β</small>
+          </div>
+          <p class="video-storage-note" data-vbt-auto-note>この緑枠が最大プレートを囲んでいれば「見えます」を押してください。</p>
+          <div class="vbt-roi-preview">
+            <canvas data-vbt-roi-preview-canvas></canvas>
+            <span>ROI拡大プレビュー</span>
+          </div>
+          <div class="vbt-wizard-actions three">
+            <button class="text-button" type="button" data-vbt-wizard-step="trim">戻る</button>
+            <button class="text-button" type="button" data-vbt-manual-plate>手動で調整</button>
+            <button class="primary-button inline vbt-wizard-primary" type="button" data-vbt-confirm-plate>見えます</button>
+          </div>
+        </section>
+
+        <section class="vbt-wizard-screen" data-vbt-step="manual-plate">
+          <div class="video-check-head">
+            <strong>${escapeHtml(startGuide.title)}</strong>
+            <small>手動補正</small>
+          </div>
+          <p class="video-storage-note">${escapeHtml(startGuide.shortGuide)} ${escapeHtml(startGuide.detailGuide)}</p>
           <div class="vbt-plate-controls">
             <label>プレート径
               <select data-vbt-plate-preset>
@@ -1680,14 +1920,12 @@
             </label>
             <label>直径 cm<input data-vbt-plate-cm type="number" inputmode="decimal" min="30" max="60" step="0.1" value="${escapeHtml(plateDiameterCm)}"></label>
           </div>
-          <p class="video-storage-note">${escapeHtml(startGuide.shortGuide)} ${escapeHtml(startGuide.detailGuide)}</p>
-          <p class="vbt-profile-note">最初に囲むのはボトムではなく、種目ごとのスタートポジションです。動画の最初をボトムに合わせる必要はありません。</p>
           <div class="vbt-roi-actions">
             <button class="text-button" type="button" data-vbt-roi-init>緑枠を表示</button>
-            <button class="primary-button inline" type="button" data-vbt-roi-track="${escapeHtml(record.id)}">3. プレートを追跡して解析</button>
-            <button class="text-button" type="button" data-vbt-reset>やり直す</button>
+            <button class="text-button" type="button" data-vbt-wizard-step="trim">戻る</button>
+            <button class="primary-button inline" type="button" data-vbt-confirm-plate>このプレートで進む</button>
           </div>
-          <details class="vbt-roi-nudge">
+          <details class="vbt-roi-nudge" open>
             <summary>緑枠を微調整</summary>
             <div class="vbt-nudge-grid">
               <button class="text-button" type="button" data-vbt-roi-nudge="up" aria-label="上へ">↑</button>
@@ -1701,30 +1939,61 @@
               <button class="text-button" type="button" data-vbt-roi-nudge="shorter">縦幅−</button>
               <button class="text-button" type="button" data-vbt-roi-nudge="taller">縦幅＋</button>
             </div>
-            <p>1タップ2px。指で合わせた後の仕上げに使います。</p>
+            <p>表示用の丸は小さく、タップ判定は広く残しています。指で合わせた後の仕上げに使います。</p>
           </details>
           <div class="vbt-roi-preview">
             <canvas data-vbt-roi-preview-canvas></canvas>
             <span>ROI拡大プレビュー</span>
           </div>
+          <div class="vbt-markers"><span data-vbt-pick-status>${calibration.plateRoi ? "緑枠を保存済み" : "緑枠は未設定"}</span></div>
         </section>
-        <div class="vbt-markers">
-          <span data-vbt-pick-status>${calibration.plateRoi ? "緑枠を保存済み" : "緑枠は未設定"}</span>
-        </div>
-        <details class="compact-guide vbt-auto-details">
-          <summary>自動検出が難しいとき</summary>
-          <p>緑枠とトリミングを見直し、難しい場合だけ手動2点で確認します。</p>
-          <div class="vbt-controls">
-            <button class="text-button" type="button" data-vbt-pick="start">開始点を選ぶ</button>
-            <button class="text-button" type="button" data-vbt-pick="end">終了点を選ぶ</button>
-            <button class="primary-button inline" type="button" data-vbt-manual="${escapeHtml(record.id)}">手動2点で確認</button>
+
+        <section class="vbt-wizard-screen" data-vbt-step="set-info">
+          <div class="video-check-head">
+            <strong>セット情報</strong>
+            <small>${escapeHtml(setSummary)}</small>
           </div>
-        </details>
-        <div class="motion-result vbt-result" data-vbt-result>${vbtResultMarkup({ ...measurement, ...velocityData, lift: record.lift, rpe: record.rpe })}</div>
+          <div class="vbt-set-summary-card">
+            <span>${escapeHtml(liftLabel(record.lift))}</span>
+            <strong>${escapeHtml(formatNumber(record.weight))}kg × ${escapeHtml(formatNumber(record.reps))}</strong>
+            <em>@${escapeHtml(formatNumber(record.rpe))}</em>
+            <p>セット情報はLOGの動画ノートに保存されている内容を使います。必要なら動画ノート側で修正してください。</p>
+          </div>
+          <details class="compact-guide vbt-auto-details">
+            <summary>自動検出が難しいとき</summary>
+            <p>緑枠とトリミングを見直し、難しい場合だけ手動2点で確認します。</p>
+            <div class="vbt-controls">
+              <button class="text-button" type="button" data-vbt-pick="start">開始点を選ぶ</button>
+              <button class="text-button" type="button" data-vbt-pick="end">終了点を選ぶ</button>
+              <button class="primary-button inline" type="button" data-vbt-manual="${escapeHtml(record.id)}">手動2点で確認</button>
+            </div>
+          </details>
+          <div class="vbt-wizard-actions">
+            <button class="text-button" type="button" data-vbt-manual-plate>プレートを調整</button>
+            <button class="primary-button inline vbt-wizard-primary" type="button" data-vbt-roi-track="${escapeHtml(record.id)}">解析する</button>
+          </div>
+        </section>
+
+        <section class="vbt-wizard-screen" data-vbt-step="analyzing">
+          <div class="vbt-wizard-loading">
+            <strong>解析中</strong>
+            <p>プレート軌跡からレップを検出し、下降速度・挙上速度・速度低下を計算しています。</p>
+          </div>
+        </section>
+
+        <section class="vbt-wizard-screen ${initialStep === "result" ? "active" : ""}" data-vbt-step="result">
+          <div class="video-check-head">
+            <strong>VBT結果</strong>
+            <small>最終Rep・速度低下・次セット判断</small>
+          </div>
+          <div class="motion-result vbt-result" data-vbt-result>${resultMarkup}</div>
+          <div class="vbt-wizard-actions">
+            <button class="text-button" type="button" data-vbt-wizard-step="trim">やり直す</button>
+          </div>
+        </section>
       </section>
     `;
   }
-
 
   function initialVbtState(record) {
     const velocityData = record.analysis?.velocityData || {};
@@ -1744,7 +2013,11 @@
       startTime: hasFiniteNumber(measurement.startTime) ? Number(measurement.startTime) : null,
       endTime: hasFiniteNumber(measurement.endTime) ? Number(measurement.endTime) : null,
       trimStart: hasFiniteNumber(measurement.trim?.start) ? Number(measurement.trim.start) : null,
-      trimEnd: hasFiniteNumber(measurement.trim?.end) ? Number(measurement.trim.end) : null
+      trimEnd: hasFiniteNumber(measurement.trim?.end) ? Number(measurement.trim.end) : null,
+      wizardStep: record?.id ? vbtWizardInitialStep(record) : "trim",
+      autoPlateCandidate: null,
+      autoDetectionConfidence: "unknown",
+      autoDetectionMessage: null
     };
   }
 
@@ -2141,7 +2414,11 @@
       startTime: null,
       endTime: null,
       trimStart: null,
-      trimEnd: null
+      trimEnd: null,
+      wizardStep: "trim",
+      autoPlateCandidate: null,
+      autoDetectionConfidence: "unknown",
+      autoDetectionMessage: null
     });
     const resultBox = dialog.querySelector("[data-vbt-result]");
     if (resultBox) resultBox.innerHTML = vbtResultMarkup(null);
@@ -2174,6 +2451,13 @@
       input.value = input.dataset.vbtTrimRange === "start" ? String(startValue) : String(endValue);
     });
     setVbtState(dialog, { trimStart: startValue, trimEnd: endValue });
+    const warning = dialog.querySelector("[data-vbt-trim-warning]");
+    if (warning) {
+      const id = dialog.querySelector("[data-vbt-auto-detect]")?.dataset.vbtAutoDetect;
+      getVideoRecord(id).then((record) => {
+        warning.textContent = getTrimDurationWarning(dialog, record || {});
+      }).catch(() => {});
+    }
   }
 
   function handleTrimRange(input) {
@@ -2235,6 +2519,7 @@
     const resultBox = dialog?.querySelector("[data-vbt-result]");
     if (!record || !dialog || !resultBox) return;
     try {
+      setVbtWizardStep(dialog, "analyzing");
       button.disabled = true;
       button.textContent = "計測中...";
       const guide = dialog.querySelector("[data-vbt-video-guide]");
@@ -2324,6 +2609,7 @@
       const profileRecords = await loadVbtRecords();
       resultBox.innerHTML = vbtResultMarkup({ ...velocityData, ...velocityData.measurement, lift: record.lift, rpe: record.rpe })
         + velocityComparisonMarkup(profileRecords, savedVbtRecord);
+      setVbtWizardStep(dialog, "result");
       resultBox.scrollIntoView({ behavior: "smooth", block: "start" });
       button.textContent = "保存しました";
       const idleLabel = mode === "manual-2point" ? "手動2点で確認" : mode === "plate-roi-track" ? "3. プレートを追跡して解析" : "中心点追跡β";
@@ -2331,7 +2617,8 @@
       renderLibrary();
       renderVbtHistory();
     } catch (error) {
-      resultBox.innerHTML = `<p>${escapeHtml(error.message || "速度を計算できませんでした。")}</p>`;
+      setVbtWizardStep(dialog, "result");
+      resultBox.innerHTML = `<section class="vbt-error-card"><strong>解析できませんでした</strong><p>${escapeHtml(error.message || "速度を計算できませんでした。")}</p><button class="text-button" type="button" data-vbt-manual-plate>プレートを調整</button></section>`;
       const guide = dialog.querySelector("[data-vbt-video-guide]");
       if (guide) guide.textContent = error.message || "緑枠と測定範囲を確認してください";
       button.textContent = mode === "manual-2point" ? "手動2点で確認" : mode === "plate-roi-track" ? "3. プレートを追跡して解析" : "中心点追跡β";
@@ -2512,6 +2799,7 @@
       </form>
     `;
     dialog.showModal();
+    updateVbtWizardChrome(dialog);
     const video = dialog.querySelector("video");
     const videoStatus = dialog.querySelector("[data-vbt-video-status]");
     video?.addEventListener("loadedmetadata", () => {
@@ -2674,6 +2962,14 @@
   els.compareBtn.addEventListener("click", renderComparison);
   els.library.addEventListener("click", handleLibraryClick);
   document.addEventListener("click", (event) => {
+    const wizardStep = event.target.closest("[data-vbt-wizard-step]");
+    if (wizardStep) return setVbtWizardStep(wizardStep.closest("dialog"), wizardStep.dataset.vbtWizardStep);
+    const autoDetect = event.target.closest("[data-vbt-auto-detect]");
+    if (autoDetect) return runAutoPlateDetection(autoDetect);
+    const confirmPlate = event.target.closest("[data-vbt-confirm-plate]");
+    if (confirmPlate) return confirmAutoDetectedPlate(confirmPlate);
+    const manualPlate = event.target.closest("[data-vbt-manual-plate]");
+    if (manualPlate) return showManualPlateSelection(manualPlate);
     const roiNudge = event.target.closest("[data-vbt-roi-nudge]");
     if (roiNudge) return nudgePlateRoi(roiNudge.closest("dialog"), roiNudge.dataset.vbtRoiNudge, 2);
     const roiInit = event.target.closest("[data-vbt-roi-init]");

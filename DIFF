@@ -1,43 +1,40 @@
-Platform Buddy v164
-VBT result Hero missing-value hotfix
+Platform Buddy v165
 
-Summary
-- Made the VBT result Hero distinguish missing rep detection from a real detected value of zero.
-- Aligned the Hero rep display with VBT history/library cards.
-- Applied the same missing-value rule to Hero velocity values and velocity loss.
-- Updated PWA cache/query versions to v164.
+Summary:
+- Reworked VBT Studio into a wizard-style flow instead of showing trim, plate settings, ROI controls, analysis, and result in one long panel.
+- New flow: trim video -> auto plate detection beta -> confirm plate / manual adjust -> set info confirmation -> analyzing -> result.
+- Added auto plate detection beta using a browser-side frame heuristic. It proposes an ROI candidate first and only exposes manual ROI adjustment when needed.
+- Added wizard step state and UI helpers: setVbtWizardStep, updateVbtWizardChrome, runAutoPlateDetection, detectPlateCandidateFromFrame, confirmAutoDetectedPlate, showManualPlateSelection.
+- Kept existing plate ROI tracking, rep detection, Hero result, velocity loss, and Buddy judgement logic intact.
+- Kept manual 2-point fallback inside the set information step as an emergency route.
+- Added v165 wizard CSS for step screens, progress dots, loading screen, sticky mobile actions, and set summary card.
+- Updated PWA cache/query versions to v165.
 
-video.js
-- Updated renderVbtResultHero().
-- Detected/input rep display:
-  - Detected and expected available: 3/3
-  - Detection unavailable and expected available: --/3
-  - Real zero detected and expected available: 0/3
-  - Both unavailable: --
-- Removed the old detectedReps || 0 fallback.
-- Uses hasFiniteNumber() before converting Hero values.
-- Preserves a real velocity-loss value of 0%.
-- Prevents missing last-rep, best-rep, set-average, or velocity-loss values from appearing as zero.
+Files changed:
+- index.html
+  - Updated asset query versions to v165.
 
-index.html / sw.js / manifest.webmanifest
-- Updated styles.css, app.js, and video.js query versions to v164.
-- Updated service-worker cache name and cached URLs to v164.
-- Updated manifest start_url to v164.
-
-Unchanged
-- app.js
 - styles.css
-- localStorage key platform-pr-v3
-- Main app save structure
-- VBT calculation and tracking logic
-- PLAN / LOG / DATA / MEET core logic
-- Buddy Method logic
+  - Added VBT wizard layout styles.
+  - Added active/hidden step screen behavior.
+  - Added wizard loading state and progress styles.
+  - Added mobile-first sticky action area.
 
-Verification
-- video.js syntax check: passed
-- app.js syntax check: passed
-- sw.js syntax check: passed
-- manifest JSON parse: passed
-- Old Hero detectedReps || 0 fallback: removed
-- app.js and styles.css hashes unchanged from v163
-- PWA version alignment: v164
+- video.js
+  - Added VBT wizard step management.
+  - Replaced long VBT Studio panel with separate wizard screens.
+  - Added auto plate detection beta before manual ROI.
+  - Added confirm/manual plate route.
+  - Move result display to its own screen.
+  - On analysis success or failure, the UI now moves to the result screen.
+
+- sw.js
+  - Updated CACHE_NAME and cached URLs to v165.
+
+- manifest.webmanifest
+  - Updated start_url to ./index.html?v=165.
+
+Known notes:
+- The auto plate detection is a lightweight browser heuristic, not a trained AI model.
+- If auto detection is low confidence or fails, the manual plate screen remains available.
+- Existing VBT calculation and storage structure were not intentionally redesigned in this patch.

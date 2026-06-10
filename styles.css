@@ -17303,3 +17303,188 @@ html body .vbt-rep-timeline span {
     gap: 5px;
   }
 }
+
+/* v165 VBT wizard flow -------------------------------------------------- */
+html body .vbt-wizard {
+  display: grid;
+  gap: 14px;
+}
+
+html body .vbt-wizard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  border: 1px solid rgba(23, 23, 23, 0.10);
+  border-radius: 18px;
+  padding: 14px;
+  background: linear-gradient(135deg, rgba(255, 250, 242, 0.98), rgba(249, 241, 226, 0.94));
+}
+
+html body .vbt-wizard-header strong {
+  display: block;
+  font-size: clamp(1.05rem, 4vw, 1.35rem);
+  font-weight: 950;
+  color: var(--text-main, #171717);
+}
+
+html body .vbt-wizard-header p {
+  margin: 5px 0 0;
+  color: var(--text-sub, #526179);
+  font-size: 0.84rem;
+  font-weight: 750;
+}
+
+html body .vbt-wizard-progress {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+html body .vbt-wizard-progress span {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 2px solid rgba(23, 23, 23, 0.18);
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--text-sub, #526179);
+  font-size: 0.78rem;
+  font-weight: 950;
+}
+
+html body .vbt-wizard-progress span.active {
+  background: #171717;
+  border-color: #171717;
+  color: #fffaf2;
+}
+
+html body .vbt-wizard-progress span.done {
+  background: rgba(34, 197, 94, 0.14);
+  border-color: rgba(34, 197, 94, 0.85);
+  color: #166534;
+}
+
+html body .vbt-wizard-screen {
+  display: none;
+  gap: 12px;
+  border: 1px solid rgba(23, 23, 23, 0.10);
+  border-radius: 18px;
+  padding: 14px;
+  background: rgba(255, 250, 242, 0.95);
+}
+
+html body .vbt-wizard-screen.active {
+  display: grid;
+}
+
+html body .vbt-wizard-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+html body .vbt-wizard-actions.three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+html body .vbt-wizard-actions .vbt-wizard-primary,
+html body .vbt-wizard-primary {
+  min-height: 48px;
+  font-weight: 950;
+}
+
+html body .vbt-wizard-loading {
+  min-height: 220px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  gap: 10px;
+  border: 2px dashed rgba(23, 23, 23, 0.16);
+  border-radius: 18px;
+  padding: 20px;
+  background: rgba(23, 23, 23, 0.035);
+}
+
+html body .vbt-wizard-loading::before {
+  content: "";
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  border: 5px solid rgba(23, 23, 23, 0.12);
+  border-top-color: rgba(180, 35, 24, 0.88);
+  animation: vbtWizardSpin 0.8s linear infinite;
+}
+
+@keyframes vbtWizardSpin {
+  to { transform: rotate(360deg); }
+}
+
+html body .vbt-wizard-loading strong {
+  font-size: 1.25rem;
+  font-weight: 950;
+}
+
+html body .vbt-wizard-loading p {
+  max-width: 34rem;
+  margin: 0;
+  color: var(--text-sub, #526179);
+  font-weight: 750;
+}
+
+html body .vbt-set-summary-card {
+  display: grid;
+  gap: 6px;
+  border-radius: 16px;
+  padding: 16px;
+  background: #171717;
+  color: #fffaf2;
+}
+
+html body .vbt-set-summary-card span,
+html body .vbt-set-summary-card em {
+  color: rgba(255, 250, 242, 0.74);
+  font-style: normal;
+  font-weight: 900;
+}
+
+html body .vbt-set-summary-card strong {
+  font-size: clamp(1.25rem, 6vw, 2rem);
+  font-weight: 950;
+}
+
+html body .vbt-set-summary-card p {
+  margin: 0;
+  color: rgba(255, 250, 242, 0.78);
+  font-size: 0.82rem;
+}
+
+@media (max-width: 767px) {
+  html body .vbt-wizard-header {
+    flex-direction: column;
+  }
+
+  html body .vbt-wizard-progress {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  html body .vbt-wizard-screen {
+    min-height: min(620px, 72vh);
+    align-content: start;
+  }
+
+  html body .vbt-wizard-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    padding: 10px 0 0;
+    background: linear-gradient(180deg, rgba(255,250,242,0), rgba(255,250,242,0.98) 24%);
+  }
+
+  html body .vbt-wizard-actions.three {
+    grid-template-columns: 1fr;
+  }
+}
