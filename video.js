@@ -29,7 +29,7 @@
     lift: document.querySelector("#videoLiftInput"),
     date: document.querySelector("#videoDateInput"),
     weight: document.querySelector("#videoWeightInput"),
-    reps: document.querySelector("#videoRepsInput"),
+    reps: document.querySelector("#videoRepsInput"), // optional: reps are now auto-detected from VBT analysis
     rpe: document.querySelector("#videoRpeInput"),
     setType: document.querySelector("#videoSetTypeInput"),
     storageStatus: document.querySelector("#videoStorageStatus"),
@@ -340,7 +340,7 @@
       lift: record?.lift || velocityData.lift || "OTHER",
       liftLabel: liftLabel(record?.lift || velocityData.lift),
       weightKg: Number(record?.weightKg ?? record?.weight ?? velocityData.weight) || 0,
-      reps: Number(record?.reps ?? velocityData.reps) || 0,
+      reps: Number(measurement.detectedReps ?? primaryVbtMetric.repCountDetected ?? record?.reps ?? velocityData.reps) || 0,
       subjectiveRpe: hasFiniteNumber(record?.subjectiveRpe ?? record?.rpe ?? velocityData.rpe) ? Number(record?.subjectiveRpe ?? record?.rpe ?? velocityData.rpe) : null,
       tag: record?.tag || record?.setType || null,
       averageVelocity: Number.isFinite(profileVelocity) ? profileVelocity : null,
@@ -699,7 +699,63 @@
     return turns;
   }
 
-  function detectRepPhases(path, lift, expectedReps) {
+  function movementSegmentsFromPath(path) {
+    if (!Array.isArray(path) || path.length < 4) return [];
+    const yValues = path.map((point) => Number(point.y)).filter(Number.isFinite);
+    const yRange = yValues.length ? Math.max(...yValues) - Math.min(...yValues) : 0;
+    const jitter = Math.max(0.45, yRange * 0.006);
+    const minTravel = Math.max(3, yRange * 0.10);
+    const minDuration = 0.12;
+    const maxStillGap = 2;
+    const segments = [];
+    let current = null;
+    let stillCount = 0;
+
+    const closeCurrent = (endIndex) => {
+      if (!current) return;
+      const safeEnd = Math.max(current.startIndex + 1, Math.min(endIndex, path.length - 1));
+      const travel = Math.abs(Number(path[safeEnd].y) - Number(path[current.startIndex].y));
+      const duration = Number(path[safeEnd].time) - Number(path[current.startIndex].time);
+      if (travel >= minTravel && duration >= minDuration) {
+        segments.push({
+          ...current,
+          endIndex: safeEnd,
+          travel,
+          duration,
+          startTime: path[current.startIndex].time,
+          endTime: path[safeEnd].time
+        });
+      }
+      current = null;
+      stillCount = 0;
+    };
+
+    for (let index = 1; index < path.length; index += 1) {
+      const delta = Number(path[index].y) - Number(path[index - 1].y);
+      const direction = Math.abs(delta) <= jitter ? 0 : Math.sign(delta);
+      if (!direction) {
+        if (current) {
+          stillCount += 1;
+          if (stillCount > maxStillGap) closeCurrent(index - stillCount);
+        }
+        continue;
+      }
+      if (!current) {
+        current = { direction, startIndex: Math.max(0, index - 1) };
+        stillCount = 0;
+        continue;
+      }
+      if (direction !== current.direction) {
+        closeCurrent(index - 1);
+        current = { direction, startIndex: Math.max(0, index - 1) };
+      }
+      stillCount = 0;
+    }
+    closeCurrent(path.length - 1);
+    return segments;
+  }
+
+  function detectRepPhasesByTurns(path, lift, expectedReps) {
     const smoothed = smoothTrackPath(path);
     if (smoothed.length < 5) return [];
     const guide = getVbtStartGuide(lift);
@@ -738,9 +794,50 @@
     return phases;
   }
 
+  function detectRepPhases(path, lift, expectedReps) {
+    const smoothed = smoothTrackPath(path);
+    if (smoothed.length < 5) return [];
+    const guide = getVbtStartGuide(lift);
+    const pattern = guide.movementPattern === "auto" ? "top-bottom-top" : guide.movementPattern;
+    const segments = movementSegmentsFromPath(smoothed);
+    const phases = [];
+    const limit = Number(expectedReps) > 0 ? Number(expectedReps) : Infinity;
+
+    if (pattern === "bottom-top-bottom") {
+      for (let index = 0; index < segments.length && phases.length < limit; index += 1) {
+        const concentric = segments[index];
+        if (!concentric || concentric.direction !== -1) continue;
+        const eccentric = segments.slice(index + 1).find((segment) => segment.direction === 1) || null;
+        phases.push({
+          repIndex: phases.length + 1,
+          concentric: { startIndex: concentric.startIndex, endIndex: concentric.endIndex },
+          eccentric: eccentric ? { startIndex: eccentric.startIndex, endIndex: eccentric.endIndex } : null,
+          restBeforeSeconds: phases.length ? Math.max(0, Number(smoothed[concentric.startIndex].time) - Number(smoothed[phases.at(-1).eccentric?.endIndex ?? phases.at(-1).concentric.endIndex]?.time)) : null
+        });
+        if (eccentric) index = segments.findIndex((segment) => segment.startIndex === eccentric.startIndex);
+      }
+    } else {
+      for (let index = 0; index < segments.length && phases.length < limit; index += 1) {
+        const eccentric = segments[index];
+        if (!eccentric || eccentric.direction !== 1) continue;
+        const concentric = segments.slice(index + 1).find((segment) => segment.direction === -1) || null;
+        if (!concentric) continue;
+        phases.push({
+          repIndex: phases.length + 1,
+          eccentric: { startIndex: eccentric.startIndex, endIndex: eccentric.endIndex },
+          concentric: { startIndex: concentric.startIndex, endIndex: concentric.endIndex },
+          restBeforeSeconds: phases.length ? Math.max(0, Number(smoothed[eccentric.startIndex].time) - Number(smoothed[phases.at(-1).concentric.endIndex].time)) : null
+        });
+        index = segments.findIndex((segment) => segment.startIndex === concentric.startIndex);
+      }
+    }
+
+    return phases.length ? phases : detectRepPhasesByTurns(path, lift, expectedReps);
+  }
+
   function getTrimLengthWarning(lift, reps, durationSeconds) {
-    const expected = Math.max(1, Number(reps) || 1);
-    const max = expected * 7 + 4;
+    const expected = Number(reps);
+    const max = Number.isFinite(expected) && expected > 0 ? expected * 9 + 6 : 35;
     if (Number(durationSeconds) > max) {
       return "解析範囲が長めです。セット前後の歩きや待機を除くと精度が上がります。";
     }
@@ -895,7 +992,8 @@
         eccentric,
         concentric,
         totalRomMeters,
-        pauseDuration: Math.max(0, (concentric?.startTime || 0) - (eccentric?.endTime || 0)) || null,
+        pauseDuration: eccentric && concentric ? (Math.max(0, (concentric.startTime || 0) - (eccentric.endTime || 0)) || null) : null,
+        restBeforeSeconds: phase.restBeforeSeconds || null,
         confidence: "high",
         warning: null
       };
@@ -1201,10 +1299,11 @@
       throw new Error("プレートの上下移動を捉えられませんでした。緑枠と測定範囲を確認してください。");
     }
     const metersPerPixel = (plateDiameterCm / 100) / plateDiameterPixels;
-    const repPhases = detectRepPhases(path, record.lift, record.reps);
-    const repMetrics = calculateRepVelocityMetrics(repPhases, { path, metersPerPixel, lift: record.lift, expectedReps: record.reps });
+    const repPhases = detectRepPhases(path, record.lift, null);
+    const repMetrics = calculateRepVelocityMetrics(repPhases, { path, metersPerPixel, lift: record.lift, expectedReps: null });
+    const detectedRepCount = repMetrics.length;
     const primaryVbtMetric = getPrimaryVbtMetric(repMetrics);
-    const repWarning = validateRepDetection(repMetrics, record.reps);
+    const repWarning = validateRepDetection(repMetrics, null);
     const concentricVelocities = repMetrics.map((metric) => metric.concentric?.meanVelocity).filter(Number.isFinite);
     const distanceMeters = repMetrics.length
       ? repMetrics.reduce((sum, metric) => sum + metric.totalRomMeters, 0) / repMetrics.length
@@ -1221,13 +1320,13 @@
       verticalTravelPixels,
       pathTravelPixels,
       scores: rawPath.map((point) => point.score),
-      expectedReps: record.reps
+      expectedReps: detectedRepCount || 1
     });
     const trackingWarning = [
       aspectWarning,
       trackingConfidence === "low" ? "追跡の信頼度が低めです。手動2点測定でも確認してください。" : null,
       repWarning || null,
-      getTrimLengthWarning(record.lift, record.reps, durationSeconds)
+      getTrimLengthWarning(record.lift, detectedRepCount || null, durationSeconds)
     ].filter(Boolean).join(" ");
 
     return {
@@ -1237,7 +1336,7 @@
       trackingWarning: trackingWarning || null,
       lift: record.lift,
       weight: Number(record.weight) || null,
-      reps: Number(record.reps) || null,
+      reps: detectedRepCount || Number(record.reps) || null,
       rpe: Number(record.rpe) || null,
       calibration: {
         plateDiameterCm,
@@ -1251,8 +1350,8 @@
       measurement: {
         mode: "plate-roi-timeseries",
         lift: record.lift,
-        expectedReps: Number(record.reps) || null,
-        detectedReps: repMetrics.length,
+        expectedReps: null,
+        detectedReps: detectedRepCount,
         startRoi: plateRoi,
         startTime: start,
         endTime: end,
@@ -1665,18 +1764,31 @@
     const end = Number(measurement.endTime ?? measurement.trim?.end);
     const duration = end - start;
     if (!Number.isFinite(duration) || duration <= 0) return "";
-    const blocks = metrics.flatMap((metric) => [
+    const movementBlocks = metrics.flatMap((metric) => [
       metric.eccentric ? { type: "eccentric", rep: metric.repIndex, start: metric.eccentric.startTime, end: metric.eccentric.endTime } : null,
       metric.concentric ? { type: "concentric", rep: metric.repIndex, start: metric.concentric.startTime, end: metric.concentric.endTime } : null
-    ]).filter(Boolean).map((block) => {
+    ]).filter(Boolean).sort((a, b) => a.start - b.start);
+
+    const waitBlocks = [];
+    let cursor = start;
+    movementBlocks.forEach((block) => {
+      if (block.start - cursor >= Math.max(0.35, duration * 0.015)) {
+        waitBlocks.push({ type: "wait", start: cursor, end: block.start });
+      }
+      cursor = Math.max(cursor, block.end);
+    });
+    if (end - cursor >= Math.max(0.35, duration * 0.015)) waitBlocks.push({ type: "wait", start: cursor, end });
+
+    const blocks = [...waitBlocks, ...movementBlocks].map((block) => {
       const left = clamp(((block.start - start) / duration) * 100, 0, 100);
       const width = clamp(((block.end - block.start) / duration) * 100, 0.7, 100 - left);
+      if (block.type === "wait") return `<span class="wait" style="left:${left.toFixed(2)}%;width:${width.toFixed(2)}%" title="待機・呼吸・判定外"></span>`;
       return `<span class="${block.type}" style="left:${left.toFixed(2)}%;width:${width.toFixed(2)}%" title="Rep ${escapeHtml(block.rep)} ${block.type === "eccentric" ? "下降" : "挙上"}">R${escapeHtml(block.rep)} ${block.type === "eccentric" ? "↓" : "↑"}</span>`;
     }).join("");
     return `
       <div class="vbt-rep-timeline-wrap">
         <div class="vbt-rep-timeline">${blocks}</div>
-        <div class="vbt-timeline-legend"><span>下降</span><span>挙上</span><span>空白は待機・判定外</span></div>
+        <div class="vbt-timeline-legend"><span>下降</span><span>挙上</span><span>待機・呼吸</span></div>
       </div>
     `;
   }
@@ -2342,7 +2454,8 @@
     const startGuide = getVbtStartGuide(record.lift);
     const initialStep = vbtWizardInitialStep(record);
     const resultMarkup = vbtResultMarkup({ ...measurement, ...velocityData, lift: record.lift, rpe: record.rpe });
-    const setSummary = `${liftLabel(record.lift)} ${formatNumber(record.weight)}kg × ${formatNumber(record.reps)} @${formatNumber(record.rpe)}`;
+    const recordRepLabel = record.reps ? ` × ${formatNumber(record.reps)}` : " × AI判定";
+    const setSummary = `${liftLabel(record.lift)} ${formatNumber(record.weight)}kg${recordRepLabel} @${formatNumber(record.rpe)}`;
     return `
       <section class="manual-vbt-card vbt-wizard" data-vbt-card data-vbt-wizard-root>
         <section class="vbt-wizard-screen ${initialStep === "trim" ? "active" : ""}" data-vbt-step="trim">
@@ -2448,9 +2561,9 @@
           </div>
           <div class="vbt-set-summary-card">
             <span>${escapeHtml(liftLabel(record.lift))}</span>
-            <strong>${escapeHtml(formatNumber(record.weight))}kg × ${escapeHtml(formatNumber(record.reps))}</strong>
+            <strong>${escapeHtml(formatNumber(record.weight))}kg ${record.reps ? `× ${escapeHtml(formatNumber(record.reps))}` : "× AI判定"}</strong>
             <em>@${escapeHtml(formatNumber(record.rpe))}</em>
-            <p>セット情報はLOGの動画ノートに保存されている内容を使います。必要なら動画ノート側で修正してください。</p>
+            <p>レップ数は動画解析から自動判定します。重量・日付・RPEを確認して解析してください。</p>
           </div>
           <details class="compact-guide vbt-auto-details">
             <summary>自動検出が難しいとき</summary>
@@ -3230,6 +3343,13 @@
         warningType: status.warningType,
         warningMessage: status.warningMessage
       });
+      const detectedRepCount = velocityData.primaryVbtMetric?.repCountDetected
+        ?? velocityData.measurement?.detectedReps
+        ?? (velocityData.measurement?.repMetrics || []).length
+        ?? null;
+      if (Number.isFinite(Number(detectedRepCount)) && Number(detectedRepCount) > 0) {
+        record.reps = Number(detectedRepCount);
+      }
       record.analysis = { ...(record.analysis || {}), velocityData };
       record.updatedAt = new Date().toISOString();
       await saveVideoRecord(record);
@@ -3548,7 +3668,7 @@
       date: els.date.value || today(),
       lift: els.lift.value,
       weight: Number(els.weight.value || 0),
-      reps: Number(els.reps.value || 0),
+      reps: els.reps ? Number(els.reps.value || 0) : null,
       rpe: Number(els.rpe.value || 0),
       setType: els.setType.value,
       videoName: file.name,
