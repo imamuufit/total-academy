@@ -17526,3 +17526,103 @@ html body .vbt-quality-details li span + span::before {
   content: " / ";
   color: rgba(82, 97, 121, 0.72);
 }
+
+/* v167: VBT trim cursor and custom playback controls -------------------- */
+html body .vbt-custom-video-controls {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0 0;
+  border: 1px solid var(--line, #ded6c8);
+  border-radius: 14px;
+  background: rgba(255, 250, 242, 0.94);
+  padding: 8px 10px;
+}
+
+html body .vbt-custom-video-controls [data-vbt-time-readout] {
+  color: var(--text-main, #171717);
+  font-size: 0.82rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+html body .vbt-custom-video-controls input[type="range"] {
+  width: 100%;
+  min-height: 30px;
+  accent-color: var(--accent, #b42318);
+  touch-action: pan-x;
+}
+
+html body .vbt-trim-cursor-card {
+  display: grid;
+  gap: 10px;
+  border: 1px solid var(--line, #ded6c8);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.62);
+  padding: 12px;
+}
+
+html body .vbt-trim-track {
+  --trim-start: 0%;
+  --trim-end: 100%;
+  --playhead: 0%;
+  position: relative;
+  height: 18px;
+  border-radius: 999px;
+  background: rgba(23, 23, 23, 0.10);
+  overflow: hidden;
+}
+
+html body .vbt-trim-track::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  left: var(--trim-start);
+  right: calc(100% - var(--trim-end));
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgba(47, 111, 115, 0.82), rgba(180, 35, 24, 0.82));
+}
+
+html body .vbt-trim-track::after {
+  content: "";
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  left: var(--playhead);
+  width: 4px;
+  border-radius: 999px;
+  transform: translateX(-50%);
+  background: #171717;
+  box-shadow: 0 0 0 3px rgba(255, 250, 242, 0.95);
+}
+
+html body .vbt-trim-cursor-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+html body .vbt-trim-cursor-actions .text-button {
+  min-height: 42px;
+  font-weight: 950;
+}
+
+@media (max-width: 640px) {
+  html body .vbt-custom-video-controls {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  html body .vbt-custom-video-controls [data-vbt-time-readout] {
+    grid-column: 1 / -1;
+    order: 3;
+  }
+
+  html body .vbt-custom-video-controls input[type="range"] {
+    grid-column: 2;
+  }
+
+  html body .vbt-trim-cursor-actions {
+    grid-template-columns: 1fr;
+  }
+}

@@ -2000,13 +2000,22 @@
             <small>セット動作だけ残す</small>
           </div>
           <p class="video-storage-note">測定したいセット全体だけを残します。スクワットとベンチはトップから始まってOKです。</p>
-          <div class="vbt-trim-sliders">
-            <label><span>開始</span><input data-vbt-trim-range="start" type="range" min="0" max="1" step="0.01" value="0"></label>
-            <label><span>終了</span><input data-vbt-trim-range="end" type="range" min="0" max="1" step="0.01" value="1"></label>
+          <div class="vbt-trim-cursor-card">
+            <div class="vbt-trim-track" data-vbt-trim-track aria-hidden="true">
+              <span class="vbt-trim-track-range"></span>
+            </div>
+            <p class="video-storage-note">動画下の再生カーソルを動かし、現在位置を開始点・終了点として登録します。</p>
+            <div class="vbt-trim-cursor-actions">
+              <button class="text-button" type="button" data-vbt-set-trim-from-playhead="start">現在位置を開始にする</button>
+              <button class="text-button" type="button" data-vbt-set-trim-from-playhead="end">現在位置を終了にする</button>
+              <button class="text-button compact" type="button" data-vbt-jump-trim="start">開始へ</button>
+              <button class="text-button compact" type="button" data-vbt-jump-trim="end">終了へ</button>
+            </div>
           </div>
           <div class="vbt-trim-summary">
             <span data-vbt-trim-start>開始 ${escapeHtml(formatSeconds(measurement.trim?.start))}</span>
             <span data-vbt-trim-end>終了 ${escapeHtml(formatSeconds(measurement.trim?.end))}</span>
+            <span data-vbt-playhead-label>現在 ${escapeHtml(formatSeconds(0))}</span>
             <button class="text-button compact" type="button" data-vbt-preview-range>範囲を再生</button>
           </div>
           <p class="vbt-profile-note" data-vbt-trim-warning>長すぎる範囲は、セット前後の待機を速度計算に混ぜる原因になります。</p>
@@ -2569,6 +2578,106 @@
     drawVbtOverlay(dialog);
   }
 
+
+  function updateVbtPlaybackControls(dialog) {
+    const video = dialog?.querySelector("video");
+    if (!video) return;
+    const duration = Number(video.duration);
+    const current = Number(video.currentTime) || 0;
+    const playhead = dialog.querySelector("[data-vbt-playhead-range]");
+    if (playhead && Number.isFinite(duration) && duration > 0) {
+      playhead.max = String(duration);
+      playhead.value = String(clamp(current, 0, duration));
+    }
+    const readout = dialog.querySelector("[data-vbt-time-readout]");
+    if (readout) readout.textContent = `${formatSeconds(current)} / ${Number.isFinite(duration) ? formatSeconds(duration) : "0:00"}`;
+    const label = dialog.querySelector("[data-vbt-playhead-label]");
+    if (label) label.textContent = `現在 ${formatSeconds(current)}`;
+    const toggle = dialog.querySelector("[data-vbt-play-toggle]");
+    if (toggle) toggle.textContent = video.paused ? "再生" : "停止";
+    updateTrimTrack(dialog);
+  }
+
+  function updateTrimTrack(dialog) {
+    const video = dialog?.querySelector("video");
+    const track = dialog?.querySelector("[data-vbt-trim-track]");
+    if (!video || !track) return;
+    const duration = Number(video.duration);
+    if (!Number.isFinite(duration) || duration <= 0) return;
+    const state = vbtState(dialog);
+    const start = hasFiniteNumber(state.trimStart) ? Number(state.trimStart) : 0;
+    const end = hasFiniteNumber(state.trimEnd) ? Number(state.trimEnd) : duration;
+    const current = Number(video.currentTime) || 0;
+    track.style.setProperty("--trim-start", `${clamp((start / duration) * 100, 0, 100)}%`);
+    track.style.setProperty("--trim-end", `${clamp((end / duration) * 100, 0, 100)}%`);
+    track.style.setProperty("--playhead", `${clamp((current / duration) * 100, 0, 100)}%`);
+  }
+
+  function toggleVbtPlayback(button) {
+    const dialog = button.closest("dialog");
+    const video = dialog?.querySelector("video");
+    if (!video) return;
+    if (video.paused) video.play();
+    else video.pause();
+    updateVbtPlaybackControls(dialog);
+  }
+
+  function handleVbtPlayheadInput(input) {
+    const dialog = input.closest("dialog");
+    const video = dialog?.querySelector("video");
+    if (!video) return;
+    const value = Number(input.value);
+    if (Number.isFinite(value)) video.currentTime = clamp(value, 0, Number(video.duration) || value);
+    updateVbtPlaybackControls(dialog);
+    drawVbtOverlay(dialog);
+  }
+
+  function setTrimFromPlayhead(button) {
+    const dialog = button.closest("dialog");
+    const video = dialog?.querySelector("video");
+    if (!dialog || !video) return;
+    const duration = Number(video.duration);
+    if (!Number.isFinite(duration) || duration <= 0) return;
+    const state = vbtState(dialog);
+    let start = hasFiniteNumber(state.trimStart) ? Number(state.trimStart) : 0;
+    let end = hasFiniteNumber(state.trimEnd) ? Number(state.trimEnd) : duration;
+    const current = clamp(Number(video.currentTime) || 0, 0, duration);
+    const minimumRange = Math.min(0.5, duration * 0.15);
+    if (button.dataset.vbtSetTrimFromPlayhead === "start") {
+      start = Math.min(current, end - minimumRange);
+      start = clamp(start, 0, Math.max(0, duration - minimumRange));
+    } else {
+      end = Math.max(current, start + minimumRange);
+      end = clamp(end, Math.min(duration, start + minimumRange), duration);
+    }
+    setVbtState(dialog, {
+      trimStart: start,
+      trimEnd: end,
+      targetPoint: null,
+      startPoint: null,
+      endPoint: null,
+      path: [],
+      trackingConfidence: "unknown",
+      trackingMode: state.plateRoi ? "plate-roi-track" : "manual-2point"
+    });
+    syncTrimControls(dialog);
+    const status = dialog.querySelector("[data-vbt-pick-status]");
+    if (status) status.textContent = button.dataset.vbtSetTrimFromPlayhead === "start" ? "現在位置を開始にしました。" : "現在位置を終了にしました。";
+    drawVbtOverlay(dialog);
+  }
+
+  function jumpToTrimPoint(button) {
+    const dialog = button.closest("dialog");
+    const video = dialog?.querySelector("video");
+    if (!video) return;
+    const state = vbtState(dialog);
+    const target = button.dataset.vbtJumpTrim === "end" ? state.trimEnd : state.trimStart;
+    if (hasFiniteNumber(target)) video.currentTime = Number(target);
+    video.pause();
+    updateVbtPlaybackControls(dialog);
+    drawVbtOverlay(dialog);
+  }
+
   function syncTrimControls(dialog) {
     const video = dialog?.querySelector("video");
     const state = vbtState(dialog);
@@ -2586,6 +2695,7 @@
       input.value = input.dataset.vbtTrimRange === "start" ? String(startValue) : String(endValue);
     });
     setVbtState(dialog, { trimStart: startValue, trimEnd: endValue });
+    updateVbtPlaybackControls(dialog);
     const warning = dialog.querySelector("[data-vbt-trim-warning]");
     if (warning) {
       const id = dialog.querySelector("[data-vbt-auto-detect]")?.dataset.vbtAutoDetect;
@@ -2920,9 +3030,14 @@
           <button class="text-button" value="close" type="submit">閉じる</button>
         </div>
         <div class="vbt-video-frame">
-          <video controls playsinline preload="metadata" src="${escapeHtml(url)}"></video>
+          <video playsinline preload="metadata" src="${escapeHtml(url)}" data-vbt-video></video>
           <canvas class="vbt-overlay" data-vbt-canvas></canvas>
           <div class="vbt-video-guide" data-vbt-video-guide>1. 運動中だけに範囲を絞る</div>
+        </div>
+        <div class="vbt-custom-video-controls" data-vbt-custom-controls>
+          <button class="text-button compact" type="button" data-vbt-play-toggle>再生</button>
+          <span data-vbt-time-readout>0:00 / 0:00</span>
+          <input data-vbt-playhead-range type="range" min="0" max="1" step="0.01" value="0" aria-label="動画再生位置">
         </div>
         <p class="vbt-video-status" data-vbt-video-status>${escapeHtml(mediaStatusMessage("loading"))}</p>
         <div class="video-viewer-meta">
@@ -2940,16 +3055,21 @@
     video?.addEventListener("loadedmetadata", () => {
       if (videoStatus) videoStatus.textContent = mediaStatusMessage("ready");
       syncTrimControls(dialog);
+      updateVbtPlaybackControls(dialog);
       drawVbtOverlay(dialog);
     }, { once: true });
     video?.addEventListener("error", () => {
       if (videoStatus) videoStatus.textContent = mediaStatusMessage("error");
     }, { once: true });
-    video?.addEventListener("seeked", () => drawRoiPreview(dialog));
-    video?.addEventListener("pause", () => drawRoiPreview(dialog));
+    video?.addEventListener("timeupdate", () => updateVbtPlaybackControls(dialog));
+    video?.addEventListener("durationchange", () => updateVbtPlaybackControls(dialog));
+    video?.addEventListener("play", () => updateVbtPlaybackControls(dialog));
+    video?.addEventListener("pause", () => { updateVbtPlaybackControls(dialog); drawRoiPreview(dialog); });
+    video?.addEventListener("seeked", () => { updateVbtPlaybackControls(dialog); drawRoiPreview(dialog); });
     if (video?.readyState >= 1) {
       if (videoStatus) videoStatus.textContent = mediaStatusMessage("ready");
       syncTrimControls(dialog);
+      updateVbtPlaybackControls(dialog);
       drawVbtOverlay(dialog);
     }
   }
@@ -3105,6 +3225,12 @@
     if (confirmPlate) return confirmAutoDetectedPlate(confirmPlate);
     const manualPlate = event.target.closest("[data-vbt-manual-plate]");
     if (manualPlate) return showManualPlateSelection(manualPlate);
+    const playToggle = event.target.closest("[data-vbt-play-toggle]");
+    if (playToggle) return toggleVbtPlayback(playToggle);
+    const setTrim = event.target.closest("[data-vbt-set-trim-from-playhead]");
+    if (setTrim) return setTrimFromPlayhead(setTrim);
+    const jumpTrim = event.target.closest("[data-vbt-jump-trim]");
+    if (jumpTrim) return jumpToTrimPoint(jumpTrim);
     const roiNudge = event.target.closest("[data-vbt-roi-nudge]");
     if (roiNudge) return nudgePlateRoi(roiNudge.closest("dialog"), roiNudge.dataset.vbtRoiNudge, 2);
     const roiInit = event.target.closest("[data-vbt-roi-init]");
@@ -3140,6 +3266,7 @@
     if (!handleRoiPointerUp(event)) handleVbtCanvasPointer(event);
   });
   document.addEventListener("input", (event) => {
+    if (event.target.matches("[data-vbt-playhead-range]")) handleVbtPlayheadInput(event.target);
     if (event.target.matches("[data-vbt-trim-range]")) handleTrimRange(event.target);
     if (event.target.matches("[data-vbt-plate-preset]")) syncPlatePreset(event.target);
   });

@@ -1,11 +1,11 @@
---- v165_work/index.html	2026-06-10 11:29:34.924469543 +0000
-+++ v166_work/index.html	2026-06-10 11:46:07.649968561 +0000
+--- /mnt/data/v166_work/index.html	2026-06-10 11:46:07.649968561 +0000
++++ /mnt/data/v167_work/index.html	2026-06-10 11:55:56.485850196 +0000
 @@ -12,7 +12,7 @@
      <link rel="preload" as="image" href="home-bg-lite.jpg">
      <link rel="preload" as="image" href="icon-sheet-lite.jpg">
      <link rel="apple-touch-icon" href="apple-touch-icon.png">
--    <link rel="stylesheet" href="styles.css?v=165">
-+    <link rel="stylesheet" href="styles.css?v=166">
+-    <link rel="stylesheet" href="styles.css?v=166">
++    <link rel="stylesheet" href="styles.css?v=167">
    </head>
    <body>
      <div class="app-shell">
@@ -13,472 +13,353 @@
        </form>
      </dialog>
  
--    <script src="app.js?v=165"></script>
--    <script src="video.js?v=165"></script>
-+    <script src="app.js?v=166"></script>
-+    <script src="video.js?v=166"></script>
+-    <script src="app.js?v=166"></script>
+-    <script src="video.js?v=166"></script>
++    <script src="app.js?v=167"></script>
++    <script src="video.js?v=167"></script>
    </body>
  </html>
---- v165_work/styles.css	2026-06-10 11:31:07.346659439 +0000
-+++ v166_work/styles.css	2026-06-10 11:46:48.110674415 +0000
-@@ -17488,3 +17488,41 @@
-     grid-template-columns: 1fr;
-   }
+--- /mnt/data/v166_work/styles.css	2026-06-10 11:46:48.110674415 +0000
++++ /mnt/data/v167_work/styles.css	2026-06-10 11:55:53.477673337 +0000
+@@ -17526,3 +17526,103 @@
+   content: " / ";
+   color: rgba(82, 97, 121, 0.72);
  }
 +
-+/* v166: VBT quality notes stay compact; detailed warnings live behind an accordion. */
-+html body .vbt-quality-details {
-+  border: 1px solid var(--line, #ded6c8);
-+  border-radius: 12px;
-+  background: var(--surface-soft, #fff7e8);
-+  padding: 10px 12px;
-+  margin-top: 10px;
-+}
-+
-+html body .vbt-quality-details summary {
-+  cursor: pointer;
-+  font-weight: 950;
-+  color: var(--text-main, #171717);
-+}
-+
-+html body .vbt-quality-details ul {
++/* v167: VBT trim cursor and custom playback controls -------------------- */
++html body .vbt-custom-video-controls {
 +  display: grid;
-+  gap: 8px;
-+  margin: 10px 0 0;
-+  padding-left: 1.1rem;
++  grid-template-columns: auto auto minmax(0, 1fr);
++  align-items: center;
++  gap: 10px;
++  margin: 8px 0 0;
++  border: 1px solid var(--line, #ded6c8);
++  border-radius: 14px;
++  background: rgba(255, 250, 242, 0.94);
++  padding: 8px 10px;
 +}
 +
-+html body .vbt-quality-details li {
-+  color: var(--text-sub, #526179);
-+  font-size: 0.84rem;
-+  line-height: 1.55;
-+}
-+
-+html body .vbt-quality-details li strong {
++html body .vbt-custom-video-controls [data-vbt-time-readout] {
 +  color: var(--text-main, #171717);
-+  margin-right: 0.35rem;
++  font-size: 0.82rem;
++  font-weight: 900;
++  white-space: nowrap;
 +}
 +
-+html body .vbt-quality-details li span + span::before {
-+  content: " / ";
-+  color: rgba(82, 97, 121, 0.72);
++html body .vbt-custom-video-controls input[type="range"] {
++  width: 100%;
++  min-height: 30px;
++  accent-color: var(--accent, #b42318);
++  touch-action: pan-x;
 +}
---- v165_work/video.js	2026-06-10 11:30:38.079363730 +0000
-+++ v166_work/video.js	2026-06-10 11:46:07.648169642 +0000
-@@ -747,27 +747,61 @@
-     return null;
-   }
- 
--  function getRepQuality(metric) {
-+  function getRepQuality(metric, context = {}) {
-     const conMV = Number(metric.concentric?.meanVelocity);
-     const conPV = Number(metric.concentric?.peakVelocity);
-     const conDuration = Number(metric.concentric?.duration);
-     const rom = Number(metric.totalRomMeters);
-+    const expectedReps = Number(context.expectedReps);
-+    const detectedReps = Number(context.detectedReps);
-+    const trackingConfidence = context.trackingConfidence || "unknown";
-     const warnings = [];
-+    const notes = [];
-     const mvPvRatio = Number.isFinite(conMV) && Number.isFinite(conPV) && conPV > 0 ? conMV / conPV : null;
--    if (Number.isFinite(mvPvRatio) && mvPvRatio < 0.18) warnings.push("挙上MVとPVの差が大きく、区間検出がズレている可能性があります。");
--    if (Number.isFinite(conDuration) && conDuration > 6) warnings.push("挙上時間が長すぎます。不要な時間が混ざっている可能性があります。");
--    if (Number.isFinite(rom) && rom < 0.10) warnings.push("ROMが短く、プレート追跡が外れている可能性があります。");
--    if (Number.isFinite(rom) && rom > 1.20) warnings.push("ROMが大きすぎます。プレート径またはスケールを確認してください。");
-+    const romTooShort = Number.isFinite(rom) && rom < 0.08;
-+    const romTooLong = Number.isFinite(rom) && rom > 1.20;
-+    const durationVeryLong = Number.isFinite(conDuration) && conDuration > 8;
-+    const durationLong = Number.isFinite(conDuration) && conDuration > 6;
-+    const pvGapExtreme = Number.isFinite(mvPvRatio) && mvPvRatio < 0.12;
-+    const pvGapLarge = Number.isFinite(mvPvRatio) && mvPvRatio < 0.18;
-+    const repMismatch = Number.isFinite(expectedReps) && Number.isFinite(detectedReps) && expectedReps > 0 && detectedReps !== expectedReps;
 +
-+    if (romTooShort) warnings.push("ROMが短すぎます。プレート追跡が外れている可能性があります。");
-+    if (romTooLong) warnings.push("ROMが大きすぎます。プレート径またはスケールを確認してください。");
-+    if (pvGapExtreme && (durationLong || repMismatch || trackingConfidence === "low")) {
-+      warnings.push("挙上区間の検出確認が必要です。");
-+    } else if (pvGapLarge) {
-+      notes.push("挙上PVが高めです。参考値として確認してください。");
-+    }
-+    if (durationVeryLong) {
-+      warnings.push("挙上時間が長すぎます。セット前後の待機が混ざっている可能性があります。");
-+    } else if (durationLong) {
-+      notes.push("挙上時間が長めです。重いセットや停止を含む場合は正常なことがあります。");
-+    }
++html body .vbt-trim-cursor-card {
++  display: grid;
++  gap: 10px;
++  border: 1px solid var(--line, #ded6c8);
++  border-radius: 14px;
++  background: rgba(255, 255, 255, 0.62);
++  padding: 12px;
++}
 +
-+    const confidence = warnings.length ? "low" : notes.length ? "middle" : "high";
-     return {
-       mvPvRatio,
--      durationOk: !Number.isFinite(conDuration) || conDuration <= 6,
--      romOk: !Number.isFinite(rom) || (rom >= 0.10 && rom <= 1.20),
-+      durationOk: !durationVeryLong,
-+      romOk: !romTooShort && !romTooLong,
-       directionOk: Boolean(metric.concentric && metric.eccentric),
--      confidence: warnings.length ? "low" : "high",
--      warning: warnings.join(" ") || null
-+      confidence,
-+      warning: warnings.join(" ") || null,
-+      note: notes.join(" ") || null
-     };
-   }
- 
-+  function robustPeakVelocity(velocities) {
-+    const clean = (velocities || [])
-+      .map(Number)
-+      .filter(Number.isFinite)
-+      .filter((value) => value >= 0);
-+    if (!clean.length) return null;
-+    clean.sort((a, b) => a - b);
-+    const index = Math.min(clean.length - 1, Math.max(0, Math.floor(clean.length * 0.95)));
-+    return clean[index];
++html body .vbt-trim-track {
++  --trim-start: 0%;
++  --trim-end: 100%;
++  --playhead: 0%;
++  position: relative;
++  height: 18px;
++  border-radius: 999px;
++  background: rgba(23, 23, 23, 0.10);
++  overflow: hidden;
++}
++
++html body .vbt-trim-track::before {
++  content: "";
++  position: absolute;
++  inset-block: 0;
++  left: var(--trim-start);
++  right: calc(100% - var(--trim-end));
++  border-radius: inherit;
++  background: linear-gradient(90deg, rgba(47, 111, 115, 0.82), rgba(180, 35, 24, 0.82));
++}
++
++html body .vbt-trim-track::after {
++  content: "";
++  position: absolute;
++  top: -3px;
++  bottom: -3px;
++  left: var(--playhead);
++  width: 4px;
++  border-radius: 999px;
++  transform: translateX(-50%);
++  background: #171717;
++  box-shadow: 0 0 0 3px rgba(255, 250, 242, 0.95);
++}
++
++html body .vbt-trim-cursor-actions {
++  display: grid;
++  grid-template-columns: repeat(2, minmax(0, 1fr));
++  gap: 8px;
++}
++
++html body .vbt-trim-cursor-actions .text-button {
++  min-height: 42px;
++  font-weight: 950;
++}
++
++@media (max-width: 640px) {
++  html body .vbt-custom-video-controls {
++    grid-template-columns: auto minmax(0, 1fr);
 +  }
 +
-   function phaseVelocityMetric(path, phase, metersPerPixel) {
-     if (!phase || phase.endIndex <= phase.startIndex) return null;
-     const segment = path.slice(phase.startIndex, phase.endIndex + 1);
-@@ -783,11 +817,11 @@
-       duration,
-       distanceMeters,
-       meanVelocity: duration > 0 ? distanceMeters / duration : null,
--      peakVelocity: velocities.length ? Math.max(...velocities) : null
-+      peakVelocity: robustPeakVelocity(velocities)
-     };
++  html body .vbt-custom-video-controls [data-vbt-time-readout] {
++    grid-column: 1 / -1;
++    order: 3;
++  }
++
++  html body .vbt-custom-video-controls input[type="range"] {
++    grid-column: 2;
++  }
++
++  html body .vbt-trim-cursor-actions {
++    grid-template-columns: 1fr;
++  }
++}
+--- /mnt/data/v166_work/video.js	2026-06-10 11:46:07.648169642 +0000
++++ /mnt/data/v167_work/video.js	2026-06-10 11:55:17.583641943 +0000
+@@ -2000,13 +2000,22 @@
+             <small>セット動作だけ残す</small>
+           </div>
+           <p class="video-storage-note">測定したいセット全体だけを残します。スクワットとベンチはトップから始まってOKです。</p>
+-          <div class="vbt-trim-sliders">
+-            <label><span>開始</span><input data-vbt-trim-range="start" type="range" min="0" max="1" step="0.01" value="0"></label>
+-            <label><span>終了</span><input data-vbt-trim-range="end" type="range" min="0" max="1" step="0.01" value="1"></label>
++          <div class="vbt-trim-cursor-card">
++            <div class="vbt-trim-track" data-vbt-trim-track aria-hidden="true">
++              <span class="vbt-trim-track-range"></span>
++            </div>
++            <p class="video-storage-note">動画下の再生カーソルを動かし、現在位置を開始点・終了点として登録します。</p>
++            <div class="vbt-trim-cursor-actions">
++              <button class="text-button" type="button" data-vbt-set-trim-from-playhead="start">現在位置を開始にする</button>
++              <button class="text-button" type="button" data-vbt-set-trim-from-playhead="end">現在位置を終了にする</button>
++              <button class="text-button compact" type="button" data-vbt-jump-trim="start">開始へ</button>
++              <button class="text-button compact" type="button" data-vbt-jump-trim="end">終了へ</button>
++            </div>
+           </div>
+           <div class="vbt-trim-summary">
+             <span data-vbt-trim-start>開始 ${escapeHtml(formatSeconds(measurement.trim?.start))}</span>
+             <span data-vbt-trim-end>終了 ${escapeHtml(formatSeconds(measurement.trim?.end))}</span>
++            <span data-vbt-playhead-label>現在 ${escapeHtml(formatSeconds(0))}</span>
+             <button class="text-button compact" type="button" data-vbt-preview-range>範囲を再生</button>
+           </div>
+           <p class="vbt-profile-note" data-vbt-trim-warning>長すぎる範囲は、セット前後の待機を速度計算に混ぜる原因になります。</p>
+@@ -2569,6 +2578,106 @@
+     drawVbtOverlay(dialog);
    }
  
--  function calculateRepVelocityMetrics(repPhases, calibration) {
-+  function calculateRepVelocityMetrics(repPhases, calibration = {}) {
-     const path = calibration.path || [];
-     const metersPerPixel = Number(calibration.metersPerPixel);
-     return repPhases.map((phase) => {
-@@ -803,13 +837,19 @@
-         confidence: "high",
-         warning: null
-       };
--      const repQuality = getRepQuality(metric);
-+      const repQuality = getRepQuality(metric, {
-+        lift: calibration.lift,
-+        expectedReps: calibration.expectedReps,
-+        detectedReps: repPhases.length,
-+        trackingConfidence: calibration.trackingConfidence
-+      });
-       return {
-         ...metric,
-         confidence: repQuality.confidence,
-         warning: repQuality.warning,
-         qualityConfidence: repQuality.confidence,
-         qualityWarning: repQuality.warning,
-+        qualityNote: repQuality.note,
-         repQuality
-       };
++
++  function updateVbtPlaybackControls(dialog) {
++    const video = dialog?.querySelector("video");
++    if (!video) return;
++    const duration = Number(video.duration);
++    const current = Number(video.currentTime) || 0;
++    const playhead = dialog.querySelector("[data-vbt-playhead-range]");
++    if (playhead && Number.isFinite(duration) && duration > 0) {
++      playhead.max = String(duration);
++      playhead.value = String(clamp(current, 0, duration));
++    }
++    const readout = dialog.querySelector("[data-vbt-time-readout]");
++    if (readout) readout.textContent = `${formatSeconds(current)} / ${Number.isFinite(duration) ? formatSeconds(duration) : "0:00"}`;
++    const label = dialog.querySelector("[data-vbt-playhead-label]");
++    if (label) label.textContent = `現在 ${formatSeconds(current)}`;
++    const toggle = dialog.querySelector("[data-vbt-play-toggle]");
++    if (toggle) toggle.textContent = video.paused ? "再生" : "停止";
++    updateTrimTrack(dialog);
++  }
++
++  function updateTrimTrack(dialog) {
++    const video = dialog?.querySelector("video");
++    const track = dialog?.querySelector("[data-vbt-trim-track]");
++    if (!video || !track) return;
++    const duration = Number(video.duration);
++    if (!Number.isFinite(duration) || duration <= 0) return;
++    const state = vbtState(dialog);
++    const start = hasFiniteNumber(state.trimStart) ? Number(state.trimStart) : 0;
++    const end = hasFiniteNumber(state.trimEnd) ? Number(state.trimEnd) : duration;
++    const current = Number(video.currentTime) || 0;
++    track.style.setProperty("--trim-start", `${clamp((start / duration) * 100, 0, 100)}%`);
++    track.style.setProperty("--trim-end", `${clamp((end / duration) * 100, 0, 100)}%`);
++    track.style.setProperty("--playhead", `${clamp((current / duration) * 100, 0, 100)}%`);
++  }
++
++  function toggleVbtPlayback(button) {
++    const dialog = button.closest("dialog");
++    const video = dialog?.querySelector("video");
++    if (!video) return;
++    if (video.paused) video.play();
++    else video.pause();
++    updateVbtPlaybackControls(dialog);
++  }
++
++  function handleVbtPlayheadInput(input) {
++    const dialog = input.closest("dialog");
++    const video = dialog?.querySelector("video");
++    if (!video) return;
++    const value = Number(input.value);
++    if (Number.isFinite(value)) video.currentTime = clamp(value, 0, Number(video.duration) || value);
++    updateVbtPlaybackControls(dialog);
++    drawVbtOverlay(dialog);
++  }
++
++  function setTrimFromPlayhead(button) {
++    const dialog = button.closest("dialog");
++    const video = dialog?.querySelector("video");
++    if (!dialog || !video) return;
++    const duration = Number(video.duration);
++    if (!Number.isFinite(duration) || duration <= 0) return;
++    const state = vbtState(dialog);
++    let start = hasFiniteNumber(state.trimStart) ? Number(state.trimStart) : 0;
++    let end = hasFiniteNumber(state.trimEnd) ? Number(state.trimEnd) : duration;
++    const current = clamp(Number(video.currentTime) || 0, 0, duration);
++    const minimumRange = Math.min(0.5, duration * 0.15);
++    if (button.dataset.vbtSetTrimFromPlayhead === "start") {
++      start = Math.min(current, end - minimumRange);
++      start = clamp(start, 0, Math.max(0, duration - minimumRange));
++    } else {
++      end = Math.max(current, start + minimumRange);
++      end = clamp(end, Math.min(duration, start + minimumRange), duration);
++    }
++    setVbtState(dialog, {
++      trimStart: start,
++      trimEnd: end,
++      targetPoint: null,
++      startPoint: null,
++      endPoint: null,
++      path: [],
++      trackingConfidence: "unknown",
++      trackingMode: state.plateRoi ? "plate-roi-track" : "manual-2point"
++    });
++    syncTrimControls(dialog);
++    const status = dialog.querySelector("[data-vbt-pick-status]");
++    if (status) status.textContent = button.dataset.vbtSetTrimFromPlayhead === "start" ? "現在位置を開始にしました。" : "現在位置を終了にしました。";
++    drawVbtOverlay(dialog);
++  }
++
++  function jumpToTrimPoint(button) {
++    const dialog = button.closest("dialog");
++    const video = dialog?.querySelector("video");
++    if (!video) return;
++    const state = vbtState(dialog);
++    const target = button.dataset.vbtJumpTrim === "end" ? state.trimEnd : state.trimStart;
++    if (hasFiniteNumber(target)) video.currentTime = Number(target);
++    video.pause();
++    updateVbtPlaybackControls(dialog);
++    drawVbtOverlay(dialog);
++  }
++
+   function syncTrimControls(dialog) {
+     const video = dialog?.querySelector("video");
+     const state = vbtState(dialog);
+@@ -2586,6 +2695,7 @@
+       input.value = input.dataset.vbtTrimRange === "start" ? String(startValue) : String(endValue);
      });
-@@ -834,8 +874,34 @@
-     if (Number(expectedReps) > 0 && detected !== Number(expectedReps)) {
-       return `検出レップ数は${detected}/${Number(expectedReps)}です。トリミング範囲と緑枠を確認してください。`;
-     }
--    const warning = metrics.find((metric) => metric.warning)?.warning;
--    return warning || null;
-+    const warning = metrics.find((metric) => metric.qualityWarning || metric.warning);
-+    return warning?.qualityWarning || warning?.warning || null;
-+  }
-+
-+  function getRepQualityLabel(metric, isLast) {
-+    if (metric.qualityConfidence === "low" || metric.qualityWarning) return "区間確認";
-+    if (metric.qualityConfidence === "middle" || metric.qualityNote || metric.repQuality?.note) return "参考";
-+    if (isLast) return "Last";
-+    return "OK";
-+  }
-+
-+  function renderRepQualityDetails(metrics) {
-+    const items = (metrics || []).filter((metric) => metric.qualityWarning || metric.qualityNote || metric.repQuality?.note);
-+    if (!items.length) return "";
-+    return `
-+      <details class="vbt-quality-details">
-+        <summary>区間検出メモ</summary>
-+        <ul>
-+          ${items.map((metric) => `
-+            <li>
-+              <strong>Rep ${escapeHtml(metric.repIndex)}</strong>
-+              ${metric.qualityWarning ? `<span>${escapeHtml(metric.qualityWarning)}</span>` : ""}
-+              ${metric.qualityNote || metric.repQuality?.note ? `<span>${escapeHtml(metric.qualityNote || metric.repQuality.note)}</span>` : ""}
-+            </li>
-+          `).join("")}
-+        </ul>
-+      </details>
-+    `;
-   }
- 
-   function renderRepVelocityTable(metrics) {
-@@ -851,7 +917,7 @@
-               <td>${Number.isFinite(metric.concentric?.meanVelocity) ? metric.concentric.meanVelocity.toFixed(2) : "-"}</td>
-               <td>${Number.isFinite(metric.concentric?.peakVelocity) ? metric.concentric.peakVelocity.toFixed(2) : "-"}</td>
-               <td>${Number.isFinite(metric.totalRomMeters) ? `${Math.round(metric.totalRomMeters * 100)}cm` : "-"}</td>
--              <td>${escapeHtml(metric.warning || (metric.repIndex === metrics.length ? "Last" : "OK"))}</td>
-+              <td>${escapeHtml(getRepQualityLabel(metric, metric.repIndex === metrics.length))}</td>
-             </tr>`).join("")}
-           </tbody>
-         </table>
-@@ -1074,7 +1140,7 @@
-     }
-     const metersPerPixel = (plateDiameterCm / 100) / plateDiameterPixels;
-     const repPhases = detectRepPhases(path, record.lift, record.reps);
--    const repMetrics = calculateRepVelocityMetrics(repPhases, { path, metersPerPixel });
-+    const repMetrics = calculateRepVelocityMetrics(repPhases, { path, metersPerPixel, lift: record.lift, expectedReps: record.reps });
-     const primaryVbtMetric = getPrimaryVbtMetric(repMetrics);
-     const repWarning = validateRepDetection(repMetrics, record.reps);
-     const concentricVelocities = repMetrics.map((metric) => metric.concentric?.meanVelocity).filter(Number.isFinite);
-@@ -1483,7 +1549,7 @@
-           <span><small>速度低下</small><strong>${velocityLoss !== null ? `${velocityLoss.toFixed(0)}%` : "--"}</strong></span>
-           <span><small>検出/入力レップ</small><strong>${repDisplay}</strong></span>
+     setVbtState(dialog, { trimStart: startValue, trimEnd: endValue });
++    updateVbtPlaybackControls(dialog);
+     const warning = dialog.querySelector("[data-vbt-trim-warning]");
+     if (warning) {
+       const id = dialog.querySelector("[data-vbt-auto-detect]")?.dataset.vbtAutoDetect;
+@@ -2920,10 +3030,15 @@
+           <button class="text-button" value="close" type="submit">閉じる</button>
          </div>
--        ${status.warningMessage ? `<p class="vbt-result-hero-warning">${escapeHtml(status.warningMessage)}</p>` : ""}
-+        ${status.warningMessage ? `<p class="vbt-result-hero-warning">要確認：区間検出を確認してください</p>` : ""}
-       </section>
-     `;
-   }
-@@ -1497,12 +1563,12 @@
-           const concentric = metric.concentric || {};
-           const rom = Number(metric.totalRomMeters);
-           const isLast = index === metrics.length - 1;
--          const qualityWarning = metric.qualityWarning || metric.warning;
-+          const qualityLabel = getRepQualityLabel(metric, isLast);
-           return `
-             <article class="vbt-rep-card ${isLast ? "last" : ""}">
-               <div class="vbt-rep-card-head">
-                 <strong>Rep ${escapeHtml(metric.repIndex || index + 1)}</strong>
--                <span class="${qualityWarning ? "warning" : ""}">${qualityWarning ? "区間確認" : isLast ? "LAST" : "OK"}</span>
-+                <span class="${qualityLabel === "区間確認" ? "warning" : ""}">${escapeHtml(qualityLabel)}</span>
-               </div>
-               <div class="vbt-rep-card-grid">
-                 <span><small>下降平均</small><strong>${Number.isFinite(Number(eccentric.meanVelocity)) ? `${Number(eccentric.meanVelocity).toFixed(2)}m/s` : "--"}</strong></span>
-@@ -1510,7 +1576,6 @@
-                 <span><small>挙上ピーク</small><strong>${Number.isFinite(Number(concentric.peakVelocity)) ? `${Number(concentric.peakVelocity).toFixed(2)}m/s` : "--"}</strong></span>
-                 <span><small>ROM</small><strong>${Number.isFinite(rom) ? `${Math.round(rom * 100)}cm` : "--"}</strong></span>
-               </div>
--              ${qualityWarning ? `<p class="vbt-rep-warning">${escapeHtml(qualityWarning)}</p>` : ""}
-             </article>
-           `;
-         }).join("")}
-@@ -1528,6 +1593,7 @@
-         ${renderRepTimeline(repMetrics, measurement)}
-         ${renderRepVelocityCards(repMetrics)}
-         ${renderRepVelocityTable(repMetrics)}
-+        ${renderRepQualityDetails(repMetrics)}
-       </section>
-     `;
-   }
-@@ -1715,6 +1781,43 @@
-     return "";
-   }
- 
-+  function getPlateSearchRegion(lift, width, height) {
-+    switch (lift) {
-+      case "SQ":
-+        return {
-+          xMin: width * 0.05,
-+          xMax: width * 0.95,
-+          yMin: height * 0.12,
-+          yMax: height * 0.62,
-+          floorPenaltyY: height * 0.68
-+        };
-+      case "BP":
-+        return {
-+          xMin: width * 0.05,
-+          xMax: width * 0.95,
-+          yMin: height * 0.10,
-+          yMax: height * 0.70,
-+          floorPenaltyY: height * 0.72
-+        };
-+      case "DL":
-+        return {
-+          xMin: width * 0.03,
-+          xMax: width * 0.97,
-+          yMin: height * 0.30,
-+          yMax: height * 0.95,
-+          floorPenaltyY: null
-+        };
-+      default:
-+        return {
-+          xMin: width * 0.03,
-+          xMax: width * 0.97,
-+          yMin: height * 0.08,
-+          yMax: height * 0.90,
-+          floorPenaltyY: null
-+        };
-+    }
-+  }
-+
-   function detectPlateCandidateFromFrame(frame, options = {}) {
-     if (!frame?.ctx || !frame?.canvas) return null;
-     const { canvas, ctx, scale } = frame;
-@@ -1722,55 +1825,76 @@
-     const height = canvas.height;
-     const data = ctx.getImageData(0, 0, width, height).data;
-     const minSide = Math.min(width, height);
--    const sizeMin = Math.max(28, Math.round(minSide * 0.14));
--    const sizeMax = Math.max(sizeMin + 4, Math.round(minSide * 0.30));
-+    const sizeMin = Math.max(26, Math.round(minSide * 0.12));
-+    const sizeMax = Math.max(sizeMin + 4, Math.round(minSide * 0.32));
-     const lift = options.lift || "SQ";
--    const preferSides = lift === "OTHER" ? 0.05 : 0.18;
-+    const region = getPlateSearchRegion(lift, width, height);
-+    const preferSides = lift === "OTHER" ? 0.05 : 0.22;
-     let best = null;
-     const luminanceAt = (x, y) => {
-       const index = (clamp(Math.round(y), 0, height - 1) * width + clamp(Math.round(x), 0, width - 1)) * 4;
-       return data[index] * 0.299 + data[index + 1] * 0.587 + data[index + 2] * 0.114;
-     };
--    for (let size = sizeMin; size <= sizeMax; size += Math.max(6, Math.round(sizeMin * 0.20))) {
--      const step = Math.max(8, Math.round(size * 0.32));
--      for (let y = Math.round(height * 0.08); y <= height - size - 2; y += step) {
--        for (let x = 2; x <= width - size - 2; x += step) {
-+    for (let size = sizeMin; size <= sizeMax; size += Math.max(6, Math.round(sizeMin * 0.18))) {
-+      const step = Math.max(7, Math.round(size * 0.28));
-+      const yEnd = Math.min(region.yMax, height - size - 2);
-+      const xEnd = Math.min(region.xMax, width - size - 2);
-+      for (let y = Math.round(region.yMin); y <= yEnd; y += step) {
-+        for (let x = Math.round(region.xMin); x <= xEnd; x += step) {
-           const centerX = x + size / 2;
-           const centerY = y + size / 2;
-           const sideBias = Math.abs(centerX / width - 0.5) * preferSides * 100;
-           let dark = 0;
-           let edge = 0;
-+          let borderEdge = 0;
-           let samples = 0;
--          const sampleStep = Math.max(4, Math.round(size / 8));
-+          const sampleStep = Math.max(3, Math.round(size / 9));
-           for (let yy = y; yy < y + size; yy += sampleStep) {
-             for (let xx = x; xx < x + size; xx += sampleStep) {
-               const lum = luminanceAt(xx, yy);
-               const right = luminanceAt(xx + sampleStep, yy);
-               const down = luminanceAt(xx, yy + sampleStep);
--              if (lum < 92) dark += 1;
-+              if (lum < 96) dark += 1;
-               edge += Math.abs(lum - right) + Math.abs(lum - down);
-+              const nearBorder = xx < x + sampleStep * 1.5 || yy < y + sampleStep * 1.5 || xx > x + size - sampleStep * 2 || yy > y + size - sampleStep * 2;
-+              if (nearBorder) borderEdge += Math.abs(lum - right) + Math.abs(lum - down);
-               samples += 1;
-             }
-           }
-           const darkRatio = samples ? dark / samples : 0;
-           const edgeScore = samples ? edge / samples : 0;
--          const topPenalty = centerY < height * 0.10 ? 20 : 0;
--          const score = darkRatio * 72 + edgeScore * 0.34 + sideBias - topPenalty;
-+          const borderScore = samples ? borderEdge / samples : 0;
-+          const centerPenalty = Math.abs(centerX / width - 0.5) < 0.10 ? 14 : 0;
-+          const topPenalty = centerY < height * 0.08 ? 18 : 0;
-+          const floorPenalty = region.floorPenaltyY && centerY > region.floorPenaltyY ? 95 : 0;
-+          const bottomTouchPenalty = lift !== "DL" && y + size > height * 0.78 ? 90 : 0;
-+          const shadowLike = darkRatio > 0.72 && edgeScore < 18;
-+          const plateLike = darkRatio >= 0.18 && edgeScore >= 16 && borderScore >= 5;
-+          if (!plateLike) continue;
-+          const score = darkRatio * 58
-+            + edgeScore * 0.28
-+            + borderScore * 0.18
-+            + sideBias
-+            - topPenalty
-+            - floorPenalty
-+            - bottomTouchPenalty
-+            - centerPenalty
-+            - (shadowLike ? 55 : 0);
-           if (!best || score > best.score) {
--            best = { x, y, width: size, height: size, score, darkRatio, edgeScore };
-+            best = { x, y, width: size, height: size, score, darkRatio, edgeScore, borderScore, centerY };
-           }
-         }
-       }
+         <div class="vbt-video-frame">
+-          <video controls playsinline preload="metadata" src="${escapeHtml(url)}"></video>
++          <video playsinline preload="metadata" src="${escapeHtml(url)}" data-vbt-video></video>
+           <canvas class="vbt-overlay" data-vbt-canvas></canvas>
+           <div class="vbt-video-guide" data-vbt-video-guide>1. 運動中だけに範囲を絞る</div>
+         </div>
++        <div class="vbt-custom-video-controls" data-vbt-custom-controls>
++          <button class="text-button compact" type="button" data-vbt-play-toggle>再生</button>
++          <span data-vbt-time-readout>0:00 / 0:00</span>
++          <input data-vbt-playhead-range type="range" min="0" max="1" step="0.01" value="0" aria-label="動画再生位置">
++        </div>
+         <p class="vbt-video-status" data-vbt-video-status>${escapeHtml(mediaStatusMessage("loading"))}</p>
+         <div class="video-viewer-meta">
+           <span>${escapeHtml(formatDate(record.date))}</span>
+@@ -2940,16 +3055,21 @@
+     video?.addEventListener("loadedmetadata", () => {
+       if (videoStatus) videoStatus.textContent = mediaStatusMessage("ready");
+       syncTrimControls(dialog);
++      updateVbtPlaybackControls(dialog);
+       drawVbtOverlay(dialog);
+     }, { once: true });
+     video?.addEventListener("error", () => {
+       if (videoStatus) videoStatus.textContent = mediaStatusMessage("error");
+     }, { once: true });
+-    video?.addEventListener("seeked", () => drawRoiPreview(dialog));
+-    video?.addEventListener("pause", () => drawRoiPreview(dialog));
++    video?.addEventListener("timeupdate", () => updateVbtPlaybackControls(dialog));
++    video?.addEventListener("durationchange", () => updateVbtPlaybackControls(dialog));
++    video?.addEventListener("play", () => updateVbtPlaybackControls(dialog));
++    video?.addEventListener("pause", () => { updateVbtPlaybackControls(dialog); drawRoiPreview(dialog); });
++    video?.addEventListener("seeked", () => { updateVbtPlaybackControls(dialog); drawRoiPreview(dialog); });
+     if (video?.readyState >= 1) {
+       if (videoStatus) videoStatus.textContent = mediaStatusMessage("ready");
+       syncTrimControls(dialog);
++      updateVbtPlaybackControls(dialog);
+       drawVbtOverlay(dialog);
      }
--    if (!best || best.score < 26) return null;
-+    if (!best || best.score < 38) return null;
-     const roi = clampPlateRoi({
-       x: best.x / scale,
-       y: best.y / scale,
-       width: best.width / scale,
-       height: best.height / scale
-     }, Math.round(width / scale), Math.round(height / scale));
--    const confidence = best.score > 64 ? "high" : best.score > 42 ? "middle" : "low";
--    return { roi, score: best.score, confidence };
-+    const confidence = best.score > 72 ? "high" : best.score > 52 ? "middle" : "low";
-+    return { roi, score: best.score, confidence, darkRatio: best.darkRatio, edgeScore: best.edgeScore, borderScore: best.borderScore };
    }
- 
-   async function runAutoPlateDetection(button) {
-@@ -1785,24 +1909,35 @@
-       setVbtWizardStep(dialog, "auto-detect-loading");
-       const state = vbtState(dialog);
-       const start = hasFiniteNumber(state.trimStart) ? Number(state.trimStart) : 0;
--      await seekVideo(video, start + 0.05, 2500);
--      const frame = frameCanvas(video, 360);
--      const candidate = detectPlateCandidateFromFrame(frame, { lift: record.lift });
--      if (!candidate) {
-+      const end = hasFiniteNumber(state.trimEnd) ? Number(state.trimEnd) : Number(video.duration || start + 1);
-+      const duration = Math.max(0.1, end - start);
-+      const sampleTimes = [
-+        start + 0.05,
-+        start + Math.min(0.5, duration * 0.15),
-+        start + Math.min(1.0, duration * 0.30)
-+      ].map((time) => clamp(time, start, end));
-+      let bestCandidate = null;
-+      for (const time of sampleTimes) {
-+        await seekVideo(video, time, 2500);
-+        const frame = frameCanvas(video, 420);
-+        const candidate = detectPlateCandidateFromFrame(frame, { lift: record.lift });
-+        if (candidate && (!bestCandidate || candidate.score > bestCandidate.score)) bestCandidate = { ...candidate, sampleTime: time };
-+      }
-+      if (!bestCandidate) {
-         setVbtState(dialog, {
-           autoDetectionConfidence: "failed",
--          autoDetectionMessage: "自動検出が難しいようです。手動で最大プレートを囲んでください。"
-+          autoDetectionMessage: "自動検出が難しいようです。足元の影やラックを拾わないよう、手動で最大プレートを囲んでください。"
-         });
-         setVbtWizardStep(dialog, "manual-plate");
-         return;
-       }
-+      const lowMessage = "自動検出の信頼度：低。足元の影やラックを拾っている可能性があります。緑枠が最大プレートを囲んでいなければ手動で調整してください。";
-+      const okMessage = "候補を検出しました。緑枠が最大プレートを囲んでいるか確認してください。";
-       setVbtState(dialog, {
--        plateRoi: candidate.roi,
--        autoPlateCandidate: candidate,
--        autoDetectionConfidence: candidate.confidence,
--        autoDetectionMessage: candidate.confidence === "low"
--          ? "候補は見つかりましたが、手動確認を推奨します。"
--          : "候補を検出しました。緑枠が最大プレートを囲んでいるか確認してください。",
-+        plateRoi: bestCandidate.roi,
-+        autoPlateCandidate: bestCandidate,
-+        autoDetectionConfidence: bestCandidate.confidence,
-+        autoDetectionMessage: bestCandidate.confidence === "low" ? lowMessage : okMessage,
-         trackingMode: "plate-roi-track"
-       });
-       const note = dialog.querySelector("[data-vbt-auto-note]");
---- v165_work/sw.js	2026-06-10 11:29:34.925821864 +0000
-+++ v166_work/sw.js	2026-06-10 11:46:07.650676681 +0000
+@@ -3105,6 +3225,12 @@
+     if (confirmPlate) return confirmAutoDetectedPlate(confirmPlate);
+     const manualPlate = event.target.closest("[data-vbt-manual-plate]");
+     if (manualPlate) return showManualPlateSelection(manualPlate);
++    const playToggle = event.target.closest("[data-vbt-play-toggle]");
++    if (playToggle) return toggleVbtPlayback(playToggle);
++    const setTrim = event.target.closest("[data-vbt-set-trim-from-playhead]");
++    if (setTrim) return setTrimFromPlayhead(setTrim);
++    const jumpTrim = event.target.closest("[data-vbt-jump-trim]");
++    if (jumpTrim) return jumpToTrimPoint(jumpTrim);
+     const roiNudge = event.target.closest("[data-vbt-roi-nudge]");
+     if (roiNudge) return nudgePlateRoi(roiNudge.closest("dialog"), roiNudge.dataset.vbtRoiNudge, 2);
+     const roiInit = event.target.closest("[data-vbt-roi-init]");
+@@ -3140,6 +3266,7 @@
+     if (!handleRoiPointerUp(event)) handleVbtCanvasPointer(event);
+   });
+   document.addEventListener("input", (event) => {
++    if (event.target.matches("[data-vbt-playhead-range]")) handleVbtPlayheadInput(event.target);
+     if (event.target.matches("[data-vbt-trim-range]")) handleTrimRange(event.target);
+     if (event.target.matches("[data-vbt-plate-preset]")) syncPlatePreset(event.target);
+   });
+--- /mnt/data/v166_work/sw.js	2026-06-10 11:46:07.650676681 +0000
++++ /mnt/data/v167_work/sw.js	2026-06-10 11:55:56.487186044 +0000
 @@ -1,14 +1,14 @@
--const CACHE_NAME = "platform-buddy-v165";
-+const CACHE_NAME = "platform-buddy-v166";
+-const CACHE_NAME = "platform-buddy-v166";
++const CACHE_NAME = "platform-buddy-v167";
  const CORE_ASSETS = [
    "./",
    "index.html",
--  "index.html?v=165",
-+  "index.html?v=166",
+-  "index.html?v=166",
++  "index.html?v=167",
    "styles.css",
--  "styles.css?v=165",
-+  "styles.css?v=166",
+-  "styles.css?v=166",
++  "styles.css?v=167",
    "app.js",
--  "app.js?v=165",
-+  "app.js?v=166",
+-  "app.js?v=166",
++  "app.js?v=167",
    "video.js",
--  "video.js?v=165",
-+  "video.js?v=166",
+-  "video.js?v=166",
++  "video.js?v=167",
    "manifest.webmanifest",
    "icon.svg",
    "apple-touch-icon.png",
---- v165_work/manifest.webmanifest	2026-06-10 11:29:34.926996267 +0000
-+++ v166_work/manifest.webmanifest	2026-06-10 11:46:07.651392165 +0000
+--- /mnt/data/v166_work/manifest.webmanifest	2026-06-10 11:46:07.651392165 +0000
++++ /mnt/data/v167_work/manifest.webmanifest	2026-06-10 11:55:56.488579252 +0000
 @@ -2,7 +2,7 @@
    "name": "Platform Buddy",
    "short_name": "Buddy",
    "description": "BIG3の現在地と目標を見える化し、PRサイクル、記録、分析、大会準備までつなげるパワーリフティング向けPWAです。",
--  "start_url": "./index.html?v=165",
-+  "start_url": "./index.html?v=166",
+-  "start_url": "./index.html?v=166",
++  "start_url": "./index.html?v=167",
    "scope": "./",
    "display": "standalone",
    "background_color": "#f4efe6",
