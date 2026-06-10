@@ -751,6 +751,7 @@
     const conMV = Number(metric.concentric?.meanVelocity);
     const conPV = Number(metric.concentric?.peakVelocity);
     const conDuration = Number(metric.concentric?.duration);
+    const staticTrimmed = Number(metric.concentric?.trimmedStaticTime || 0);
     const rom = Number(metric.totalRomMeters);
     const expectedReps = Number(context.expectedReps);
     const detectedReps = Number(context.detectedReps);
@@ -760,23 +761,26 @@
     const mvPvRatio = Number.isFinite(conMV) && Number.isFinite(conPV) && conPV > 0 ? conMV / conPV : null;
     const romTooShort = Number.isFinite(rom) && rom < 0.08;
     const romTooLong = Number.isFinite(rom) && rom > 1.20;
-    const durationVeryLong = Number.isFinite(conDuration) && conDuration > 8;
-    const durationLong = Number.isFinite(conDuration) && conDuration > 6;
-    const pvGapExtreme = Number.isFinite(mvPvRatio) && mvPvRatio < 0.12;
-    const pvGapLarge = Number.isFinite(mvPvRatio) && mvPvRatio < 0.18;
+    const durationVeryLong = Number.isFinite(conDuration) && conDuration > 10;
+    const durationLong = Number.isFinite(conDuration) && conDuration > 7.5;
+    const pvGapExtreme = Number.isFinite(mvPvRatio) && mvPvRatio < 0.10;
+    const pvGapLarge = Number.isFinite(mvPvRatio) && mvPvRatio < 0.15;
     const repMismatch = Number.isFinite(expectedReps) && Number.isFinite(detectedReps) && expectedReps > 0 && detectedReps !== expectedReps;
 
     if (romTooShort) warnings.push("ROMが短すぎます。プレート追跡が外れている可能性があります。");
     if (romTooLong) warnings.push("ROMが大きすぎます。プレート径またはスケールを確認してください。");
-    if (pvGapExtreme && (durationLong || repMismatch || trackingConfidence === "low")) {
+    if (pvGapExtreme && (durationVeryLong || repMismatch || trackingConfidence === "low")) {
       warnings.push("挙上区間の検出確認が必要です。");
-    } else if (pvGapLarge) {
+    } else if (pvGapLarge && (durationLong || trackingConfidence === "middle")) {
       notes.push("挙上PVが高めです。参考値として確認してください。");
     }
-    if (durationVeryLong) {
-      warnings.push("挙上時間が長すぎます。セット前後の待機が混ざっている可能性があります。");
+    if (durationVeryLong && (pvGapLarge || repMismatch || trackingConfidence === "low")) {
+      warnings.push("挙上時間が長すぎます。区間に待機が混ざった可能性があります。");
     } else if (durationLong) {
-      notes.push("挙上時間が長めです。重いセットや停止を含む場合は正常なことがあります。");
+      notes.push("挙上時間が長めです。重いセットや粘りのあるレップでは正常なことがあります。");
+    }
+    if (staticTrimmed > 0.75) {
+      notes.push(`トップ/ボトムの待機を${staticTrimmed.toFixed(1)}秒ほど除外して速度を計算しました。`);
     }
 
     const confidence = warnings.length ? "low" : notes.length ? "middle" : "high";
@@ -798,13 +802,66 @@
       .filter((value) => value >= 0);
     if (!clean.length) return null;
     clean.sort((a, b) => a - b);
-    const index = Math.min(clean.length - 1, Math.max(0, Math.floor(clean.length * 0.95)));
+    const index = Math.min(clean.length - 1, Math.max(0, Math.floor(clean.length * 0.90)));
     return clean[index];
   }
 
-  function phaseVelocityMetric(path, phase, metersPerPixel) {
+  function trimPhaseToMotionWindow(segment, phaseKind = "concentric") {
+    if (!Array.isArray(segment) || segment.length < 3) {
+      return { segment: segment || [], trimmed: false, rawDuration: null };
+    }
+    const startY = Number(segment[0].y);
+    const endY = Number(segment.at(-1).y);
+    const totalDisplacement = Math.abs(endY - startY);
+    const rawDuration = Number(segment.at(-1).time) - Number(segment[0].time);
+    if (!Number.isFinite(totalDisplacement) || totalDisplacement < 1.5 || !Number.isFinite(rawDuration)) {
+      return { segment, trimmed: false, rawDuration };
+    }
+
+    // The phase endpoints from top/bottom turn detection often include top breathing,
+    // bottom pauses, or re-bracing time. Velocity should use only the movement window.
+    const lowerFraction = phaseKind === "concentric" ? 0.06 : 0.04;
+    const upperFraction = phaseKind === "concentric" ? 0.94 : 0.96;
+    const minMotionPixels = Math.max(1.2, totalDisplacement * lowerFraction);
+    const maxMotionPixels = Math.max(minMotionPixels, totalDisplacement * upperFraction);
+
+    let startIndex = 0;
+    let endIndex = segment.length - 1;
+
+    for (let index = 0; index < segment.length; index += 1) {
+      if (Math.abs(Number(segment[index].y) - startY) >= minMotionPixels) {
+        startIndex = Math.max(0, index - 1);
+        break;
+      }
+    }
+
+    for (let index = startIndex + 1; index < segment.length; index += 1) {
+      if (Math.abs(Number(segment[index].y) - startY) >= maxMotionPixels) {
+        endIndex = index;
+        break;
+      }
+    }
+
+    if (endIndex <= startIndex) {
+      return { segment, trimmed: false, rawDuration };
+    }
+
+    const trimmed = segment.slice(startIndex, endIndex + 1);
+    return {
+      segment: trimmed.length >= 2 ? trimmed : segment,
+      trimmed: startIndex > 0 || endIndex < segment.length - 1,
+      rawDuration,
+      trimStartOffset: Number(segment[startIndex]?.time) - Number(segment[0].time),
+      trimEndOffset: Number(segment.at(-1)?.time) - Number(segment[endIndex]?.time)
+    };
+  }
+
+  function phaseVelocityMetric(path, phase, metersPerPixel, phaseKind = "concentric") {
     if (!phase || phase.endIndex <= phase.startIndex) return null;
-    const segment = path.slice(phase.startIndex, phase.endIndex + 1);
+    const rawSegment = path.slice(phase.startIndex, phase.endIndex + 1);
+    const motionWindow = trimPhaseToMotionWindow(rawSegment, phaseKind);
+    const segment = motionWindow.segment;
+    if (!segment || segment.length < 2) return null;
     const duration = segment.at(-1).time - segment[0].time;
     const distanceMeters = Math.abs(segment.at(-1).y - segment[0].y) * metersPerPixel;
     const velocities = segment.slice(1).map((point, index) => {
@@ -814,10 +871,15 @@
     return {
       startTime: segment[0].time,
       endTime: segment.at(-1).time,
+      rawStartTime: rawSegment[0].time,
+      rawEndTime: rawSegment.at(-1).time,
       duration,
+      rawDuration: motionWindow.rawDuration,
+      trimmedStaticTime: Math.max(0, Number(motionWindow.rawDuration || 0) - duration) || null,
       distanceMeters,
       meanVelocity: duration > 0 ? distanceMeters / duration : null,
-      peakVelocity: robustPeakVelocity(velocities)
+      peakVelocity: robustPeakVelocity(velocities),
+      motionWindowTrimmed: Boolean(motionWindow.trimmed)
     };
   }
 
@@ -825,8 +887,8 @@
     const path = calibration.path || [];
     const metersPerPixel = Number(calibration.metersPerPixel);
     return repPhases.map((phase) => {
-      const eccentric = phaseVelocityMetric(path, phase.eccentric, metersPerPixel);
-      const concentric = phaseVelocityMetric(path, phase.concentric, metersPerPixel);
+      const eccentric = phaseVelocityMetric(path, phase.eccentric, metersPerPixel, "eccentric");
+      const concentric = phaseVelocityMetric(path, phase.concentric, metersPerPixel, "concentric");
       const totalRomMeters = Math.max(eccentric?.distanceMeters || 0, concentric?.distanceMeters || 0);
       const metric = {
         repIndex: phase.repIndex,
