@@ -17778,3 +17778,64 @@ html body .vbt-detect-progress-bar span {
     width: 24px;
   }
 }
+
+/* v170: VBT trim screen cleanup ----------------------------------------- */
+html body .vbt-custom-video-controls,
+html body .video-viewer-meta,
+html body .vbt-video-status.hidden,
+html body .vbt-wizard-header {
+  display: none !important;
+}
+
+html body .manual-vbt-card.vbt-wizard {
+  gap: 8px;
+  margin-top: 8px;
+  padding: 8px;
+  border-radius: 12px;
+}
+
+html body .vbt-wizard-screen[data-vbt-step="trim"] {
+  gap: 8px;
+  padding: 8px;
+  border-radius: 12px;
+  background: transparent;
+  border-color: rgba(23, 23, 23, 0.08);
+}
+
+html body .vbt-wizard-screen[data-vbt-step="trim"] .vbt-trim-cursor-card {
+  gap: 8px;
+  padding: 8px;
+  margin: 0;
+  background: rgba(255, 255, 255, 0.56);
+}
+
+html body .vbt-trim-cursor-actions.one {
+  grid-template-columns: 1fr;
+}
+
+html body .vbt-trim-cursor-actions.one .text-button {
+  min-height: 40px;
+}
+
+html body .vbt-trim-summary {
+  margin-top: 0;
+}
+
+html body .vbt-wizard-screen[data-vbt-step="trim"] .vbt-wizard-actions {
+  margin-top: 0;
+}
+
+@media (max-width: 640px) {
+  html body .manual-vbt-card.vbt-wizard {
+    margin-top: 6px;
+    padding: 6px;
+  }
+
+  html body .vbt-wizard-screen[data-vbt-step="trim"] {
+    padding: 6px;
+  }
+
+  html body .vbt-trim-direct-track {
+    min-height: 48px;
+  }
+}

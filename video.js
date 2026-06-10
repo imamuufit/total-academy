@@ -2283,26 +2283,7 @@
     const setSummary = `${liftLabel(record.lift)} ${formatNumber(record.weight)}kg × ${formatNumber(record.reps)} @${formatNumber(record.rpe)}`;
     return `
       <section class="manual-vbt-card vbt-wizard" data-vbt-card data-vbt-wizard-root>
-        <header class="vbt-wizard-header">
-          <div>
-            <span class="vbt-result-kicker">VBT WIZARD</span>
-            <strong data-vbt-wizard-title>${escapeHtml(vbtWizardStepLabel(initialStep))}</strong>
-            <p>1画面1タスクで、動画追加から結果保存まで進めます。</p>
-          </div>
-          <div class="vbt-wizard-progress" aria-label="VBT手順">
-            <span data-vbt-step-dot="trim" class="${initialStep === "trim" ? "active" : ""}">1</span>
-            <span data-vbt-step-dot="auto-detect-confirm">2</span>
-            <span data-vbt-step-dot="set-info">3</span>
-            <span data-vbt-step-dot="result" class="${initialStep === "result" ? "active" : ""}">4</span>
-          </div>
-        </header>
-
         <section class="vbt-wizard-screen ${initialStep === "trim" ? "active" : ""}" data-vbt-step="trim">
-          <div class="video-check-head">
-            <strong>動画をトリミング</strong>
-            <small>セット動作だけ残す</small>
-          </div>
-          <p class="video-storage-note">測定したいセット全体だけを残します。スクワットとベンチはトップから始まってOKです。</p>
           <div class="vbt-trim-cursor-card">
             <div class="vbt-trim-direct-track" data-vbt-trim-track role="group" aria-label="動画トリミング範囲">
               <span class="vbt-trim-dim before"></span>
@@ -2313,10 +2294,7 @@
               <span class="vbt-trim-dim after"></span>
               <span class="vbt-trim-playhead" data-vbt-trim-playhead aria-label="再生位置"></span>
             </div>
-            <p class="video-storage-note">黄色い範囲の左端を動かすと前半をカット、右端を動かすと後半をカットします。白い線は現在の再生位置です。</p>
-            <div class="vbt-trim-cursor-actions">
-              <button class="text-button compact" type="button" data-vbt-jump-trim="start">開始へ</button>
-              <button class="text-button compact" type="button" data-vbt-jump-trim="end">終了へ</button>
+            <div class="vbt-trim-cursor-actions one">
               <button class="text-button compact" type="button" data-vbt-preview-range>範囲を再生</button>
             </div>
           </div>
@@ -2325,9 +2303,8 @@
             <span data-vbt-trim-end>終了 ${escapeHtml(formatSeconds(measurement.trim?.end))}</span>
             <span data-vbt-playhead-label>現在 ${escapeHtml(formatSeconds(0))}</span>
           </div>
-          <p class="vbt-profile-note" data-vbt-trim-warning>長すぎる範囲は、セット前後の待機を速度計算に混ぜる原因になります。</p>
           <div class="vbt-wizard-actions">
-            <button class="primary-button inline vbt-wizard-primary" type="button" data-vbt-auto-detect="${escapeHtml(record.id)}">決定してプレート検出</button>
+            <button class="primary-button inline vbt-wizard-primary" type="button" data-vbt-auto-detect="${escapeHtml(record.id)}">プレート検出へ</button>
           </div>
         </section>
 
@@ -3432,18 +3409,8 @@
         <div class="vbt-video-frame">
           <video playsinline preload="metadata" src="${escapeHtml(url)}" data-vbt-video></video>
           <canvas class="vbt-overlay" data-vbt-canvas></canvas>
-          <div class="vbt-video-guide" data-vbt-video-guide>1. 運動中だけに範囲を絞る</div>
         </div>
-        <div class="vbt-custom-video-controls" data-vbt-custom-controls>
-          <button class="text-button compact" type="button" data-vbt-play-toggle>再生</button>
-          <span data-vbt-time-readout>0:00 / 0:00</span>
-          <input data-vbt-playhead-range type="range" min="0" max="1" step="0.01" value="0" aria-label="動画再生位置">
-        </div>
-        <p class="vbt-video-status" data-vbt-video-status>${escapeHtml(mediaStatusMessage("loading"))}</p>
-        <div class="video-viewer-meta">
-          <span>${escapeHtml(formatDate(record.date))}</span>
-          <span>${escapeHtml(record.setType || "自由")}</span>
-        </div>
+        <p class="vbt-video-status hidden" data-vbt-video-status>${escapeHtml(mediaStatusMessage("loading"))}</p>
         ${vbtCardMarkup(record)}
         ${record.analysis?.velocityData ? velocityComparisonMarkup(profileRecords, record) : ""}
       </form>
