@@ -1,47 +1,35 @@
-Platform Buddy v163
-VBT reliability and mobile performance update
+Platform Buddy v164
+VBT result Hero missing-value hotfix
 
 Summary
-- Reduced the risk of VBT analysis becoming stuck while seeking video frames.
-- Changed Buddy velocity judgement to prioritize the final rep concentric mean velocity.
-- Separated detected reps from user-entered reps in VBT history/library metrics.
-- Preserved a real velocity-loss value of 0% instead of treating it as missing.
-- Reduced automatic ROI tracking samples on smartphones and compact touch devices.
-- Updated PWA cache/query versions to v163.
+- Made the VBT result Hero distinguish missing rep detection from a real detected value of zero.
+- Aligned the Hero rep display with VBT history/library cards.
+- Applied the same missing-value rule to Hero velocity values and velocity loss.
+- Updated PWA cache/query versions to v164.
 
 video.js
-- Updated seekVideo(video, time, timeoutMs = 2500).
-  - Resolves normally on seeked.
-  - Rejects after 2.5 seconds instead of waiting indefinitely.
-  - Cleans up seeked/error listeners and timeout handles.
-  - Shows a retry-oriented message when a frame cannot be loaded.
-- Added getVbtTrackingSampleLimit().
-  - Smartphones and compact touch devices: maximum 110 samples.
-  - Desktop: maximum 240 samples.
-- Updated trackPlateRoiPath().
-  - Uses the device-aware sample limit.
-  - Uses final-rep concentric mean velocity for Buddy/RPE comments when available.
-- Updated vbtResultMarkup().
-  - Uses final-rep concentric mean velocity before set-average velocity.
-- Updated adaptVbtRecord().
-  - Preserves velocity loss 0%.
-  - Keeps missing values distinct from real zero values.
-  - Exposes detectedReps and expectedReps separately.
-- Updated vbtSetMetricGridMarkup().
-  - Displays detected/input reps as detected/expected.
-  - Displays --/expected when rep detection is unavailable.
-  - Does not present the entered rep count as a detected result.
+- Updated renderVbtResultHero().
+- Detected/input rep display:
+  - Detected and expected available: 3/3
+  - Detection unavailable and expected available: --/3
+  - Real zero detected and expected available: 0/3
+  - Both unavailable: --
+- Removed the old detectedReps || 0 fallback.
+- Uses hasFiniteNumber() before converting Hero values.
+- Preserves a real velocity-loss value of 0%.
+- Prevents missing last-rep, best-rep, set-average, or velocity-loss values from appearing as zero.
 
 index.html / sw.js / manifest.webmanifest
-- Updated styles.css, app.js, and video.js query versions to v163.
-- Updated service-worker cache name and cached URLs to v163.
-- Updated manifest start_url to v163.
+- Updated styles.css, app.js, and video.js query versions to v164.
+- Updated service-worker cache name and cached URLs to v164.
+- Updated manifest start_url to v164.
 
 Unchanged
 - app.js
 - styles.css
 - localStorage key platform-pr-v3
 - Main app save structure
+- VBT calculation and tracking logic
 - PLAN / LOG / DATA / MEET core logic
 - Buddy Method logic
 
@@ -50,11 +38,6 @@ Verification
 - app.js syntax check: passed
 - sw.js syntax check: passed
 - manifest JSON parse: passed
-- app.js SHA256 unchanged:
-  D875E81D0DBEF0DD520CC70566A34684854252EAF84B87B4CDFAD4BFCC0F39B1
-- PWA version alignment: v163
-
-Recommended real-device check
-- Run SQ 200kg x 3.
-- Confirm detected/input reps, final-rep velocity, velocity loss, and section warnings.
-- Confirm analysis returns from slow or unsupported seeks instead of remaining stuck.
+- Old Hero detectedReps || 0 fallback: removed
+- app.js and styles.css hashes unchanged from v163
+- PWA version alignment: v164

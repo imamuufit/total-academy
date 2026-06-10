@@ -1454,25 +1454,34 @@
     const measurement = data.measurement || data;
     const repMetrics = measurement.repMetrics || data.repMetrics || [];
     const primary = measurement.primaryVbtMetric || data.primaryVbtMetric || getPrimaryVbtMetric(repMetrics);
-    const lastVelocity = Number(primary.lastRepConcentricMeanVelocity);
-    const setAverage = Number(measurement.meanVelocity ?? data.meanVelocity);
-    const heroVelocity = Number.isFinite(lastVelocity) ? lastVelocity : setAverage;
-    const bestVelocity = Number(primary.bestRepConcentricMeanVelocity);
-    const velocityLoss = Number(primary.velocityLossPercent);
-    const detectedReps = Number(measurement.detectedReps ?? primary.repCountDetected ?? repMetrics.length);
-    const expectedReps = Number(measurement.expectedReps ?? data.reps);
+    const lastVelocityRaw = primary.lastRepConcentricMeanVelocity;
+    const setAverageRaw = measurement.meanVelocity ?? data.meanVelocity;
+    const bestVelocityRaw = primary.bestRepConcentricMeanVelocity;
+    const velocityLossRaw = primary.velocityLossPercent;
+    const detectedRepsRaw = measurement.detectedReps ?? primary.repCountDetected;
+    const expectedRepsRaw = measurement.expectedReps ?? data.reps;
+    const lastVelocity = hasFiniteNumber(lastVelocityRaw) ? Number(lastVelocityRaw) : null;
+    const setAverage = hasFiniteNumber(setAverageRaw) ? Number(setAverageRaw) : null;
+    const heroVelocity = lastVelocity !== null ? lastVelocity : setAverage;
+    const bestVelocity = hasFiniteNumber(bestVelocityRaw) ? Number(bestVelocityRaw) : null;
+    const velocityLoss = hasFiniteNumber(velocityLossRaw) ? Number(velocityLossRaw) : null;
+    const detectedReps = hasFiniteNumber(detectedRepsRaw) ? Number(detectedRepsRaw) : null;
+    const expectedReps = hasFiniteNumber(expectedRepsRaw) ? Number(expectedRepsRaw) : null;
+    const repDisplay = detectedReps !== null
+      ? `${detectedReps}${expectedReps !== null ? `/${expectedReps}` : ""}`
+      : expectedReps !== null ? `--/${expectedReps}` : "--";
     return `
       <section class="vbt-result-hero ${status.analysisStatus}">
         <div>
           <span class="vbt-result-kicker">${status.profileEligible ? "VBT RESULT" : "VBT RESULT / 要確認"}</span>
-          <strong class="vbt-result-main">${Number.isFinite(heroVelocity) ? heroVelocity.toFixed(2) : "--"}<small>m/s</small></strong>
-          <p>${Number.isFinite(lastVelocity) ? "最終レップ挙上平均速度" : "セット平均挙上速度"}</p>
+          <strong class="vbt-result-main">${heroVelocity !== null ? heroVelocity.toFixed(2) : "--"}<small>m/s</small></strong>
+          <p>${lastVelocity !== null ? "最終レップ挙上平均速度" : "セット平均挙上速度"}</p>
         </div>
         <div class="vbt-result-summary-grid">
-          <span><small>セット平均</small><strong>${Number.isFinite(setAverage) ? `${setAverage.toFixed(2)}m/s` : "--"}</strong></span>
-          <span><small>最速レップ</small><strong>${Number.isFinite(bestVelocity) ? `${bestVelocity.toFixed(2)}m/s` : "--"}</strong></span>
-          <span><small>速度低下</small><strong>${Number.isFinite(velocityLoss) ? `${velocityLoss.toFixed(0)}%` : "--"}</strong></span>
-          <span><small>検出レップ</small><strong>${detectedReps || 0}${expectedReps > 0 ? `/${expectedReps}` : ""}</strong></span>
+          <span><small>セット平均</small><strong>${setAverage !== null ? `${setAverage.toFixed(2)}m/s` : "--"}</strong></span>
+          <span><small>最速レップ</small><strong>${bestVelocity !== null ? `${bestVelocity.toFixed(2)}m/s` : "--"}</strong></span>
+          <span><small>速度低下</small><strong>${velocityLoss !== null ? `${velocityLoss.toFixed(0)}%` : "--"}</strong></span>
+          <span><small>検出/入力レップ</small><strong>${repDisplay}</strong></span>
         </div>
         ${status.warningMessage ? `<p class="vbt-result-hero-warning">${escapeHtml(status.warningMessage)}</p>` : ""}
       </section>
