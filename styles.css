@@ -17488,3 +17488,41 @@ html body .vbt-set-summary-card p {
     grid-template-columns: 1fr;
   }
 }
+
+/* v166: VBT quality notes stay compact; detailed warnings live behind an accordion. */
+html body .vbt-quality-details {
+  border: 1px solid var(--line, #ded6c8);
+  border-radius: 12px;
+  background: var(--surface-soft, #fff7e8);
+  padding: 10px 12px;
+  margin-top: 10px;
+}
+
+html body .vbt-quality-details summary {
+  cursor: pointer;
+  font-weight: 950;
+  color: var(--text-main, #171717);
+}
+
+html body .vbt-quality-details ul {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0 0;
+  padding-left: 1.1rem;
+}
+
+html body .vbt-quality-details li {
+  color: var(--text-sub, #526179);
+  font-size: 0.84rem;
+  line-height: 1.55;
+}
+
+html body .vbt-quality-details li strong {
+  color: var(--text-main, #171717);
+  margin-right: 0.35rem;
+}
+
+html body .vbt-quality-details li span + span::before {
+  content: " / ";
+  color: rgba(82, 97, 121, 0.72);
+}

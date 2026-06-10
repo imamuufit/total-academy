@@ -1,10 +1,7 @@
-Platform Buddy v165 - changed files
-
-- index.html
-- styles.css
-- video.js
-- sw.js
-- manifest.webmanifest
-
-Purpose:
-Qwik VBT型の1画面1タスク導線へ寄せるため、VBT Studioをウィザード型UIへ再構成しました。
+index.html
+styles.css
+video.js
+sw.js
+manifest.webmanifest
+changed-files.txt
+DIFF

@@ -1,40 +1,484 @@
-Platform Buddy v165
-
-Summary:
-- Reworked VBT Studio into a wizard-style flow instead of showing trim, plate settings, ROI controls, analysis, and result in one long panel.
-- New flow: trim video -> auto plate detection beta -> confirm plate / manual adjust -> set info confirmation -> analyzing -> result.
-- Added auto plate detection beta using a browser-side frame heuristic. It proposes an ROI candidate first and only exposes manual ROI adjustment when needed.
-- Added wizard step state and UI helpers: setVbtWizardStep, updateVbtWizardChrome, runAutoPlateDetection, detectPlateCandidateFromFrame, confirmAutoDetectedPlate, showManualPlateSelection.
-- Kept existing plate ROI tracking, rep detection, Hero result, velocity loss, and Buddy judgement logic intact.
-- Kept manual 2-point fallback inside the set information step as an emergency route.
-- Added v165 wizard CSS for step screens, progress dots, loading screen, sticky mobile actions, and set summary card.
-- Updated PWA cache/query versions to v165.
-
-Files changed:
-- index.html
-  - Updated asset query versions to v165.
-
-- styles.css
-  - Added VBT wizard layout styles.
-  - Added active/hidden step screen behavior.
-  - Added wizard loading state and progress styles.
-  - Added mobile-first sticky action area.
-
-- video.js
-  - Added VBT wizard step management.
-  - Replaced long VBT Studio panel with separate wizard screens.
-  - Added auto plate detection beta before manual ROI.
-  - Added confirm/manual plate route.
-  - Move result display to its own screen.
-  - On analysis success or failure, the UI now moves to the result screen.
-
-- sw.js
-  - Updated CACHE_NAME and cached URLs to v165.
-
-- manifest.webmanifest
-  - Updated start_url to ./index.html?v=165.
-
-Known notes:
-- The auto plate detection is a lightweight browser heuristic, not a trained AI model.
-- If auto detection is low confidence or fails, the manual plate screen remains available.
-- Existing VBT calculation and storage structure were not intentionally redesigned in this patch.
+--- v165_work/index.html	2026-06-10 11:29:34.924469543 +0000
++++ v166_work/index.html	2026-06-10 11:46:07.649968561 +0000
+@@ -12,7 +12,7 @@
+     <link rel="preload" as="image" href="home-bg-lite.jpg">
+     <link rel="preload" as="image" href="icon-sheet-lite.jpg">
+     <link rel="apple-touch-icon" href="apple-touch-icon.png">
+-    <link rel="stylesheet" href="styles.css?v=165">
++    <link rel="stylesheet" href="styles.css?v=166">
+   </head>
+   <body>
+     <div class="app-shell">
+@@ -1159,7 +1159,7 @@
+       </form>
+     </dialog>
+ 
+-    <script src="app.js?v=165"></script>
+-    <script src="video.js?v=165"></script>
++    <script src="app.js?v=166"></script>
++    <script src="video.js?v=166"></script>
+   </body>
+ </html>
+--- v165_work/styles.css	2026-06-10 11:31:07.346659439 +0000
++++ v166_work/styles.css	2026-06-10 11:46:48.110674415 +0000
+@@ -17488,3 +17488,41 @@
+     grid-template-columns: 1fr;
+   }
+ }
++
++/* v166: VBT quality notes stay compact; detailed warnings live behind an accordion. */
++html body .vbt-quality-details {
++  border: 1px solid var(--line, #ded6c8);
++  border-radius: 12px;
++  background: var(--surface-soft, #fff7e8);
++  padding: 10px 12px;
++  margin-top: 10px;
++}
++
++html body .vbt-quality-details summary {
++  cursor: pointer;
++  font-weight: 950;
++  color: var(--text-main, #171717);
++}
++
++html body .vbt-quality-details ul {
++  display: grid;
++  gap: 8px;
++  margin: 10px 0 0;
++  padding-left: 1.1rem;
++}
++
++html body .vbt-quality-details li {
++  color: var(--text-sub, #526179);
++  font-size: 0.84rem;
++  line-height: 1.55;
++}
++
++html body .vbt-quality-details li strong {
++  color: var(--text-main, #171717);
++  margin-right: 0.35rem;
++}
++
++html body .vbt-quality-details li span + span::before {
++  content: " / ";
++  color: rgba(82, 97, 121, 0.72);
++}
+--- v165_work/video.js	2026-06-10 11:30:38.079363730 +0000
++++ v166_work/video.js	2026-06-10 11:46:07.648169642 +0000
+@@ -747,27 +747,61 @@
+     return null;
+   }
+ 
+-  function getRepQuality(metric) {
++  function getRepQuality(metric, context = {}) {
+     const conMV = Number(metric.concentric?.meanVelocity);
+     const conPV = Number(metric.concentric?.peakVelocity);
+     const conDuration = Number(metric.concentric?.duration);
+     const rom = Number(metric.totalRomMeters);
++    const expectedReps = Number(context.expectedReps);
++    const detectedReps = Number(context.detectedReps);
++    const trackingConfidence = context.trackingConfidence || "unknown";
+     const warnings = [];
++    const notes = [];
+     const mvPvRatio = Number.isFinite(conMV) && Number.isFinite(conPV) && conPV > 0 ? conMV / conPV : null;
+-    if (Number.isFinite(mvPvRatio) && mvPvRatio < 0.18) warnings.push("挙上MVとPVの差が大きく、区間検出がズレている可能性があります。");
+-    if (Number.isFinite(conDuration) && conDuration > 6) warnings.push("挙上時間が長すぎます。不要な時間が混ざっている可能性があります。");
+-    if (Number.isFinite(rom) && rom < 0.10) warnings.push("ROMが短く、プレート追跡が外れている可能性があります。");
+-    if (Number.isFinite(rom) && rom > 1.20) warnings.push("ROMが大きすぎます。プレート径またはスケールを確認してください。");
++    const romTooShort = Number.isFinite(rom) && rom < 0.08;
++    const romTooLong = Number.isFinite(rom) && rom > 1.20;
++    const durationVeryLong = Number.isFinite(conDuration) && conDuration > 8;
++    const durationLong = Number.isFinite(conDuration) && conDuration > 6;
++    const pvGapExtreme = Number.isFinite(mvPvRatio) && mvPvRatio < 0.12;
++    const pvGapLarge = Number.isFinite(mvPvRatio) && mvPvRatio < 0.18;
++    const repMismatch = Number.isFinite(expectedReps) && Number.isFinite(detectedReps) && expectedReps > 0 && detectedReps !== expectedReps;
++
++    if (romTooShort) warnings.push("ROMが短すぎます。プレート追跡が外れている可能性があります。");
++    if (romTooLong) warnings.push("ROMが大きすぎます。プレート径またはスケールを確認してください。");
++    if (pvGapExtreme && (durationLong || repMismatch || trackingConfidence === "low")) {
++      warnings.push("挙上区間の検出確認が必要です。");
++    } else if (pvGapLarge) {
++      notes.push("挙上PVが高めです。参考値として確認してください。");
++    }
++    if (durationVeryLong) {
++      warnings.push("挙上時間が長すぎます。セット前後の待機が混ざっている可能性があります。");
++    } else if (durationLong) {
++      notes.push("挙上時間が長めです。重いセットや停止を含む場合は正常なことがあります。");
++    }
++
++    const confidence = warnings.length ? "low" : notes.length ? "middle" : "high";
+     return {
+       mvPvRatio,
+-      durationOk: !Number.isFinite(conDuration) || conDuration <= 6,
+-      romOk: !Number.isFinite(rom) || (rom >= 0.10 && rom <= 1.20),
++      durationOk: !durationVeryLong,
++      romOk: !romTooShort && !romTooLong,
+       directionOk: Boolean(metric.concentric && metric.eccentric),
+-      confidence: warnings.length ? "low" : "high",
+-      warning: warnings.join(" ") || null
++      confidence,
++      warning: warnings.join(" ") || null,
++      note: notes.join(" ") || null
+     };
+   }
+ 
++  function robustPeakVelocity(velocities) {
++    const clean = (velocities || [])
++      .map(Number)
++      .filter(Number.isFinite)
++      .filter((value) => value >= 0);
++    if (!clean.length) return null;
++    clean.sort((a, b) => a - b);
++    const index = Math.min(clean.length - 1, Math.max(0, Math.floor(clean.length * 0.95)));
++    return clean[index];
++  }
++
+   function phaseVelocityMetric(path, phase, metersPerPixel) {
+     if (!phase || phase.endIndex <= phase.startIndex) return null;
+     const segment = path.slice(phase.startIndex, phase.endIndex + 1);
+@@ -783,11 +817,11 @@
+       duration,
+       distanceMeters,
+       meanVelocity: duration > 0 ? distanceMeters / duration : null,
+-      peakVelocity: velocities.length ? Math.max(...velocities) : null
++      peakVelocity: robustPeakVelocity(velocities)
+     };
+   }
+ 
+-  function calculateRepVelocityMetrics(repPhases, calibration) {
++  function calculateRepVelocityMetrics(repPhases, calibration = {}) {
+     const path = calibration.path || [];
+     const metersPerPixel = Number(calibration.metersPerPixel);
+     return repPhases.map((phase) => {
+@@ -803,13 +837,19 @@
+         confidence: "high",
+         warning: null
+       };
+-      const repQuality = getRepQuality(metric);
++      const repQuality = getRepQuality(metric, {
++        lift: calibration.lift,
++        expectedReps: calibration.expectedReps,
++        detectedReps: repPhases.length,
++        trackingConfidence: calibration.trackingConfidence
++      });
+       return {
+         ...metric,
+         confidence: repQuality.confidence,
+         warning: repQuality.warning,
+         qualityConfidence: repQuality.confidence,
+         qualityWarning: repQuality.warning,
++        qualityNote: repQuality.note,
+         repQuality
+       };
+     });
+@@ -834,8 +874,34 @@
+     if (Number(expectedReps) > 0 && detected !== Number(expectedReps)) {
+       return `検出レップ数は${detected}/${Number(expectedReps)}です。トリミング範囲と緑枠を確認してください。`;
+     }
+-    const warning = metrics.find((metric) => metric.warning)?.warning;
+-    return warning || null;
++    const warning = metrics.find((metric) => metric.qualityWarning || metric.warning);
++    return warning?.qualityWarning || warning?.warning || null;
++  }
++
++  function getRepQualityLabel(metric, isLast) {
++    if (metric.qualityConfidence === "low" || metric.qualityWarning) return "区間確認";
++    if (metric.qualityConfidence === "middle" || metric.qualityNote || metric.repQuality?.note) return "参考";
++    if (isLast) return "Last";
++    return "OK";
++  }
++
++  function renderRepQualityDetails(metrics) {
++    const items = (metrics || []).filter((metric) => metric.qualityWarning || metric.qualityNote || metric.repQuality?.note);
++    if (!items.length) return "";
++    return `
++      <details class="vbt-quality-details">
++        <summary>区間検出メモ</summary>
++        <ul>
++          ${items.map((metric) => `
++            <li>
++              <strong>Rep ${escapeHtml(metric.repIndex)}</strong>
++              ${metric.qualityWarning ? `<span>${escapeHtml(metric.qualityWarning)}</span>` : ""}
++              ${metric.qualityNote || metric.repQuality?.note ? `<span>${escapeHtml(metric.qualityNote || metric.repQuality.note)}</span>` : ""}
++            </li>
++          `).join("")}
++        </ul>
++      </details>
++    `;
+   }
+ 
+   function renderRepVelocityTable(metrics) {
+@@ -851,7 +917,7 @@
+               <td>${Number.isFinite(metric.concentric?.meanVelocity) ? metric.concentric.meanVelocity.toFixed(2) : "-"}</td>
+               <td>${Number.isFinite(metric.concentric?.peakVelocity) ? metric.concentric.peakVelocity.toFixed(2) : "-"}</td>
+               <td>${Number.isFinite(metric.totalRomMeters) ? `${Math.round(metric.totalRomMeters * 100)}cm` : "-"}</td>
+-              <td>${escapeHtml(metric.warning || (metric.repIndex === metrics.length ? "Last" : "OK"))}</td>
++              <td>${escapeHtml(getRepQualityLabel(metric, metric.repIndex === metrics.length))}</td>
+             </tr>`).join("")}
+           </tbody>
+         </table>
+@@ -1074,7 +1140,7 @@
+     }
+     const metersPerPixel = (plateDiameterCm / 100) / plateDiameterPixels;
+     const repPhases = detectRepPhases(path, record.lift, record.reps);
+-    const repMetrics = calculateRepVelocityMetrics(repPhases, { path, metersPerPixel });
++    const repMetrics = calculateRepVelocityMetrics(repPhases, { path, metersPerPixel, lift: record.lift, expectedReps: record.reps });
+     const primaryVbtMetric = getPrimaryVbtMetric(repMetrics);
+     const repWarning = validateRepDetection(repMetrics, record.reps);
+     const concentricVelocities = repMetrics.map((metric) => metric.concentric?.meanVelocity).filter(Number.isFinite);
+@@ -1483,7 +1549,7 @@
+           <span><small>速度低下</small><strong>${velocityLoss !== null ? `${velocityLoss.toFixed(0)}%` : "--"}</strong></span>
+           <span><small>検出/入力レップ</small><strong>${repDisplay}</strong></span>
+         </div>
+-        ${status.warningMessage ? `<p class="vbt-result-hero-warning">${escapeHtml(status.warningMessage)}</p>` : ""}
++        ${status.warningMessage ? `<p class="vbt-result-hero-warning">要確認：区間検出を確認してください</p>` : ""}
+       </section>
+     `;
+   }
+@@ -1497,12 +1563,12 @@
+           const concentric = metric.concentric || {};
+           const rom = Number(metric.totalRomMeters);
+           const isLast = index === metrics.length - 1;
+-          const qualityWarning = metric.qualityWarning || metric.warning;
++          const qualityLabel = getRepQualityLabel(metric, isLast);
+           return `
+             <article class="vbt-rep-card ${isLast ? "last" : ""}">
+               <div class="vbt-rep-card-head">
+                 <strong>Rep ${escapeHtml(metric.repIndex || index + 1)}</strong>
+-                <span class="${qualityWarning ? "warning" : ""}">${qualityWarning ? "区間確認" : isLast ? "LAST" : "OK"}</span>
++                <span class="${qualityLabel === "区間確認" ? "warning" : ""}">${escapeHtml(qualityLabel)}</span>
+               </div>
+               <div class="vbt-rep-card-grid">
+                 <span><small>下降平均</small><strong>${Number.isFinite(Number(eccentric.meanVelocity)) ? `${Number(eccentric.meanVelocity).toFixed(2)}m/s` : "--"}</strong></span>
+@@ -1510,7 +1576,6 @@
+                 <span><small>挙上ピーク</small><strong>${Number.isFinite(Number(concentric.peakVelocity)) ? `${Number(concentric.peakVelocity).toFixed(2)}m/s` : "--"}</strong></span>
+                 <span><small>ROM</small><strong>${Number.isFinite(rom) ? `${Math.round(rom * 100)}cm` : "--"}</strong></span>
+               </div>
+-              ${qualityWarning ? `<p class="vbt-rep-warning">${escapeHtml(qualityWarning)}</p>` : ""}
+             </article>
+           `;
+         }).join("")}
+@@ -1528,6 +1593,7 @@
+         ${renderRepTimeline(repMetrics, measurement)}
+         ${renderRepVelocityCards(repMetrics)}
+         ${renderRepVelocityTable(repMetrics)}
++        ${renderRepQualityDetails(repMetrics)}
+       </section>
+     `;
+   }
+@@ -1715,6 +1781,43 @@
+     return "";
+   }
+ 
++  function getPlateSearchRegion(lift, width, height) {
++    switch (lift) {
++      case "SQ":
++        return {
++          xMin: width * 0.05,
++          xMax: width * 0.95,
++          yMin: height * 0.12,
++          yMax: height * 0.62,
++          floorPenaltyY: height * 0.68
++        };
++      case "BP":
++        return {
++          xMin: width * 0.05,
++          xMax: width * 0.95,
++          yMin: height * 0.10,
++          yMax: height * 0.70,
++          floorPenaltyY: height * 0.72
++        };
++      case "DL":
++        return {
++          xMin: width * 0.03,
++          xMax: width * 0.97,
++          yMin: height * 0.30,
++          yMax: height * 0.95,
++          floorPenaltyY: null
++        };
++      default:
++        return {
++          xMin: width * 0.03,
++          xMax: width * 0.97,
++          yMin: height * 0.08,
++          yMax: height * 0.90,
++          floorPenaltyY: null
++        };
++    }
++  }
++
+   function detectPlateCandidateFromFrame(frame, options = {}) {
+     if (!frame?.ctx || !frame?.canvas) return null;
+     const { canvas, ctx, scale } = frame;
+@@ -1722,55 +1825,76 @@
+     const height = canvas.height;
+     const data = ctx.getImageData(0, 0, width, height).data;
+     const minSide = Math.min(width, height);
+-    const sizeMin = Math.max(28, Math.round(minSide * 0.14));
+-    const sizeMax = Math.max(sizeMin + 4, Math.round(minSide * 0.30));
++    const sizeMin = Math.max(26, Math.round(minSide * 0.12));
++    const sizeMax = Math.max(sizeMin + 4, Math.round(minSide * 0.32));
+     const lift = options.lift || "SQ";
+-    const preferSides = lift === "OTHER" ? 0.05 : 0.18;
++    const region = getPlateSearchRegion(lift, width, height);
++    const preferSides = lift === "OTHER" ? 0.05 : 0.22;
+     let best = null;
+     const luminanceAt = (x, y) => {
+       const index = (clamp(Math.round(y), 0, height - 1) * width + clamp(Math.round(x), 0, width - 1)) * 4;
+       return data[index] * 0.299 + data[index + 1] * 0.587 + data[index + 2] * 0.114;
+     };
+-    for (let size = sizeMin; size <= sizeMax; size += Math.max(6, Math.round(sizeMin * 0.20))) {
+-      const step = Math.max(8, Math.round(size * 0.32));
+-      for (let y = Math.round(height * 0.08); y <= height - size - 2; y += step) {
+-        for (let x = 2; x <= width - size - 2; x += step) {
++    for (let size = sizeMin; size <= sizeMax; size += Math.max(6, Math.round(sizeMin * 0.18))) {
++      const step = Math.max(7, Math.round(size * 0.28));
++      const yEnd = Math.min(region.yMax, height - size - 2);
++      const xEnd = Math.min(region.xMax, width - size - 2);
++      for (let y = Math.round(region.yMin); y <= yEnd; y += step) {
++        for (let x = Math.round(region.xMin); x <= xEnd; x += step) {
+           const centerX = x + size / 2;
+           const centerY = y + size / 2;
+           const sideBias = Math.abs(centerX / width - 0.5) * preferSides * 100;
+           let dark = 0;
+           let edge = 0;
++          let borderEdge = 0;
+           let samples = 0;
+-          const sampleStep = Math.max(4, Math.round(size / 8));
++          const sampleStep = Math.max(3, Math.round(size / 9));
+           for (let yy = y; yy < y + size; yy += sampleStep) {
+             for (let xx = x; xx < x + size; xx += sampleStep) {
+               const lum = luminanceAt(xx, yy);
+               const right = luminanceAt(xx + sampleStep, yy);
+               const down = luminanceAt(xx, yy + sampleStep);
+-              if (lum < 92) dark += 1;
++              if (lum < 96) dark += 1;
+               edge += Math.abs(lum - right) + Math.abs(lum - down);
++              const nearBorder = xx < x + sampleStep * 1.5 || yy < y + sampleStep * 1.5 || xx > x + size - sampleStep * 2 || yy > y + size - sampleStep * 2;
++              if (nearBorder) borderEdge += Math.abs(lum - right) + Math.abs(lum - down);
+               samples += 1;
+             }
+           }
+           const darkRatio = samples ? dark / samples : 0;
+           const edgeScore = samples ? edge / samples : 0;
+-          const topPenalty = centerY < height * 0.10 ? 20 : 0;
+-          const score = darkRatio * 72 + edgeScore * 0.34 + sideBias - topPenalty;
++          const borderScore = samples ? borderEdge / samples : 0;
++          const centerPenalty = Math.abs(centerX / width - 0.5) < 0.10 ? 14 : 0;
++          const topPenalty = centerY < height * 0.08 ? 18 : 0;
++          const floorPenalty = region.floorPenaltyY && centerY > region.floorPenaltyY ? 95 : 0;
++          const bottomTouchPenalty = lift !== "DL" && y + size > height * 0.78 ? 90 : 0;
++          const shadowLike = darkRatio > 0.72 && edgeScore < 18;
++          const plateLike = darkRatio >= 0.18 && edgeScore >= 16 && borderScore >= 5;
++          if (!plateLike) continue;
++          const score = darkRatio * 58
++            + edgeScore * 0.28
++            + borderScore * 0.18
++            + sideBias
++            - topPenalty
++            - floorPenalty
++            - bottomTouchPenalty
++            - centerPenalty
++            - (shadowLike ? 55 : 0);
+           if (!best || score > best.score) {
+-            best = { x, y, width: size, height: size, score, darkRatio, edgeScore };
++            best = { x, y, width: size, height: size, score, darkRatio, edgeScore, borderScore, centerY };
+           }
+         }
+       }
+     }
+-    if (!best || best.score < 26) return null;
++    if (!best || best.score < 38) return null;
+     const roi = clampPlateRoi({
+       x: best.x / scale,
+       y: best.y / scale,
+       width: best.width / scale,
+       height: best.height / scale
+     }, Math.round(width / scale), Math.round(height / scale));
+-    const confidence = best.score > 64 ? "high" : best.score > 42 ? "middle" : "low";
+-    return { roi, score: best.score, confidence };
++    const confidence = best.score > 72 ? "high" : best.score > 52 ? "middle" : "low";
++    return { roi, score: best.score, confidence, darkRatio: best.darkRatio, edgeScore: best.edgeScore, borderScore: best.borderScore };
+   }
+ 
+   async function runAutoPlateDetection(button) {
+@@ -1785,24 +1909,35 @@
+       setVbtWizardStep(dialog, "auto-detect-loading");
+       const state = vbtState(dialog);
+       const start = hasFiniteNumber(state.trimStart) ? Number(state.trimStart) : 0;
+-      await seekVideo(video, start + 0.05, 2500);
+-      const frame = frameCanvas(video, 360);
+-      const candidate = detectPlateCandidateFromFrame(frame, { lift: record.lift });
+-      if (!candidate) {
++      const end = hasFiniteNumber(state.trimEnd) ? Number(state.trimEnd) : Number(video.duration || start + 1);
++      const duration = Math.max(0.1, end - start);
++      const sampleTimes = [
++        start + 0.05,
++        start + Math.min(0.5, duration * 0.15),
++        start + Math.min(1.0, duration * 0.30)
++      ].map((time) => clamp(time, start, end));
++      let bestCandidate = null;
++      for (const time of sampleTimes) {
++        await seekVideo(video, time, 2500);
++        const frame = frameCanvas(video, 420);
++        const candidate = detectPlateCandidateFromFrame(frame, { lift: record.lift });
++        if (candidate && (!bestCandidate || candidate.score > bestCandidate.score)) bestCandidate = { ...candidate, sampleTime: time };
++      }
++      if (!bestCandidate) {
+         setVbtState(dialog, {
+           autoDetectionConfidence: "failed",
+-          autoDetectionMessage: "自動検出が難しいようです。手動で最大プレートを囲んでください。"
++          autoDetectionMessage: "自動検出が難しいようです。足元の影やラックを拾わないよう、手動で最大プレートを囲んでください。"
+         });
+         setVbtWizardStep(dialog, "manual-plate");
+         return;
+       }
++      const lowMessage = "自動検出の信頼度：低。足元の影やラックを拾っている可能性があります。緑枠が最大プレートを囲んでいなければ手動で調整してください。";
++      const okMessage = "候補を検出しました。緑枠が最大プレートを囲んでいるか確認してください。";
+       setVbtState(dialog, {
+-        plateRoi: candidate.roi,
+-        autoPlateCandidate: candidate,
+-        autoDetectionConfidence: candidate.confidence,
+-        autoDetectionMessage: candidate.confidence === "low"
+-          ? "候補は見つかりましたが、手動確認を推奨します。"
+-          : "候補を検出しました。緑枠が最大プレートを囲んでいるか確認してください。",
++        plateRoi: bestCandidate.roi,
++        autoPlateCandidate: bestCandidate,
++        autoDetectionConfidence: bestCandidate.confidence,
++        autoDetectionMessage: bestCandidate.confidence === "low" ? lowMessage : okMessage,
+         trackingMode: "plate-roi-track"
+       });
+       const note = dialog.querySelector("[data-vbt-auto-note]");
+--- v165_work/sw.js	2026-06-10 11:29:34.925821864 +0000
++++ v166_work/sw.js	2026-06-10 11:46:07.650676681 +0000
+@@ -1,14 +1,14 @@
+-const CACHE_NAME = "platform-buddy-v165";
++const CACHE_NAME = "platform-buddy-v166";
+ const CORE_ASSETS = [
+   "./",
+   "index.html",
+-  "index.html?v=165",
++  "index.html?v=166",
+   "styles.css",
+-  "styles.css?v=165",
++  "styles.css?v=166",
+   "app.js",
+-  "app.js?v=165",
++  "app.js?v=166",
+   "video.js",
+-  "video.js?v=165",
++  "video.js?v=166",
+   "manifest.webmanifest",
+   "icon.svg",
+   "apple-touch-icon.png",
+--- v165_work/manifest.webmanifest	2026-06-10 11:29:34.926996267 +0000
++++ v166_work/manifest.webmanifest	2026-06-10 11:46:07.651392165 +0000
+@@ -2,7 +2,7 @@
+   "name": "Platform Buddy",
+   "short_name": "Buddy",
+   "description": "BIG3の現在地と目標を見える化し、PRサイクル、記録、分析、大会準備までつなげるパワーリフティング向けPWAです。",
+-  "start_url": "./index.html?v=165",
++  "start_url": "./index.html?v=166",
+   "scope": "./",
+   "display": "standalone",
+   "background_color": "#f4efe6",
