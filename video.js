@@ -1785,27 +1785,30 @@
     switch (lift) {
       case "SQ":
         return {
-          xMin: width * 0.05,
-          xMax: width * 0.95,
-          yMin: height * 0.12,
-          yMax: height * 0.62,
-          floorPenaltyY: height * 0.68
+          xMin: width * 0.04,
+          xMax: width * 0.96,
+          yMin: height * 0.10,
+          yMax: height * 0.66,
+          floorPenaltyY: height * 0.68,
+          name: "squat"
         };
       case "BP":
         return {
-          xMin: width * 0.05,
-          xMax: width * 0.95,
-          yMin: height * 0.10,
-          yMax: height * 0.70,
-          floorPenaltyY: height * 0.72
+          xMin: width * 0.04,
+          xMax: width * 0.96,
+          yMin: height * 0.08,
+          yMax: height * 0.72,
+          floorPenaltyY: height * 0.74,
+          name: "bench"
         };
       case "DL":
         return {
           xMin: width * 0.03,
           xMax: width * 0.97,
-          yMin: height * 0.30,
-          yMax: height * 0.95,
-          floorPenaltyY: null
+          yMin: height * 0.28,
+          yMax: height * 0.96,
+          floorPenaltyY: null,
+          name: "deadlift"
         };
       default:
         return {
@@ -1813,9 +1816,156 @@
           xMax: width * 0.97,
           yMin: height * 0.08,
           yMax: height * 0.90,
-          floorPenaltyY: null
+          floorPenaltyY: null,
+          name: "general"
         };
     }
+  }
+
+  function getBarbellSearchRegion(lift, width, height) {
+    switch (lift) {
+      case "SQ":
+        return { xMin: width * 0.05, xMax: width * 0.95, yMin: height * 0.12, yMax: height * 0.64 };
+      case "BP":
+        return { xMin: width * 0.05, xMax: width * 0.95, yMin: height * 0.10, yMax: height * 0.72 };
+      case "DL":
+        return { xMin: width * 0.04, xMax: width * 0.96, yMin: height * 0.34, yMax: height * 0.92 };
+      default:
+        return { xMin: width * 0.04, xMax: width * 0.96, yMin: height * 0.10, yMax: height * 0.90 };
+    }
+  }
+
+  function detectBarbellLineCandidates(data, width, height, lift, luminanceAt) {
+    const region = getBarbellSearchRegion(lift, width, height);
+    const xStart = Math.round(region.xMin);
+    const xEnd = Math.round(region.xMax);
+    const xStep = Math.max(2, Math.round(width / 210));
+    const yStep = Math.max(2, Math.round(height / 260));
+    const candidates = [];
+
+    for (let y = Math.round(region.yMin); y <= Math.round(region.yMax); y += yStep) {
+      let samples = 0;
+      let linePixels = 0;
+      let scoreSum = 0;
+      let run = 0;
+      let maxRun = 0;
+      for (let x = xStart; x <= xEnd; x += xStep) {
+        const lum = luminanceAt(x, y);
+        const above = luminanceAt(x, y - 3);
+        const below = luminanceAt(x, y + 3);
+        const left = luminanceAt(x - 3, y);
+        const right = luminanceAt(x + 3, y);
+        const verticalContrast = Math.abs(lum - above) + Math.abs(lum - below);
+        const horizontalContinuity = Math.max(0, 60 - Math.abs(left - right));
+        const darkBarLike = lum < 94 && verticalContrast > 14;
+        const brightEdgeLike = verticalContrast > 55;
+        const lineLike = darkBarLike || brightEdgeLike;
+        samples += 1;
+        if (lineLike) {
+          linePixels += 1;
+          run += 1;
+          maxRun = Math.max(maxRun, run);
+          scoreSum += verticalContrast * 0.58 + Math.max(0, 110 - lum) * 0.26 + horizontalContinuity * 0.10;
+        } else {
+          run = 0;
+        }
+      }
+      const coverage = samples ? linePixels / samples : 0;
+      const continuity = samples ? maxRun / samples : 0;
+      const centerPenalty = Math.abs((y / height) - 0.5) < 0.015 ? 0 : 0;
+      const floorPenalty = lift !== "DL" && y > height * 0.72 ? 22 : 0;
+      const score = coverage * 95 + continuity * 90 + (samples ? scoreSum / samples : 0) - centerPenalty - floorPenalty;
+      if (coverage >= 0.055 && continuity >= 0.028 && score > 14) {
+        candidates.push({ y, score, coverage, continuity });
+      }
+    }
+
+    candidates.sort((a, b) => b.score - a.score);
+    const merged = [];
+    candidates.forEach((candidate) => {
+      if (merged.some((item) => Math.abs(item.y - candidate.y) < height * 0.025)) return;
+      merged.push(candidate);
+    });
+    return merged.slice(0, 8);
+  }
+
+  function barbellLineMatchScore(candidate, barLines, size) {
+    if (!barLines?.length || !candidate) return { score: 0, line: null };
+    const centerY = candidate.y + size / 2;
+    let best = { score: 0, line: null };
+    barLines.forEach((line) => {
+      const diff = Math.abs(centerY - line.y);
+      const tolerance = Math.max(10, size * 0.42);
+      const proximity = clamp(1 - diff / tolerance, 0, 1);
+      const score = proximity * clamp(line.score, 0, 120) * 0.45;
+      if (score > best.score) best = { score, line };
+    });
+    return best;
+  }
+
+  function barbellCrossingEvidence(luminanceAt, width, height, candidate) {
+    if (!candidate) return 0;
+    const size = candidate.width;
+    const centerX = candidate.x + size / 2;
+    const centerY = candidate.y + size / 2;
+    const direction = centerX > width / 2 ? -1 : 1;
+    const innerEdge = direction < 0 ? candidate.x : candidate.x + size;
+    const segmentStart = clamp(innerEdge, 0, width - 1);
+    const segmentEnd = clamp(innerEdge + direction * Math.max(size * 1.65, width * 0.16), 0, width - 1);
+    const xMin = Math.min(segmentStart, segmentEnd);
+    const xMax = Math.max(segmentStart, segmentEnd);
+    const step = Math.max(2, Math.round(size / 14));
+    let samples = 0;
+    let lineLike = 0;
+    let contrastSum = 0;
+    for (let yy = centerY - 3; yy <= centerY + 3; yy += 3) {
+      for (let x = xMin; x <= xMax; x += step) {
+        const lum = luminanceAt(x, yy);
+        const above = luminanceAt(x, yy - 3);
+        const below = luminanceAt(x, yy + 3);
+        const contrast = Math.abs(lum - above) + Math.abs(lum - below);
+        const candidateLine = (lum < 118 && contrast > 12) || contrast > 48;
+        samples += 1;
+        if (candidateLine) {
+          lineLike += 1;
+          contrastSum += contrast;
+        }
+      }
+    }
+    if (!samples) return 0;
+    const coverage = lineLike / samples;
+    const contrast = contrastSum / samples;
+    return clamp(coverage * 58 + contrast * 0.34, 0, 55);
+  }
+
+  function platePairEvidence(luminanceAt, width, height, candidate) {
+    if (!candidate) return 0;
+    const size = candidate.width;
+    const centerX = candidate.x + size / 2;
+    const centerY = candidate.y + size / 2;
+    const mirrorX = width - centerX;
+    if (mirrorX < size * 0.4 || mirrorX > width - size * 0.4) return 0;
+    const x = clamp(Math.round(mirrorX - size / 2), 0, width - size - 1);
+    const y = clamp(Math.round(centerY - size / 2), 0, height - size - 1);
+    let dark = 0;
+    let edge = 0;
+    let samples = 0;
+    const sampleStep = Math.max(4, Math.round(size / 7));
+    for (let yy = y; yy < y + size; yy += sampleStep) {
+      for (let xx = x; xx < x + size; xx += sampleStep) {
+        const lum = luminanceAt(xx, yy);
+        const right = luminanceAt(xx + sampleStep, yy);
+        const down = luminanceAt(xx, yy + sampleStep);
+        if (lum < 105) dark += 1;
+        edge += Math.abs(lum - right) + Math.abs(lum - down);
+        samples += 1;
+      }
+    }
+    if (!samples) return 0;
+    const darkRatio = dark / samples;
+    const edgeScore = edge / samples;
+    if (darkRatio < 0.12 || edgeScore < 10) return 0;
+    return clamp(darkRatio * 22 + edgeScore * 0.18, 0, 26);
   }
 
   function detectPlateCandidateFromFrame(frame, options = {}) {
@@ -1825,24 +1975,28 @@
     const height = canvas.height;
     const data = ctx.getImageData(0, 0, width, height).data;
     const minSide = Math.min(width, height);
-    const sizeMin = Math.max(26, Math.round(minSide * 0.12));
-    const sizeMax = Math.max(sizeMin + 4, Math.round(minSide * 0.32));
+    const sizeMin = Math.max(26, Math.round(minSide * 0.105));
+    const sizeMax = Math.max(sizeMin + 4, Math.round(minSide * 0.34));
     const lift = options.lift || "SQ";
     const region = getPlateSearchRegion(lift, width, height);
-    const preferSides = lift === "OTHER" ? 0.05 : 0.22;
+    const preferSides = lift === "OTHER" ? 0.05 : 0.24;
     let best = null;
     const luminanceAt = (x, y) => {
       const index = (clamp(Math.round(y), 0, height - 1) * width + clamp(Math.round(x), 0, width - 1)) * 4;
       return data[index] * 0.299 + data[index + 1] * 0.587 + data[index + 2] * 0.114;
     };
-    for (let size = sizeMin; size <= sizeMax; size += Math.max(6, Math.round(sizeMin * 0.18))) {
-      const step = Math.max(7, Math.round(size * 0.28));
+    const barLines = detectBarbellLineCandidates(data, width, height, lift, luminanceAt);
+    const hasBarLine = barLines.length > 0;
+
+    for (let size = sizeMin; size <= sizeMax; size += Math.max(5, Math.round(sizeMin * 0.15))) {
+      const step = Math.max(6, Math.round(size * 0.22));
       const yEnd = Math.min(region.yMax, height - size - 2);
       const xEnd = Math.min(region.xMax, width - size - 2);
       for (let y = Math.round(region.yMin); y <= yEnd; y += step) {
         for (let x = Math.round(region.xMin); x <= xEnd; x += step) {
           const centerX = x + size / 2;
           const centerY = y + size / 2;
+          const candidate = { x, y, width: size, height: size };
           const sideBias = Math.abs(centerX / width - 0.5) * preferSides * 100;
           let dark = 0;
           let edge = 0;
@@ -1854,7 +2008,7 @@
               const lum = luminanceAt(xx, yy);
               const right = luminanceAt(xx + sampleStep, yy);
               const down = luminanceAt(xx, yy + sampleStep);
-              if (lum < 96) dark += 1;
+              if (lum < 100) dark += 1;
               edge += Math.abs(lum - right) + Math.abs(lum - down);
               const nearBorder = xx < x + sampleStep * 1.5 || yy < y + sampleStep * 1.5 || xx > x + size - sampleStep * 2 || yy > y + size - sampleStep * 2;
               if (nearBorder) borderEdge += Math.abs(lum - right) + Math.abs(lum - down);
@@ -1864,37 +2018,76 @@
           const darkRatio = samples ? dark / samples : 0;
           const edgeScore = samples ? edge / samples : 0;
           const borderScore = samples ? borderEdge / samples : 0;
-          const centerPenalty = Math.abs(centerX / width - 0.5) < 0.10 ? 14 : 0;
-          const topPenalty = centerY < height * 0.08 ? 18 : 0;
-          const floorPenalty = region.floorPenaltyY && centerY > region.floorPenaltyY ? 95 : 0;
-          const bottomTouchPenalty = lift !== "DL" && y + size > height * 0.78 ? 90 : 0;
-          const shadowLike = darkRatio > 0.72 && edgeScore < 18;
-          const plateLike = darkRatio >= 0.18 && edgeScore >= 16 && borderScore >= 5;
+          const barMatch = barbellLineMatchScore(candidate, barLines, size);
+          const crossingScore = barbellCrossingEvidence(luminanceAt, width, height, candidate);
+          const pairScore = platePairEvidence(luminanceAt, width, height, candidate);
+          const centerPenalty = Math.abs(centerX / width - 0.5) < 0.10 ? 16 : 0;
+          const topPenalty = centerY < height * 0.08 ? 20 : 0;
+          const floorPenalty = region.floorPenaltyY && centerY > region.floorPenaltyY ? 115 : 0;
+          const bottomTouchPenalty = lift !== "DL" && y + size > height * 0.78 ? 105 : 0;
+          const shadowLike = darkRatio > 0.74 && edgeScore < 20;
+          const pillarLike = borderScore > 70 && darkRatio < 0.18 && crossingScore < 12;
+          const plateLike = darkRatio >= 0.14 && edgeScore >= 14 && borderScore >= 4;
           if (!plateLike) continue;
-          const score = darkRatio * 58
-            + edgeScore * 0.28
-            + borderScore * 0.18
+          if (lift !== "DL" && hasBarLine && barMatch.score < 6 && crossingScore < 10) continue;
+          const barPenalty = hasBarLine && barMatch.score < 8 && crossingScore < 12 ? 34 : 0;
+          const score = darkRatio * 50
+            + edgeScore * 0.24
+            + borderScore * 0.16
             + sideBias
+            + barMatch.score
+            + crossingScore
+            + pairScore
             - topPenalty
             - floorPenalty
             - bottomTouchPenalty
             - centerPenalty
-            - (shadowLike ? 55 : 0);
+            - barPenalty
+            - (shadowLike ? 70 : 0)
+            - (pillarLike ? 45 : 0);
           if (!best || score > best.score) {
-            best = { x, y, width: size, height: size, score, darkRatio, edgeScore, borderScore, centerY };
+            best = {
+              x,
+              y,
+              width: size,
+              height: size,
+              score,
+              darkRatio,
+              edgeScore,
+              borderScore,
+              centerY,
+              barScore: barMatch.score,
+              barY: barMatch.line?.y ?? null,
+              crossingScore,
+              pairScore,
+              hasBarLine
+            };
           }
         }
       }
     }
-    if (!best || best.score < 38) return null;
+    const minScore = hasBarLine ? 48 : 58;
+    if (!best || best.score < minScore) return null;
     const roi = clampPlateRoi({
       x: best.x / scale,
       y: best.y / scale,
       width: best.width / scale,
       height: best.height / scale
     }, Math.round(width / scale), Math.round(height / scale));
-    const confidence = best.score > 72 ? "high" : best.score > 52 ? "middle" : "low";
-    return { roi, score: best.score, confidence, darkRatio: best.darkRatio, edgeScore: best.edgeScore, borderScore: best.borderScore };
+    const confidence = best.score > 88 && best.barScore > 10 ? "high" : best.score > 64 ? "middle" : "low";
+    return {
+      roi,
+      score: best.score,
+      confidence,
+      darkRatio: best.darkRatio,
+      edgeScore: best.edgeScore,
+      borderScore: best.borderScore,
+      barScore: best.barScore,
+      barY: best.barY,
+      crossingScore: best.crossingScore,
+      pairScore: best.pairScore,
+      hasBarLine: best.hasBarLine
+    };
   }
 
   async function runAutoPlateDetection(button) {
@@ -1913,8 +2106,9 @@
       const duration = Math.max(0.1, end - start);
       const sampleTimes = [
         start + 0.05,
-        start + Math.min(0.5, duration * 0.15),
-        start + Math.min(1.0, duration * 0.30)
+        start + Math.min(0.35, duration * 0.10),
+        start + Math.min(0.7, duration * 0.22),
+        start + Math.min(1.2, duration * 0.38)
       ].map((time) => clamp(time, start, end));
       let bestCandidate = null;
       for (const time of sampleTimes) {
@@ -1926,13 +2120,13 @@
       if (!bestCandidate) {
         setVbtState(dialog, {
           autoDetectionConfidence: "failed",
-          autoDetectionMessage: "自動検出が難しいようです。足元の影やラックを拾わないよう、手動で最大プレートを囲んでください。"
+          autoDetectionMessage: "バーベル線とプレート候補を結びつけられませんでした。手動で最大プレートを囲んでください。"
         });
         setVbtWizardStep(dialog, "manual-plate");
         return;
       }
-      const lowMessage = "自動検出の信頼度：低。足元の影やラックを拾っている可能性があります。緑枠が最大プレートを囲んでいなければ手動で調整してください。";
-      const okMessage = "候補を検出しました。緑枠が最大プレートを囲んでいるか確認してください。";
+      const lowMessage = "自動検出の信頼度：低。バーベル線との一致が弱い可能性があります。緑枠が最大プレートを囲んでいなければ手動で調整してください。";
+      const okMessage = "バーベル線とプレート候補をもとに検出しました。緑枠が最大プレートを囲んでいるか確認してください。";
       setVbtState(dialog, {
         plateRoi: bestCandidate.roi,
         autoPlateCandidate: bestCandidate,
@@ -1946,7 +2140,7 @@
     } catch (error) {
       setVbtState(dialog, {
         autoDetectionConfidence: "failed",
-        autoDetectionMessage: error.message || "自動検出できませんでした。手動で指定してください。"
+        autoDetectionMessage: error.message || "バーベル線とプレート候補を検出できませんでした。手動で指定してください。"
       });
       setVbtWizardStep(dialog, "manual-plate");
     } finally {
