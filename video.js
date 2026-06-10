@@ -792,7 +792,14 @@
         warning: null
       };
       const repQuality = getRepQuality(metric);
-      return { ...metric, confidence: repQuality.confidence, warning: repQuality.warning, repQuality };
+      return {
+        ...metric,
+        confidence: repQuality.confidence,
+        warning: repQuality.warning,
+        qualityConfidence: repQuality.confidence,
+        qualityWarning: repQuality.warning,
+        repQuality
+      };
     });
   }
 
@@ -1432,11 +1439,12 @@
           const concentric = metric.concentric || {};
           const rom = Number(metric.totalRomMeters);
           const isLast = index === metrics.length - 1;
+          const qualityWarning = metric.qualityWarning || metric.warning;
           return `
             <article class="vbt-rep-card ${isLast ? "last" : ""}">
               <div class="vbt-rep-card-head">
                 <strong>Rep ${escapeHtml(metric.repIndex || index + 1)}</strong>
-                <span class="${metric.warning ? "warning" : ""}">${metric.warning ? "区間確認" : isLast ? "LAST" : "OK"}</span>
+                <span class="${qualityWarning ? "warning" : ""}">${qualityWarning ? "区間確認" : isLast ? "LAST" : "OK"}</span>
               </div>
               <div class="vbt-rep-card-grid">
                 <span><small>下降平均</small><strong>${Number.isFinite(Number(eccentric.meanVelocity)) ? `${Number(eccentric.meanVelocity).toFixed(2)}m/s` : "--"}</strong></span>
@@ -1444,7 +1452,7 @@
                 <span><small>挙上ピーク</small><strong>${Number.isFinite(Number(concentric.peakVelocity)) ? `${Number(concentric.peakVelocity).toFixed(2)}m/s` : "--"}</strong></span>
                 <span><small>ROM</small><strong>${Number.isFinite(rom) ? `${Math.round(rom * 100)}cm` : "--"}</strong></span>
               </div>
-              ${metric.warning ? `<p>${escapeHtml(metric.warning)}</p>` : ""}
+              ${qualityWarning ? `<p class="vbt-rep-warning">${escapeHtml(qualityWarning)}</p>` : ""}
             </article>
           `;
         }).join("")}
@@ -1477,7 +1485,7 @@
     ]).filter(Boolean).map((block) => {
       const left = clamp(((block.start - start) / duration) * 100, 0, 100);
       const width = clamp(((block.end - block.start) / duration) * 100, 0.7, 100 - left);
-      return `<span class="${block.type}" style="left:${left.toFixed(2)}%;width:${width.toFixed(2)}%" title="Rep ${escapeHtml(block.rep)} ${block.type === "eccentric" ? "下降" : "挙上"}"></span>`;
+      return `<span class="${block.type}" style="left:${left.toFixed(2)}%;width:${width.toFixed(2)}%" title="Rep ${escapeHtml(block.rep)} ${block.type === "eccentric" ? "下降" : "挙上"}">R${escapeHtml(block.rep)} ${block.type === "eccentric" ? "↓" : "↑"}</span>`;
     }).join("");
     return `
       <div class="vbt-rep-timeline-wrap">
@@ -1485,6 +1493,46 @@
         <div class="vbt-timeline-legend"><span>下降</span><span>挙上</span><span>空白は待機・判定外</span></div>
       </div>
     `;
+  }
+
+  function renderVelocityLossPanel(data) {
+    const measurement = data.measurement || data;
+    const metrics = measurement.repMetrics || data.repMetrics || [];
+    const primary = measurement.primaryVbtMetric || data.primaryVbtMetric || getPrimaryVbtMetric(metrics);
+    const values = metrics.map((metric) => Number(metric.concentric?.meanVelocity)).filter(Number.isFinite);
+    const best = values.length ? Math.max(...values) : null;
+    if (!Number.isFinite(best) || best <= 0) return "";
+    return `
+      <section class="vbt-velocity-loss-panel">
+        <div class="video-check-head">
+          <strong>速度損失</strong>
+          <small>${Number.isFinite(Number(primary.velocityLossPercent)) ? `${Number(primary.velocityLossPercent).toFixed(0)}%` : "算出中"}</small>
+        </div>
+        <div class="vbt-loss-bars">
+          ${values.map((value, index) => {
+            const percent = clamp((value / best) * 100, 4, 100);
+            const loss = ((best - value) / best) * 100;
+            return `<div><span>R${index + 1}</span><i><b style="width:${percent.toFixed(1)}%"></b></i><strong>${value.toFixed(2)}<small>m/s</small></strong><em>${loss > 0.5 ? `-${loss.toFixed(0)}%` : "BEST"}</em></div>`;
+          }).join("")}
+        </div>
+        <p>最速レップからの低下を表示。数値だけでなくRPEと軌道も合わせて判断します。</p>
+      </section>
+    `;
+  }
+
+  function vbtCompetitionAdvice(data, status) {
+    const measurement = data.measurement || data;
+    const metrics = measurement.repMetrics || data.repMetrics || [];
+    const primary = measurement.primaryVbtMetric || data.primaryVbtMetric || getPrimaryVbtMetric(metrics);
+    const loss = Number(primary.velocityLossPercent);
+    if (!status.profileEligible) return "区間検出を確認してから次セットを判断しよう。怪しい数値では重量を動かさない。";
+    if (Number.isFinite(loss) && loss >= 30) {
+      if (data.lift === "BP") return "後半で失速しています。次セットは同重量以下で、胸上からロックアウトの軌道を優先。";
+      if (data.lift === "DL") return "床離れからの出力が落ちています。次セットは重量を上げず、セットアップを再現しよう。";
+      return "最終レップの失速が大きめです。次セットは同重量維持か、フォーム再現を優先。";
+    }
+    if (Number.isFinite(loss) && loss >= 15) return "適度な速度低下です。次セットは予定RPEを守り、同重量を軸に判断しよう。";
+    return "速度は安定しています。余裕があっても、次セットは予定RPEとフォームを優先しよう。";
   }
 
   function renderVbtMeasurementDetails(data) {
@@ -1519,8 +1567,9 @@
         <strong>${escapeHtml(vbtVelocityComment(data.lift, meanVelocity))}</strong>
         <p>${escapeHtml(vbtRpeComment(data.lift, meanVelocity, data.rpe))}</p>
         ${!status.profileEligible ? `<p class="vbt-result-warning">結果は保存しました。個人速度プロフィールには含めず、要確認として扱います。</p>` : ""}
-        ${!status.profileEligible ? `<p>数値だけで重量判断せず、動画の軌道と合わせて確認してください。</p>` : `<p>次セットもRPEとフォームを優先し、この速度を比較材料にしよう。</p>`}
+        <p class="vbt-next-set-advice">${escapeHtml(vbtCompetitionAdvice(data, status))}</p>
       </section>
+      ${renderVelocityLossPanel(data)}
       ${renderRepVelocityDisplay(data)}
       ${renderVbtMeasurementDetails(data)}
       <p class="vbt-profile-note">下降速度はテンポ確認用。RPEプロフィールには最終レップの挙上平均速度を使います。</p>
@@ -2265,6 +2314,22 @@
     return section;
   }
 
+  function vbtSetMetricGridMarkup(record) {
+    const adapted = adaptVbtRecord(record);
+    const detected = Number(record?.analysis?.velocityData?.measurement?.detectedReps
+      ?? record?.measurement?.detectedReps
+      ?? record?.primaryVbtMetric?.repCountDetected
+      ?? adapted.reps);
+    return `
+      <div class="vbt-set-metric-grid">
+        <span><small>最終Rep</small><strong>${Number.isFinite(adapted.lastRepVelocity) ? `${adapted.lastRepVelocity.toFixed(2)}m/s` : "--"}</strong></span>
+        <span><small>セット平均</small><strong>${Number.isFinite(adapted.setAverageVelocity) ? `${adapted.setAverageVelocity.toFixed(2)}m/s` : "--"}</strong></span>
+        <span><small>速度低下</small><strong>${Number.isFinite(adapted.velocityLossPercent) ? `${adapted.velocityLossPercent.toFixed(0)}%` : "--"}</strong></span>
+        <span><small>検出Rep</small><strong>${Number.isFinite(detected) && detected > 0 ? detected : "--"}</strong></span>
+      </div>
+    `;
+  }
+
   function vbtHistoryMarkup(record, records) {
     const adapted = adaptVbtRecord(record);
     const velocity = adapted.averageVelocity;
@@ -2273,6 +2338,7 @@
       <article class="vbt-history-card ${adapted.profileEligible ? "" : "warning"}">
         <strong>${escapeHtml(liftLabel(adapted.lift))} ${adapted.weightKg ? `${escapeHtml(formatNumber(adapted.weightKg))}kg` : ""}${adapted.reps ? ` x ${escapeHtml(formatNumber(adapted.reps))}` : ""}${adapted.subjectiveRpe ? ` @${escapeHtml(formatNumber(adapted.subjectiveRpe))}` : ""}</strong>
         <span>${hasResult ? `${adapted.profileEligible ? "プロフィール採用" : "要確認"} / ${escapeHtml(velocity.toFixed(2))} m/s` : "解析結果なし"}</span>
+        ${hasResult ? vbtSetMetricGridMarkup(record) : ""}
         <small>${escapeHtml(formatDate(adapted.date))} / ${escapeHtml(measurementModeLabel(adapted.measurementMode))}</small>
         ${adapted.warningMessage ? `<p>${escapeHtml(adapted.warningMessage)}</p>` : ""}
         <p>${escapeHtml(getVelocityProfileComment(records, adapted))}</p>
@@ -2292,7 +2358,8 @@
 
   function libraryCardMarkup(record) {
     const checked = selectedForCompare.has(record.id);
-    const velocity = Number(record.analysis?.velocityData?.measurement?.meanVelocity ?? record.analysis?.velocityData?.meanVelocity);
+    const adapted = adaptVbtRecord(record);
+    const velocity = Number(adapted.setAverageVelocity);
     const status = getVbtAnalysisStatus(record);
     const measurementMode = record.analysis?.velocityData?.mode || record.analysis?.velocityData?.measurement?.mode;
     return `
@@ -2303,6 +2370,7 @@
         </div>
         <strong>${escapeHtml(videoTitle(record))}</strong>
         <p class="motion-status ${status.profileEligible ? "done" : status.displayableResult ? "warning" : ""}">VBT: ${Number.isFinite(velocity) ? `${status.profileEligible ? "" : "要確認 / "}${escapeHtml(velocity.toFixed(2))} m/s` : "未計測"}</p>
+        ${status.displayableResult ? vbtSetMetricGridMarkup(record) : ""}
         ${measurementMode ? `<small>${escapeHtml(measurementModeLabel(measurementMode))}</small>` : ""}
         <p class="video-library-buddy pb-line-clamp-2">${escapeHtml(compactBuddyCopy(record))}</p>
         <div class="video-card-actions">

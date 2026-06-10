@@ -1,60 +1,57 @@
-Platform Buddy v161
-VBT ROI usability and rep-quality verification
+Platform Buddy v162
+VBT set detail and competition decision update
 
 Summary
-- Reduced visible ROI corner handles while retaining large invisible touch targets.
-- Added ROI fine-adjustment controls for position and size.
-- Added a magnified ROI preview below the setup panel.
-- Added rep-quality checks for MV/PV divergence, long concentric duration, and abnormal ROM.
-- Added a warning when the trimmed analysis range is too long for the expected rep count.
-- Added a colored rep-phase timeline showing eccentric and concentric detection ranges.
-- Kept suspicious results visible and saved while excluding them from personal profile calculations.
-- Updated PWA cache and query versions to v161.
+- Promoted VBT results from a simple measurement result into a set-detail view.
+- Added rep-by-rep velocity-loss visualization and clearer next-set guidance.
+- Added explicit rep-quality fields so uncertain detected sections remain visible and auditable.
+- Improved VBT library/history cards so key set metrics can be checked without opening every record.
+- Updated PWA cache/query versions to v162.
 
-Changed functions in video.js
-- getTrimLengthWarning(lift, reps, durationSeconds)
-  Warns when the selected range likely includes setup or waiting time.
-- getRepQuality(metric)
-  Detects suspicious MV/PV ratio, duration, and ROM for each rep.
-- calculateRepVelocityMetrics(repPhases, calibration)
-  Attaches repQuality, confidence, and warning to each detected rep.
-- renderRepTimeline(metrics, measurement)
-  Shows which time ranges were classified as eccentric and concentric.
-- renderRepVelocityDisplay(data)
-  Adds the rep timeline before the rep cards/table.
-- renderRepVelocityCards(metrics)
-  Marks suspicious reps as "区間確認".
-- getRoiVisualHandleRadius(canvas)
-  Uses smaller visible ROI handles.
-- getRoiHitHandleRadius(canvas)
-  Preserves large touch targets for mobile operation.
-- drawPlateRoi(ctx, roi)
-  Reduces fill, line weight, handle size, and label obstruction.
-- drawRoiPreview(dialog)
-  Renders a magnified preview of the current ROI.
-- nudgePlateRoi(dialog, action, amount)
-  Moves or resizes the ROI in 2px increments.
-- drawVbtOverlay(dialog)
-  Refreshes the ROI preview with the overlay.
-- openViewer(id)
-  Refreshes the ROI preview after seeking or pausing.
+video.js
+- Added qualityConfidence and qualityWarning fields to each calculated rep metric.
+- Updated rep cards to show section-check warnings when a detected phase is unreliable.
+- Updated the rep timeline to label eccentric/concentric blocks by rep.
+- Added renderVelocityLossPanel(data).
+  - Shows concentric mean velocity for each rep.
+  - Highlights the best rep and velocity loss from that rep.
+- Added vbtCompetitionAdvice(data, status).
+  - Gives SQ/BP/DL-aware next-set advice.
+  - Avoids recommending weight changes from measurements that are not profile eligible.
+- Added vbtSetMetricGridMarkup(record).
+  - Shows last-rep velocity, set-average velocity, velocity loss, and detected reps.
+- Added the metric grid to VBT history and library cards.
+
+styles.css
+- Added IRON NOTE styling for velocity-loss bars.
+- Added styling for next-set advice and rep-quality warnings.
+- Added compact set-metric grids for library/history cards.
+- Improved timeline labels and mobile layout.
+
+index.html / sw.js / manifest.webmanifest
+- Updated styles.css, app.js, and video.js query versions to v162.
+- Updated service-worker cache name and cached URLs to v162.
+- Updated manifest start_url to v162.
+
+Unchanged
+- app.js
+- localStorage key platform-pr-v3
+- Main app save structure
+- PLAN / LOG / DATA / MEET core logic
+- Buddy Method logic
 
 Verification
 - video.js syntax check: passed
 - app.js syntax check: passed
 - sw.js syntax check: passed
-- Rep-quality test: suspicious MV/PV ratio detected
-- Normal rep-quality test: passed
-- Long trim-range warning test: passed
-- Suspicious result profileEligible=false test: passed
-- Rep timeline markup test: passed
-- app.js SHA-256 unchanged:
+- manifest JSON parse: passed
+- app.js SHA256 unchanged:
   D875E81D0DBEF0DD520CC70566A34684854252EAF84B87B4CDFAD4BFCC0F39B1
-- PWA versions aligned to v161
+- PWA version alignment: v162
 
-Known follow-up
-- Pinch-to-zoom and frame-step controls are not included.
-- Long-press 8px adjustment is not included; fine adjustment uses 2px buttons.
-- CSV/JSON VBT export is not included.
-- Real-device verification with actual SQ/BP/DL videos is still recommended.
-- Browser visual verification is unavailable in this Windows environment.
+Known follow-ups
+- Real thumbnail generation
+- Velocity curve graph
+- Overlay video export
+- e1RM estimation from velocity
+- Real-device SQ/BP/DL tracking verification

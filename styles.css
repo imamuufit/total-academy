@@ -17172,3 +17172,134 @@ html body .vbt-timeline-legend span:nth-child(2)::before {
     font-size: 0.72rem;
   }
 }
+
+/* v162: VBT set detail and competition-decision hierarchy */
+html body .vbt-velocity-loss-panel {
+  display: grid;
+  gap: 10px;
+  border: 1px solid var(--line, #ded6c8);
+  border-radius: 10px;
+  background: var(--surface, #fffaf2);
+  padding: 12px;
+}
+
+html body .vbt-loss-bars {
+  display: grid;
+  gap: 7px;
+}
+
+html body .vbt-loss-bars > div {
+  display: grid;
+  grid-template-columns: 28px minmax(80px, 1fr) 74px 44px;
+  align-items: center;
+  gap: 7px;
+}
+
+html body .vbt-loss-bars :is(span, em) {
+  color: var(--text-sub, #526179);
+  font-size: 0.7rem;
+  font-style: normal;
+  font-weight: 900;
+}
+
+html body .vbt-loss-bars i {
+  display: block;
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(102, 112, 133, 0.14);
+}
+
+html body .vbt-loss-bars b {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--coach, #2f6f73), var(--accent, #b42318));
+}
+
+html body .vbt-loss-bars strong {
+  color: var(--text-main, #171717);
+  font-size: 0.82rem;
+  text-align: right;
+}
+
+html body .vbt-loss-bars strong small {
+  margin-left: 2px;
+  color: var(--text-sub, #526179);
+  font-size: 0.6rem;
+}
+
+html body .vbt-velocity-loss-panel > p,
+html body .vbt-next-set-advice,
+html body .vbt-rep-warning {
+  margin: 0;
+  color: var(--text-sub, #526179);
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+html body .vbt-next-set-advice {
+  border-left: 3px solid var(--coach, #2f6f73);
+  background: rgba(47, 111, 115, 0.07);
+  padding: 8px 10px;
+}
+
+html body .vbt-rep-warning {
+  color: var(--accent-dark, #7a271a);
+}
+
+html body .vbt-set-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+html body .vbt-set-metric-grid span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  border: 1px solid var(--line, #ded6c8);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.7);
+  padding: 7px;
+}
+
+html body .vbt-set-metric-grid small {
+  color: var(--text-sub, #526179);
+  font-size: 0.62rem;
+  font-weight: 800;
+}
+
+html body .vbt-set-metric-grid strong {
+  overflow: hidden;
+  color: var(--text-main, #171717);
+  font-size: 0.78rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+html body .vbt-rep-timeline {
+  height: 28px;
+}
+
+html body .vbt-rep-timeline span {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  color: #ffffff;
+  font-size: 0.58rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  html body .vbt-set-metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  html body .vbt-loss-bars > div {
+    grid-template-columns: 24px minmax(64px, 1fr) 66px 38px;
+    gap: 5px;
+  }
+}
