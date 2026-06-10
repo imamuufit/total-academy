@@ -1,7 +1,6 @@
-Platform Buddy v162 - changed files
+Platform Buddy v163 - changed files
 
 index.html
-styles.css
 video.js
 sw.js
 manifest.webmanifest
@@ -9,5 +8,6 @@ changed-files.txt
 DIFF
 
 app.js: unchanged
+styles.css: unchanged
 platform-pr-v3: unchanged
 assets/images: not included

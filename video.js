@@ -324,6 +324,16 @@
     const plateDiameterCm = Number(calibration.plateDiameterCm ?? measurement.plateDiameterCm ?? record?.plateDiameterCm);
     const status = getVbtAnalysisStatus(record);
     const repVelocities = measurement.repVelocities || [];
+    const lastRepVelocityRaw = primaryVbtMetric.lastRepConcentricMeanVelocity ?? repVelocities.at(-1)?.meanVelocity;
+    const peakVelocityRaw = primaryVbtMetric.bestRepConcentricMeanVelocity ?? record?.peakVelocity;
+    const velocityLossPercentRaw = primaryVbtMetric.velocityLossPercent ?? record?.velocityLossPercent;
+    const detectedRepsRaw = measurement.detectedReps ?? primaryVbtMetric.repCountDetected;
+    const expectedRepsRaw = measurement.expectedReps ?? record?.reps ?? velocityData.reps;
+    const lastRepVelocity = hasFiniteNumber(lastRepVelocityRaw) ? Number(lastRepVelocityRaw) : null;
+    const peakVelocity = hasFiniteNumber(peakVelocityRaw) ? Number(peakVelocityRaw) : null;
+    const velocityLossPercent = hasFiniteNumber(velocityLossPercentRaw) ? Number(velocityLossPercentRaw) : null;
+    const detectedReps = hasFiniteNumber(detectedRepsRaw) ? Number(detectedRepsRaw) : null;
+    const expectedReps = hasFiniteNumber(expectedRepsRaw) ? Number(expectedRepsRaw) : null;
     return {
       ...record,
       videoId: record?.videoId || (record?.analysis?.velocityData ? record.id : null),
@@ -335,9 +345,11 @@
       tag: record?.tag || record?.setType || null,
       averageVelocity: Number.isFinite(profileVelocity) ? profileVelocity : null,
       setAverageVelocity: Number.isFinite(setAverageVelocity) ? setAverageVelocity : null,
-      lastRepVelocity: Number(primaryVbtMetric.lastRepConcentricMeanVelocity ?? repVelocities.at(-1)?.meanVelocity) || null,
-      peakVelocity: Number(primaryVbtMetric.bestRepConcentricMeanVelocity ?? record?.peakVelocity) || null,
-      velocityLossPercent: Number(primaryVbtMetric.velocityLossPercent ?? record?.velocityLossPercent) || null,
+      lastRepVelocity,
+      peakVelocity,
+      velocityLossPercent,
+      detectedReps: detectedReps !== null && detectedReps >= 0 ? detectedReps : null,
+      expectedReps: expectedReps !== null && expectedReps > 0 ? expectedReps : null,
       measurementMode: velocityData.mode || measurement.mode || record?.measurementMode || "unknown",
       trackingConfidence,
       validVelocity: status.profileEligible,
@@ -1011,7 +1023,8 @@
     const referenceTemplate = sampleGrayRoi(grayFrame(first.ctx), scaledRoi);
     if (!referenceTemplate) throw new Error("緑枠が動画端に近すぎます。少し内側へ移動してください。");
 
-    const sampleCount = clamp(Math.round((end - start) * 15), 18, 240);
+    const sampleLimit = getVbtTrackingSampleLimit();
+    const sampleCount = clamp(Math.round((end - start) * 15), 18, sampleLimit);
     const rawPath = [];
     let currentRoi = { ...scaledRoi };
     const searchRadiusX = Math.max(12, scaledRoi.width * 0.75);
@@ -1072,6 +1085,8 @@
     const meanVelocity = concentricVelocities.length
       ? concentricVelocities.reduce((sum, velocity) => sum + velocity, 0) / concentricVelocities.length
       : distanceMeters / durationSeconds;
+    const decisionVelocity = primaryVbtMetric.lastRepConcentricMeanVelocity;
+    const buddyVelocity = hasFiniteNumber(decisionVelocity) ? Number(decisionVelocity) : meanVelocity;
     const trackingConfidence = autoTrackingConfidence({
       path,
       plateDiameterPixels,
@@ -1137,8 +1152,8 @@
       },
       primaryVbtMetric,
       meanVelocity,
-      buddyComment: vbtVelocityComment(record.lift, meanVelocity),
-      rpeComment: vbtRpeComment(record.lift, meanVelocity, record.rpe),
+      buddyComment: vbtVelocityComment(record.lift, buddyVelocity),
+      rpeComment: vbtRpeComment(record.lift, buddyVelocity, record.rpe),
       updatedAt: new Date().toISOString()
     };
   }
@@ -1184,16 +1199,50 @@
     return radius * 2;
   }
 
-  function seekVideo(video, time) {
+  function getVbtTrackingSampleLimit() {
+    const narrowScreen = typeof window !== "undefined" && window.matchMedia?.("(max-width: 760px)")?.matches;
+    const touchDevice = typeof navigator !== "undefined" && Number(navigator.maxTouchPoints) > 0;
+    const compactTouchDevice = touchDevice && typeof window !== "undefined" && Number(window.innerWidth) <= 1024;
+    return narrowScreen || compactTouchDevice ? 110 : 240;
+  }
+
+  function seekVideo(video, time, timeoutMs = 2500) {
     return new Promise((resolve, reject) => {
       if (!video) return reject(new Error("動画を読み込めませんでした。"));
       const target = clamp(Number(time) || 0, 0, Number(video.duration) || 0);
-      const done = () => {
+      let settled = false;
+      let timer = null;
+      const cleanup = () => {
         video.removeEventListener("seeked", done);
+        video.removeEventListener("error", failed);
+        if (timer) clearTimeout(timer);
+      };
+      const done = () => {
+        if (settled) return;
+        settled = true;
+        cleanup();
         resolve();
       };
+      const failed = () => {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        reject(new Error("動画フレームを読み込めませんでした。動画形式または測定範囲を確認してください。"));
+      };
       video.addEventListener("seeked", done, { once: true });
-      video.currentTime = target;
+      video.addEventListener("error", failed, { once: true });
+      timer = setTimeout(() => {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        reject(new Error("動画フレームの読み込みに時間がかかっています。測定範囲を短くして、もう一度試してください。"));
+      }, timeoutMs);
+      try {
+        video.currentTime = target;
+      } catch {
+        failed();
+        return;
+      }
       if (Math.abs(video.currentTime - target) < 0.03) setTimeout(done, 0);
     });
   }
@@ -1560,12 +1609,15 @@
     if (!status.displayableResult) return renderVbtErrorCard(status);
     const measurement = data.measurement || data;
     const meanVelocity = Number(measurement.meanVelocity ?? data.meanVelocity);
+    const primary = measurement.primaryVbtMetric || data.primaryVbtMetric || {};
+    const lastRepVelocity = primary.lastRepConcentricMeanVelocity;
+    const decisionVelocity = hasFiniteNumber(lastRepVelocity) ? Number(lastRepVelocity) : meanVelocity;
     return `
       ${renderVbtResultHero(data, status)}
       <section class="vbt-buddy-judgement">
         <span>Buddy判定</span>
-        <strong>${escapeHtml(vbtVelocityComment(data.lift, meanVelocity))}</strong>
-        <p>${escapeHtml(vbtRpeComment(data.lift, meanVelocity, data.rpe))}</p>
+        <strong>${escapeHtml(vbtVelocityComment(data.lift, decisionVelocity))}</strong>
+        <p>${escapeHtml(vbtRpeComment(data.lift, decisionVelocity, data.rpe))}</p>
         ${!status.profileEligible ? `<p class="vbt-result-warning">結果は保存しました。個人速度プロフィールには含めず、要確認として扱います。</p>` : ""}
         <p class="vbt-next-set-advice">${escapeHtml(vbtCompetitionAdvice(data, status))}</p>
       </section>
@@ -2316,16 +2368,17 @@
 
   function vbtSetMetricGridMarkup(record) {
     const adapted = adaptVbtRecord(record);
-    const detected = Number(record?.analysis?.velocityData?.measurement?.detectedReps
-      ?? record?.measurement?.detectedReps
-      ?? record?.primaryVbtMetric?.repCountDetected
-      ?? adapted.reps);
+    const detected = hasFiniteNumber(adapted.detectedReps) ? Number(adapted.detectedReps) : null;
+    const expected = hasFiniteNumber(adapted.expectedReps) ? Number(adapted.expectedReps) : null;
+    const repStatus = detected !== null
+      ? `${detected}${Number.isFinite(expected) ? `/${expected}` : ""}`
+      : expected !== null ? `--/${expected}` : "--";
     return `
       <div class="vbt-set-metric-grid">
         <span><small>最終Rep</small><strong>${Number.isFinite(adapted.lastRepVelocity) ? `${adapted.lastRepVelocity.toFixed(2)}m/s` : "--"}</strong></span>
         <span><small>セット平均</small><strong>${Number.isFinite(adapted.setAverageVelocity) ? `${adapted.setAverageVelocity.toFixed(2)}m/s` : "--"}</strong></span>
         <span><small>速度低下</small><strong>${Number.isFinite(adapted.velocityLossPercent) ? `${adapted.velocityLossPercent.toFixed(0)}%` : "--"}</strong></span>
-        <span><small>検出Rep</small><strong>${Number.isFinite(detected) && detected > 0 ? detected : "--"}</strong></span>
+        <span><small>検出/入力Rep</small><strong>${repStatus}</strong></span>
       </div>
     `;
   }
