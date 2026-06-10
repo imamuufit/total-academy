@@ -1,68 +1,62 @@
-Platform Buddy v159
-Plate time-series tracking and multi-rep VBT analysis
+Platform Buddy v160
+VBT result status separation and mobile result UI
 
 Summary
-- Changed the standard VBT workflow from two-point measurement to plate time-series tracking.
-- The user selects the plate at the lift-specific start position.
-- The tracked vertical path is smoothed and split into reps by lift movement pattern.
-- Each rep now reports eccentric and concentric velocity metrics.
-- The last-rep concentric mean velocity is used by the personal RPE velocity profile.
-- Manual two-point measurement remains only as a fallback.
+- Separated result display, record saving, and personal-profile eligibility.
+- Warning results remain visible and are saved as "要確認".
+- Only profileEligible results are used by personal RPE x velocity profiles.
+- Added a large VBT result hero focused on final-rep concentric mean velocity.
+- Added mobile rep cards and retained the desktop rep table.
+- Added warning status to VBT history and video library cards.
+- Updated PWA cache and query versions to v160.
 
 Changed functions in video.js
-- getVbtStartGuide(lift)
-  Returns SQ/BP/DL-specific start-position instructions and movement patterns.
-- trackPlateTimeSeries(dialog, record)
-  Runs the standard plate time-series analysis workflow.
-- smoothTrackPath(path)
-  Applies median and moving-average smoothing to the tracked path.
-- pathTurningPoints(path)
-  Finds vertical direction changes used for rep segmentation.
-- detectRepPhases(path, lift, expectedReps)
-  Splits SQ/BP top-bottom-top and DL bottom-top-bottom movements into reps.
-- phaseVelocityMetric(path, phase, metersPerPixel)
-  Calculates mean/peak velocity, duration, and distance for one phase.
-- calculateRepVelocityMetrics(repPhases, calibration)
-  Produces eccentric/concentric metrics, ROM, confidence, and warnings per rep.
-- getPrimaryVbtMetric(metrics)
-  Produces last/best/first concentric velocity, velocity loss, and detected reps.
-- validateRepDetection(metrics, expectedReps)
-  Warns when rep detection is unstable or does not match expected reps.
-- renderRepVelocityTable(metrics)
-  Renders the multi-rep velocity table.
-- trackPlateRoiPath(dialog, record)
-  Increased time-series sampling and connected rep detection and metrics.
-- autoTrackingConfidence(...)
-  Adjusted path-travel confidence thresholds for multi-rep round trips.
+- getVbtAnalysisStatus(data)
+  Classifies results as ok, warning, or invalid and returns display/profile eligibility.
+- isDisplayableVbtResult(data)
+  Reports whether a result can be shown.
+- isProfileEligibleVbt(data)
+  Reports whether a result can enter personal profile calculations.
 - adaptVbtRecord(record)
-  Preserves legacy records and uses final-rep concentric velocity for RPE profiles.
+  Exposes analysis status, displayability, eligibility, and warning details.
+- getVelocityProfileComment(records, targetRecord)
+  Explains that warning results are saved but excluded from profile calculations.
+- renderVbtErrorCard(status)
+  Renders a focused error only when no result exists.
+- renderVbtResultHero(data, status)
+  Renders the main final-rep velocity result and set summary.
+- renderRepVelocityCards(metrics)
+  Renders mobile-first per-rep cards.
+- renderRepVelocityDisplay(data)
+  Chooses the rep result presentation.
+- renderVbtMeasurementDetails(data)
+  Moves measurement conditions into a compact details panel.
 - vbtResultMarkup(data)
-  Displays set average, last/best rep, velocity loss, and per-rep results.
-- vbtCardMarkup(record)
-  Shows lift-specific start-position guidance and the new standard workflow.
+  Keeps warning results visible instead of replacing them with a retry message.
 - saveVbtVelocity(button, mode)
-  Saves primary VBT metrics and multi-rep measurement data.
+  Persists analysis status and scrolls to the completed result.
+- vbtHistoryMarkup(record, records)
+  Shows profile adoption or warning status.
+- libraryCardMarkup(record)
+  Shows saved warning values instead of hiding the measurement.
 
-Data compatibility
-- Existing video and VBT records remain supported.
-- New records use measurement.mode = "plate-roi-timeseries".
-- Existing averageVelocity stores set-average concentric velocity.
-- lastRepVelocity and primaryVbtMetric.lastRepConcentricMeanVelocity store the profile metric.
-- platform-pr-v3 and app.js were not changed.
+Behavior contract
+- analysisStatus: ok / warning / invalid
+- displayableResult: controls whether result metrics are shown
+- profileEligible: controls only personal profile aggregation
+- Warning results are displayed and saved.
+- Invalid/no-result analyses show an error card.
 
-Validation
-- video.js, app.js, and sw.js syntax checks passed.
-- Synthetic path test detected SQ 5/5 reps and DL 3/3 reps.
-- Synthetic tests produced per-rep eccentric/concentric metrics and primary VBT metrics.
-- index.html details/section tag counts match.
-- manifest.webmanifest JSON parse passed.
-- PWA cache/query/start_url are aligned to v159.
-- app.js SHA256 matches v157.
+Verification
+- video.js syntax check: passed
+- app.js syntax check: passed
+- sw.js syntax check: passed
+- Status tests: ok / warning / invalid passed
+- Warning markup test: result hero and rep card passed
+- app.js SHA-256 unchanged:
+  D875E81D0DBEF0DD520CC70566A34684854252EAF84B87B4CDFAD4BFCC0F39B1
+- PWA versions aligned to v160
+- Browser visual verification unavailable because the in-app browser could not start in this Windows environment
 
-Known limitations
-- Tracking quality still depends on camera stability, lighting, plate visibility, and a correct ROI.
-- Real-video accuracy must be verified after device upload with SQ/BP/DL sample videos.
-- Manual top/bottom marker correction is not implemented yet.
-- Pause detection is stored as optional and is not yet reliable enough for coaching decisions.
-- Velocity curve graphs and overlay-video export remain future work.
-- This remains post-set video analysis, not real-time VBT hardware.
+Known follow-up
+- Real-device verification with actual SQ/BP/DL videos is still recommended.

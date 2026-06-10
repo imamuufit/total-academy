@@ -16838,3 +16838,199 @@ html body .video-viewer-card .vbt-video-frame video {
     min-width: 0;
   }
 }
+
+/* v160: VBT result status and mobile-first result presentation */
+html body .motion-result.vbt-result {
+  gap: 12px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+
+html body .vbt-result-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.8fr);
+  gap: 18px;
+  border: 1px solid rgba(47, 111, 115, 0.34);
+  border-left: 6px solid var(--coach, #2f6f73);
+  border-radius: 12px;
+  background:
+    linear-gradient(115deg, rgba(47, 111, 115, 0.12), transparent 58%),
+    var(--surface, #fffaf2);
+  padding: 18px;
+}
+
+html body .vbt-result-hero.warning {
+  border-color: rgba(180, 35, 24, 0.34);
+  border-left-color: var(--accent, #b42318);
+  background:
+    linear-gradient(115deg, rgba(180, 35, 24, 0.1), transparent 58%),
+    var(--surface, #fffaf2);
+}
+
+html body .vbt-result-kicker {
+  color: var(--accent-dark, #7a271a);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+html body .vbt-result-main {
+  display: block;
+  margin-top: 5px;
+  color: var(--text-main, #171717);
+  font-size: clamp(3.4rem, 10vw, 5.5rem) !important;
+  font-weight: 950;
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+}
+
+html body .vbt-result-main small {
+  margin-left: 5px;
+  color: var(--text-sub, #526179);
+  font-size: 0.9rem;
+  letter-spacing: 0;
+}
+
+html body .vbt-result-hero p,
+html body .vbt-result-hero-warning {
+  margin: 7px 0 0;
+  color: var(--text-sub, #526179);
+}
+
+html body .vbt-result-summary-grid,
+html body .vbt-rep-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+html body .vbt-result-summary-grid > span,
+html body .vbt-rep-card-grid > span {
+  display: grid;
+  gap: 3px;
+  border: 1px solid var(--line, #ded6c8);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.72);
+  padding: 9px;
+}
+
+html body .vbt-result-summary-grid small,
+html body .vbt-rep-card-grid small {
+  color: var(--text-sub, #526179);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+html body .vbt-result-summary-grid strong,
+html body .vbt-rep-card-grid strong {
+  color: var(--text-main, #171717);
+  font-size: 0.94rem;
+}
+
+html body .vbt-result-hero-warning {
+  grid-column: 1 / -1;
+  border-top: 1px solid rgba(180, 35, 24, 0.22);
+  padding-top: 10px;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+html body .vbt-buddy-judgement,
+html body .vbt-rep-section,
+html body .vbt-error-card {
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--line, #ded6c8);
+  border-radius: 10px;
+  background: var(--surface, #fffaf2);
+  padding: 12px;
+}
+
+html body .vbt-buddy-judgement > span {
+  color: var(--accent-dark, #7a271a);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+html body .vbt-buddy-judgement :is(strong, p),
+html body .vbt-error-card :is(strong, p) {
+  margin: 0;
+}
+
+html body .vbt-rep-cards {
+  display: none;
+  gap: 8px;
+}
+
+html body .vbt-rep-card {
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--line, #ded6c8);
+  border-left: 4px solid var(--coach, #2f6f73);
+  border-radius: 10px;
+  background: var(--surface-soft, #fff7ed);
+  padding: 10px;
+}
+
+html body .vbt-rep-card.last {
+  border-left-color: var(--accent, #b42318);
+}
+
+html body .vbt-rep-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+html body .vbt-rep-card-head span {
+  border-radius: 999px;
+  background: var(--button-dark, #22272e);
+  color: #fffaf2;
+  padding: 3px 7px;
+  font-size: 0.66rem;
+  font-weight: 900;
+}
+
+html body .vbt-measurement-details {
+  border: 1px solid var(--line, #ded6c8);
+  border-radius: 10px;
+  background: var(--surface, #fffaf2);
+  padding: 10px;
+}
+
+html body .motion-status.warning {
+  border-color: rgba(180, 35, 24, 0.32);
+  background: rgba(180, 35, 24, 0.1);
+  color: var(--accent-dark, #7a271a) !important;
+}
+
+html body .vbt-history-card.warning {
+  border-left: 4px solid var(--accent, #b42318);
+}
+
+@media (max-width: 640px) {
+  html body .vbt-result-hero {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 14px;
+  }
+
+  html body .vbt-result-main {
+    font-size: clamp(3.5rem, 20vw, 5rem) !important;
+  }
+
+  html body .vbt-rep-cards {
+    display: grid;
+  }
+
+  html body .vbt-rep-section .vbt-rep-table-wrap {
+    display: none;
+  }
+
+  html body .vbt-buddy-judgement,
+  html body .vbt-rep-section,
+  html body .vbt-error-card {
+    padding: 10px;
+  }
+}

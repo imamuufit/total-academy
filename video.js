@@ -245,6 +245,72 @@
     return `${liftLabel(record.lift)} ${weight}${reps}${rpe}`;
   }
 
+  function getVbtAnalysisStatus(data) {
+    const velocityData = data?.analysis?.velocityData || data || {};
+    const measurement = velocityData.measurement || data?.measurement || velocityData;
+    const calibration = velocityData.calibration || data?.calibration || {};
+    const repMetrics = measurement.repMetrics || velocityData.repMetrics || [];
+    const primary = measurement.primaryVbtMetric || velocityData.primaryVbtMetric || data?.primaryVbtMetric || getPrimaryVbtMetric(repMetrics);
+    const finiteOrNaN = (value) => value === null || value === undefined || value === "" ? NaN : Number(value);
+    const lastRepVelocity = finiteOrNaN(primary.lastRepConcentricMeanVelocity ?? data?.lastRepVelocity);
+    const meanVelocity = finiteOrNaN(measurement.meanVelocity ?? velocityData.meanVelocity ?? data?.averageVelocity);
+    const distanceMeters = finiteOrNaN(measurement.distanceMeters ?? data?.distanceMeters);
+    const durationSeconds = finiteOrNaN(measurement.durationSeconds ?? data?.durationSeconds);
+    const detectedReps = Number(measurement.detectedReps ?? primary.repCountDetected ?? repMetrics.length);
+    const expectedReps = Number(measurement.expectedReps ?? data?.reps ?? velocityData.reps);
+    const trackingConfidence = velocityData.trackingConfidence || measurement.trackingConfidence || data?.trackingConfidence || "unknown";
+    const plateDiameterCm = finiteOrNaN(calibration.plateDiameterCm ?? measurement.plateDiameterCm ?? data?.plateDiameterCm);
+    const existingWarning = velocityData.trackingWarning || measurement.warning || velocityData.warning || data?.warningMessage || data?.warning;
+    const displayableResult = repMetrics.length > 0 || Number.isFinite(lastRepVelocity) || Number.isFinite(meanVelocity);
+    const warnings = [];
+
+    if (!displayableResult) {
+      return {
+        analysisStatus: "invalid",
+        displayableResult: false,
+        profileEligible: false,
+        warningType: "no-result",
+        warningMessage: "解析結果を取得できませんでした。緑枠と動画範囲を確認してください。"
+      };
+    }
+    if (trackingConfidence === "low") warnings.push("追跡信頼度が低めです。結果は参考値として扱ってください。");
+    if (existingWarning) warnings.push(String(existingWarning));
+    if (detectedReps <= 0 && !repMetrics.length) warnings.push("レップ検出ができていません。動画範囲または緑枠を確認してください。");
+    if (expectedReps > 0 && detectedReps > 0 && detectedReps !== expectedReps) warnings.push(`検出レップ数は${detectedReps}/${expectedReps}です。`);
+    if (Number.isFinite(lastRepVelocity) && lastRepVelocity < 0.08) warnings.push("最終レップ速度がかなり低く出ています。追跡ズレを確認してください。");
+    else if (Number.isFinite(lastRepVelocity) && lastRepVelocity < 0.10) warnings.push("最終レップ速度が低めです。結果は保存し、要確認として扱います。");
+    if (Number.isFinite(lastRepVelocity) && lastRepVelocity > 1.5) warnings.push("速度が高すぎます。プレート径または追跡ズレを確認してください。");
+    if (Number.isFinite(distanceMeters) && (distanceMeters < 0.05 || distanceMeters > 1.2)) warnings.push("可動域を確認してください。");
+    if (Number.isFinite(durationSeconds) && (durationSeconds <= 0 || durationSeconds > Math.max(12, (expectedReps || 1) * 6))) warnings.push("解析時間を確認してください。");
+    if (Number.isFinite(plateDiameterCm) && (plateDiameterCm < 30 || plateDiameterCm > 60)) warnings.push("プレート径を確認してください。");
+
+    const profileEligible = displayableResult
+      && warnings.length === 0
+      && trackingConfidence !== "low"
+      && Number.isFinite(lastRepVelocity)
+      && lastRepVelocity >= 0.08
+      && lastRepVelocity <= 1.5;
+    return {
+      analysisStatus: warnings.length ? "warning" : "ok",
+      displayableResult,
+      profileEligible,
+      warningType: warnings.length ? "warning" : null,
+      warningMessage: warnings.join(" ")
+    };
+  }
+
+  function isDisplayableVbtResult(data) {
+    return getVbtAnalysisStatus(data).displayableResult;
+  }
+
+  function isProfileEligibleVbt(data) {
+    return getVbtAnalysisStatus(data).profileEligible;
+  }
+
+  function getVbtWarningMessage(data) {
+    return getVbtAnalysisStatus(data).warningMessage;
+  }
+
   function adaptVbtRecord(record) {
     const velocityData = record?.analysis?.velocityData || record || {};
     const measurement = velocityData.measurement || record?.measurement || velocityData;
@@ -256,19 +322,7 @@
     const distanceMeters = Number(measurement.distanceMeters ?? record?.distanceMeters);
     const trackingConfidence = velocityData.trackingConfidence || measurement.trackingConfidence || record?.trackingConfidence || "unknown";
     const plateDiameterCm = Number(calibration.plateDiameterCm ?? measurement.plateDiameterCm ?? record?.plateDiameterCm);
-    const requiresDetectedRep = (velocityData.mode || measurement.mode || record?.measurementMode) === "plate-roi-timeseries";
-    const valid = Number.isFinite(profileVelocity)
-      && profileVelocity >= 0.1
-      && profileVelocity <= 1.2
-      && Number.isFinite(durationSeconds)
-      && durationSeconds > 0
-      && durationSeconds <= Math.max(12, (Number(record?.reps ?? velocityData.reps) || 1) * 6)
-      && Number.isFinite(distanceMeters)
-      && distanceMeters >= 0.05
-      && distanceMeters <= 1.2
-      && trackingConfidence !== "low"
-      && (!requiresDetectedRep || Number(measurement.detectedReps || primaryVbtMetric.repCountDetected) > 0)
-      && (!Number.isFinite(plateDiameterCm) || (plateDiameterCm >= 30 && plateDiameterCm <= 60));
+    const status = getVbtAnalysisStatus(record);
     const repVelocities = measurement.repVelocities || [];
     return {
       ...record,
@@ -286,7 +340,12 @@
       velocityLossPercent: Number(primaryVbtMetric.velocityLossPercent ?? record?.velocityLossPercent) || null,
       measurementMode: velocityData.mode || measurement.mode || record?.measurementMode || "unknown",
       trackingConfidence,
-      validVelocity: valid,
+      validVelocity: status.profileEligible,
+      profileEligible: status.profileEligible,
+      analysisStatus: status.analysisStatus,
+      displayableResult: status.displayableResult,
+      warningType: status.warningType,
+      warningMessage: status.warningMessage,
       plateDiameterCm: Number.isFinite(plateDiameterCm) ? plateDiameterCm : null,
       distanceMeters: Number.isFinite(distanceMeters) ? distanceMeters : null,
       durationSeconds: Number.isFinite(durationSeconds) ? durationSeconds : null,
@@ -295,7 +354,7 @@
   }
 
   function validVelocity(record) {
-    return adaptVbtRecord(record).validVelocity;
+    return isProfileEligibleVbt(record);
   }
 
   function velocityValue(record) {
@@ -303,7 +362,7 @@
   }
 
   function getValidVbtRecords(records) {
-    return records.map(adaptVbtRecord).filter((record) => record.validVelocity);
+    return records.map(adaptVbtRecord).filter((record) => record.profileEligible);
   }
 
   function velocityStats(records) {
@@ -381,7 +440,7 @@
 
   function getVelocityProfileComment(records, targetRecord) {
     const comparison = getVelocityComparison(records, targetRecord);
-    if (comparison.type === "invalid") return "速度が通常範囲を外れています。この記録はプロフィール計算に含めません。";
+    if (comparison.type === "invalid") return "結果は表示・保存されています。プロフィール計算には含めず、要確認として扱います。";
     if (comparison.type === "building") return "個人速度プロフィール作成中です。同じ条件を3〜5件残すと比較精度が上がります。";
     const label = comparison.type === "exact" ? "同条件" : "類似セット";
     const difference = `${comparison.difference >= 0 ? "+" : ""}${comparison.difference.toFixed(2)}m/s`;
@@ -1301,60 +1360,124 @@
     if (reported <= 7.5 && velocity < slow) return "申告RPEより遅めです。実際は重く出ている可能性があります。";
     return "申告RPEと速度のズレは大きくなさそうです。";
   }
-
-
-
-
-  function vbtResultMarkup(data) {
-    if (!data || !hasFiniteNumber(data.meanVelocity)) {
-      return `<p>動画を切り、プレートを緑枠で囲むと測定できます。</p>`;
-    }
-    const mode = data.mode || data.trackingMode || data.measurement?.mode || "auto-track-beta";
-    const confidence = data.trackingConfidence || data.measurement?.trackingConfidence || "unknown";
-    const warning = data.warning || data.trackingWarning || data.measurement?.warning || "";
-    const modeLabel = mode === "plate-roi-timeseries" || mode === "plate-roi-track"
-      ? "プレート追跡"
-      : mode === "manual-2point"
-        ? "手動2点"
-        : "中心点追跡β";
-    const plateDiameterCm = data.plateDiameterCm || data.calibration?.plateDiameterCm || data.measurement?.plateDiameterCm;
-    const repMetrics = data.repMetrics || data.measurement?.repMetrics || [];
-    const primary = data.primaryVbtMetric || data.measurement?.primaryVbtMetric || getPrimaryVbtMetric(repMetrics);
-    if (!validVelocity(data)) {
-      return `
-        <div class="motion-result-chips">
-          <span>${escapeHtml(modeLabel)}</span>
-          <span>速度 ${escapeHtml(Number(data.meanVelocity || 0).toFixed(2))} m/s</span>
-          <span>再測定を確認</span>
-        </div>
-        <strong>もう一度測ろう</strong>
-        <p>${escapeHtml(warning || "緑枠、測定範囲、撮影条件を確認してください。")}</p>
-      `;
-    }
-    const reps = data.repVelocities || data.measurement?.repVelocities || [];
+  function renderVbtErrorCard(status) {
     return `
-      <div class="motion-result-chips">
-        <span>${escapeHtml(modeLabel)}</span>
-        <span>セット平均 ${escapeHtml(Number(data.meanVelocity).toFixed(2))} m/s</span>
-        ${Number.isFinite(primary.lastRepConcentricMeanVelocity) ? `<span>最終Rep ${primary.lastRepConcentricMeanVelocity.toFixed(2)} m/s</span>` : ""}
-        ${Number.isFinite(primary.bestRepConcentricMeanVelocity) ? `<span>最速Rep ${primary.bestRepConcentricMeanVelocity.toFixed(2)} m/s</span>` : ""}
-        ${Number.isFinite(primary.velocityLossPercent) ? `<span>速度低下 ${primary.velocityLossPercent.toFixed(0)}%</span>` : ""}
-        ${Number.isFinite(primary.repCountDetected) ? `<span>検出 ${primary.repCountDetected}Rep</span>` : ""}
-        <span>ROM ${escapeHtml(formatNumber(data.distanceMeters))}m</span>
-        <span>${escapeHtml(formatSeconds(data.durationSeconds))}</span>
-        ${plateDiameterCm ? `<span>プレート ${escapeHtml(Number(plateDiameterCm).toFixed(1))}cm</span>` : ""}
-        <span>信頼度 ${escapeHtml(confidenceLabel(confidence))}</span>
-      </div>
-      <strong>${escapeHtml(vbtVelocityComment(data.lift, Number(data.meanVelocity)))}</strong>
-      <p>${escapeHtml(vbtRpeComment(data.lift, Number(data.meanVelocity), data.rpe))}</p>
-      ${warning ? `<p class="vbt-result-warning">${escapeHtml(warning)}</p>` : ""}
-      ${renderRepVelocityTable(repMetrics)}
-      ${!repMetrics.length && reps.length ? `<div class="vbt-rep-list">${reps.map((rep) => `<span>Rep ${escapeHtml(rep.rep)} ${escapeHtml(Number(rep.meanVelocity).toFixed(2))} m/s</span>`).join("")}</div>` : ""}
-      <p class="vbt-profile-note">下降速度はテンポ確認用。RPEプロフィールには最終レップの挙上平均速度を使います。</p>
+      <section class="vbt-error-card">
+        <strong>解析できませんでした</strong>
+        <p>${escapeHtml(status.warningMessage || "動画範囲と緑枠を確認して、もう一度解析してください。")}</p>
+      </section>
     `;
   }
 
+  function renderVbtResultHero(data, status) {
+    const measurement = data.measurement || data;
+    const repMetrics = measurement.repMetrics || data.repMetrics || [];
+    const primary = measurement.primaryVbtMetric || data.primaryVbtMetric || getPrimaryVbtMetric(repMetrics);
+    const lastVelocity = Number(primary.lastRepConcentricMeanVelocity);
+    const setAverage = Number(measurement.meanVelocity ?? data.meanVelocity);
+    const heroVelocity = Number.isFinite(lastVelocity) ? lastVelocity : setAverage;
+    const bestVelocity = Number(primary.bestRepConcentricMeanVelocity);
+    const velocityLoss = Number(primary.velocityLossPercent);
+    const detectedReps = Number(measurement.detectedReps ?? primary.repCountDetected ?? repMetrics.length);
+    const expectedReps = Number(measurement.expectedReps ?? data.reps);
+    return `
+      <section class="vbt-result-hero ${status.analysisStatus}">
+        <div>
+          <span class="vbt-result-kicker">${status.profileEligible ? "VBT RESULT" : "VBT RESULT / 要確認"}</span>
+          <strong class="vbt-result-main">${Number.isFinite(heroVelocity) ? heroVelocity.toFixed(2) : "--"}<small>m/s</small></strong>
+          <p>${Number.isFinite(lastVelocity) ? "最終レップ挙上平均速度" : "セット平均挙上速度"}</p>
+        </div>
+        <div class="vbt-result-summary-grid">
+          <span><small>セット平均</small><strong>${Number.isFinite(setAverage) ? `${setAverage.toFixed(2)}m/s` : "--"}</strong></span>
+          <span><small>最速レップ</small><strong>${Number.isFinite(bestVelocity) ? `${bestVelocity.toFixed(2)}m/s` : "--"}</strong></span>
+          <span><small>速度低下</small><strong>${Number.isFinite(velocityLoss) ? `${velocityLoss.toFixed(0)}%` : "--"}</strong></span>
+          <span><small>検出レップ</small><strong>${detectedReps || 0}${expectedReps > 0 ? `/${expectedReps}` : ""}</strong></span>
+        </div>
+        ${status.warningMessage ? `<p class="vbt-result-hero-warning">${escapeHtml(status.warningMessage)}</p>` : ""}
+      </section>
+    `;
+  }
 
+  function renderRepVelocityCards(metrics) {
+    if (!metrics.length) return "";
+    return `
+      <div class="vbt-rep-cards">
+        ${metrics.map((metric, index) => {
+          const eccentric = metric.eccentric || {};
+          const concentric = metric.concentric || {};
+          const rom = Number(metric.totalRomMeters);
+          const isLast = index === metrics.length - 1;
+          return `
+            <article class="vbt-rep-card ${isLast ? "last" : ""}">
+              <div class="vbt-rep-card-head">
+                <strong>Rep ${escapeHtml(metric.repIndex || index + 1)}</strong>
+                <span>${isLast ? "LAST" : escapeHtml(metric.confidence || "解析済み")}</span>
+              </div>
+              <div class="vbt-rep-card-grid">
+                <span><small>下降平均</small><strong>${Number.isFinite(Number(eccentric.meanVelocity)) ? `${Number(eccentric.meanVelocity).toFixed(2)}m/s` : "--"}</strong></span>
+                <span><small>挙上平均</small><strong>${Number.isFinite(Number(concentric.meanVelocity)) ? `${Number(concentric.meanVelocity).toFixed(2)}m/s` : "--"}</strong></span>
+                <span><small>挙上ピーク</small><strong>${Number.isFinite(Number(concentric.peakVelocity)) ? `${Number(concentric.peakVelocity).toFixed(2)}m/s` : "--"}</strong></span>
+                <span><small>ROM</small><strong>${Number.isFinite(rom) ? `${Math.round(rom * 100)}cm` : "--"}</strong></span>
+              </div>
+              ${metric.warning ? `<p>${escapeHtml(metric.warning)}</p>` : ""}
+            </article>
+          `;
+        }).join("")}
+      </div>
+    `;
+  }
+
+  function renderRepVelocityDisplay(data) {
+    const measurement = data.measurement || data;
+    const repMetrics = measurement.repMetrics || data.repMetrics || [];
+    if (!repMetrics.length) return `<p class="vbt-result-warning">レップ別の速度は検出できませんでした。セット結果は保存されています。</p>`;
+    return `
+      <section class="vbt-rep-section">
+        <div class="video-check-head"><strong>レップ別の速度</strong><small>下降 / 挙上 / ROM</small></div>
+        ${renderRepVelocityCards(repMetrics)}
+        ${renderRepVelocityTable(repMetrics)}
+      </section>
+    `;
+  }
+
+  function renderVbtMeasurementDetails(data) {
+    const measurement = data.measurement || data;
+    const calibration = data.calibration || {};
+    const mode = data.mode || data.trackingMode || measurement.mode || "plate-roi-timeseries";
+    const confidence = data.trackingConfidence || measurement.trackingConfidence || "unknown";
+    const plateDiameterCm = Number(calibration.plateDiameterCm ?? measurement.plateDiameterCm ?? data.plateDiameterCm);
+    return `
+      <details class="compact-guide vbt-measurement-details">
+        <summary>測定条件</summary>
+        <div class="motion-result-chips">
+          <span>${escapeHtml(measurementModeLabel(mode))}</span>
+          ${Number.isFinite(plateDiameterCm) ? `<span>プレート ${plateDiameterCm.toFixed(1)}cm</span>` : ""}
+          <span>信頼度 ${escapeHtml(confidenceLabel(confidence))}</span>
+          ${Number.isFinite(Number(measurement.distanceMeters)) ? `<span>ROM ${formatNumber(measurement.distanceMeters)}m</span>` : ""}
+          ${Number.isFinite(Number(measurement.durationSeconds)) ? `<span>${formatSeconds(measurement.durationSeconds)}</span>` : ""}
+        </div>
+      </details>
+    `;
+  }
+
+  function vbtResultMarkup(data) {
+    const status = getVbtAnalysisStatus(data);
+    if (!status.displayableResult) return renderVbtErrorCard(status);
+    const measurement = data.measurement || data;
+    const meanVelocity = Number(measurement.meanVelocity ?? data.meanVelocity);
+    return `
+      ${renderVbtResultHero(data, status)}
+      <section class="vbt-buddy-judgement">
+        <span>Buddy判定</span>
+        <strong>${escapeHtml(vbtVelocityComment(data.lift, meanVelocity))}</strong>
+        <p>${escapeHtml(vbtRpeComment(data.lift, meanVelocity, data.rpe))}</p>
+        ${!status.profileEligible ? `<p class="vbt-result-warning">結果は保存しました。個人速度プロフィールには含めず、要確認として扱います。</p>` : ""}
+      </section>
+      ${renderRepVelocityDisplay(data)}
+      ${renderVbtMeasurementDetails(data)}
+      <p class="vbt-profile-note">下降速度はテンポ確認用。RPEプロフィールには最終レップの挙上平均速度を使います。</p>
+    `;
+  }
 
   function vbtCardMarkup(record) {
     const velocityData = record.analysis?.velocityData || {};
@@ -1889,6 +2012,21 @@
         : mode === "plate-roi-track"
           ? await trackPlateTimeSeries(dialog, record)
           : await trackPlatePath(dialog, record);
+      const status = getVbtAnalysisStatus(velocityData);
+      Object.assign(velocityData, {
+        analysisStatus: status.analysisStatus,
+        displayableResult: status.displayableResult,
+        profileEligible: status.profileEligible,
+        warningType: status.warningType,
+        warningMessage: status.warningMessage
+      });
+      if (velocityData.measurement) Object.assign(velocityData.measurement, {
+        analysisStatus: status.analysisStatus,
+        displayableResult: status.displayableResult,
+        profileEligible: status.profileEligible,
+        warningType: status.warningType,
+        warningMessage: status.warningMessage
+      });
       record.analysis = { ...(record.analysis || {}), velocityData };
       record.updatedAt = new Date().toISOString();
       await saveVideoRecord(record);
@@ -1920,7 +2058,12 @@
         velocityLossPercent: velocityData.primaryVbtMetric?.velocityLossPercent ?? null,
         primaryVbtMetric: velocityData.primaryVbtMetric || null,
         measurementMode: velocityData.mode || mode,
-        validVelocity: validVelocity(velocityData),
+        validVelocity: status.profileEligible,
+        profileEligible: status.profileEligible,
+        analysisStatus: status.analysisStatus,
+        displayableResult: status.displayableResult,
+        warningType: status.warningType,
+        warningMessage: status.warningMessage,
         plateDiameterCm: velocityData.calibration?.plateDiameterCm || null,
         distanceMeters: velocityData.measurement?.distanceMeters || null,
         durationSeconds: velocityData.measurement?.durationSeconds || null,
@@ -1947,6 +2090,7 @@
       const profileRecords = await loadVbtRecords();
       resultBox.innerHTML = vbtResultMarkup({ ...velocityData, ...velocityData.measurement, lift: record.lift, rpe: record.rpe })
         + velocityComparisonMarkup(profileRecords, savedVbtRecord);
+      resultBox.scrollIntoView({ behavior: "smooth", block: "start" });
       button.textContent = "保存しました";
       const idleLabel = mode === "manual-2point" ? "手動2点で確認" : mode === "plate-roi-track" ? "3. プレートを追跡して解析" : "中心点追跡β";
       setTimeout(() => { button.textContent = idleLabel; button.disabled = false; }, 1200);
@@ -2000,12 +2144,13 @@
   function vbtHistoryMarkup(record, records) {
     const adapted = adaptVbtRecord(record);
     const velocity = adapted.averageVelocity;
-    const isValid = validVelocity(record);
+    const hasResult = adapted.displayableResult && Number.isFinite(velocity);
     return `
-      <article class="vbt-history-card">
+      <article class="vbt-history-card ${adapted.profileEligible ? "" : "warning"}">
         <strong>${escapeHtml(liftLabel(adapted.lift))} ${adapted.weightKg ? `${escapeHtml(formatNumber(adapted.weightKg))}kg` : ""}${adapted.reps ? ` x ${escapeHtml(formatNumber(adapted.reps))}` : ""}${adapted.subjectiveRpe ? ` @${escapeHtml(formatNumber(adapted.subjectiveRpe))}` : ""}</strong>
-        <span>${isValid ? `平均速度 ${escapeHtml(velocity.toFixed(2))} m/s` : "測定範囲を確認"}</span>
+        <span>${hasResult ? `${adapted.profileEligible ? "プロフィール採用" : "要確認"} / ${escapeHtml(velocity.toFixed(2))} m/s` : "解析結果なし"}</span>
         <small>${escapeHtml(formatDate(adapted.date))} / ${escapeHtml(measurementModeLabel(adapted.measurementMode))}</small>
+        ${adapted.warningMessage ? `<p>${escapeHtml(adapted.warningMessage)}</p>` : ""}
         <p>${escapeHtml(getVelocityProfileComment(records, adapted))}</p>
       </article>
     `;
@@ -2024,7 +2169,7 @@
   function libraryCardMarkup(record) {
     const checked = selectedForCompare.has(record.id);
     const velocity = Number(record.analysis?.velocityData?.measurement?.meanVelocity ?? record.analysis?.velocityData?.meanVelocity);
-    const isValid = validVelocity(record);
+    const status = getVbtAnalysisStatus(record);
     const measurementMode = record.analysis?.velocityData?.mode || record.analysis?.velocityData?.measurement?.mode;
     return `
       <article class="video-library-card">
@@ -2033,7 +2178,7 @@
           <small>${escapeHtml(formatDate(record.date))}</small>
         </div>
         <strong>${escapeHtml(videoTitle(record))}</strong>
-        <p class="motion-status ${isValid ? "done" : ""}">VBT: ${isValid ? `${escapeHtml(velocity.toFixed(2))} m/s` : (Number.isFinite(velocity) ? "要確認" : "未計測")}</p>
+        <p class="motion-status ${status.profileEligible ? "done" : status.displayableResult ? "warning" : ""}">VBT: ${Number.isFinite(velocity) ? `${status.profileEligible ? "" : "要確認 / "}${escapeHtml(velocity.toFixed(2))} m/s` : "未計測"}</p>
         ${measurementMode ? `<small>${escapeHtml(measurementModeLabel(measurementMode))}</small>` : ""}
         <p class="video-library-buddy pb-line-clamp-2">${escapeHtml(compactBuddyCopy(record))}</p>
         <div class="video-card-actions">
