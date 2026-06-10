@@ -17626,3 +17626,155 @@ html body .vbt-trim-cursor-actions .text-button {
     grid-template-columns: 1fr;
   }
 }
+
+/* v169: Qwik-style direct trimming timeline */
+html body .vbt-trim-direct-track {
+  --trim-start: 0%;
+  --trim-end: 100%;
+  --playhead: 0%;
+  position: relative;
+  min-height: 54px;
+  border-radius: 14px;
+  background:
+    linear-gradient(90deg, rgba(23,23,23,0.14), rgba(23,23,23,0.06)),
+    repeating-linear-gradient(90deg, rgba(23,23,23,0.13) 0 2px, transparent 2px 16px);
+  border: 1px solid rgba(23,23,23,0.14);
+  overflow: hidden;
+  touch-action: none;
+  cursor: pointer;
+}
+
+html body .vbt-trim-direct-track::before {
+  content: "";
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: var(--trim-start);
+  right: calc(100% - var(--trim-end));
+  border-radius: 12px;
+  background: linear-gradient(90deg, rgba(250, 204, 21, 0.86), rgba(245, 158, 11, 0.86));
+  box-shadow: inset 0 0 0 2px rgba(23,23,23,0.18), 0 10px 20px rgba(0,0,0,0.12);
+}
+
+html body .vbt-trim-direct-track .vbt-trim-dim {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: rgba(23,23,23,0.42);
+  pointer-events: none;
+}
+
+html body .vbt-trim-direct-track .vbt-trim-dim.before {
+  left: 0;
+  width: var(--trim-start);
+}
+
+html body .vbt-trim-direct-track .vbt-trim-dim.after {
+  left: var(--trim-end);
+  right: 0;
+}
+
+html body .vbt-trim-selection {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--trim-start);
+  right: calc(100% - var(--trim-end));
+  pointer-events: none;
+}
+
+html body .vbt-trim-handle {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  width: 22px;
+  border-radius: 999px;
+  background: #fffaf2;
+  border: 3px solid rgba(180, 35, 24, 0.92);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.22);
+  pointer-events: auto;
+  touch-action: none;
+}
+
+html body .vbt-trim-handle.start {
+  left: 0;
+  transform: translateX(-50%);
+  cursor: ew-resize;
+}
+
+html body .vbt-trim-handle.end {
+  right: 0;
+  transform: translateX(50%);
+  cursor: ew-resize;
+}
+
+html body .vbt-trim-handle::after {
+  content: "";
+  position: absolute;
+  top: 9px;
+  bottom: 9px;
+  left: 50%;
+  width: 3px;
+  border-radius: 999px;
+  transform: translateX(-50%);
+  background: rgba(23,23,23,0.32);
+}
+
+html body .vbt-trim-playhead {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  left: var(--playhead);
+  width: 4px;
+  border-radius: 999px;
+  transform: translateX(-50%);
+  background: #fffaf2;
+  box-shadow: 0 0 0 2px rgba(23,23,23,0.88), 0 8px 16px rgba(0,0,0,0.22);
+  pointer-events: none;
+}
+
+html body .vbt-detect-loading {
+  gap: 12px;
+}
+
+html body .vbt-loader-orb {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 5px solid rgba(180, 35, 24, 0.18);
+  border-top-color: rgba(180, 35, 24, 0.95);
+  display: inline-block;
+  animation: vbtLoaderSpin 0.9s linear infinite;
+  margin-inline: auto;
+}
+
+@keyframes vbtLoaderSpin {
+  to { transform: rotate(360deg); }
+}
+
+html body .vbt-detect-progress-bar {
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(23,23,23,0.10);
+  overflow: hidden;
+  width: min(360px, 100%);
+  margin-inline: auto;
+}
+
+html body .vbt-detect-progress-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgba(47,111,115,0.94), rgba(180,35,24,0.92));
+  transition: width 0.18s ease;
+}
+
+@media (max-width: 640px) {
+  html body .vbt-trim-direct-track {
+    min-height: 62px;
+  }
+
+  html body .vbt-trim-handle {
+    width: 24px;
+  }
+}

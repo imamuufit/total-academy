@@ -1,12 +1,11 @@
-===== index.html =====
---- /mnt/data/v167_work/index.html	2026-06-10 11:55:56.485850196 +0000
-+++ /mnt/data/v168_work/index.html	2026-06-10 12:04:20.357342677 +0000
+--- /mnt/data/v168_base_for_diff/index.html	2026-06-10 12:04:20.000000000 +0000
++++ index.html	2026-06-10 12:25:08.787195013 +0000
 @@ -12,7 +12,7 @@
      <link rel="preload" as="image" href="home-bg-lite.jpg">
      <link rel="preload" as="image" href="icon-sheet-lite.jpg">
      <link rel="apple-touch-icon" href="apple-touch-icon.png">
--    <link rel="stylesheet" href="styles.css?v=167">
-+    <link rel="stylesheet" href="styles.css?v=168">
+-    <link rel="stylesheet" href="styles.css?v=168">
++    <link rel="stylesheet" href="styles.css?v=169">
    </head>
    <body>
      <div class="app-shell">
@@ -14,429 +13,609 @@
        </form>
      </dialog>
  
--    <script src="app.js?v=167"></script>
--    <script src="video.js?v=167"></script>
-+    <script src="app.js?v=168"></script>
-+    <script src="video.js?v=168"></script>
+-    <script src="app.js?v=168"></script>
+-    <script src="video.js?v=168"></script>
++    <script src="app.js?v=169"></script>
++    <script src="video.js?v=169"></script>
    </body>
  </html>
-
-===== video.js =====
---- /mnt/data/v167_work/video.js	2026-06-10 11:55:17.583641943 +0000
-+++ /mnt/data/v168_work/video.js	2026-06-10 12:04:20.070515551 +0000
-@@ -1785,27 +1785,30 @@
-     switch (lift) {
-       case "SQ":
-         return {
--          xMin: width * 0.05,
--          xMax: width * 0.95,
--          yMin: height * 0.12,
--          yMax: height * 0.62,
--          floorPenaltyY: height * 0.68
-+          xMin: width * 0.04,
-+          xMax: width * 0.96,
-+          yMin: height * 0.10,
-+          yMax: height * 0.66,
-+          floorPenaltyY: height * 0.68,
-+          name: "squat"
-         };
-       case "BP":
-         return {
--          xMin: width * 0.05,
--          xMax: width * 0.95,
--          yMin: height * 0.10,
--          yMax: height * 0.70,
--          floorPenaltyY: height * 0.72
-+          xMin: width * 0.04,
-+          xMax: width * 0.96,
-+          yMin: height * 0.08,
-+          yMax: height * 0.72,
-+          floorPenaltyY: height * 0.74,
-+          name: "bench"
-         };
-       case "DL":
-         return {
-           xMin: width * 0.03,
-           xMax: width * 0.97,
--          yMin: height * 0.30,
--          yMax: height * 0.95,
--          floorPenaltyY: null
-+          yMin: height * 0.28,
-+          yMax: height * 0.96,
-+          floorPenaltyY: null,
-+          name: "deadlift"
-         };
-       default:
-         return {
-@@ -1813,11 +1816,158 @@
-           xMax: width * 0.97,
-           yMin: height * 0.08,
-           yMax: height * 0.90,
--          floorPenaltyY: null
-+          floorPenaltyY: null,
-+          name: "general"
-         };
-     }
+--- /mnt/data/v168_base_for_diff/styles.css	2026-06-10 11:55:53.000000000 +0000
++++ styles.css	2026-06-10 12:24:56.079611302 +0000
+@@ -17626,3 +17626,155 @@
+     grid-template-columns: 1fr;
    }
- 
-+  function getBarbellSearchRegion(lift, width, height) {
-+    switch (lift) {
-+      case "SQ":
-+        return { xMin: width * 0.05, xMax: width * 0.95, yMin: height * 0.12, yMax: height * 0.64 };
-+      case "BP":
-+        return { xMin: width * 0.05, xMax: width * 0.95, yMin: height * 0.10, yMax: height * 0.72 };
-+      case "DL":
-+        return { xMin: width * 0.04, xMax: width * 0.96, yMin: height * 0.34, yMax: height * 0.92 };
-+      default:
-+        return { xMin: width * 0.04, xMax: width * 0.96, yMin: height * 0.10, yMax: height * 0.90 };
-+    }
+ }
++
++/* v169: Qwik-style direct trimming timeline */
++html body .vbt-trim-direct-track {
++  --trim-start: 0%;
++  --trim-end: 100%;
++  --playhead: 0%;
++  position: relative;
++  min-height: 54px;
++  border-radius: 14px;
++  background:
++    linear-gradient(90deg, rgba(23,23,23,0.14), rgba(23,23,23,0.06)),
++    repeating-linear-gradient(90deg, rgba(23,23,23,0.13) 0 2px, transparent 2px 16px);
++  border: 1px solid rgba(23,23,23,0.14);
++  overflow: hidden;
++  touch-action: none;
++  cursor: pointer;
++}
++
++html body .vbt-trim-direct-track::before {
++  content: "";
++  position: absolute;
++  top: 10px;
++  bottom: 10px;
++  left: var(--trim-start);
++  right: calc(100% - var(--trim-end));
++  border-radius: 12px;
++  background: linear-gradient(90deg, rgba(250, 204, 21, 0.86), rgba(245, 158, 11, 0.86));
++  box-shadow: inset 0 0 0 2px rgba(23,23,23,0.18), 0 10px 20px rgba(0,0,0,0.12);
++}
++
++html body .vbt-trim-direct-track .vbt-trim-dim {
++  position: absolute;
++  top: 0;
++  bottom: 0;
++  background: rgba(23,23,23,0.42);
++  pointer-events: none;
++}
++
++html body .vbt-trim-direct-track .vbt-trim-dim.before {
++  left: 0;
++  width: var(--trim-start);
++}
++
++html body .vbt-trim-direct-track .vbt-trim-dim.after {
++  left: var(--trim-end);
++  right: 0;
++}
++
++html body .vbt-trim-selection {
++  position: absolute;
++  top: 0;
++  bottom: 0;
++  left: var(--trim-start);
++  right: calc(100% - var(--trim-end));
++  pointer-events: none;
++}
++
++html body .vbt-trim-handle {
++  position: absolute;
++  top: 4px;
++  bottom: 4px;
++  width: 22px;
++  border-radius: 999px;
++  background: #fffaf2;
++  border: 3px solid rgba(180, 35, 24, 0.92);
++  box-shadow: 0 8px 20px rgba(0,0,0,0.22);
++  pointer-events: auto;
++  touch-action: none;
++}
++
++html body .vbt-trim-handle.start {
++  left: 0;
++  transform: translateX(-50%);
++  cursor: ew-resize;
++}
++
++html body .vbt-trim-handle.end {
++  right: 0;
++  transform: translateX(50%);
++  cursor: ew-resize;
++}
++
++html body .vbt-trim-handle::after {
++  content: "";
++  position: absolute;
++  top: 9px;
++  bottom: 9px;
++  left: 50%;
++  width: 3px;
++  border-radius: 999px;
++  transform: translateX(-50%);
++  background: rgba(23,23,23,0.32);
++}
++
++html body .vbt-trim-playhead {
++  position: absolute;
++  top: -4px;
++  bottom: -4px;
++  left: var(--playhead);
++  width: 4px;
++  border-radius: 999px;
++  transform: translateX(-50%);
++  background: #fffaf2;
++  box-shadow: 0 0 0 2px rgba(23,23,23,0.88), 0 8px 16px rgba(0,0,0,0.22);
++  pointer-events: none;
++}
++
++html body .vbt-detect-loading {
++  gap: 12px;
++}
++
++html body .vbt-loader-orb {
++  width: 56px;
++  height: 56px;
++  border-radius: 50%;
++  border: 5px solid rgba(180, 35, 24, 0.18);
++  border-top-color: rgba(180, 35, 24, 0.95);
++  display: inline-block;
++  animation: vbtLoaderSpin 0.9s linear infinite;
++  margin-inline: auto;
++}
++
++@keyframes vbtLoaderSpin {
++  to { transform: rotate(360deg); }
++}
++
++html body .vbt-detect-progress-bar {
++  height: 10px;
++  border-radius: 999px;
++  background: rgba(23,23,23,0.10);
++  overflow: hidden;
++  width: min(360px, 100%);
++  margin-inline: auto;
++}
++
++html body .vbt-detect-progress-bar span {
++  display: block;
++  height: 100%;
++  border-radius: inherit;
++  background: linear-gradient(90deg, rgba(47,111,115,0.94), rgba(180,35,24,0.92));
++  transition: width 0.18s ease;
++}
++
++@media (max-width: 640px) {
++  html body .vbt-trim-direct-track {
++    min-height: 62px;
 +  }
 +
-+  function detectBarbellLineCandidates(data, width, height, lift, luminanceAt) {
-+    const region = getBarbellSearchRegion(lift, width, height);
-+    const xStart = Math.round(region.xMin);
-+    const xEnd = Math.round(region.xMax);
-+    const xStep = Math.max(2, Math.round(width / 210));
-+    const yStep = Math.max(2, Math.round(height / 260));
-+    const candidates = [];
-+
-+    for (let y = Math.round(region.yMin); y <= Math.round(region.yMax); y += yStep) {
-+      let samples = 0;
-+      let linePixels = 0;
-+      let scoreSum = 0;
-+      let run = 0;
-+      let maxRun = 0;
-+      for (let x = xStart; x <= xEnd; x += xStep) {
-+        const lum = luminanceAt(x, y);
-+        const above = luminanceAt(x, y - 3);
-+        const below = luminanceAt(x, y + 3);
-+        const left = luminanceAt(x - 3, y);
-+        const right = luminanceAt(x + 3, y);
-+        const verticalContrast = Math.abs(lum - above) + Math.abs(lum - below);
-+        const horizontalContinuity = Math.max(0, 60 - Math.abs(left - right));
-+        const darkBarLike = lum < 94 && verticalContrast > 14;
-+        const brightEdgeLike = verticalContrast > 55;
-+        const lineLike = darkBarLike || brightEdgeLike;
-+        samples += 1;
-+        if (lineLike) {
-+          linePixels += 1;
-+          run += 1;
-+          maxRun = Math.max(maxRun, run);
-+          scoreSum += verticalContrast * 0.58 + Math.max(0, 110 - lum) * 0.26 + horizontalContinuity * 0.10;
-+        } else {
-+          run = 0;
-+        }
-+      }
-+      const coverage = samples ? linePixels / samples : 0;
-+      const continuity = samples ? maxRun / samples : 0;
-+      const centerPenalty = Math.abs((y / height) - 0.5) < 0.015 ? 0 : 0;
-+      const floorPenalty = lift !== "DL" && y > height * 0.72 ? 22 : 0;
-+      const score = coverage * 95 + continuity * 90 + (samples ? scoreSum / samples : 0) - centerPenalty - floorPenalty;
-+      if (coverage >= 0.055 && continuity >= 0.028 && score > 14) {
-+        candidates.push({ y, score, coverage, continuity });
-+      }
-+    }
-+
-+    candidates.sort((a, b) => b.score - a.score);
-+    const merged = [];
-+    candidates.forEach((candidate) => {
-+      if (merged.some((item) => Math.abs(item.y - candidate.y) < height * 0.025)) return;
-+      merged.push(candidate);
-+    });
-+    return merged.slice(0, 8);
++  html body .vbt-trim-handle {
++    width: 24px;
 +  }
-+
-+  function barbellLineMatchScore(candidate, barLines, size) {
-+    if (!barLines?.length || !candidate) return { score: 0, line: null };
-+    const centerY = candidate.y + size / 2;
-+    let best = { score: 0, line: null };
-+    barLines.forEach((line) => {
-+      const diff = Math.abs(centerY - line.y);
-+      const tolerance = Math.max(10, size * 0.42);
-+      const proximity = clamp(1 - diff / tolerance, 0, 1);
-+      const score = proximity * clamp(line.score, 0, 120) * 0.45;
-+      if (score > best.score) best = { score, line };
-+    });
-+    return best;
-+  }
-+
-+  function barbellCrossingEvidence(luminanceAt, width, height, candidate) {
-+    if (!candidate) return 0;
-+    const size = candidate.width;
-+    const centerX = candidate.x + size / 2;
-+    const centerY = candidate.y + size / 2;
-+    const direction = centerX > width / 2 ? -1 : 1;
-+    const innerEdge = direction < 0 ? candidate.x : candidate.x + size;
-+    const segmentStart = clamp(innerEdge, 0, width - 1);
-+    const segmentEnd = clamp(innerEdge + direction * Math.max(size * 1.65, width * 0.16), 0, width - 1);
-+    const xMin = Math.min(segmentStart, segmentEnd);
-+    const xMax = Math.max(segmentStart, segmentEnd);
-+    const step = Math.max(2, Math.round(size / 14));
-+    let samples = 0;
-+    let lineLike = 0;
-+    let contrastSum = 0;
-+    for (let yy = centerY - 3; yy <= centerY + 3; yy += 3) {
-+      for (let x = xMin; x <= xMax; x += step) {
-+        const lum = luminanceAt(x, yy);
-+        const above = luminanceAt(x, yy - 3);
-+        const below = luminanceAt(x, yy + 3);
-+        const contrast = Math.abs(lum - above) + Math.abs(lum - below);
-+        const candidateLine = (lum < 118 && contrast > 12) || contrast > 48;
-+        samples += 1;
-+        if (candidateLine) {
-+          lineLike += 1;
-+          contrastSum += contrast;
-+        }
-+      }
-+    }
-+    if (!samples) return 0;
-+    const coverage = lineLike / samples;
-+    const contrast = contrastSum / samples;
-+    return clamp(coverage * 58 + contrast * 0.34, 0, 55);
-+  }
-+
-+  function platePairEvidence(luminanceAt, width, height, candidate) {
-+    if (!candidate) return 0;
-+    const size = candidate.width;
-+    const centerX = candidate.x + size / 2;
-+    const centerY = candidate.y + size / 2;
-+    const mirrorX = width - centerX;
-+    if (mirrorX < size * 0.4 || mirrorX > width - size * 0.4) return 0;
-+    const x = clamp(Math.round(mirrorX - size / 2), 0, width - size - 1);
-+    const y = clamp(Math.round(centerY - size / 2), 0, height - size - 1);
-+    let dark = 0;
-+    let edge = 0;
-+    let samples = 0;
-+    const sampleStep = Math.max(4, Math.round(size / 7));
-+    for (let yy = y; yy < y + size; yy += sampleStep) {
-+      for (let xx = x; xx < x + size; xx += sampleStep) {
-+        const lum = luminanceAt(xx, yy);
-+        const right = luminanceAt(xx + sampleStep, yy);
-+        const down = luminanceAt(xx, yy + sampleStep);
-+        if (lum < 105) dark += 1;
-+        edge += Math.abs(lum - right) + Math.abs(lum - down);
-+        samples += 1;
-+      }
-+    }
-+    if (!samples) return 0;
-+    const darkRatio = dark / samples;
-+    const edgeScore = edge / samples;
-+    if (darkRatio < 0.12 || edgeScore < 10) return 0;
-+    return clamp(darkRatio * 22 + edgeScore * 0.18, 0, 26);
-+  }
-+
-   function detectPlateCandidateFromFrame(frame, options = {}) {
-     if (!frame?.ctx || !frame?.canvas) return null;
-     const { canvas, ctx, scale } = frame;
-@@ -1825,24 +1975,28 @@
-     const height = canvas.height;
-     const data = ctx.getImageData(0, 0, width, height).data;
-     const minSide = Math.min(width, height);
--    const sizeMin = Math.max(26, Math.round(minSide * 0.12));
--    const sizeMax = Math.max(sizeMin + 4, Math.round(minSide * 0.32));
-+    const sizeMin = Math.max(26, Math.round(minSide * 0.105));
-+    const sizeMax = Math.max(sizeMin + 4, Math.round(minSide * 0.34));
-     const lift = options.lift || "SQ";
++}
+--- /mnt/data/v168_base_for_diff/video.js	2026-06-10 12:04:20.000000000 +0000
++++ video.js	2026-06-10 12:24:33.203126120 +0000
+@@ -1981,6 +1981,7 @@
      const region = getPlateSearchRegion(lift, width, height);
--    const preferSides = lift === "OTHER" ? 0.05 : 0.22;
-+    const preferSides = lift === "OTHER" ? 0.05 : 0.24;
+     const preferSides = lift === "OTHER" ? 0.05 : 0.24;
      let best = null;
++    const candidates = [];
      const luminanceAt = (x, y) => {
        const index = (clamp(Math.round(y), 0, height - 1) * width + clamp(Math.round(x), 0, width - 1)) * 4;
        return data[index] * 0.299 + data[index + 1] * 0.587 + data[index + 2] * 0.114;
-     };
--    for (let size = sizeMin; size <= sizeMax; size += Math.max(6, Math.round(sizeMin * 0.18))) {
--      const step = Math.max(7, Math.round(size * 0.28));
-+    const barLines = detectBarbellLineCandidates(data, width, height, lift, luminanceAt);
-+    const hasBarLine = barLines.length > 0;
-+
-+    for (let size = sizeMin; size <= sizeMax; size += Math.max(5, Math.round(sizeMin * 0.15))) {
-+      const step = Math.max(6, Math.round(size * 0.22));
-       const yEnd = Math.min(region.yMax, height - size - 2);
-       const xEnd = Math.min(region.xMax, width - size - 2);
-       for (let y = Math.round(region.yMin); y <= yEnd; y += step) {
-         for (let x = Math.round(region.xMin); x <= xEnd; x += step) {
-           const centerX = x + size / 2;
-           const centerY = y + size / 2;
-+          const candidate = { x, y, width: size, height: size };
-           const sideBias = Math.abs(centerX / width - 0.5) * preferSides * 100;
-           let dark = 0;
-           let edge = 0;
-@@ -1854,7 +2008,7 @@
-               const lum = luminanceAt(xx, yy);
-               const right = luminanceAt(xx + sampleStep, yy);
-               const down = luminanceAt(xx, yy + sampleStep);
--              if (lum < 96) dark += 1;
-+              if (lum < 100) dark += 1;
-               edge += Math.abs(lum - right) + Math.abs(lum - down);
-               const nearBorder = xx < x + sampleStep * 1.5 || yy < y + sampleStep * 1.5 || xx > x + size - sampleStep * 2 || yy > y + size - sampleStep * 2;
-               if (nearBorder) borderEdge += Math.abs(lum - right) + Math.abs(lum - down);
-@@ -1864,37 +2018,76 @@
-           const darkRatio = samples ? dark / samples : 0;
-           const edgeScore = samples ? edge / samples : 0;
-           const borderScore = samples ? borderEdge / samples : 0;
--          const centerPenalty = Math.abs(centerX / width - 0.5) < 0.10 ? 14 : 0;
--          const topPenalty = centerY < height * 0.08 ? 18 : 0;
--          const floorPenalty = region.floorPenaltyY && centerY > region.floorPenaltyY ? 95 : 0;
--          const bottomTouchPenalty = lift !== "DL" && y + size > height * 0.78 ? 90 : 0;
--          const shadowLike = darkRatio > 0.72 && edgeScore < 18;
--          const plateLike = darkRatio >= 0.18 && edgeScore >= 16 && borderScore >= 5;
-+          const barMatch = barbellLineMatchScore(candidate, barLines, size);
-+          const crossingScore = barbellCrossingEvidence(luminanceAt, width, height, candidate);
-+          const pairScore = platePairEvidence(luminanceAt, width, height, candidate);
-+          const centerPenalty = Math.abs(centerX / width - 0.5) < 0.10 ? 16 : 0;
-+          const topPenalty = centerY < height * 0.08 ? 20 : 0;
-+          const floorPenalty = region.floorPenaltyY && centerY > region.floorPenaltyY ? 115 : 0;
-+          const bottomTouchPenalty = lift !== "DL" && y + size > height * 0.78 ? 105 : 0;
-+          const shadowLike = darkRatio > 0.74 && edgeScore < 20;
-+          const pillarLike = borderScore > 70 && darkRatio < 0.18 && crossingScore < 12;
-+          const plateLike = darkRatio >= 0.14 && edgeScore >= 14 && borderScore >= 4;
-           if (!plateLike) continue;
--          const score = darkRatio * 58
--            + edgeScore * 0.28
--            + borderScore * 0.18
-+          if (lift !== "DL" && hasBarLine && barMatch.score < 6 && crossingScore < 10) continue;
-+          const barPenalty = hasBarLine && barMatch.score < 8 && crossingScore < 12 ? 34 : 0;
-+          const score = darkRatio * 50
-+            + edgeScore * 0.24
-+            + borderScore * 0.16
-             + sideBias
-+            + barMatch.score
-+            + crossingScore
-+            + pairScore
-             - topPenalty
-             - floorPenalty
-             - bottomTouchPenalty
-             - centerPenalty
--            - (shadowLike ? 55 : 0);
-+            - barPenalty
-+            - (shadowLike ? 70 : 0)
-+            - (pillarLike ? 45 : 0);
-           if (!best || score > best.score) {
--            best = { x, y, width: size, height: size, score, darkRatio, edgeScore, borderScore, centerY };
-+            best = {
-+              x,
-+              y,
-+              width: size,
-+              height: size,
-+              score,
-+              darkRatio,
-+              edgeScore,
-+              borderScore,
-+              centerY,
-+              barScore: barMatch.score,
-+              barY: barMatch.line?.y ?? null,
-+              crossingScore,
-+              pairScore,
-+              hasBarLine
-+            };
-           }
+@@ -2045,48 +2046,150 @@
+             - barPenalty
+             - (shadowLike ? 70 : 0)
+             - (pillarLike ? 45 : 0);
+-          if (!best || score > best.score) {
+-            best = {
+-              x,
+-              y,
+-              width: size,
+-              height: size,
+-              score,
+-              darkRatio,
+-              edgeScore,
+-              borderScore,
+-              centerY,
+-              barScore: barMatch.score,
+-              barY: barMatch.line?.y ?? null,
+-              crossingScore,
+-              pairScore,
+-              hasBarLine
+-            };
+-          }
++          const scoredCandidate = {
++            x,
++            y,
++            width: size,
++            height: size,
++            score,
++            darkRatio,
++            edgeScore,
++            borderScore,
++            centerY,
++            barScore: barMatch.score,
++            barY: barMatch.line?.y ?? null,
++            crossingScore,
++            pairScore,
++            hasBarLine
++          };
++          candidates.push(scoredCandidate);
++          if (!best || score > best.score) best = scoredCandidate;
          }
        }
      }
--    if (!best || best.score < 38) return null;
-+    const minScore = hasBarLine ? 48 : 58;
-+    if (!best || best.score < minScore) return null;
-     const roi = clampPlateRoi({
-       x: best.x / scale,
-       y: best.y / scale,
-       width: best.width / scale,
-       height: best.height / scale
-     }, Math.round(width / scale), Math.round(height / scale));
--    const confidence = best.score > 72 ? "high" : best.score > 52 ? "middle" : "low";
--    return { roi, score: best.score, confidence, darkRatio: best.darkRatio, edgeScore: best.edgeScore, borderScore: best.borderScore };
-+    const confidence = best.score > 88 && best.barScore > 10 ? "high" : best.score > 64 ? "middle" : "low";
-+    return {
-+      roi,
-+      score: best.score,
-+      confidence,
-+      darkRatio: best.darkRatio,
-+      edgeScore: best.edgeScore,
-+      borderScore: best.borderScore,
-+      barScore: best.barScore,
-+      barY: best.barY,
-+      crossingScore: best.crossingScore,
-+      pairScore: best.pairScore,
-+      hasBarLine: best.hasBarLine
+     const minScore = hasBarLine ? 48 : 58;
++    const toResult = (item) => {
++      const roi = clampPlateRoi({
++        x: item.x / scale,
++        y: item.y / scale,
++        width: item.width / scale,
++        height: item.height / scale
++      }, Math.round(width / scale), Math.round(height / scale));
++      const confidence = item.score > 88 && item.barScore > 10 ? "high" : item.score > 64 ? "middle" : "low";
++      return {
++        roi,
++        score: item.score,
++        confidence,
++        darkRatio: item.darkRatio,
++        edgeScore: item.edgeScore,
++        borderScore: item.borderScore,
++        barScore: item.barScore,
++        barY: item.barY,
++        crossingScore: item.crossingScore,
++        pairScore: item.pairScore,
++        hasBarLine: item.hasBarLine,
++        frameWidth: Math.round(width / scale),
++        frameHeight: Math.round(height / scale)
++      };
 +    };
++    candidates.sort((a, b) => b.score - a.score);
++    if (options.returnCandidates) {
++      return candidates
++        .filter((item) => item.score >= Math.max(28, minScore - 24))
++        .slice(0, options.maxCandidates || 6)
++        .map(toResult);
++    }
+     if (!best || best.score < minScore) return null;
+-    const roi = clampPlateRoi({
+-      x: best.x / scale,
+-      y: best.y / scale,
+-      width: best.width / scale,
+-      height: best.height / scale
+-    }, Math.round(width / scale), Math.round(height / scale));
+-    const confidence = best.score > 88 && best.barScore > 10 ? "high" : best.score > 64 ? "middle" : "low";
++    return toResult(best);
++  }
++
++  function updateAutoDetectProgress(dialog, step, text, percent) {
++    const label = dialog?.querySelector("[data-vbt-detect-progress]");
++    const bar = dialog?.querySelector("[data-vbt-detect-progress-bar]");
++    if (label) label.textContent = text || step || "プレートを検出中…";
++    if (bar) bar.style.width = `${clamp(Number(percent) || 0, 0, 100)}%`;
++  }
++
++  function makeAutoDetectSampleTimes(start, end) {
++    const duration = Math.max(0.1, end - start);
++    const count = clamp(Math.round(duration * 1.15), 10, 22);
++    const times = [];
++    for (let index = 0; index < count; index += 1) {
++      const ratio = count === 1 ? 0 : index / (count - 1);
++      times.push(clamp(start + duration * ratio, start, end));
++    }
++    return [...new Set(times.map((time) => Number(time.toFixed(3))))];
++  }
++
++  function chooseTemporalPlateCandidate(candidates, lift) {
++    const clean = (candidates || []).filter((item) => item?.roi && hasFiniteNumber(item.score));
++    if (!clean.length) return null;
++    const groups = [];
++    clean.forEach((candidate) => {
++      const roi = candidate.roi;
++      const centerX = roi.x + roi.width / 2;
++      const centerY = roi.y + roi.height / 2;
++      const size = Math.max(roi.width, roi.height);
++      let group = groups.find((item) => {
++        const dx = Math.abs(item.centerX - centerX) / Math.max(size, item.size, 1);
++        const ds = Math.abs(item.size - size) / Math.max(size, item.size, 1);
++        return dx < 0.55 && ds < 0.36;
++      });
++      if (!group) {
++        group = { items: [], centerX, centerY, size };
++        groups.push(group);
++      }
++      group.items.push(candidate);
++      const n = group.items.length;
++      group.centerX = (group.centerX * (n - 1) + centerX) / n;
++      group.centerY = (group.centerY * (n - 1) + centerY) / n;
++      group.size = (group.size * (n - 1) + size) / n;
++    });
++
++    let bestGroup = null;
++    groups.forEach((group) => {
++      const items = group.items.sort((a, b) => a.sampleTime - b.sampleTime);
++      const scores = items.map((item) => Number(item.score)).filter(Number.isFinite);
++      const meanScore = scores.reduce((sum, value) => sum + value, 0) / Math.max(1, scores.length);
++      const ys = items.map((item) => item.roi.y + item.roi.height / 2);
++      const xs = items.map((item) => item.roi.x + item.roi.width / 2);
++      const yRange = Math.max(...ys) - Math.min(...ys);
++      const xRange = Math.max(...xs) - Math.min(...xs);
++      const size = Math.max(1, group.size);
++      const motionRatio = yRange / size;
++      const horizontalDrift = xRange / size;
++      const countRatio = items.length / Math.max(1, clean.length);
++      const barEvidence = items.reduce((sum, item) => sum + Number(item.barScore || 0) + Number(item.crossingScore || 0) * 0.35, 0) / Math.max(1, items.length);
++      const pairEvidence = items.reduce((sum, item) => sum + Number(item.pairScore || 0), 0) / Math.max(1, items.length);
++      const movementBonus = motionRatio > 0.12 ? Math.min(34, motionRatio * 38) : (lift === "DL" ? 0 : -18);
++      const stabilityBonus = Math.min(36, items.length * 5.5) + countRatio * 18;
++      const driftPenalty = horizontalDrift > 1.05 ? 28 : horizontalDrift > 0.62 ? 12 : 0;
++      const temporalScore = meanScore + stabilityBonus + movementBonus + barEvidence * 0.28 + pairEvidence * 0.34 - driftPenalty;
++      group.temporalScore = temporalScore;
++      group.motionRatio = motionRatio;
++      group.horizontalDrift = horizontalDrift;
++      group.meanScore = meanScore;
++      if (!bestGroup || temporalScore > bestGroup.temporalScore) bestGroup = group;
++    });
++
++    if (!bestGroup) return null;
++    const first = bestGroup.items.sort((a, b) => a.sampleTime - b.sampleTime)[0];
++    const bestItem = bestGroup.items.reduce((best, item) => item.score > best.score ? item : best, first);
++    const confidence = bestGroup.temporalScore > 125 && bestGroup.motionRatio > 0.10
++      ? "high"
++      : bestGroup.temporalScore > 92
++        ? "middle"
++        : "low";
+     return {
+-      roi,
+-      score: best.score,
++      ...first,
++      roi: first.roi,
+       confidence,
+-      darkRatio: best.darkRatio,
+-      edgeScore: best.edgeScore,
+-      borderScore: best.borderScore,
+-      barScore: best.barScore,
+-      barY: best.barY,
+-      crossingScore: best.crossingScore,
+-      pairScore: best.pairScore,
+-      hasBarLine: best.hasBarLine
++      score: Math.max(bestItem.score, bestGroup.temporalScore),
++      temporalScore: bestGroup.temporalScore,
++      motionRatio: bestGroup.motionRatio,
++      horizontalDrift: bestGroup.horizontalDrift,
++      sampleCount: bestGroup.items.length,
++      bestFrameTime: bestItem.sampleTime
+     };
    }
  
-   async function runAutoPlateDetection(button) {
-@@ -1913,8 +2106,9 @@
-       const duration = Math.max(0.1, end - start);
-       const sampleTimes = [
-         start + 0.05,
--        start + Math.min(0.5, duration * 0.15),
--        start + Math.min(1.0, duration * 0.30)
-+        start + Math.min(0.35, duration * 0.10),
-+        start + Math.min(0.7, duration * 0.22),
-+        start + Math.min(1.2, duration * 0.38)
-       ].map((time) => clamp(time, start, end));
-       let bestCandidate = null;
-       for (const time of sampleTimes) {
-@@ -1926,13 +2120,13 @@
+@@ -2103,30 +2206,36 @@
+       const state = vbtState(dialog);
+       const start = hasFiniteNumber(state.trimStart) ? Number(state.trimStart) : 0;
+       const end = hasFiniteNumber(state.trimEnd) ? Number(state.trimEnd) : Number(video.duration || start + 1);
+-      const duration = Math.max(0.1, end - start);
+-      const sampleTimes = [
+-        start + 0.05,
+-        start + Math.min(0.35, duration * 0.10),
+-        start + Math.min(0.7, duration * 0.22),
+-        start + Math.min(1.2, duration * 0.38)
+-      ].map((time) => clamp(time, start, end));
+-      let bestCandidate = null;
+-      for (const time of sampleTimes) {
++      const sampleTimes = makeAutoDetectSampleTimes(start, end);
++      const allCandidates = [];
++      updateAutoDetectProgress(dialog, 1, "1/4 バーベル線を確認中…", 12);
++      for (let index = 0; index < sampleTimes.length; index += 1) {
++        const time = sampleTimes[index];
+         await seekVideo(video, time, 2500);
+-        const frame = frameCanvas(video, 420);
+-        const candidate = detectPlateCandidateFromFrame(frame, { lift: record.lift });
+-        if (candidate && (!bestCandidate || candidate.score > bestCandidate.score)) bestCandidate = { ...candidate, sampleTime: time };
++        const frame = frameCanvas(video, 460);
++        const candidates = detectPlateCandidateFromFrame(frame, { lift: record.lift, returnCandidates: true, maxCandidates: 5 }) || [];
++        candidates.forEach((candidate) => allCandidates.push({ ...candidate, sampleTime: time, sampleIndex: index }));
++        const progress = 16 + ((index + 1) / sampleTimes.length) * 58;
++        const message = index < sampleTimes.length * 0.34
++          ? "2/4 プレート候補を抽出中…"
++          : index < sampleTimes.length * 0.72
++            ? "3/4 動画内の動きを確認中…"
++            : "4/4 最も安定した候補を選択中…";
++        updateAutoDetectProgress(dialog, index + 1, message, progress);
++        await new Promise((resolve) => setTimeout(resolve, 0));
+       }
++      const bestCandidate = chooseTemporalPlateCandidate(allCandidates, record.lift);
++      updateAutoDetectProgress(dialog, 4, "4/4 検出結果を準備中…", 94);
        if (!bestCandidate) {
          setVbtState(dialog, {
            autoDetectionConfidence: "failed",
--          autoDetectionMessage: "自動検出が難しいようです。足元の影やラックを拾わないよう、手動で最大プレートを囲んでください。"
-+          autoDetectionMessage: "バーベル線とプレート候補を結びつけられませんでした。手動で最大プレートを囲んでください。"
+-          autoDetectionMessage: "バーベル線とプレート候補を結びつけられませんでした。手動で最大プレートを囲んでください。"
++          autoDetectionMessage: "動画全体から、バーベルと一緒に動くプレート候補を見つけられませんでした。手動で最大プレートを囲んでください。"
          });
          setVbtWizardStep(dialog, "manual-plate");
          return;
        }
--      const lowMessage = "自動検出の信頼度：低。足元の影やラックを拾っている可能性があります。緑枠が最大プレートを囲んでいなければ手動で調整してください。";
--      const okMessage = "候補を検出しました。緑枠が最大プレートを囲んでいるか確認してください。";
-+      const lowMessage = "自動検出の信頼度：低。バーベル線との一致が弱い可能性があります。緑枠が最大プレートを囲んでいなければ手動で調整してください。";
-+      const okMessage = "バーベル線とプレート候補をもとに検出しました。緑枠が最大プレートを囲んでいるか確認してください。";
+-      const lowMessage = "自動検出の信頼度：低。バーベル線との一致が弱い可能性があります。緑枠が最大プレートを囲んでいなければ手動で調整してください。";
+-      const okMessage = "バーベル線とプレート候補をもとに検出しました。緑枠が最大プレートを囲んでいるか確認してください。";
++      const lowMessage = "自動検出の信頼度：低。動画内での動きやバーベル線との一致が弱い可能性があります。緑枠が最大プレートを囲んでいなければ手動で調整してください。";
++      const okMessage = `動画全体から、バーベルと一緒に動く候補を検出しました。緑枠が最大プレートを囲んでいるか確認してください。解析フレーム ${bestCandidate.sampleCount || 1}件 / 動き ${(Number(bestCandidate.motionRatio) || 0).toFixed(2)}`;
        setVbtState(dialog, {
          plateRoi: bestCandidate.roi,
          autoPlateCandidate: bestCandidate,
-@@ -1946,7 +2140,7 @@
-     } catch (error) {
-       setVbtState(dialog, {
-         autoDetectionConfidence: "failed",
--        autoDetectionMessage: error.message || "自動検出できませんでした。手動で指定してください。"
-+        autoDetectionMessage: error.message || "バーベル線とプレート候補を検出できませんでした。手動で指定してください。"
-       });
-       setVbtWizardStep(dialog, "manual-plate");
-     } finally {
-
-===== sw.js =====
---- /mnt/data/v167_work/sw.js	2026-06-10 11:55:56.487186044 +0000
-+++ /mnt/data/v168_work/sw.js	2026-06-10 12:04:20.358216925 +0000
+@@ -2195,22 +2304,26 @@
+           </div>
+           <p class="video-storage-note">測定したいセット全体だけを残します。スクワットとベンチはトップから始まってOKです。</p>
+           <div class="vbt-trim-cursor-card">
+-            <div class="vbt-trim-track" data-vbt-trim-track aria-hidden="true">
+-              <span class="vbt-trim-track-range"></span>
++            <div class="vbt-trim-direct-track" data-vbt-trim-track role="group" aria-label="動画トリミング範囲">
++              <span class="vbt-trim-dim before"></span>
++              <span class="vbt-trim-selection">
++                <span class="vbt-trim-handle start" data-vbt-trim-handle="start" aria-label="前半を削る"></span>
++                <span class="vbt-trim-handle end" data-vbt-trim-handle="end" aria-label="後半を削る"></span>
++              </span>
++              <span class="vbt-trim-dim after"></span>
++              <span class="vbt-trim-playhead" data-vbt-trim-playhead aria-label="再生位置"></span>
+             </div>
+-            <p class="video-storage-note">動画下の再生カーソルを動かし、現在位置を開始点・終了点として登録します。</p>
++            <p class="video-storage-note">黄色い範囲の左端を動かすと前半をカット、右端を動かすと後半をカットします。白い線は現在の再生位置です。</p>
+             <div class="vbt-trim-cursor-actions">
+-              <button class="text-button" type="button" data-vbt-set-trim-from-playhead="start">現在位置を開始にする</button>
+-              <button class="text-button" type="button" data-vbt-set-trim-from-playhead="end">現在位置を終了にする</button>
+               <button class="text-button compact" type="button" data-vbt-jump-trim="start">開始へ</button>
+               <button class="text-button compact" type="button" data-vbt-jump-trim="end">終了へ</button>
++              <button class="text-button compact" type="button" data-vbt-preview-range>範囲を再生</button>
+             </div>
+           </div>
+           <div class="vbt-trim-summary">
+             <span data-vbt-trim-start>開始 ${escapeHtml(formatSeconds(measurement.trim?.start))}</span>
+             <span data-vbt-trim-end>終了 ${escapeHtml(formatSeconds(measurement.trim?.end))}</span>
+             <span data-vbt-playhead-label>現在 ${escapeHtml(formatSeconds(0))}</span>
+-            <button class="text-button compact" type="button" data-vbt-preview-range>範囲を再生</button>
+           </div>
+           <p class="vbt-profile-note" data-vbt-trim-warning>長すぎる範囲は、セット前後の待機を速度計算に混ぜる原因になります。</p>
+           <div class="vbt-wizard-actions">
+@@ -2219,9 +2332,12 @@
+         </section>
+ 
+         <section class="vbt-wizard-screen" data-vbt-step="auto-detect-loading">
+-          <div class="vbt-wizard-loading">
++          <div class="vbt-wizard-loading vbt-detect-loading">
++            <span class="vbt-loader-orb" aria-hidden="true"></span>
+             <strong>プレートを検出中</strong>
+-            <p>動画内の最大プレート位置を探しています。うまく検出できない時だけ、手動で指定できます。</p>
++            <p data-vbt-detect-progress>1/4 バーベル線を確認中…</p>
++            <div class="vbt-detect-progress-bar"><span data-vbt-detect-progress-bar style="width: 12%"></span></div>
++            <small>少し時間を使って、動画全体からバーベルと一緒に動くプレートを探します。</small>
+           </div>
+         </section>
+ 
+@@ -2773,6 +2889,96 @@
+   }
+ 
+ 
++  function getTrimMinimumRange(duration) {
++    if (!Number.isFinite(duration) || duration <= 0) return 0.5;
++    return Math.min(0.5, Math.max(0.18, duration * 0.025));
++  }
++
++  function trimRatioFromPointer(event, track) {
++    const rect = track.getBoundingClientRect();
++    if (!rect.width) return 0;
++    return clamp((event.clientX - rect.left) / rect.width, 0, 1);
++  }
++
++  function setTrimRange(dialog, start, end, options = {}) {
++    const video = dialog?.querySelector("video");
++    const duration = Number(video?.duration);
++    if (!dialog || !video || !Number.isFinite(duration) || duration <= 0) return;
++    const minimumRange = getTrimMinimumRange(duration);
++    let nextStart = clamp(Number(start) || 0, 0, Math.max(0, duration - minimumRange));
++    let nextEnd = clamp(Number(end) || duration, minimumRange, duration);
++    if (nextEnd - nextStart < minimumRange) {
++      if (options.lock === "start") nextEnd = clamp(nextStart + minimumRange, minimumRange, duration);
++      else if (options.lock === "end") nextStart = clamp(nextEnd - minimumRange, 0, Math.max(0, duration - minimumRange));
++      else nextEnd = clamp(nextStart + minimumRange, minimumRange, duration);
++    }
++    const state = vbtState(dialog);
++    setVbtState(dialog, {
++      trimStart: nextStart,
++      trimEnd: nextEnd,
++      targetPoint: null,
++      startPoint: null,
++      endPoint: null,
++      path: [],
++      trackingConfidence: "unknown",
++      trackingMode: state.plateRoi ? "plate-roi-track" : "manual-2point"
++    });
++    if (options.seek === "start") video.currentTime = nextStart;
++    if (options.seek === "end") video.currentTime = nextEnd;
++    syncTrimControls(dialog);
++    drawVbtOverlay(dialog);
++  }
++
++  function handleTrimTrackPointerDown(event) {
++    const handle = event.target.closest("[data-vbt-trim-handle]");
++    const track = event.target.closest("[data-vbt-trim-track]");
++    if (!track) return false;
++    const dialog = track.closest("dialog");
++    const video = dialog?.querySelector("video");
++    const duration = Number(video?.duration);
++    if (!dialog || !video || !Number.isFinite(duration) || duration <= 0) return false;
++    const mode = handle?.dataset.vbtTrimHandle || "playhead";
++    dialog._vbtTrimDrag = { mode };
++    track.setPointerCapture?.(event.pointerId);
++    event.preventDefault();
++    handleTrimTrackPointerMove(event);
++    return true;
++  }
++
++  function handleTrimTrackPointerMove(event) {
++    const dialog = event.target.closest("dialog") || document.querySelector("#videoViewerDialog");
++    const drag = dialog?._vbtTrimDrag;
++    if (!dialog || !drag) return false;
++    const track = dialog.querySelector("[data-vbt-trim-track]");
++    const video = dialog.querySelector("video");
++    const duration = Number(video?.duration);
++    if (!track || !video || !Number.isFinite(duration) || duration <= 0) return false;
++    const ratio = trimRatioFromPointer(event, track);
++    const time = clamp(ratio * duration, 0, duration);
++    const state = vbtState(dialog);
++    const start = hasFiniteNumber(state.trimStart) ? Number(state.trimStart) : 0;
++    const end = hasFiniteNumber(state.trimEnd) ? Number(state.trimEnd) : duration;
++    if (drag.mode === "start") {
++      setTrimRange(dialog, time, end, { lock: "end", seek: "start" });
++    } else if (drag.mode === "end") {
++      setTrimRange(dialog, start, time, { lock: "start", seek: "end" });
++    } else {
++      video.currentTime = clamp(time, start, end);
++      updateVbtPlaybackControls(dialog);
++      drawVbtOverlay(dialog);
++    }
++    return true;
++  }
++
++  function handleTrimTrackPointerUp(event) {
++    const dialog = event.target.closest("dialog") || document.querySelector("#videoViewerDialog");
++    if (!dialog?._vbtTrimDrag) return false;
++    dialog._vbtTrimDrag = null;
++    updateVbtPlaybackControls(dialog);
++    return true;
++  }
++
++
+   function updateVbtPlaybackControls(dialog) {
+     const video = dialog?.querySelector("video");
+     if (!video) return;
+@@ -3450,12 +3656,15 @@
+     }
+   });
+   document.addEventListener("pointerdown", (event) => {
++    if (event.target.closest("[data-vbt-trim-track]")) return handleTrimTrackPointerDown(event);
+     if (event.target.matches("[data-vbt-canvas]")) handleRoiPointerDown(event);
+   });
+   document.addEventListener("pointermove", (event) => {
++    if (document.querySelector("#videoViewerDialog")?._vbtTrimDrag) return handleTrimTrackPointerMove(event);
+     if (event.target.matches("[data-vbt-canvas]")) handleRoiPointerMove(event);
+   });
+   document.addEventListener("pointerup", (event) => {
++    if (document.querySelector("#videoViewerDialog")?._vbtTrimDrag) return handleTrimTrackPointerUp(event);
+     if (!event.target.matches("[data-vbt-canvas]")) return;
+     if (!handleRoiPointerUp(event)) handleVbtCanvasPointer(event);
+   });
+--- /mnt/data/v168_base_for_diff/sw.js	2026-06-10 12:04:20.000000000 +0000
++++ sw.js	2026-06-10 12:25:08.788083794 +0000
 @@ -1,14 +1,14 @@
--const CACHE_NAME = "platform-buddy-v167";
-+const CACHE_NAME = "platform-buddy-v168";
+-const CACHE_NAME = "platform-buddy-v168";
++const CACHE_NAME = "platform-buddy-v169";
  const CORE_ASSETS = [
    "./",
    "index.html",
--  "index.html?v=167",
-+  "index.html?v=168",
+-  "index.html?v=168",
++  "index.html?v=169",
    "styles.css",
--  "styles.css?v=167",
-+  "styles.css?v=168",
+-  "styles.css?v=168",
++  "styles.css?v=169",
    "app.js",
--  "app.js?v=167",
-+  "app.js?v=168",
+-  "app.js?v=168",
++  "app.js?v=169",
    "video.js",
--  "video.js?v=167",
-+  "video.js?v=168",
+-  "video.js?v=168",
++  "video.js?v=169",
    "manifest.webmanifest",
    "icon.svg",
    "apple-touch-icon.png",
-
-===== manifest.webmanifest =====
---- /mnt/data/v167_work/manifest.webmanifest	2026-06-10 11:55:56.488579252 +0000
-+++ /mnt/data/v168_work/manifest.webmanifest	2026-06-10 12:04:20.359426622 +0000
+--- /mnt/data/v168_base_for_diff/manifest.webmanifest	2026-06-10 12:04:20.000000000 +0000
++++ manifest.webmanifest	2026-06-10 12:25:08.788858548 +0000
 @@ -2,7 +2,7 @@
    "name": "Platform Buddy",
    "short_name": "Buddy",
    "description": "BIG3の現在地と目標を見える化し、PRサイクル、記録、分析、大会準備までつなげるパワーリフティング向けPWAです。",
--  "start_url": "./index.html?v=167",
-+  "start_url": "./index.html?v=168",
+-  "start_url": "./index.html?v=168",
++  "start_url": "./index.html?v=169",
    "scope": "./",
    "display": "standalone",
    "background_color": "#f4efe6",
-
-===== styles.css =====
-

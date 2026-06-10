@@ -1,7 +1,5 @@
 index.html
+styles.css
 video.js
 sw.js
 manifest.webmanifest
-styles.css
-changed-files.txt
-DIFF

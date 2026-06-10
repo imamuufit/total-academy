@@ -1981,6 +1981,7 @@
     const region = getPlateSearchRegion(lift, width, height);
     const preferSides = lift === "OTHER" ? 0.05 : 0.24;
     let best = null;
+    const candidates = [];
     const luminanceAt = (x, y) => {
       const index = (clamp(Math.round(y), 0, height - 1) * width + clamp(Math.round(x), 0, width - 1)) * 4;
       return data[index] * 0.299 + data[index + 1] * 0.587 + data[index + 2] * 0.114;
@@ -2045,48 +2046,150 @@
             - barPenalty
             - (shadowLike ? 70 : 0)
             - (pillarLike ? 45 : 0);
-          if (!best || score > best.score) {
-            best = {
-              x,
-              y,
-              width: size,
-              height: size,
-              score,
-              darkRatio,
-              edgeScore,
-              borderScore,
-              centerY,
-              barScore: barMatch.score,
-              barY: barMatch.line?.y ?? null,
-              crossingScore,
-              pairScore,
-              hasBarLine
-            };
-          }
+          const scoredCandidate = {
+            x,
+            y,
+            width: size,
+            height: size,
+            score,
+            darkRatio,
+            edgeScore,
+            borderScore,
+            centerY,
+            barScore: barMatch.score,
+            barY: barMatch.line?.y ?? null,
+            crossingScore,
+            pairScore,
+            hasBarLine
+          };
+          candidates.push(scoredCandidate);
+          if (!best || score > best.score) best = scoredCandidate;
         }
       }
     }
     const minScore = hasBarLine ? 48 : 58;
+    const toResult = (item) => {
+      const roi = clampPlateRoi({
+        x: item.x / scale,
+        y: item.y / scale,
+        width: item.width / scale,
+        height: item.height / scale
+      }, Math.round(width / scale), Math.round(height / scale));
+      const confidence = item.score > 88 && item.barScore > 10 ? "high" : item.score > 64 ? "middle" : "low";
+      return {
+        roi,
+        score: item.score,
+        confidence,
+        darkRatio: item.darkRatio,
+        edgeScore: item.edgeScore,
+        borderScore: item.borderScore,
+        barScore: item.barScore,
+        barY: item.barY,
+        crossingScore: item.crossingScore,
+        pairScore: item.pairScore,
+        hasBarLine: item.hasBarLine,
+        frameWidth: Math.round(width / scale),
+        frameHeight: Math.round(height / scale)
+      };
+    };
+    candidates.sort((a, b) => b.score - a.score);
+    if (options.returnCandidates) {
+      return candidates
+        .filter((item) => item.score >= Math.max(28, minScore - 24))
+        .slice(0, options.maxCandidates || 6)
+        .map(toResult);
+    }
     if (!best || best.score < minScore) return null;
-    const roi = clampPlateRoi({
-      x: best.x / scale,
-      y: best.y / scale,
-      width: best.width / scale,
-      height: best.height / scale
-    }, Math.round(width / scale), Math.round(height / scale));
-    const confidence = best.score > 88 && best.barScore > 10 ? "high" : best.score > 64 ? "middle" : "low";
+    return toResult(best);
+  }
+
+  function updateAutoDetectProgress(dialog, step, text, percent) {
+    const label = dialog?.querySelector("[data-vbt-detect-progress]");
+    const bar = dialog?.querySelector("[data-vbt-detect-progress-bar]");
+    if (label) label.textContent = text || step || "プレートを検出中…";
+    if (bar) bar.style.width = `${clamp(Number(percent) || 0, 0, 100)}%`;
+  }
+
+  function makeAutoDetectSampleTimes(start, end) {
+    const duration = Math.max(0.1, end - start);
+    const count = clamp(Math.round(duration * 1.15), 10, 22);
+    const times = [];
+    for (let index = 0; index < count; index += 1) {
+      const ratio = count === 1 ? 0 : index / (count - 1);
+      times.push(clamp(start + duration * ratio, start, end));
+    }
+    return [...new Set(times.map((time) => Number(time.toFixed(3))))];
+  }
+
+  function chooseTemporalPlateCandidate(candidates, lift) {
+    const clean = (candidates || []).filter((item) => item?.roi && hasFiniteNumber(item.score));
+    if (!clean.length) return null;
+    const groups = [];
+    clean.forEach((candidate) => {
+      const roi = candidate.roi;
+      const centerX = roi.x + roi.width / 2;
+      const centerY = roi.y + roi.height / 2;
+      const size = Math.max(roi.width, roi.height);
+      let group = groups.find((item) => {
+        const dx = Math.abs(item.centerX - centerX) / Math.max(size, item.size, 1);
+        const ds = Math.abs(item.size - size) / Math.max(size, item.size, 1);
+        return dx < 0.55 && ds < 0.36;
+      });
+      if (!group) {
+        group = { items: [], centerX, centerY, size };
+        groups.push(group);
+      }
+      group.items.push(candidate);
+      const n = group.items.length;
+      group.centerX = (group.centerX * (n - 1) + centerX) / n;
+      group.centerY = (group.centerY * (n - 1) + centerY) / n;
+      group.size = (group.size * (n - 1) + size) / n;
+    });
+
+    let bestGroup = null;
+    groups.forEach((group) => {
+      const items = group.items.sort((a, b) => a.sampleTime - b.sampleTime);
+      const scores = items.map((item) => Number(item.score)).filter(Number.isFinite);
+      const meanScore = scores.reduce((sum, value) => sum + value, 0) / Math.max(1, scores.length);
+      const ys = items.map((item) => item.roi.y + item.roi.height / 2);
+      const xs = items.map((item) => item.roi.x + item.roi.width / 2);
+      const yRange = Math.max(...ys) - Math.min(...ys);
+      const xRange = Math.max(...xs) - Math.min(...xs);
+      const size = Math.max(1, group.size);
+      const motionRatio = yRange / size;
+      const horizontalDrift = xRange / size;
+      const countRatio = items.length / Math.max(1, clean.length);
+      const barEvidence = items.reduce((sum, item) => sum + Number(item.barScore || 0) + Number(item.crossingScore || 0) * 0.35, 0) / Math.max(1, items.length);
+      const pairEvidence = items.reduce((sum, item) => sum + Number(item.pairScore || 0), 0) / Math.max(1, items.length);
+      const movementBonus = motionRatio > 0.12 ? Math.min(34, motionRatio * 38) : (lift === "DL" ? 0 : -18);
+      const stabilityBonus = Math.min(36, items.length * 5.5) + countRatio * 18;
+      const driftPenalty = horizontalDrift > 1.05 ? 28 : horizontalDrift > 0.62 ? 12 : 0;
+      const temporalScore = meanScore + stabilityBonus + movementBonus + barEvidence * 0.28 + pairEvidence * 0.34 - driftPenalty;
+      group.temporalScore = temporalScore;
+      group.motionRatio = motionRatio;
+      group.horizontalDrift = horizontalDrift;
+      group.meanScore = meanScore;
+      if (!bestGroup || temporalScore > bestGroup.temporalScore) bestGroup = group;
+    });
+
+    if (!bestGroup) return null;
+    const first = bestGroup.items.sort((a, b) => a.sampleTime - b.sampleTime)[0];
+    const bestItem = bestGroup.items.reduce((best, item) => item.score > best.score ? item : best, first);
+    const confidence = bestGroup.temporalScore > 125 && bestGroup.motionRatio > 0.10
+      ? "high"
+      : bestGroup.temporalScore > 92
+        ? "middle"
+        : "low";
     return {
-      roi,
-      score: best.score,
+      ...first,
+      roi: first.roi,
       confidence,
-      darkRatio: best.darkRatio,
-      edgeScore: best.edgeScore,
-      borderScore: best.borderScore,
-      barScore: best.barScore,
-      barY: best.barY,
-      crossingScore: best.crossingScore,
-      pairScore: best.pairScore,
-      hasBarLine: best.hasBarLine
+      score: Math.max(bestItem.score, bestGroup.temporalScore),
+      temporalScore: bestGroup.temporalScore,
+      motionRatio: bestGroup.motionRatio,
+      horizontalDrift: bestGroup.horizontalDrift,
+      sampleCount: bestGroup.items.length,
+      bestFrameTime: bestItem.sampleTime
     };
   }
 
@@ -2103,30 +2206,36 @@
       const state = vbtState(dialog);
       const start = hasFiniteNumber(state.trimStart) ? Number(state.trimStart) : 0;
       const end = hasFiniteNumber(state.trimEnd) ? Number(state.trimEnd) : Number(video.duration || start + 1);
-      const duration = Math.max(0.1, end - start);
-      const sampleTimes = [
-        start + 0.05,
-        start + Math.min(0.35, duration * 0.10),
-        start + Math.min(0.7, duration * 0.22),
-        start + Math.min(1.2, duration * 0.38)
-      ].map((time) => clamp(time, start, end));
-      let bestCandidate = null;
-      for (const time of sampleTimes) {
+      const sampleTimes = makeAutoDetectSampleTimes(start, end);
+      const allCandidates = [];
+      updateAutoDetectProgress(dialog, 1, "1/4 バーベル線を確認中…", 12);
+      for (let index = 0; index < sampleTimes.length; index += 1) {
+        const time = sampleTimes[index];
         await seekVideo(video, time, 2500);
-        const frame = frameCanvas(video, 420);
-        const candidate = detectPlateCandidateFromFrame(frame, { lift: record.lift });
-        if (candidate && (!bestCandidate || candidate.score > bestCandidate.score)) bestCandidate = { ...candidate, sampleTime: time };
+        const frame = frameCanvas(video, 460);
+        const candidates = detectPlateCandidateFromFrame(frame, { lift: record.lift, returnCandidates: true, maxCandidates: 5 }) || [];
+        candidates.forEach((candidate) => allCandidates.push({ ...candidate, sampleTime: time, sampleIndex: index }));
+        const progress = 16 + ((index + 1) / sampleTimes.length) * 58;
+        const message = index < sampleTimes.length * 0.34
+          ? "2/4 プレート候補を抽出中…"
+          : index < sampleTimes.length * 0.72
+            ? "3/4 動画内の動きを確認中…"
+            : "4/4 最も安定した候補を選択中…";
+        updateAutoDetectProgress(dialog, index + 1, message, progress);
+        await new Promise((resolve) => setTimeout(resolve, 0));
       }
+      const bestCandidate = chooseTemporalPlateCandidate(allCandidates, record.lift);
+      updateAutoDetectProgress(dialog, 4, "4/4 検出結果を準備中…", 94);
       if (!bestCandidate) {
         setVbtState(dialog, {
           autoDetectionConfidence: "failed",
-          autoDetectionMessage: "バーベル線とプレート候補を結びつけられませんでした。手動で最大プレートを囲んでください。"
+          autoDetectionMessage: "動画全体から、バーベルと一緒に動くプレート候補を見つけられませんでした。手動で最大プレートを囲んでください。"
         });
         setVbtWizardStep(dialog, "manual-plate");
         return;
       }
-      const lowMessage = "自動検出の信頼度：低。バーベル線との一致が弱い可能性があります。緑枠が最大プレートを囲んでいなければ手動で調整してください。";
-      const okMessage = "バーベル線とプレート候補をもとに検出しました。緑枠が最大プレートを囲んでいるか確認してください。";
+      const lowMessage = "自動検出の信頼度：低。動画内での動きやバーベル線との一致が弱い可能性があります。緑枠が最大プレートを囲んでいなければ手動で調整してください。";
+      const okMessage = `動画全体から、バーベルと一緒に動く候補を検出しました。緑枠が最大プレートを囲んでいるか確認してください。解析フレーム ${bestCandidate.sampleCount || 1}件 / 動き ${(Number(bestCandidate.motionRatio) || 0).toFixed(2)}`;
       setVbtState(dialog, {
         plateRoi: bestCandidate.roi,
         autoPlateCandidate: bestCandidate,
@@ -2195,22 +2304,26 @@
           </div>
           <p class="video-storage-note">測定したいセット全体だけを残します。スクワットとベンチはトップから始まってOKです。</p>
           <div class="vbt-trim-cursor-card">
-            <div class="vbt-trim-track" data-vbt-trim-track aria-hidden="true">
-              <span class="vbt-trim-track-range"></span>
+            <div class="vbt-trim-direct-track" data-vbt-trim-track role="group" aria-label="動画トリミング範囲">
+              <span class="vbt-trim-dim before"></span>
+              <span class="vbt-trim-selection">
+                <span class="vbt-trim-handle start" data-vbt-trim-handle="start" aria-label="前半を削る"></span>
+                <span class="vbt-trim-handle end" data-vbt-trim-handle="end" aria-label="後半を削る"></span>
+              </span>
+              <span class="vbt-trim-dim after"></span>
+              <span class="vbt-trim-playhead" data-vbt-trim-playhead aria-label="再生位置"></span>
             </div>
-            <p class="video-storage-note">動画下の再生カーソルを動かし、現在位置を開始点・終了点として登録します。</p>
+            <p class="video-storage-note">黄色い範囲の左端を動かすと前半をカット、右端を動かすと後半をカットします。白い線は現在の再生位置です。</p>
             <div class="vbt-trim-cursor-actions">
-              <button class="text-button" type="button" data-vbt-set-trim-from-playhead="start">現在位置を開始にする</button>
-              <button class="text-button" type="button" data-vbt-set-trim-from-playhead="end">現在位置を終了にする</button>
               <button class="text-button compact" type="button" data-vbt-jump-trim="start">開始へ</button>
               <button class="text-button compact" type="button" data-vbt-jump-trim="end">終了へ</button>
+              <button class="text-button compact" type="button" data-vbt-preview-range>範囲を再生</button>
             </div>
           </div>
           <div class="vbt-trim-summary">
             <span data-vbt-trim-start>開始 ${escapeHtml(formatSeconds(measurement.trim?.start))}</span>
             <span data-vbt-trim-end>終了 ${escapeHtml(formatSeconds(measurement.trim?.end))}</span>
             <span data-vbt-playhead-label>現在 ${escapeHtml(formatSeconds(0))}</span>
-            <button class="text-button compact" type="button" data-vbt-preview-range>範囲を再生</button>
           </div>
           <p class="vbt-profile-note" data-vbt-trim-warning>長すぎる範囲は、セット前後の待機を速度計算に混ぜる原因になります。</p>
           <div class="vbt-wizard-actions">
@@ -2219,9 +2332,12 @@
         </section>
 
         <section class="vbt-wizard-screen" data-vbt-step="auto-detect-loading">
-          <div class="vbt-wizard-loading">
+          <div class="vbt-wizard-loading vbt-detect-loading">
+            <span class="vbt-loader-orb" aria-hidden="true"></span>
             <strong>プレートを検出中</strong>
-            <p>動画内の最大プレート位置を探しています。うまく検出できない時だけ、手動で指定できます。</p>
+            <p data-vbt-detect-progress>1/4 バーベル線を確認中…</p>
+            <div class="vbt-detect-progress-bar"><span data-vbt-detect-progress-bar style="width: 12%"></span></div>
+            <small>少し時間を使って、動画全体からバーベルと一緒に動くプレートを探します。</small>
           </div>
         </section>
 
@@ -2770,6 +2886,96 @@
     dialog.querySelector("[data-vbt-canvas]")?.classList.remove("active", "roi-active");
     syncTrimControls(dialog);
     drawVbtOverlay(dialog);
+  }
+
+
+  function getTrimMinimumRange(duration) {
+    if (!Number.isFinite(duration) || duration <= 0) return 0.5;
+    return Math.min(0.5, Math.max(0.18, duration * 0.025));
+  }
+
+  function trimRatioFromPointer(event, track) {
+    const rect = track.getBoundingClientRect();
+    if (!rect.width) return 0;
+    return clamp((event.clientX - rect.left) / rect.width, 0, 1);
+  }
+
+  function setTrimRange(dialog, start, end, options = {}) {
+    const video = dialog?.querySelector("video");
+    const duration = Number(video?.duration);
+    if (!dialog || !video || !Number.isFinite(duration) || duration <= 0) return;
+    const minimumRange = getTrimMinimumRange(duration);
+    let nextStart = clamp(Number(start) || 0, 0, Math.max(0, duration - minimumRange));
+    let nextEnd = clamp(Number(end) || duration, minimumRange, duration);
+    if (nextEnd - nextStart < minimumRange) {
+      if (options.lock === "start") nextEnd = clamp(nextStart + minimumRange, minimumRange, duration);
+      else if (options.lock === "end") nextStart = clamp(nextEnd - minimumRange, 0, Math.max(0, duration - minimumRange));
+      else nextEnd = clamp(nextStart + minimumRange, minimumRange, duration);
+    }
+    const state = vbtState(dialog);
+    setVbtState(dialog, {
+      trimStart: nextStart,
+      trimEnd: nextEnd,
+      targetPoint: null,
+      startPoint: null,
+      endPoint: null,
+      path: [],
+      trackingConfidence: "unknown",
+      trackingMode: state.plateRoi ? "plate-roi-track" : "manual-2point"
+    });
+    if (options.seek === "start") video.currentTime = nextStart;
+    if (options.seek === "end") video.currentTime = nextEnd;
+    syncTrimControls(dialog);
+    drawVbtOverlay(dialog);
+  }
+
+  function handleTrimTrackPointerDown(event) {
+    const handle = event.target.closest("[data-vbt-trim-handle]");
+    const track = event.target.closest("[data-vbt-trim-track]");
+    if (!track) return false;
+    const dialog = track.closest("dialog");
+    const video = dialog?.querySelector("video");
+    const duration = Number(video?.duration);
+    if (!dialog || !video || !Number.isFinite(duration) || duration <= 0) return false;
+    const mode = handle?.dataset.vbtTrimHandle || "playhead";
+    dialog._vbtTrimDrag = { mode };
+    track.setPointerCapture?.(event.pointerId);
+    event.preventDefault();
+    handleTrimTrackPointerMove(event);
+    return true;
+  }
+
+  function handleTrimTrackPointerMove(event) {
+    const dialog = event.target.closest("dialog") || document.querySelector("#videoViewerDialog");
+    const drag = dialog?._vbtTrimDrag;
+    if (!dialog || !drag) return false;
+    const track = dialog.querySelector("[data-vbt-trim-track]");
+    const video = dialog.querySelector("video");
+    const duration = Number(video?.duration);
+    if (!track || !video || !Number.isFinite(duration) || duration <= 0) return false;
+    const ratio = trimRatioFromPointer(event, track);
+    const time = clamp(ratio * duration, 0, duration);
+    const state = vbtState(dialog);
+    const start = hasFiniteNumber(state.trimStart) ? Number(state.trimStart) : 0;
+    const end = hasFiniteNumber(state.trimEnd) ? Number(state.trimEnd) : duration;
+    if (drag.mode === "start") {
+      setTrimRange(dialog, time, end, { lock: "end", seek: "start" });
+    } else if (drag.mode === "end") {
+      setTrimRange(dialog, start, time, { lock: "start", seek: "end" });
+    } else {
+      video.currentTime = clamp(time, start, end);
+      updateVbtPlaybackControls(dialog);
+      drawVbtOverlay(dialog);
+    }
+    return true;
+  }
+
+  function handleTrimTrackPointerUp(event) {
+    const dialog = event.target.closest("dialog") || document.querySelector("#videoViewerDialog");
+    if (!dialog?._vbtTrimDrag) return false;
+    dialog._vbtTrimDrag = null;
+    updateVbtPlaybackControls(dialog);
+    return true;
   }
 
 
@@ -3450,12 +3656,15 @@
     }
   });
   document.addEventListener("pointerdown", (event) => {
+    if (event.target.closest("[data-vbt-trim-track]")) return handleTrimTrackPointerDown(event);
     if (event.target.matches("[data-vbt-canvas]")) handleRoiPointerDown(event);
   });
   document.addEventListener("pointermove", (event) => {
+    if (document.querySelector("#videoViewerDialog")?._vbtTrimDrag) return handleTrimTrackPointerMove(event);
     if (event.target.matches("[data-vbt-canvas]")) handleRoiPointerMove(event);
   });
   document.addEventListener("pointerup", (event) => {
+    if (document.querySelector("#videoViewerDialog")?._vbtTrimDrag) return handleTrimTrackPointerUp(event);
     if (!event.target.matches("[data-vbt-canvas]")) return;
     if (!handleRoiPointerUp(event)) handleVbtCanvasPointer(event);
   });
