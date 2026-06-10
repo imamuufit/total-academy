@@ -726,6 +726,36 @@
     return phases;
   }
 
+  function getTrimLengthWarning(lift, reps, durationSeconds) {
+    const expected = Math.max(1, Number(reps) || 1);
+    const max = expected * 7 + 4;
+    if (Number(durationSeconds) > max) {
+      return "解析範囲が長めです。セット前後の歩きや待機を除くと精度が上がります。";
+    }
+    return null;
+  }
+
+  function getRepQuality(metric) {
+    const conMV = Number(metric.concentric?.meanVelocity);
+    const conPV = Number(metric.concentric?.peakVelocity);
+    const conDuration = Number(metric.concentric?.duration);
+    const rom = Number(metric.totalRomMeters);
+    const warnings = [];
+    const mvPvRatio = Number.isFinite(conMV) && Number.isFinite(conPV) && conPV > 0 ? conMV / conPV : null;
+    if (Number.isFinite(mvPvRatio) && mvPvRatio < 0.18) warnings.push("挙上MVとPVの差が大きく、区間検出がズレている可能性があります。");
+    if (Number.isFinite(conDuration) && conDuration > 6) warnings.push("挙上時間が長すぎます。不要な時間が混ざっている可能性があります。");
+    if (Number.isFinite(rom) && rom < 0.10) warnings.push("ROMが短く、プレート追跡が外れている可能性があります。");
+    if (Number.isFinite(rom) && rom > 1.20) warnings.push("ROMが大きすぎます。プレート径またはスケールを確認してください。");
+    return {
+      mvPvRatio,
+      durationOk: !Number.isFinite(conDuration) || conDuration <= 6,
+      romOk: !Number.isFinite(rom) || (rom >= 0.10 && rom <= 1.20),
+      directionOk: Boolean(metric.concentric && metric.eccentric),
+      confidence: warnings.length ? "low" : "high",
+      warning: warnings.join(" ") || null
+    };
+  }
+
   function phaseVelocityMetric(path, phase, metersPerPixel) {
     if (!phase || phase.endIndex <= phase.startIndex) return null;
     const segment = path.slice(phase.startIndex, phase.endIndex + 1);
@@ -752,23 +782,17 @@
       const eccentric = phaseVelocityMetric(path, phase.eccentric, metersPerPixel);
       const concentric = phaseVelocityMetric(path, phase.concentric, metersPerPixel);
       const totalRomMeters = Math.max(eccentric?.distanceMeters || 0, concentric?.distanceMeters || 0);
-      const confidence = totalRomMeters < 0.05 ? "low" : totalRomMeters < 0.10 ? "middle" : "high";
-      const warning = totalRomMeters < 0.05
-        ? "可動域が短すぎます。プレート追跡を確認してください。"
-        : totalRomMeters < 0.10
-          ? "可動域が短めです。検出位置を確認してください。"
-          : totalRomMeters > 1.2
-            ? "可動域が大きすぎます。スケールを確認してください。"
-            : null;
-      return {
+      const metric = {
         repIndex: phase.repIndex,
         eccentric,
         concentric,
         totalRomMeters,
         pauseDuration: Math.max(0, (concentric?.startTime || 0) - (eccentric?.endTime || 0)) || null,
-        confidence,
-        warning
+        confidence: "high",
+        warning: null
       };
+      const repQuality = getRepQuality(metric);
+      return { ...metric, confidence: repQuality.confidence, warning: repQuality.warning, repQuality };
     });
   }
 
@@ -1052,7 +1076,8 @@
     const trackingWarning = [
       aspectWarning,
       trackingConfidence === "low" ? "追跡の信頼度が低めです。手動2点測定でも確認してください。" : null,
-      repWarning || null
+      repWarning || null,
+      getTrimLengthWarning(record.lift, record.reps, durationSeconds)
     ].filter(Boolean).join(" ");
 
     return {
@@ -1411,7 +1436,7 @@
             <article class="vbt-rep-card ${isLast ? "last" : ""}">
               <div class="vbt-rep-card-head">
                 <strong>Rep ${escapeHtml(metric.repIndex || index + 1)}</strong>
-                <span>${isLast ? "LAST" : escapeHtml(metric.confidence || "解析済み")}</span>
+                <span class="${metric.warning ? "warning" : ""}">${metric.warning ? "区間確認" : isLast ? "LAST" : "OK"}</span>
               </div>
               <div class="vbt-rep-card-grid">
                 <span><small>下降平均</small><strong>${Number.isFinite(Number(eccentric.meanVelocity)) ? `${Number(eccentric.meanVelocity).toFixed(2)}m/s` : "--"}</strong></span>
@@ -1434,9 +1459,31 @@
     return `
       <section class="vbt-rep-section">
         <div class="video-check-head"><strong>レップ別の速度</strong><small>下降 / 挙上 / ROM</small></div>
+        ${renderRepTimeline(repMetrics, measurement)}
         ${renderRepVelocityCards(repMetrics)}
         ${renderRepVelocityTable(repMetrics)}
       </section>
+    `;
+  }
+
+  function renderRepTimeline(metrics, measurement) {
+    const start = Number(measurement.startTime ?? measurement.trim?.start);
+    const end = Number(measurement.endTime ?? measurement.trim?.end);
+    const duration = end - start;
+    if (!Number.isFinite(duration) || duration <= 0) return "";
+    const blocks = metrics.flatMap((metric) => [
+      metric.eccentric ? { type: "eccentric", rep: metric.repIndex, start: metric.eccentric.startTime, end: metric.eccentric.endTime } : null,
+      metric.concentric ? { type: "concentric", rep: metric.repIndex, start: metric.concentric.startTime, end: metric.concentric.endTime } : null
+    ]).filter(Boolean).map((block) => {
+      const left = clamp(((block.start - start) / duration) * 100, 0, 100);
+      const width = clamp(((block.end - block.start) / duration) * 100, 0.7, 100 - left);
+      return `<span class="${block.type}" style="left:${left.toFixed(2)}%;width:${width.toFixed(2)}%" title="Rep ${escapeHtml(block.rep)} ${block.type === "eccentric" ? "下降" : "挙上"}"></span>`;
+    }).join("");
+    return `
+      <div class="vbt-rep-timeline-wrap">
+        <div class="vbt-rep-timeline">${blocks}</div>
+        <div class="vbt-timeline-legend"><span>下降</span><span>挙上</span><span>空白は待機・判定外</span></div>
+      </div>
     `;
   }
 
@@ -1472,6 +1519,7 @@
         <strong>${escapeHtml(vbtVelocityComment(data.lift, meanVelocity))}</strong>
         <p>${escapeHtml(vbtRpeComment(data.lift, meanVelocity, data.rpe))}</p>
         ${!status.profileEligible ? `<p class="vbt-result-warning">結果は保存しました。個人速度プロフィールには含めず、要確認として扱います。</p>` : ""}
+        ${!status.profileEligible ? `<p>数値だけで重量判断せず、動画の軌道と合わせて確認してください。</p>` : `<p>次セットもRPEとフォームを優先し、この速度を比較材料にしよう。</p>`}
       </section>
       ${renderRepVelocityDisplay(data)}
       ${renderVbtMeasurementDetails(data)}
@@ -1528,6 +1576,26 @@
             <button class="text-button" type="button" data-vbt-roi-init>緑枠を表示</button>
             <button class="primary-button inline" type="button" data-vbt-roi-track="${escapeHtml(record.id)}">3. プレートを追跡して解析</button>
             <button class="text-button" type="button" data-vbt-reset>やり直す</button>
+          </div>
+          <details class="vbt-roi-nudge">
+            <summary>緑枠を微調整</summary>
+            <div class="vbt-nudge-grid">
+              <button class="text-button" type="button" data-vbt-roi-nudge="up" aria-label="上へ">↑</button>
+              <button class="text-button" type="button" data-vbt-roi-nudge="smaller">小さく</button>
+              <button class="text-button" type="button" data-vbt-roi-nudge="larger">大きく</button>
+              <button class="text-button" type="button" data-vbt-roi-nudge="left" aria-label="左へ">←</button>
+              <button class="text-button" type="button" data-vbt-roi-nudge="down" aria-label="下へ">↓</button>
+              <button class="text-button" type="button" data-vbt-roi-nudge="right" aria-label="右へ">→</button>
+              <button class="text-button" type="button" data-vbt-roi-nudge="narrower">横幅−</button>
+              <button class="text-button" type="button" data-vbt-roi-nudge="wider">横幅＋</button>
+              <button class="text-button" type="button" data-vbt-roi-nudge="shorter">縦幅−</button>
+              <button class="text-button" type="button" data-vbt-roi-nudge="taller">縦幅＋</button>
+            </div>
+            <p>1タップ2px。指で合わせた後の仕上げに使います。</p>
+          </details>
+          <div class="vbt-roi-preview">
+            <canvas data-vbt-roi-preview-canvas></canvas>
+            <span>ROI拡大プレビュー</span>
           </div>
         </section>
         <div class="vbt-markers">
@@ -1617,6 +1685,16 @@
     };
   }
 
+  function getRoiVisualHandleRadius(canvas) {
+    const scale = getCanvasVisualScale(canvas);
+    return Math.max(7 * scale.x, 5);
+  }
+
+  function getRoiHitHandleRadius(canvas) {
+    const scale = getCanvasVisualScale(canvas);
+    return Math.max(26 * scale.x, 22);
+  }
+
   function drawPoint(ctx, point, label, color) {
     if (!point) return;
     const scale = getCanvasVisualScale(ctx.canvas);
@@ -1663,49 +1741,94 @@
   function drawPlateRoi(ctx, roi) {
     if (!roi) return;
     const scale = getCanvasVisualScale(ctx.canvas);
-    const lineWidth = Math.max(4 * scale.x, 3);
-    const handleRadius = Math.max(14 * scale.x, 10);
+    const lineWidth = Math.max(2.5 * scale.x, 2);
+    const handleRadius = getRoiVisualHandleRadius(ctx.canvas);
     const center = roiCenter(roi);
     ctx.save();
-    ctx.fillStyle = "rgba(21, 127, 59, 0.14)";
-    ctx.strokeStyle = "rgba(34, 197, 94, 0.98)";
+    ctx.fillStyle = "rgba(34, 197, 94, 0.06)";
+    ctx.strokeStyle = "rgba(34, 197, 94, 0.96)";
     ctx.lineWidth = lineWidth;
     ctx.fillRect(roi.x, roi.y, roi.width, roi.height);
     ctx.strokeRect(roi.x, roi.y, roi.width, roi.height);
     ctx.beginPath();
-    ctx.moveTo(center.x - roi.width * 0.12, center.y);
-    ctx.lineTo(center.x + roi.width * 0.12, center.y);
-    ctx.moveTo(center.x, center.y - roi.height * 0.12);
-    ctx.lineTo(center.x, center.y + roi.height * 0.12);
+    ctx.moveTo(center.x - roi.width * 0.10, center.y);
+    ctx.lineTo(center.x + roi.width * 0.10, center.y);
+    ctx.moveTo(center.x, center.y - roi.height * 0.10);
+    ctx.lineTo(center.x, center.y + roi.height * 0.10);
     ctx.stroke();
     roiHandles(roi).forEach((handle) => {
       ctx.beginPath();
       ctx.fillStyle = "#fffaf2";
       ctx.strokeStyle = "rgba(34, 197, 94, 0.98)";
-      ctx.lineWidth = lineWidth;
+      ctx.lineWidth = Math.max(2 * scale.x, 1.5);
       ctx.arc(handle.x, handle.y, handleRadius, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
     });
-    ctx.font = `900 ${Math.max(13 * scale.x, 16)}px system-ui`;
+    ctx.font = `900 ${Math.max(11 * scale.x, 12)}px system-ui`;
     ctx.strokeStyle = "rgba(23, 23, 23, 0.82)";
     ctx.lineWidth = Math.max(4 * scale.x, 3);
-    ctx.strokeText("プレートROI", roi.x + 8 * scale.x, Math.max(24 * scale.x, roi.y - 10 * scale.x));
+    ctx.strokeText("ROI", roi.x + 6 * scale.x, Math.max(20 * scale.x, roi.y - 8 * scale.x));
     ctx.fillStyle = "#fffaf2";
-    ctx.fillText("プレートROI", roi.x + 8 * scale.x, Math.max(24 * scale.x, roi.y - 10 * scale.x));
+    ctx.fillText("ROI", roi.x + 6 * scale.x, Math.max(20 * scale.x, roi.y - 8 * scale.x));
     ctx.restore();
   }
 
   function roiHitTarget(canvas, roi, point) {
     if (!roi || !point) return null;
-    const scale = getCanvasVisualScale(canvas);
-    const radius = Math.max(28 * scale.x, 24);
+    const radius = getRoiHitHandleRadius(canvas);
     const handle = roiHandles(roi).find((item) => pixelDistance(item, point) <= radius);
     if (handle) return { type: "resize", handle: handle.name };
     if (point.x >= roi.x && point.x <= roi.x + roi.width && point.y >= roi.y && point.y <= roi.y + roi.height) {
       return { type: "move", handle: null };
     }
     return null;
+  }
+
+  function drawRoiPreview(dialog) {
+    const video = dialog?.querySelector("video");
+    const preview = dialog?.querySelector("[data-vbt-roi-preview-canvas]");
+    const roi = vbtState(dialog).plateRoi;
+    if (!video || !preview || !roi || !video.videoWidth || !video.videoHeight) return;
+    const ctx = preview.getContext("2d");
+    preview.width = 480;
+    preview.height = 240;
+    const padding = Math.max(roi.width, roi.height) * 0.45;
+    const source = clampPlateRoi({
+      x: roi.x - padding,
+      y: roi.y - padding,
+      width: roi.width + padding * 2,
+      height: roi.height + padding * 2
+    }, video.videoWidth, video.videoHeight);
+    ctx.clearRect(0, 0, preview.width, preview.height);
+    ctx.drawImage(video, source.x, source.y, source.width, source.height, 0, 0, preview.width, preview.height);
+    const sx = preview.width / source.width;
+    const sy = preview.height / source.height;
+    ctx.strokeStyle = "rgba(34, 197, 94, 0.98)";
+    ctx.lineWidth = 3;
+    ctx.strokeRect((roi.x - source.x) * sx, (roi.y - source.y) * sy, roi.width * sx, roi.height * sy);
+  }
+
+  function nudgePlateRoi(dialog, action, amount = 2) {
+    const state = vbtState(dialog);
+    const video = dialog?.querySelector("video");
+    if (!state.plateRoi || !video?.videoWidth || !video?.videoHeight) return;
+    const roi = { ...state.plateRoi };
+    if (action === "up") roi.y -= amount;
+    if (action === "down") roi.y += amount;
+    if (action === "left") roi.x -= amount;
+    if (action === "right") roi.x += amount;
+    if (action === "smaller") { roi.x += amount; roi.y += amount; roi.width -= amount * 2; roi.height -= amount * 2; }
+    if (action === "larger") { roi.x -= amount; roi.y -= amount; roi.width += amount * 2; roi.height += amount * 2; }
+    if (action === "wider") { roi.x -= amount; roi.width += amount * 2; }
+    if (action === "narrower") { roi.x += amount; roi.width -= amount * 2; }
+    if (action === "taller") { roi.y -= amount; roi.height += amount * 2; }
+    if (action === "shorter") { roi.y += amount; roi.height -= amount * 2; }
+    const next = clampPlateRoi(roi, video.videoWidth, video.videoHeight);
+    setVbtState(dialog, { plateRoi: next, path: [], trackingMode: "plate-roi-track" });
+    const status = dialog.querySelector("[data-vbt-pick-status]");
+    if (status) status.textContent = roiAspectWarning(next) || "緑枠を微調整しました。";
+    drawVbtOverlay(dialog);
   }
 
 
@@ -1753,6 +1876,7 @@
     drawPoint(ctx, state.endPoint, "終了", "#157f3b");
     if (!state.startPoint && !state.endPoint) drawPoint(ctx, state.targetPoint, "中心", "#b42318");
     drawPlateRoi(ctx, state.plateRoi);
+    drawRoiPreview(dialog);
   }
 
   function initializePlateRoi(button) {
@@ -2268,6 +2392,8 @@
     video?.addEventListener("error", () => {
       if (videoStatus) videoStatus.textContent = mediaStatusMessage("error");
     }, { once: true });
+    video?.addEventListener("seeked", () => drawRoiPreview(dialog));
+    video?.addEventListener("pause", () => drawRoiPreview(dialog));
     if (video?.readyState >= 1) {
       if (videoStatus) videoStatus.textContent = mediaStatusMessage("ready");
       syncTrimControls(dialog);
@@ -2418,6 +2544,8 @@
   els.compareBtn.addEventListener("click", renderComparison);
   els.library.addEventListener("click", handleLibraryClick);
   document.addEventListener("click", (event) => {
+    const roiNudge = event.target.closest("[data-vbt-roi-nudge]");
+    if (roiNudge) return nudgePlateRoi(roiNudge.closest("dialog"), roiNudge.dataset.vbtRoiNudge, 2);
     const roiInit = event.target.closest("[data-vbt-roi-init]");
     if (roiInit) return initializePlateRoi(roiInit);
     const roiTrack = event.target.closest("[data-vbt-roi-track]");

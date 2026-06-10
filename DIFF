@@ -1,62 +1,60 @@
-Platform Buddy v160
-VBT result status separation and mobile result UI
+Platform Buddy v161
+VBT ROI usability and rep-quality verification
 
 Summary
-- Separated result display, record saving, and personal-profile eligibility.
-- Warning results remain visible and are saved as "要確認".
-- Only profileEligible results are used by personal RPE x velocity profiles.
-- Added a large VBT result hero focused on final-rep concentric mean velocity.
-- Added mobile rep cards and retained the desktop rep table.
-- Added warning status to VBT history and video library cards.
-- Updated PWA cache and query versions to v160.
+- Reduced visible ROI corner handles while retaining large invisible touch targets.
+- Added ROI fine-adjustment controls for position and size.
+- Added a magnified ROI preview below the setup panel.
+- Added rep-quality checks for MV/PV divergence, long concentric duration, and abnormal ROM.
+- Added a warning when the trimmed analysis range is too long for the expected rep count.
+- Added a colored rep-phase timeline showing eccentric and concentric detection ranges.
+- Kept suspicious results visible and saved while excluding them from personal profile calculations.
+- Updated PWA cache and query versions to v161.
 
 Changed functions in video.js
-- getVbtAnalysisStatus(data)
-  Classifies results as ok, warning, or invalid and returns display/profile eligibility.
-- isDisplayableVbtResult(data)
-  Reports whether a result can be shown.
-- isProfileEligibleVbt(data)
-  Reports whether a result can enter personal profile calculations.
-- adaptVbtRecord(record)
-  Exposes analysis status, displayability, eligibility, and warning details.
-- getVelocityProfileComment(records, targetRecord)
-  Explains that warning results are saved but excluded from profile calculations.
-- renderVbtErrorCard(status)
-  Renders a focused error only when no result exists.
-- renderVbtResultHero(data, status)
-  Renders the main final-rep velocity result and set summary.
-- renderRepVelocityCards(metrics)
-  Renders mobile-first per-rep cards.
+- getTrimLengthWarning(lift, reps, durationSeconds)
+  Warns when the selected range likely includes setup or waiting time.
+- getRepQuality(metric)
+  Detects suspicious MV/PV ratio, duration, and ROM for each rep.
+- calculateRepVelocityMetrics(repPhases, calibration)
+  Attaches repQuality, confidence, and warning to each detected rep.
+- renderRepTimeline(metrics, measurement)
+  Shows which time ranges were classified as eccentric and concentric.
 - renderRepVelocityDisplay(data)
-  Chooses the rep result presentation.
-- renderVbtMeasurementDetails(data)
-  Moves measurement conditions into a compact details panel.
-- vbtResultMarkup(data)
-  Keeps warning results visible instead of replacing them with a retry message.
-- saveVbtVelocity(button, mode)
-  Persists analysis status and scrolls to the completed result.
-- vbtHistoryMarkup(record, records)
-  Shows profile adoption or warning status.
-- libraryCardMarkup(record)
-  Shows saved warning values instead of hiding the measurement.
-
-Behavior contract
-- analysisStatus: ok / warning / invalid
-- displayableResult: controls whether result metrics are shown
-- profileEligible: controls only personal profile aggregation
-- Warning results are displayed and saved.
-- Invalid/no-result analyses show an error card.
+  Adds the rep timeline before the rep cards/table.
+- renderRepVelocityCards(metrics)
+  Marks suspicious reps as "区間確認".
+- getRoiVisualHandleRadius(canvas)
+  Uses smaller visible ROI handles.
+- getRoiHitHandleRadius(canvas)
+  Preserves large touch targets for mobile operation.
+- drawPlateRoi(ctx, roi)
+  Reduces fill, line weight, handle size, and label obstruction.
+- drawRoiPreview(dialog)
+  Renders a magnified preview of the current ROI.
+- nudgePlateRoi(dialog, action, amount)
+  Moves or resizes the ROI in 2px increments.
+- drawVbtOverlay(dialog)
+  Refreshes the ROI preview with the overlay.
+- openViewer(id)
+  Refreshes the ROI preview after seeking or pausing.
 
 Verification
 - video.js syntax check: passed
 - app.js syntax check: passed
 - sw.js syntax check: passed
-- Status tests: ok / warning / invalid passed
-- Warning markup test: result hero and rep card passed
+- Rep-quality test: suspicious MV/PV ratio detected
+- Normal rep-quality test: passed
+- Long trim-range warning test: passed
+- Suspicious result profileEligible=false test: passed
+- Rep timeline markup test: passed
 - app.js SHA-256 unchanged:
   D875E81D0DBEF0DD520CC70566A34684854252EAF84B87B4CDFAD4BFCC0F39B1
-- PWA versions aligned to v160
-- Browser visual verification unavailable because the in-app browser could not start in this Windows environment
+- PWA versions aligned to v161
 
 Known follow-up
+- Pinch-to-zoom and frame-step controls are not included.
+- Long-press 8px adjustment is not included; fine adjustment uses 2px buttons.
+- CSV/JSON VBT export is not included.
 - Real-device verification with actual SQ/BP/DL videos is still recommended.
+- Browser visual verification is unavailable in this Windows environment.
