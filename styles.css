@@ -17849,3 +17849,62 @@ html body .vbt-wizard-screen[data-vbt-step="trim"] .vbt-wizard-actions {
     min-height: 48px;
   }
 }
+
+/* v173 VBT candidate-pick UI */
+html body .vbt-candidate-strip {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0 12px;
+}
+
+html body .vbt-candidate-label {
+  color: var(--text-sub, #526179);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+html body .vbt-candidate-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+html body .vbt-candidate-button {
+  min-height: 48px;
+  border: 1px solid var(--line, #ded6c8);
+  border-radius: 12px;
+  background: var(--surface, #fffaf2);
+  color: var(--text-main, #171717);
+  display: grid;
+  gap: 2px;
+  place-items: center;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+html body .vbt-candidate-button span {
+  color: var(--text-sub, #526179);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+html body .vbt-candidate-button.selected {
+  border-color: rgba(34, 197, 94, 0.92);
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.18);
+  background: rgba(34, 197, 94, 0.10);
+}
+
+html body .video-storage-note.compact {
+  margin: 0;
+  font-size: 0.78rem;
+}
+
+@media (max-width: 640px) {
+  html body .vbt-candidate-buttons {
+    grid-template-columns: 1fr;
+  }
+
+  html body .vbt-candidate-button {
+    min-height: 44px;
+  }
+}

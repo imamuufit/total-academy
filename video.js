@@ -1935,6 +1935,7 @@
     }
     if (step === "auto-detect-confirm") {
       dialog.querySelector("[data-vbt-canvas]")?.classList.add("active", "roi-active");
+      renderAutoCandidateList(dialog);
       drawVbtOverlay(dialog);
       drawRoiPreview(dialog);
     }
@@ -2367,6 +2368,123 @@
     };
   }
 
+  function chooseTemporalPlateCandidates(candidates, lift, limit = 3) {
+    const clean = (candidates || []).filter((item) => item?.roi && hasFiniteNumber(item.score));
+    if (!clean.length) return [];
+    const groups = [];
+    clean.forEach((candidate) => {
+      const roi = candidate.roi;
+      const centerX = roi.x + roi.width / 2;
+      const centerY = roi.y + roi.height / 2;
+      const size = Math.max(roi.width, roi.height);
+      let group = groups.find((item) => {
+        const dx = Math.abs(item.centerX - centerX) / Math.max(size, item.size, 1);
+        const ds = Math.abs(item.size - size) / Math.max(size, item.size, 1);
+        return dx < 0.55 && ds < 0.36;
+      });
+      if (!group) {
+        group = { items: [], centerX, centerY, size };
+        groups.push(group);
+      }
+      group.items.push(candidate);
+      const n = group.items.length;
+      group.centerX = (group.centerX * (n - 1) + centerX) / n;
+      group.centerY = (group.centerY * (n - 1) + centerY) / n;
+      group.size = (group.size * (n - 1) + size) / n;
+    });
+
+    const ranked = groups.map((group) => {
+      const items = group.items.sort((a, b) => a.sampleTime - b.sampleTime);
+      const scores = items.map((item) => Number(item.score)).filter(Number.isFinite);
+      const meanScore = scores.reduce((sum, value) => sum + value, 0) / Math.max(1, scores.length);
+      const ys = items.map((item) => item.roi.y + item.roi.height / 2);
+      const xs = items.map((item) => item.roi.x + item.roi.width / 2);
+      const yRange = Math.max(...ys) - Math.min(...ys);
+      const xRange = Math.max(...xs) - Math.min(...xs);
+      const size = Math.max(1, group.size);
+      const motionRatio = yRange / size;
+      const horizontalDrift = xRange / size;
+      const countRatio = items.length / Math.max(1, clean.length);
+      const barEvidence = items.reduce((sum, item) => sum + Number(item.barScore || 0) + Number(item.crossingScore || 0) * 0.35, 0) / Math.max(1, items.length);
+      const pairEvidence = items.reduce((sum, item) => sum + Number(item.pairScore || 0), 0) / Math.max(1, items.length);
+      const movementBonus = motionRatio > 0.12 ? Math.min(34, motionRatio * 38) : (lift === "DL" ? 0 : -18);
+      const stabilityBonus = Math.min(36, items.length * 5.5) + countRatio * 18;
+      const driftPenalty = horizontalDrift > 1.05 ? 28 : horizontalDrift > 0.62 ? 12 : 0;
+      const temporalScore = meanScore + stabilityBonus + movementBonus + barEvidence * 0.28 + pairEvidence * 0.34 - driftPenalty;
+      const first = items[0];
+      const bestItem = items.reduce((best, item) => item.score > best.score ? item : best, first);
+      const confidence = temporalScore > 125 && motionRatio > 0.10
+        ? "high"
+        : temporalScore > 92
+          ? "middle"
+          : "low";
+      return {
+        ...first,
+        roi: first.roi,
+        confidence,
+        score: Math.max(bestItem.score, temporalScore),
+        temporalScore,
+        motionRatio,
+        horizontalDrift,
+        sampleCount: items.length,
+        bestFrameTime: bestItem.sampleTime,
+        groupItems: items.length
+      };
+    });
+
+    return ranked
+      .sort((a, b) => Number(b.score || 0) - Number(a.score || 0))
+      .slice(0, Math.max(1, Number(limit) || 3));
+  }
+
+  function renderAutoCandidateList(dialog) {
+    const list = dialog?.querySelector("[data-vbt-candidate-list]");
+    if (!list) return;
+    const state = vbtState(dialog);
+    const candidates = Array.isArray(state.autoPlateCandidates) ? state.autoPlateCandidates : [];
+    if (!candidates.length) {
+      list.innerHTML = `<p class="video-storage-note compact">候補が少ないため、緑枠を確認してズレていれば手動で調整してください。</p>`;
+      return;
+    }
+    list.innerHTML = `
+      <div class="vbt-candidate-label">プレート候補を選ぶ</div>
+      <div class="vbt-candidate-buttons">
+        ${candidates.map((candidate, index) => {
+          const selected = Number(state.selectedCandidateIndex || 0) === index;
+          const confidence = candidate.confidence === "high" ? "高" : candidate.confidence === "middle" ? "中" : "低";
+          const move = hasFiniteNumber(candidate.motionRatio) ? Number(candidate.motionRatio).toFixed(2) : "--";
+          return `<button type="button" class="vbt-candidate-button ${selected ? "selected" : ""}" data-vbt-candidate-select="${index}">
+            <strong>候補${index + 1}</strong><span>信頼${confidence} / 動き ${move}</span>
+          </button>`;
+        }).join("")}
+      </div>
+    `;
+  }
+
+  function selectAutoPlateCandidate(button) {
+    const dialog = button?.closest("dialog");
+    if (!dialog) return;
+    const index = Number(button.dataset.vbtCandidateSelect);
+    const candidates = vbtState(dialog).autoPlateCandidates || [];
+    const candidate = candidates[index];
+    if (!candidate?.roi) return;
+    setVbtState(dialog, {
+      selectedCandidateIndex: index,
+      plateRoi: candidate.roi,
+      autoPlateCandidate: candidate,
+      autoDetectionConfidence: candidate.confidence || "low",
+      autoDetectionMessage: candidate.confidence === "low"
+        ? "選択した候補は信頼度が低めです。緑枠が最大プレートを囲んでいるか確認してください。"
+        : "選択した候補を緑枠に反映しました。最大プレートを囲んでいれば進んでください。",
+      trackingMode: "plate-roi-track"
+    });
+    const note = dialog.querySelector("[data-vbt-auto-note]");
+    if (note) note.textContent = vbtState(dialog).autoDetectionMessage;
+    renderAutoCandidateList(dialog);
+    drawVbtOverlay(dialog);
+    drawRoiPreview(dialog);
+  }
+
   async function runAutoPlateDetection(button) {
     const dialog = button.closest("dialog");
     const video = dialog?.querySelector("video");
@@ -2398,21 +2516,26 @@
         updateAutoDetectProgress(dialog, index + 1, message, progress);
         await new Promise((resolve) => setTimeout(resolve, 0));
       }
-      const bestCandidate = chooseTemporalPlateCandidate(allCandidates, record.lift);
+      const candidateList = chooseTemporalPlateCandidates(allCandidates, record.lift, 3);
+      const bestCandidate = candidateList[0];
       updateAutoDetectProgress(dialog, 4, "4/4 検出結果を準備中…", 94);
       if (!bestCandidate) {
         setVbtState(dialog, {
+          autoPlateCandidates: [],
+          selectedCandidateIndex: null,
           autoDetectionConfidence: "failed",
           autoDetectionMessage: "動画全体から、バーベルと一緒に動くプレート候補を見つけられませんでした。手動で最大プレートを囲んでください。"
         });
         setVbtWizardStep(dialog, "manual-plate");
         return;
       }
-      const lowMessage = "自動検出の信頼度：低。動画内での動きやバーベル線との一致が弱い可能性があります。緑枠が最大プレートを囲んでいなければ手動で調整してください。";
-      const okMessage = `動画全体から、バーベルと一緒に動く候補を検出しました。緑枠が最大プレートを囲んでいるか確認してください。解析フレーム ${bestCandidate.sampleCount || 1}件 / 動き ${(Number(bestCandidate.motionRatio) || 0).toFixed(2)}`;
+      const lowMessage = "自動検出の信頼度：低。候補を選び、緑枠が最大プレートを囲んでいるか確認してください。";
+      const okMessage = `プレート候補を${candidateList.length}件見つけました。正しい候補を選び、緑枠が最大プレートを囲んでいれば進んでください。解析フレーム ${bestCandidate.sampleCount || 1}件 / 動き ${(Number(bestCandidate.motionRatio) || 0).toFixed(2)}`;
       setVbtState(dialog, {
         plateRoi: bestCandidate.roi,
         autoPlateCandidate: bestCandidate,
+        autoPlateCandidates: candidateList,
+        selectedCandidateIndex: 0,
         autoDetectionConfidence: bestCandidate.confidence,
         autoDetectionMessage: bestCandidate.confidence === "low" ? lowMessage : okMessage,
         trackingMode: "plate-roi-track"
@@ -2499,6 +2622,7 @@
             <small>自動検出β</small>
           </div>
           <p class="video-storage-note" data-vbt-auto-note>この緑枠が最大プレートを囲んでいれば「見えます」を押してください。</p>
+          <div class="vbt-candidate-strip" data-vbt-candidate-list></div>
           <div class="vbt-roi-preview">
             <canvas data-vbt-roi-preview-canvas></canvas>
             <span>ROI拡大プレビュー</span>
@@ -2622,6 +2746,8 @@
       trimEnd: hasFiniteNumber(measurement.trim?.end) ? Number(measurement.trim.end) : null,
       wizardStep: record?.id ? vbtWizardInitialStep(record) : "trim",
       autoPlateCandidate: null,
+      autoPlateCandidates: [],
+      selectedCandidateIndex: null,
       autoDetectionConfidence: "unknown",
       autoDetectionMessage: null
     };
@@ -2676,12 +2802,17 @@
 
   function getRoiVisualHandleRadius(canvas) {
     const scale = getCanvasVisualScale(canvas);
-    return Math.max(7 * scale.x, 5);
+    return Math.max(4.5 * scale.x, 3.5);
+  }
+
+  function getRoiCornerMarkerLength(canvas) {
+    const scale = getCanvasVisualScale(canvas);
+    return Math.max(14 * scale.x, 10);
   }
 
   function getRoiHitHandleRadius(canvas) {
     const scale = getCanvasVisualScale(canvas);
-    return Math.max(26 * scale.x, 22);
+    return Math.max(28 * scale.x, 24);
   }
 
   function drawPoint(ctx, point, label, color) {
@@ -2730,36 +2861,53 @@
   function drawPlateRoi(ctx, roi) {
     if (!roi) return;
     const scale = getCanvasVisualScale(ctx.canvas);
-    const lineWidth = Math.max(2.5 * scale.x, 2);
+    const lineWidth = Math.max(2.2 * scale.x, 1.6);
     const handleRadius = getRoiVisualHandleRadius(ctx.canvas);
+    const markerLength = getRoiCornerMarkerLength(ctx.canvas);
     const center = roiCenter(roi);
     ctx.save();
-    ctx.fillStyle = "rgba(34, 197, 94, 0.06)";
+    ctx.fillStyle = "rgba(34, 197, 94, 0.035)";
     ctx.strokeStyle = "rgba(34, 197, 94, 0.96)";
     ctx.lineWidth = lineWidth;
     ctx.fillRect(roi.x, roi.y, roi.width, roi.height);
     ctx.strokeRect(roi.x, roi.y, roi.width, roi.height);
     ctx.beginPath();
-    ctx.moveTo(center.x - roi.width * 0.10, center.y);
-    ctx.lineTo(center.x + roi.width * 0.10, center.y);
-    ctx.moveTo(center.x, center.y - roi.height * 0.10);
-    ctx.lineTo(center.x, center.y + roi.height * 0.10);
+    ctx.moveTo(center.x - roi.width * 0.08, center.y);
+    ctx.lineTo(center.x + roi.width * 0.08, center.y);
+    ctx.moveTo(center.x, center.y - roi.height * 0.08);
+    ctx.lineTo(center.x, center.y + roi.height * 0.08);
     ctx.stroke();
-    roiHandles(roi).forEach((handle) => {
+
+    // 見た目の四隅は小さなL字＋小点にする。
+    // タップ判定は roiHitTarget() 側で大きく残すため、スマホでも触りやすさは維持する。
+    ctx.strokeStyle = "rgba(34, 197, 94, 0.98)";
+    ctx.fillStyle = "rgba(255, 250, 242, 0.92)";
+    ctx.lineWidth = Math.max(2.4 * scale.x, 1.8);
+    const corners = [
+      { x: roi.x, y: roi.y, sx: 1, sy: 1 },
+      { x: roi.x + roi.width, y: roi.y, sx: -1, sy: 1 },
+      { x: roi.x, y: roi.y + roi.height, sx: 1, sy: -1 },
+      { x: roi.x + roi.width, y: roi.y + roi.height, sx: -1, sy: -1 }
+    ];
+    corners.forEach((corner) => {
       ctx.beginPath();
-      ctx.fillStyle = "#fffaf2";
-      ctx.strokeStyle = "rgba(34, 197, 94, 0.98)";
-      ctx.lineWidth = Math.max(2 * scale.x, 1.5);
-      ctx.arc(handle.x, handle.y, handleRadius, 0, Math.PI * 2);
+      ctx.moveTo(corner.x, corner.y);
+      ctx.lineTo(corner.x + markerLength * corner.sx, corner.y);
+      ctx.moveTo(corner.x, corner.y);
+      ctx.lineTo(corner.x, corner.y + markerLength * corner.sy);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(corner.x, corner.y, handleRadius, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
     });
-    ctx.font = `900 ${Math.max(11 * scale.x, 12)}px system-ui`;
-    ctx.strokeStyle = "rgba(23, 23, 23, 0.82)";
-    ctx.lineWidth = Math.max(4 * scale.x, 3);
-    ctx.strokeText("ROI", roi.x + 6 * scale.x, Math.max(20 * scale.x, roi.y - 8 * scale.x));
+
+    ctx.font = `900 ${Math.max(10 * scale.x, 11)}px system-ui`;
+    ctx.strokeStyle = "rgba(23, 23, 23, 0.74)";
+    ctx.lineWidth = Math.max(3 * scale.x, 2);
+    ctx.strokeText("ROI", roi.x + 5 * scale.x, Math.max(18 * scale.x, roi.y - 7 * scale.x));
     ctx.fillStyle = "#fffaf2";
-    ctx.fillText("ROI", roi.x + 6 * scale.x, Math.max(20 * scale.x, roi.y - 8 * scale.x));
+    ctx.fillText("ROI", roi.x + 5 * scale.x, Math.max(18 * scale.x, roi.y - 7 * scale.x));
     ctx.restore();
   }
 
@@ -3023,6 +3171,8 @@
       trimEnd: null,
       wizardStep: "trim",
       autoPlateCandidate: null,
+      autoPlateCandidates: [],
+      selectedCandidateIndex: null,
       autoDetectionConfidence: "unknown",
       autoDetectionMessage: null
     });
@@ -3770,6 +3920,8 @@
     if (wizardStep) return setVbtWizardStep(wizardStep.closest("dialog"), wizardStep.dataset.vbtWizardStep);
     const autoDetect = event.target.closest("[data-vbt-auto-detect]");
     if (autoDetect) return runAutoPlateDetection(autoDetect);
+    const candidateSelect = event.target.closest("[data-vbt-candidate-select]");
+    if (candidateSelect) return selectAutoPlateCandidate(candidateSelect);
     const confirmPlate = event.target.closest("[data-vbt-confirm-plate]");
     if (confirmPlate) return confirmAutoDetectedPlate(confirmPlate);
     const manualPlate = event.target.closest("[data-vbt-manual-plate]");

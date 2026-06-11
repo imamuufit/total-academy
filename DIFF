@@ -1,374 +1,791 @@
-diff -ruN '--exclude=DIFF' /mnt/data/v171_work/changed-files.txt /mnt/data/v172_work/changed-files.txt
---- /mnt/data/v171_work/changed-files.txt	2026-06-10 12:46:47.665095664 +0000
-+++ /mnt/data/v172_work/changed-files.txt	2026-06-10 13:10:24.953411807 +0000
-@@ -1,4 +1,5 @@
- index.html
-+styles.css
- video.js
- sw.js
- manifest.webmanifest
-diff -ruN '--exclude=DIFF' /mnt/data/v171_work/index.html /mnt/data/v172_work/index.html
---- /mnt/data/v171_work/index.html	2026-06-10 12:46:35.876812717 +0000
-+++ /mnt/data/v172_work/index.html	2026-06-10 13:09:52.545955030 +0000
+diff -ruN v172/DIFF v173/DIFF
+--- v172/DIFF	2026-06-10 13:10:25.000000000 +0000
++++ v173/DIFF	2026-06-10 13:10:25.000000000 +0000
+@@ -1,374 +0,0 @@
+-diff -ruN '--exclude=DIFF' /mnt/data/v171_work/changed-files.txt /mnt/data/v172_work/changed-files.txt
+---- /mnt/data/v171_work/changed-files.txt	2026-06-10 12:46:47.665095664 +0000
+-+++ /mnt/data/v172_work/changed-files.txt	2026-06-10 13:10:24.953411807 +0000
+-@@ -1,4 +1,5 @@
+- index.html
+-+styles.css
+- video.js
+- sw.js
+- manifest.webmanifest
+-diff -ruN '--exclude=DIFF' /mnt/data/v171_work/index.html /mnt/data/v172_work/index.html
+---- /mnt/data/v171_work/index.html	2026-06-10 12:46:35.876812717 +0000
+-+++ /mnt/data/v172_work/index.html	2026-06-10 13:09:52.545955030 +0000
+-@@ -12,7 +12,7 @@
+-     <link rel="preload" as="image" href="home-bg-lite.jpg">
+-     <link rel="preload" as="image" href="icon-sheet-lite.jpg">
+-     <link rel="apple-touch-icon" href="apple-touch-icon.png">
+--    <link rel="stylesheet" href="styles.css?v=171">
+-+    <link rel="stylesheet" href="styles.css?v=172">
+-   </head>
+-   <body>
+-     <div class="app-shell">
+-@@ -393,7 +393,6 @@
+-                   </label>
+-                   <label>日付<input id="videoDateInput" type="date" required></label>
+-                   <label>重量 kg<input id="videoWeightInput" inputmode="decimal" type="number" min="0" step="0.5"></label>
+--                  <label>回数<input id="videoRepsInput" inputmode="numeric" type="number" min="1" max="100" step="1"></label>
+-                   <label>RPE<input id="videoRpeInput" inputmode="decimal" type="number" min="1" max="10" step="0.5"></label>
+-                   <label>セット種別
+-                     <select id="videoSetTypeInput">
+-@@ -1159,7 +1158,7 @@
+-       </form>
+-     </dialog>
+- 
+--    <script src="app.js?v=171"></script>
+--    <script src="video.js?v=171"></script>
+-+    <script src="app.js?v=172"></script>
+-+    <script src="video.js?v=172"></script>
+-   </body>
+- </html>
+-diff -ruN '--exclude=DIFF' /mnt/data/v171_work/manifest.webmanifest /mnt/data/v172_work/manifest.webmanifest
+---- /mnt/data/v171_work/manifest.webmanifest	2026-06-10 12:46:35.878853617 +0000
+-+++ /mnt/data/v172_work/manifest.webmanifest	2026-06-10 13:09:52.547645677 +0000
+-@@ -2,7 +2,7 @@
+-   "name": "Platform Buddy",
+-   "short_name": "Buddy",
+-   "description": "BIG3の現在地と目標を見える化し、PRサイクル、記録、分析、大会準備までつなげるパワーリフティング向けPWAです。",
+--  "start_url": "./index.html?v=171",
+-+  "start_url": "./index.html?v=172",
+-   "scope": "./",
+-   "display": "standalone",
+-   "background_color": "#f4efe6",
+-diff -ruN '--exclude=DIFF' /mnt/data/v171_work/styles.css /mnt/data/v172_work/styles.css
+---- /mnt/data/v171_work/styles.css	2026-06-10 12:46:35.884341079 +0000
+-+++ /mnt/data/v172_work/styles.css	2026-06-10 13:09:52.553163163 +0000
+-@@ -17131,6 +17131,16 @@
+-   background: rgba(180, 35, 24, 0.78);
+- }
+- 
+-+html body .vbt-rep-timeline .wait {
+-+  background: rgba(102, 112, 133, 0.28);
+-+  border-left: 1px solid rgba(255, 255, 255, 0.45);
+-+  border-right: 1px solid rgba(255, 255, 255, 0.45);
+-+}
+-+
+-+html body .vbt-rep-timeline .wait::after {
+-+  content: "";
+-+}
+-+
+- html body .vbt-timeline-legend {
+-   display: flex;
+-   flex-wrap: wrap;
+-diff -ruN '--exclude=DIFF' /mnt/data/v171_work/sw.js /mnt/data/v172_work/sw.js
+---- /mnt/data/v171_work/sw.js	2026-06-10 12:46:35.877941056 +0000
+-+++ /mnt/data/v172_work/sw.js	2026-06-10 13:09:52.546763188 +0000
+-@@ -1,14 +1,14 @@
+--const CACHE_NAME = "platform-buddy-v171";
+-+const CACHE_NAME = "platform-buddy-v172";
+- const CORE_ASSETS = [
+-   "./",
+-   "index.html",
+--  "index.html?v=171",
+-+  "index.html?v=172",
+-   "styles.css",
+--  "styles.css?v=171",
+-+  "styles.css?v=172",
+-   "app.js",
+--  "app.js?v=171",
+-+  "app.js?v=172",
+-   "video.js",
+--  "video.js?v=171",
+-+  "video.js?v=172",
+-   "manifest.webmanifest",
+-   "icon.svg",
+-   "apple-touch-icon.png",
+-diff -ruN '--exclude=DIFF' /mnt/data/v171_work/video.js /mnt/data/v172_work/video.js
+---- /mnt/data/v171_work/video.js	2026-06-10 12:46:35.874776398 +0000
+-+++ /mnt/data/v172_work/video.js	2026-06-10 13:09:33.248074293 +0000
+-@@ -29,7 +29,7 @@
+-     lift: document.querySelector("#videoLiftInput"),
+-     date: document.querySelector("#videoDateInput"),
+-     weight: document.querySelector("#videoWeightInput"),
+--    reps: document.querySelector("#videoRepsInput"),
+-+    reps: document.querySelector("#videoRepsInput"), // optional: reps are now auto-detected from VBT analysis
+-     rpe: document.querySelector("#videoRpeInput"),
+-     setType: document.querySelector("#videoSetTypeInput"),
+-     storageStatus: document.querySelector("#videoStorageStatus"),
+-@@ -340,7 +340,7 @@
+-       lift: record?.lift || velocityData.lift || "OTHER",
+-       liftLabel: liftLabel(record?.lift || velocityData.lift),
+-       weightKg: Number(record?.weightKg ?? record?.weight ?? velocityData.weight) || 0,
+--      reps: Number(record?.reps ?? velocityData.reps) || 0,
+-+      reps: Number(measurement.detectedReps ?? primaryVbtMetric.repCountDetected ?? record?.reps ?? velocityData.reps) || 0,
+-       subjectiveRpe: hasFiniteNumber(record?.subjectiveRpe ?? record?.rpe ?? velocityData.rpe) ? Number(record?.subjectiveRpe ?? record?.rpe ?? velocityData.rpe) : null,
+-       tag: record?.tag || record?.setType || null,
+-       averageVelocity: Number.isFinite(profileVelocity) ? profileVelocity : null,
+-@@ -699,7 +699,63 @@
+-     return turns;
+-   }
+- 
+--  function detectRepPhases(path, lift, expectedReps) {
+-+  function movementSegmentsFromPath(path) {
+-+    if (!Array.isArray(path) || path.length < 4) return [];
+-+    const yValues = path.map((point) => Number(point.y)).filter(Number.isFinite);
+-+    const yRange = yValues.length ? Math.max(...yValues) - Math.min(...yValues) : 0;
+-+    const jitter = Math.max(0.45, yRange * 0.006);
+-+    const minTravel = Math.max(3, yRange * 0.10);
+-+    const minDuration = 0.12;
+-+    const maxStillGap = 2;
+-+    const segments = [];
+-+    let current = null;
+-+    let stillCount = 0;
+-+
+-+    const closeCurrent = (endIndex) => {
+-+      if (!current) return;
+-+      const safeEnd = Math.max(current.startIndex + 1, Math.min(endIndex, path.length - 1));
+-+      const travel = Math.abs(Number(path[safeEnd].y) - Number(path[current.startIndex].y));
+-+      const duration = Number(path[safeEnd].time) - Number(path[current.startIndex].time);
+-+      if (travel >= minTravel && duration >= minDuration) {
+-+        segments.push({
+-+          ...current,
+-+          endIndex: safeEnd,
+-+          travel,
+-+          duration,
+-+          startTime: path[current.startIndex].time,
+-+          endTime: path[safeEnd].time
+-+        });
+-+      }
+-+      current = null;
+-+      stillCount = 0;
+-+    };
+-+
+-+    for (let index = 1; index < path.length; index += 1) {
+-+      const delta = Number(path[index].y) - Number(path[index - 1].y);
+-+      const direction = Math.abs(delta) <= jitter ? 0 : Math.sign(delta);
+-+      if (!direction) {
+-+        if (current) {
+-+          stillCount += 1;
+-+          if (stillCount > maxStillGap) closeCurrent(index - stillCount);
+-+        }
+-+        continue;
+-+      }
+-+      if (!current) {
+-+        current = { direction, startIndex: Math.max(0, index - 1) };
+-+        stillCount = 0;
+-+        continue;
+-+      }
+-+      if (direction !== current.direction) {
+-+        closeCurrent(index - 1);
+-+        current = { direction, startIndex: Math.max(0, index - 1) };
+-+      }
+-+      stillCount = 0;
+-+    }
+-+    closeCurrent(path.length - 1);
+-+    return segments;
+-+  }
+-+
+-+  function detectRepPhasesByTurns(path, lift, expectedReps) {
+-     const smoothed = smoothTrackPath(path);
+-     if (smoothed.length < 5) return [];
+-     const guide = getVbtStartGuide(lift);
+-@@ -738,9 +794,50 @@
+-     return phases;
+-   }
+- 
+-+  function detectRepPhases(path, lift, expectedReps) {
+-+    const smoothed = smoothTrackPath(path);
+-+    if (smoothed.length < 5) return [];
+-+    const guide = getVbtStartGuide(lift);
+-+    const pattern = guide.movementPattern === "auto" ? "top-bottom-top" : guide.movementPattern;
+-+    const segments = movementSegmentsFromPath(smoothed);
+-+    const phases = [];
+-+    const limit = Number(expectedReps) > 0 ? Number(expectedReps) : Infinity;
+-+
+-+    if (pattern === "bottom-top-bottom") {
+-+      for (let index = 0; index < segments.length && phases.length < limit; index += 1) {
+-+        const concentric = segments[index];
+-+        if (!concentric || concentric.direction !== -1) continue;
+-+        const eccentric = segments.slice(index + 1).find((segment) => segment.direction === 1) || null;
+-+        phases.push({
+-+          repIndex: phases.length + 1,
+-+          concentric: { startIndex: concentric.startIndex, endIndex: concentric.endIndex },
+-+          eccentric: eccentric ? { startIndex: eccentric.startIndex, endIndex: eccentric.endIndex } : null,
+-+          restBeforeSeconds: phases.length ? Math.max(0, Number(smoothed[concentric.startIndex].time) - Number(smoothed[phases.at(-1).eccentric?.endIndex ?? phases.at(-1).concentric.endIndex]?.time)) : null
+-+        });
+-+        if (eccentric) index = segments.findIndex((segment) => segment.startIndex === eccentric.startIndex);
+-+      }
+-+    } else {
+-+      for (let index = 0; index < segments.length && phases.length < limit; index += 1) {
+-+        const eccentric = segments[index];
+-+        if (!eccentric || eccentric.direction !== 1) continue;
+-+        const concentric = segments.slice(index + 1).find((segment) => segment.direction === -1) || null;
+-+        if (!concentric) continue;
+-+        phases.push({
+-+          repIndex: phases.length + 1,
+-+          eccentric: { startIndex: eccentric.startIndex, endIndex: eccentric.endIndex },
+-+          concentric: { startIndex: concentric.startIndex, endIndex: concentric.endIndex },
+-+          restBeforeSeconds: phases.length ? Math.max(0, Number(smoothed[eccentric.startIndex].time) - Number(smoothed[phases.at(-1).concentric.endIndex].time)) : null
+-+        });
+-+        index = segments.findIndex((segment) => segment.startIndex === concentric.startIndex);
+-+      }
+-+    }
+-+
+-+    return phases.length ? phases : detectRepPhasesByTurns(path, lift, expectedReps);
+-+  }
+-+
+-   function getTrimLengthWarning(lift, reps, durationSeconds) {
+--    const expected = Math.max(1, Number(reps) || 1);
+--    const max = expected * 7 + 4;
+-+    const expected = Number(reps);
+-+    const max = Number.isFinite(expected) && expected > 0 ? expected * 9 + 6 : 35;
+-     if (Number(durationSeconds) > max) {
+-       return "解析範囲が長めです。セット前後の歩きや待機を除くと精度が上がります。";
+-     }
+-@@ -895,7 +992,8 @@
+-         eccentric,
+-         concentric,
+-         totalRomMeters,
+--        pauseDuration: Math.max(0, (concentric?.startTime || 0) - (eccentric?.endTime || 0)) || null,
+-+        pauseDuration: eccentric && concentric ? (Math.max(0, (concentric.startTime || 0) - (eccentric.endTime || 0)) || null) : null,
+-+        restBeforeSeconds: phase.restBeforeSeconds || null,
+-         confidence: "high",
+-         warning: null
+-       };
+-@@ -1201,10 +1299,11 @@
+-       throw new Error("プレートの上下移動を捉えられませんでした。緑枠と測定範囲を確認してください。");
+-     }
+-     const metersPerPixel = (plateDiameterCm / 100) / plateDiameterPixels;
+--    const repPhases = detectRepPhases(path, record.lift, record.reps);
+--    const repMetrics = calculateRepVelocityMetrics(repPhases, { path, metersPerPixel, lift: record.lift, expectedReps: record.reps });
+-+    const repPhases = detectRepPhases(path, record.lift, null);
+-+    const repMetrics = calculateRepVelocityMetrics(repPhases, { path, metersPerPixel, lift: record.lift, expectedReps: null });
+-+    const detectedRepCount = repMetrics.length;
+-     const primaryVbtMetric = getPrimaryVbtMetric(repMetrics);
+--    const repWarning = validateRepDetection(repMetrics, record.reps);
+-+    const repWarning = validateRepDetection(repMetrics, null);
+-     const concentricVelocities = repMetrics.map((metric) => metric.concentric?.meanVelocity).filter(Number.isFinite);
+-     const distanceMeters = repMetrics.length
+-       ? repMetrics.reduce((sum, metric) => sum + metric.totalRomMeters, 0) / repMetrics.length
+-@@ -1221,13 +1320,13 @@
+-       verticalTravelPixels,
+-       pathTravelPixels,
+-       scores: rawPath.map((point) => point.score),
+--      expectedReps: record.reps
+-+      expectedReps: detectedRepCount || 1
+-     });
+-     const trackingWarning = [
+-       aspectWarning,
+-       trackingConfidence === "low" ? "追跡の信頼度が低めです。手動2点測定でも確認してください。" : null,
+-       repWarning || null,
+--      getTrimLengthWarning(record.lift, record.reps, durationSeconds)
+-+      getTrimLengthWarning(record.lift, detectedRepCount || null, durationSeconds)
+-     ].filter(Boolean).join(" ");
+- 
+-     return {
+-@@ -1237,7 +1336,7 @@
+-       trackingWarning: trackingWarning || null,
+-       lift: record.lift,
+-       weight: Number(record.weight) || null,
+--      reps: Number(record.reps) || null,
+-+      reps: detectedRepCount || Number(record.reps) || null,
+-       rpe: Number(record.rpe) || null,
+-       calibration: {
+-         plateDiameterCm,
+-@@ -1251,8 +1350,8 @@
+-       measurement: {
+-         mode: "plate-roi-timeseries",
+-         lift: record.lift,
+--        expectedReps: Number(record.reps) || null,
+--        detectedReps: repMetrics.length,
+-+        expectedReps: null,
+-+        detectedReps: detectedRepCount,
+-         startRoi: plateRoi,
+-         startTime: start,
+-         endTime: end,
+-@@ -1665,18 +1764,31 @@
+-     const end = Number(measurement.endTime ?? measurement.trim?.end);
+-     const duration = end - start;
+-     if (!Number.isFinite(duration) || duration <= 0) return "";
+--    const blocks = metrics.flatMap((metric) => [
+-+    const movementBlocks = metrics.flatMap((metric) => [
+-       metric.eccentric ? { type: "eccentric", rep: metric.repIndex, start: metric.eccentric.startTime, end: metric.eccentric.endTime } : null,
+-       metric.concentric ? { type: "concentric", rep: metric.repIndex, start: metric.concentric.startTime, end: metric.concentric.endTime } : null
+--    ]).filter(Boolean).map((block) => {
+-+    ]).filter(Boolean).sort((a, b) => a.start - b.start);
+-+
+-+    const waitBlocks = [];
+-+    let cursor = start;
+-+    movementBlocks.forEach((block) => {
+-+      if (block.start - cursor >= Math.max(0.35, duration * 0.015)) {
+-+        waitBlocks.push({ type: "wait", start: cursor, end: block.start });
+-+      }
+-+      cursor = Math.max(cursor, block.end);
+-+    });
+-+    if (end - cursor >= Math.max(0.35, duration * 0.015)) waitBlocks.push({ type: "wait", start: cursor, end });
+-+
+-+    const blocks = [...waitBlocks, ...movementBlocks].map((block) => {
+-       const left = clamp(((block.start - start) / duration) * 100, 0, 100);
+-       const width = clamp(((block.end - block.start) / duration) * 100, 0.7, 100 - left);
+-+      if (block.type === "wait") return `<span class="wait" style="left:${left.toFixed(2)}%;width:${width.toFixed(2)}%" title="待機・呼吸・判定外"></span>`;
+-       return `<span class="${block.type}" style="left:${left.toFixed(2)}%;width:${width.toFixed(2)}%" title="Rep ${escapeHtml(block.rep)} ${block.type === "eccentric" ? "下降" : "挙上"}">R${escapeHtml(block.rep)} ${block.type === "eccentric" ? "↓" : "↑"}</span>`;
+-     }).join("");
+-     return `
+-       <div class="vbt-rep-timeline-wrap">
+-         <div class="vbt-rep-timeline">${blocks}</div>
+--        <div class="vbt-timeline-legend"><span>下降</span><span>挙上</span><span>空白は待機・判定外</span></div>
+-+        <div class="vbt-timeline-legend"><span>下降</span><span>挙上</span><span>待機・呼吸</span></div>
+-       </div>
+-     `;
+-   }
+-@@ -2342,7 +2454,8 @@
+-     const startGuide = getVbtStartGuide(record.lift);
+-     const initialStep = vbtWizardInitialStep(record);
+-     const resultMarkup = vbtResultMarkup({ ...measurement, ...velocityData, lift: record.lift, rpe: record.rpe });
+--    const setSummary = `${liftLabel(record.lift)} ${formatNumber(record.weight)}kg × ${formatNumber(record.reps)} @${formatNumber(record.rpe)}`;
+-+    const recordRepLabel = record.reps ? ` × ${formatNumber(record.reps)}` : " × AI判定";
+-+    const setSummary = `${liftLabel(record.lift)} ${formatNumber(record.weight)}kg${recordRepLabel} @${formatNumber(record.rpe)}`;
+-     return `
+-       <section class="manual-vbt-card vbt-wizard" data-vbt-card data-vbt-wizard-root>
+-         <section class="vbt-wizard-screen ${initialStep === "trim" ? "active" : ""}" data-vbt-step="trim">
+-@@ -2448,9 +2561,9 @@
+-           </div>
+-           <div class="vbt-set-summary-card">
+-             <span>${escapeHtml(liftLabel(record.lift))}</span>
+--            <strong>${escapeHtml(formatNumber(record.weight))}kg × ${escapeHtml(formatNumber(record.reps))}</strong>
+-+            <strong>${escapeHtml(formatNumber(record.weight))}kg ${record.reps ? `× ${escapeHtml(formatNumber(record.reps))}` : "× AI判定"}</strong>
+-             <em>@${escapeHtml(formatNumber(record.rpe))}</em>
+--            <p>セット情報はLOGの動画ノートに保存されている内容を使います。必要なら動画ノート側で修正してください。</p>
+-+            <p>レップ数は動画解析から自動判定します。重量・日付・RPEを確認して解析してください。</p>
+-           </div>
+-           <details class="compact-guide vbt-auto-details">
+-             <summary>自動検出が難しいとき</summary>
+-@@ -3230,6 +3343,13 @@
+-         warningType: status.warningType,
+-         warningMessage: status.warningMessage
+-       });
+-+      const detectedRepCount = velocityData.primaryVbtMetric?.repCountDetected
+-+        ?? velocityData.measurement?.detectedReps
+-+        ?? (velocityData.measurement?.repMetrics || []).length
+-+        ?? null;
+-+      if (Number.isFinite(Number(detectedRepCount)) && Number(detectedRepCount) > 0) {
+-+        record.reps = Number(detectedRepCount);
+-+      }
+-       record.analysis = { ...(record.analysis || {}), velocityData };
+-       record.updatedAt = new Date().toISOString();
+-       await saveVideoRecord(record);
+-@@ -3548,7 +3668,7 @@
+-       date: els.date.value || today(),
+-       lift: els.lift.value,
+-       weight: Number(els.weight.value || 0),
+--      reps: Number(els.reps.value || 0),
+-+      reps: els.reps ? Number(els.reps.value || 0) : null,
+-       rpe: Number(els.rpe.value || 0),
+-       setType: els.setType.value,
+-       videoName: file.name,
+diff -ruN v172/index.html v173/index.html
+--- v172/index.html	2026-06-10 13:09:52.000000000 +0000
++++ v173/index.html	2026-06-11 05:15:30.403246029 +0000
 @@ -12,7 +12,7 @@
      <link rel="preload" as="image" href="home-bg-lite.jpg">
      <link rel="preload" as="image" href="icon-sheet-lite.jpg">
      <link rel="apple-touch-icon" href="apple-touch-icon.png">
--    <link rel="stylesheet" href="styles.css?v=171">
-+    <link rel="stylesheet" href="styles.css?v=172">
+-    <link rel="stylesheet" href="styles.css?v=172">
++    <link rel="stylesheet" href="styles.css?v=173">
    </head>
    <body>
      <div class="app-shell">
-@@ -393,7 +393,6 @@
-                   </label>
-                   <label>日付<input id="videoDateInput" type="date" required></label>
-                   <label>重量 kg<input id="videoWeightInput" inputmode="decimal" type="number" min="0" step="0.5"></label>
--                  <label>回数<input id="videoRepsInput" inputmode="numeric" type="number" min="1" max="100" step="1"></label>
-                   <label>RPE<input id="videoRpeInput" inputmode="decimal" type="number" min="1" max="10" step="0.5"></label>
-                   <label>セット種別
-                     <select id="videoSetTypeInput">
-@@ -1159,7 +1158,7 @@
+@@ -1158,7 +1158,7 @@
        </form>
      </dialog>
  
--    <script src="app.js?v=171"></script>
--    <script src="video.js?v=171"></script>
-+    <script src="app.js?v=172"></script>
-+    <script src="video.js?v=172"></script>
+-    <script src="app.js?v=172"></script>
+-    <script src="video.js?v=172"></script>
++    <script src="app.js?v=173"></script>
++    <script src="video.js?v=173"></script>
    </body>
  </html>
-diff -ruN '--exclude=DIFF' /mnt/data/v171_work/manifest.webmanifest /mnt/data/v172_work/manifest.webmanifest
---- /mnt/data/v171_work/manifest.webmanifest	2026-06-10 12:46:35.878853617 +0000
-+++ /mnt/data/v172_work/manifest.webmanifest	2026-06-10 13:09:52.547645677 +0000
+diff -ruN v172/manifest.webmanifest v173/manifest.webmanifest
+--- v172/manifest.webmanifest	2026-06-10 13:09:52.000000000 +0000
++++ v173/manifest.webmanifest	2026-06-11 05:15:30.403661462 +0000
 @@ -2,7 +2,7 @@
    "name": "Platform Buddy",
    "short_name": "Buddy",
    "description": "BIG3の現在地と目標を見える化し、PRサイクル、記録、分析、大会準備までつなげるパワーリフティング向けPWAです。",
--  "start_url": "./index.html?v=171",
-+  "start_url": "./index.html?v=172",
+-  "start_url": "./index.html?v=172",
++  "start_url": "./index.html?v=173",
    "scope": "./",
    "display": "standalone",
    "background_color": "#f4efe6",
-diff -ruN '--exclude=DIFF' /mnt/data/v171_work/styles.css /mnt/data/v172_work/styles.css
---- /mnt/data/v171_work/styles.css	2026-06-10 12:46:35.884341079 +0000
-+++ /mnt/data/v172_work/styles.css	2026-06-10 13:09:52.553163163 +0000
-@@ -17131,6 +17131,16 @@
-   background: rgba(180, 35, 24, 0.78);
+diff -ruN v172/styles.css v173/styles.css
+--- v172/styles.css	2026-06-10 13:09:52.000000000 +0000
++++ v173/styles.css	2026-06-11 05:17:15.422433156 +0000
+@@ -17849,3 +17849,62 @@
+     min-height: 48px;
+   }
  }
- 
-+html body .vbt-rep-timeline .wait {
-+  background: rgba(102, 112, 133, 0.28);
-+  border-left: 1px solid rgba(255, 255, 255, 0.45);
-+  border-right: 1px solid rgba(255, 255, 255, 0.45);
++
++/* v173 VBT candidate-pick UI */
++html body .vbt-candidate-strip {
++  display: grid;
++  gap: 8px;
++  margin: 10px 0 12px;
 +}
 +
-+html body .vbt-rep-timeline .wait::after {
-+  content: "";
++html body .vbt-candidate-label {
++  color: var(--text-sub, #526179);
++  font-size: 0.78rem;
++  font-weight: 900;
 +}
 +
- html body .vbt-timeline-legend {
-   display: flex;
-   flex-wrap: wrap;
-diff -ruN '--exclude=DIFF' /mnt/data/v171_work/sw.js /mnt/data/v172_work/sw.js
---- /mnt/data/v171_work/sw.js	2026-06-10 12:46:35.877941056 +0000
-+++ /mnt/data/v172_work/sw.js	2026-06-10 13:09:52.546763188 +0000
++html body .vbt-candidate-buttons {
++  display: grid;
++  grid-template-columns: repeat(3, minmax(0, 1fr));
++  gap: 8px;
++}
++
++html body .vbt-candidate-button {
++  min-height: 48px;
++  border: 1px solid var(--line, #ded6c8);
++  border-radius: 12px;
++  background: var(--surface, #fffaf2);
++  color: var(--text-main, #171717);
++  display: grid;
++  gap: 2px;
++  place-items: center;
++  font-weight: 900;
++  cursor: pointer;
++}
++
++html body .vbt-candidate-button span {
++  color: var(--text-sub, #526179);
++  font-size: 0.68rem;
++  font-weight: 800;
++}
++
++html body .vbt-candidate-button.selected {
++  border-color: rgba(34, 197, 94, 0.92);
++  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.18);
++  background: rgba(34, 197, 94, 0.10);
++}
++
++html body .video-storage-note.compact {
++  margin: 0;
++  font-size: 0.78rem;
++}
++
++@media (max-width: 640px) {
++  html body .vbt-candidate-buttons {
++    grid-template-columns: 1fr;
++  }
++
++  html body .vbt-candidate-button {
++    min-height: 44px;
++  }
++}
+diff -ruN v172/sw.js v173/sw.js
+--- v172/sw.js	2026-06-10 13:09:52.000000000 +0000
++++ v173/sw.js	2026-06-11 05:15:30.403853937 +0000
 @@ -1,14 +1,14 @@
--const CACHE_NAME = "platform-buddy-v171";
-+const CACHE_NAME = "platform-buddy-v172";
+-const CACHE_NAME = "platform-buddy-v172";
++const CACHE_NAME = "platform-buddy-v173";
  const CORE_ASSETS = [
    "./",
    "index.html",
--  "index.html?v=171",
-+  "index.html?v=172",
+-  "index.html?v=172",
++  "index.html?v=173",
    "styles.css",
--  "styles.css?v=171",
-+  "styles.css?v=172",
+-  "styles.css?v=172",
++  "styles.css?v=173",
    "app.js",
--  "app.js?v=171",
-+  "app.js?v=172",
+-  "app.js?v=172",
++  "app.js?v=173",
    "video.js",
--  "video.js?v=171",
-+  "video.js?v=172",
+-  "video.js?v=172",
++  "video.js?v=173",
    "manifest.webmanifest",
    "icon.svg",
    "apple-touch-icon.png",
-diff -ruN '--exclude=DIFF' /mnt/data/v171_work/video.js /mnt/data/v172_work/video.js
---- /mnt/data/v171_work/video.js	2026-06-10 12:46:35.874776398 +0000
-+++ /mnt/data/v172_work/video.js	2026-06-10 13:09:33.248074293 +0000
-@@ -29,7 +29,7 @@
-     lift: document.querySelector("#videoLiftInput"),
-     date: document.querySelector("#videoDateInput"),
-     weight: document.querySelector("#videoWeightInput"),
--    reps: document.querySelector("#videoRepsInput"),
-+    reps: document.querySelector("#videoRepsInput"), // optional: reps are now auto-detected from VBT analysis
-     rpe: document.querySelector("#videoRpeInput"),
-     setType: document.querySelector("#videoSetTypeInput"),
-     storageStatus: document.querySelector("#videoStorageStatus"),
-@@ -340,7 +340,7 @@
-       lift: record?.lift || velocityData.lift || "OTHER",
-       liftLabel: liftLabel(record?.lift || velocityData.lift),
-       weightKg: Number(record?.weightKg ?? record?.weight ?? velocityData.weight) || 0,
--      reps: Number(record?.reps ?? velocityData.reps) || 0,
-+      reps: Number(measurement.detectedReps ?? primaryVbtMetric.repCountDetected ?? record?.reps ?? velocityData.reps) || 0,
-       subjectiveRpe: hasFiniteNumber(record?.subjectiveRpe ?? record?.rpe ?? velocityData.rpe) ? Number(record?.subjectiveRpe ?? record?.rpe ?? velocityData.rpe) : null,
-       tag: record?.tag || record?.setType || null,
-       averageVelocity: Number.isFinite(profileVelocity) ? profileVelocity : null,
-@@ -699,7 +699,63 @@
-     return turns;
+diff -ruN v172/video.js v173/video.js
+--- v172/video.js	2026-06-10 13:09:33.000000000 +0000
++++ v173/video.js	2026-06-11 05:17:06.671118659 +0000
+@@ -1935,6 +1935,7 @@
+     }
+     if (step === "auto-detect-confirm") {
+       dialog.querySelector("[data-vbt-canvas]")?.classList.add("active", "roi-active");
++      renderAutoCandidateList(dialog);
+       drawVbtOverlay(dialog);
+       drawRoiPreview(dialog);
+     }
+@@ -2367,6 +2368,123 @@
+     };
    }
  
--  function detectRepPhases(path, lift, expectedReps) {
-+  function movementSegmentsFromPath(path) {
-+    if (!Array.isArray(path) || path.length < 4) return [];
-+    const yValues = path.map((point) => Number(point.y)).filter(Number.isFinite);
-+    const yRange = yValues.length ? Math.max(...yValues) - Math.min(...yValues) : 0;
-+    const jitter = Math.max(0.45, yRange * 0.006);
-+    const minTravel = Math.max(3, yRange * 0.10);
-+    const minDuration = 0.12;
-+    const maxStillGap = 2;
-+    const segments = [];
-+    let current = null;
-+    let stillCount = 0;
-+
-+    const closeCurrent = (endIndex) => {
-+      if (!current) return;
-+      const safeEnd = Math.max(current.startIndex + 1, Math.min(endIndex, path.length - 1));
-+      const travel = Math.abs(Number(path[safeEnd].y) - Number(path[current.startIndex].y));
-+      const duration = Number(path[safeEnd].time) - Number(path[current.startIndex].time);
-+      if (travel >= minTravel && duration >= minDuration) {
-+        segments.push({
-+          ...current,
-+          endIndex: safeEnd,
-+          travel,
-+          duration,
-+          startTime: path[current.startIndex].time,
-+          endTime: path[safeEnd].time
-+        });
++  function chooseTemporalPlateCandidates(candidates, lift, limit = 3) {
++    const clean = (candidates || []).filter((item) => item?.roi && hasFiniteNumber(item.score));
++    if (!clean.length) return [];
++    const groups = [];
++    clean.forEach((candidate) => {
++      const roi = candidate.roi;
++      const centerX = roi.x + roi.width / 2;
++      const centerY = roi.y + roi.height / 2;
++      const size = Math.max(roi.width, roi.height);
++      let group = groups.find((item) => {
++        const dx = Math.abs(item.centerX - centerX) / Math.max(size, item.size, 1);
++        const ds = Math.abs(item.size - size) / Math.max(size, item.size, 1);
++        return dx < 0.55 && ds < 0.36;
++      });
++      if (!group) {
++        group = { items: [], centerX, centerY, size };
++        groups.push(group);
 +      }
-+      current = null;
-+      stillCount = 0;
-+    };
-+
-+    for (let index = 1; index < path.length; index += 1) {
-+      const delta = Number(path[index].y) - Number(path[index - 1].y);
-+      const direction = Math.abs(delta) <= jitter ? 0 : Math.sign(delta);
-+      if (!direction) {
-+        if (current) {
-+          stillCount += 1;
-+          if (stillCount > maxStillGap) closeCurrent(index - stillCount);
-+        }
-+        continue;
-+      }
-+      if (!current) {
-+        current = { direction, startIndex: Math.max(0, index - 1) };
-+        stillCount = 0;
-+        continue;
-+      }
-+      if (direction !== current.direction) {
-+        closeCurrent(index - 1);
-+        current = { direction, startIndex: Math.max(0, index - 1) };
-+      }
-+      stillCount = 0;
-+    }
-+    closeCurrent(path.length - 1);
-+    return segments;
-+  }
-+
-+  function detectRepPhasesByTurns(path, lift, expectedReps) {
-     const smoothed = smoothTrackPath(path);
-     if (smoothed.length < 5) return [];
-     const guide = getVbtStartGuide(lift);
-@@ -738,9 +794,50 @@
-     return phases;
-   }
- 
-+  function detectRepPhases(path, lift, expectedReps) {
-+    const smoothed = smoothTrackPath(path);
-+    if (smoothed.length < 5) return [];
-+    const guide = getVbtStartGuide(lift);
-+    const pattern = guide.movementPattern === "auto" ? "top-bottom-top" : guide.movementPattern;
-+    const segments = movementSegmentsFromPath(smoothed);
-+    const phases = [];
-+    const limit = Number(expectedReps) > 0 ? Number(expectedReps) : Infinity;
-+
-+    if (pattern === "bottom-top-bottom") {
-+      for (let index = 0; index < segments.length && phases.length < limit; index += 1) {
-+        const concentric = segments[index];
-+        if (!concentric || concentric.direction !== -1) continue;
-+        const eccentric = segments.slice(index + 1).find((segment) => segment.direction === 1) || null;
-+        phases.push({
-+          repIndex: phases.length + 1,
-+          concentric: { startIndex: concentric.startIndex, endIndex: concentric.endIndex },
-+          eccentric: eccentric ? { startIndex: eccentric.startIndex, endIndex: eccentric.endIndex } : null,
-+          restBeforeSeconds: phases.length ? Math.max(0, Number(smoothed[concentric.startIndex].time) - Number(smoothed[phases.at(-1).eccentric?.endIndex ?? phases.at(-1).concentric.endIndex]?.time)) : null
-+        });
-+        if (eccentric) index = segments.findIndex((segment) => segment.startIndex === eccentric.startIndex);
-+      }
-+    } else {
-+      for (let index = 0; index < segments.length && phases.length < limit; index += 1) {
-+        const eccentric = segments[index];
-+        if (!eccentric || eccentric.direction !== 1) continue;
-+        const concentric = segments.slice(index + 1).find((segment) => segment.direction === -1) || null;
-+        if (!concentric) continue;
-+        phases.push({
-+          repIndex: phases.length + 1,
-+          eccentric: { startIndex: eccentric.startIndex, endIndex: eccentric.endIndex },
-+          concentric: { startIndex: concentric.startIndex, endIndex: concentric.endIndex },
-+          restBeforeSeconds: phases.length ? Math.max(0, Number(smoothed[eccentric.startIndex].time) - Number(smoothed[phases.at(-1).concentric.endIndex].time)) : null
-+        });
-+        index = segments.findIndex((segment) => segment.startIndex === concentric.startIndex);
-+      }
-+    }
-+
-+    return phases.length ? phases : detectRepPhasesByTurns(path, lift, expectedReps);
-+  }
-+
-   function getTrimLengthWarning(lift, reps, durationSeconds) {
--    const expected = Math.max(1, Number(reps) || 1);
--    const max = expected * 7 + 4;
-+    const expected = Number(reps);
-+    const max = Number.isFinite(expected) && expected > 0 ? expected * 9 + 6 : 35;
-     if (Number(durationSeconds) > max) {
-       return "解析範囲が長めです。セット前後の歩きや待機を除くと精度が上がります。";
-     }
-@@ -895,7 +992,8 @@
-         eccentric,
-         concentric,
-         totalRomMeters,
--        pauseDuration: Math.max(0, (concentric?.startTime || 0) - (eccentric?.endTime || 0)) || null,
-+        pauseDuration: eccentric && concentric ? (Math.max(0, (concentric.startTime || 0) - (eccentric.endTime || 0)) || null) : null,
-+        restBeforeSeconds: phase.restBeforeSeconds || null,
-         confidence: "high",
-         warning: null
-       };
-@@ -1201,10 +1299,11 @@
-       throw new Error("プレートの上下移動を捉えられませんでした。緑枠と測定範囲を確認してください。");
-     }
-     const metersPerPixel = (plateDiameterCm / 100) / plateDiameterPixels;
--    const repPhases = detectRepPhases(path, record.lift, record.reps);
--    const repMetrics = calculateRepVelocityMetrics(repPhases, { path, metersPerPixel, lift: record.lift, expectedReps: record.reps });
-+    const repPhases = detectRepPhases(path, record.lift, null);
-+    const repMetrics = calculateRepVelocityMetrics(repPhases, { path, metersPerPixel, lift: record.lift, expectedReps: null });
-+    const detectedRepCount = repMetrics.length;
-     const primaryVbtMetric = getPrimaryVbtMetric(repMetrics);
--    const repWarning = validateRepDetection(repMetrics, record.reps);
-+    const repWarning = validateRepDetection(repMetrics, null);
-     const concentricVelocities = repMetrics.map((metric) => metric.concentric?.meanVelocity).filter(Number.isFinite);
-     const distanceMeters = repMetrics.length
-       ? repMetrics.reduce((sum, metric) => sum + metric.totalRomMeters, 0) / repMetrics.length
-@@ -1221,13 +1320,13 @@
-       verticalTravelPixels,
-       pathTravelPixels,
-       scores: rawPath.map((point) => point.score),
--      expectedReps: record.reps
-+      expectedReps: detectedRepCount || 1
-     });
-     const trackingWarning = [
-       aspectWarning,
-       trackingConfidence === "low" ? "追跡の信頼度が低めです。手動2点測定でも確認してください。" : null,
-       repWarning || null,
--      getTrimLengthWarning(record.lift, record.reps, durationSeconds)
-+      getTrimLengthWarning(record.lift, detectedRepCount || null, durationSeconds)
-     ].filter(Boolean).join(" ");
- 
-     return {
-@@ -1237,7 +1336,7 @@
-       trackingWarning: trackingWarning || null,
-       lift: record.lift,
-       weight: Number(record.weight) || null,
--      reps: Number(record.reps) || null,
-+      reps: detectedRepCount || Number(record.reps) || null,
-       rpe: Number(record.rpe) || null,
-       calibration: {
-         plateDiameterCm,
-@@ -1251,8 +1350,8 @@
-       measurement: {
-         mode: "plate-roi-timeseries",
-         lift: record.lift,
--        expectedReps: Number(record.reps) || null,
--        detectedReps: repMetrics.length,
-+        expectedReps: null,
-+        detectedReps: detectedRepCount,
-         startRoi: plateRoi,
-         startTime: start,
-         endTime: end,
-@@ -1665,18 +1764,31 @@
-     const end = Number(measurement.endTime ?? measurement.trim?.end);
-     const duration = end - start;
-     if (!Number.isFinite(duration) || duration <= 0) return "";
--    const blocks = metrics.flatMap((metric) => [
-+    const movementBlocks = metrics.flatMap((metric) => [
-       metric.eccentric ? { type: "eccentric", rep: metric.repIndex, start: metric.eccentric.startTime, end: metric.eccentric.endTime } : null,
-       metric.concentric ? { type: "concentric", rep: metric.repIndex, start: metric.concentric.startTime, end: metric.concentric.endTime } : null
--    ]).filter(Boolean).map((block) => {
-+    ]).filter(Boolean).sort((a, b) => a.start - b.start);
-+
-+    const waitBlocks = [];
-+    let cursor = start;
-+    movementBlocks.forEach((block) => {
-+      if (block.start - cursor >= Math.max(0.35, duration * 0.015)) {
-+        waitBlocks.push({ type: "wait", start: cursor, end: block.start });
-+      }
-+      cursor = Math.max(cursor, block.end);
++      group.items.push(candidate);
++      const n = group.items.length;
++      group.centerX = (group.centerX * (n - 1) + centerX) / n;
++      group.centerY = (group.centerY * (n - 1) + centerY) / n;
++      group.size = (group.size * (n - 1) + size) / n;
 +    });
-+    if (end - cursor >= Math.max(0.35, duration * 0.015)) waitBlocks.push({ type: "wait", start: cursor, end });
 +
-+    const blocks = [...waitBlocks, ...movementBlocks].map((block) => {
-       const left = clamp(((block.start - start) / duration) * 100, 0, 100);
-       const width = clamp(((block.end - block.start) / duration) * 100, 0.7, 100 - left);
-+      if (block.type === "wait") return `<span class="wait" style="left:${left.toFixed(2)}%;width:${width.toFixed(2)}%" title="待機・呼吸・判定外"></span>`;
-       return `<span class="${block.type}" style="left:${left.toFixed(2)}%;width:${width.toFixed(2)}%" title="Rep ${escapeHtml(block.rep)} ${block.type === "eccentric" ? "下降" : "挙上"}">R${escapeHtml(block.rep)} ${block.type === "eccentric" ? "↓" : "↑"}</span>`;
-     }).join("");
-     return `
-       <div class="vbt-rep-timeline-wrap">
-         <div class="vbt-rep-timeline">${blocks}</div>
--        <div class="vbt-timeline-legend"><span>下降</span><span>挙上</span><span>空白は待機・判定外</span></div>
-+        <div class="vbt-timeline-legend"><span>下降</span><span>挙上</span><span>待機・呼吸</span></div>
-       </div>
-     `;
++    const ranked = groups.map((group) => {
++      const items = group.items.sort((a, b) => a.sampleTime - b.sampleTime);
++      const scores = items.map((item) => Number(item.score)).filter(Number.isFinite);
++      const meanScore = scores.reduce((sum, value) => sum + value, 0) / Math.max(1, scores.length);
++      const ys = items.map((item) => item.roi.y + item.roi.height / 2);
++      const xs = items.map((item) => item.roi.x + item.roi.width / 2);
++      const yRange = Math.max(...ys) - Math.min(...ys);
++      const xRange = Math.max(...xs) - Math.min(...xs);
++      const size = Math.max(1, group.size);
++      const motionRatio = yRange / size;
++      const horizontalDrift = xRange / size;
++      const countRatio = items.length / Math.max(1, clean.length);
++      const barEvidence = items.reduce((sum, item) => sum + Number(item.barScore || 0) + Number(item.crossingScore || 0) * 0.35, 0) / Math.max(1, items.length);
++      const pairEvidence = items.reduce((sum, item) => sum + Number(item.pairScore || 0), 0) / Math.max(1, items.length);
++      const movementBonus = motionRatio > 0.12 ? Math.min(34, motionRatio * 38) : (lift === "DL" ? 0 : -18);
++      const stabilityBonus = Math.min(36, items.length * 5.5) + countRatio * 18;
++      const driftPenalty = horizontalDrift > 1.05 ? 28 : horizontalDrift > 0.62 ? 12 : 0;
++      const temporalScore = meanScore + stabilityBonus + movementBonus + barEvidence * 0.28 + pairEvidence * 0.34 - driftPenalty;
++      const first = items[0];
++      const bestItem = items.reduce((best, item) => item.score > best.score ? item : best, first);
++      const confidence = temporalScore > 125 && motionRatio > 0.10
++        ? "high"
++        : temporalScore > 92
++          ? "middle"
++          : "low";
++      return {
++        ...first,
++        roi: first.roi,
++        confidence,
++        score: Math.max(bestItem.score, temporalScore),
++        temporalScore,
++        motionRatio,
++        horizontalDrift,
++        sampleCount: items.length,
++        bestFrameTime: bestItem.sampleTime,
++        groupItems: items.length
++      };
++    });
++
++    return ranked
++      .sort((a, b) => Number(b.score || 0) - Number(a.score || 0))
++      .slice(0, Math.max(1, Number(limit) || 3));
++  }
++
++  function renderAutoCandidateList(dialog) {
++    const list = dialog?.querySelector("[data-vbt-candidate-list]");
++    if (!list) return;
++    const state = vbtState(dialog);
++    const candidates = Array.isArray(state.autoPlateCandidates) ? state.autoPlateCandidates : [];
++    if (!candidates.length) {
++      list.innerHTML = `<p class="video-storage-note compact">候補が少ないため、緑枠を確認してズレていれば手動で調整してください。</p>`;
++      return;
++    }
++    list.innerHTML = `
++      <div class="vbt-candidate-label">プレート候補を選ぶ</div>
++      <div class="vbt-candidate-buttons">
++        ${candidates.map((candidate, index) => {
++          const selected = Number(state.selectedCandidateIndex || 0) === index;
++          const confidence = candidate.confidence === "high" ? "高" : candidate.confidence === "middle" ? "中" : "低";
++          const move = hasFiniteNumber(candidate.motionRatio) ? Number(candidate.motionRatio).toFixed(2) : "--";
++          return `<button type="button" class="vbt-candidate-button ${selected ? "selected" : ""}" data-vbt-candidate-select="${index}">
++            <strong>候補${index + 1}</strong><span>信頼${confidence} / 動き ${move}</span>
++          </button>`;
++        }).join("")}
++      </div>
++    `;
++  }
++
++  function selectAutoPlateCandidate(button) {
++    const dialog = button?.closest("dialog");
++    if (!dialog) return;
++    const index = Number(button.dataset.vbtCandidateSelect);
++    const candidates = vbtState(dialog).autoPlateCandidates || [];
++    const candidate = candidates[index];
++    if (!candidate?.roi) return;
++    setVbtState(dialog, {
++      selectedCandidateIndex: index,
++      plateRoi: candidate.roi,
++      autoPlateCandidate: candidate,
++      autoDetectionConfidence: candidate.confidence || "low",
++      autoDetectionMessage: candidate.confidence === "low"
++        ? "選択した候補は信頼度が低めです。緑枠が最大プレートを囲んでいるか確認してください。"
++        : "選択した候補を緑枠に反映しました。最大プレートを囲んでいれば進んでください。",
++      trackingMode: "plate-roi-track"
++    });
++    const note = dialog.querySelector("[data-vbt-auto-note]");
++    if (note) note.textContent = vbtState(dialog).autoDetectionMessage;
++    renderAutoCandidateList(dialog);
++    drawVbtOverlay(dialog);
++    drawRoiPreview(dialog);
++  }
++
+   async function runAutoPlateDetection(button) {
+     const dialog = button.closest("dialog");
+     const video = dialog?.querySelector("video");
+@@ -2398,21 +2516,26 @@
+         updateAutoDetectProgress(dialog, index + 1, message, progress);
+         await new Promise((resolve) => setTimeout(resolve, 0));
+       }
+-      const bestCandidate = chooseTemporalPlateCandidate(allCandidates, record.lift);
++      const candidateList = chooseTemporalPlateCandidates(allCandidates, record.lift, 3);
++      const bestCandidate = candidateList[0];
+       updateAutoDetectProgress(dialog, 4, "4/4 検出結果を準備中…", 94);
+       if (!bestCandidate) {
+         setVbtState(dialog, {
++          autoPlateCandidates: [],
++          selectedCandidateIndex: null,
+           autoDetectionConfidence: "failed",
+           autoDetectionMessage: "動画全体から、バーベルと一緒に動くプレート候補を見つけられませんでした。手動で最大プレートを囲んでください。"
+         });
+         setVbtWizardStep(dialog, "manual-plate");
+         return;
+       }
+-      const lowMessage = "自動検出の信頼度：低。動画内での動きやバーベル線との一致が弱い可能性があります。緑枠が最大プレートを囲んでいなければ手動で調整してください。";
+-      const okMessage = `動画全体から、バーベルと一緒に動く候補を検出しました。緑枠が最大プレートを囲んでいるか確認してください。解析フレーム ${bestCandidate.sampleCount || 1}件 / 動き ${(Number(bestCandidate.motionRatio) || 0).toFixed(2)}`;
++      const lowMessage = "自動検出の信頼度：低。候補を選び、緑枠が最大プレートを囲んでいるか確認してください。";
++      const okMessage = `プレート候補を${candidateList.length}件見つけました。正しい候補を選び、緑枠が最大プレートを囲んでいれば進んでください。解析フレーム ${bestCandidate.sampleCount || 1}件 / 動き ${(Number(bestCandidate.motionRatio) || 0).toFixed(2)}`;
+       setVbtState(dialog, {
+         plateRoi: bestCandidate.roi,
+         autoPlateCandidate: bestCandidate,
++        autoPlateCandidates: candidateList,
++        selectedCandidateIndex: 0,
+         autoDetectionConfidence: bestCandidate.confidence,
+         autoDetectionMessage: bestCandidate.confidence === "low" ? lowMessage : okMessage,
+         trackingMode: "plate-roi-track"
+@@ -2499,6 +2622,7 @@
+             <small>自動検出β</small>
+           </div>
+           <p class="video-storage-note" data-vbt-auto-note>この緑枠が最大プレートを囲んでいれば「見えます」を押してください。</p>
++          <div class="vbt-candidate-strip" data-vbt-candidate-list></div>
+           <div class="vbt-roi-preview">
+             <canvas data-vbt-roi-preview-canvas></canvas>
+             <span>ROI拡大プレビュー</span>
+@@ -2622,6 +2746,8 @@
+       trimEnd: hasFiniteNumber(measurement.trim?.end) ? Number(measurement.trim.end) : null,
+       wizardStep: record?.id ? vbtWizardInitialStep(record) : "trim",
+       autoPlateCandidate: null,
++      autoPlateCandidates: [],
++      selectedCandidateIndex: null,
+       autoDetectionConfidence: "unknown",
+       autoDetectionMessage: null
+     };
+@@ -2676,12 +2802,17 @@
+ 
+   function getRoiVisualHandleRadius(canvas) {
+     const scale = getCanvasVisualScale(canvas);
+-    return Math.max(7 * scale.x, 5);
++    return Math.max(4.5 * scale.x, 3.5);
++  }
++
++  function getRoiCornerMarkerLength(canvas) {
++    const scale = getCanvasVisualScale(canvas);
++    return Math.max(14 * scale.x, 10);
    }
-@@ -2342,7 +2454,8 @@
-     const startGuide = getVbtStartGuide(record.lift);
-     const initialStep = vbtWizardInitialStep(record);
-     const resultMarkup = vbtResultMarkup({ ...measurement, ...velocityData, lift: record.lift, rpe: record.rpe });
--    const setSummary = `${liftLabel(record.lift)} ${formatNumber(record.weight)}kg × ${formatNumber(record.reps)} @${formatNumber(record.rpe)}`;
-+    const recordRepLabel = record.reps ? ` × ${formatNumber(record.reps)}` : " × AI判定";
-+    const setSummary = `${liftLabel(record.lift)} ${formatNumber(record.weight)}kg${recordRepLabel} @${formatNumber(record.rpe)}`;
-     return `
-       <section class="manual-vbt-card vbt-wizard" data-vbt-card data-vbt-wizard-root>
-         <section class="vbt-wizard-screen ${initialStep === "trim" ? "active" : ""}" data-vbt-step="trim">
-@@ -2448,9 +2561,9 @@
-           </div>
-           <div class="vbt-set-summary-card">
-             <span>${escapeHtml(liftLabel(record.lift))}</span>
--            <strong>${escapeHtml(formatNumber(record.weight))}kg × ${escapeHtml(formatNumber(record.reps))}</strong>
-+            <strong>${escapeHtml(formatNumber(record.weight))}kg ${record.reps ? `× ${escapeHtml(formatNumber(record.reps))}` : "× AI判定"}</strong>
-             <em>@${escapeHtml(formatNumber(record.rpe))}</em>
--            <p>セット情報はLOGの動画ノートに保存されている内容を使います。必要なら動画ノート側で修正してください。</p>
-+            <p>レップ数は動画解析から自動判定します。重量・日付・RPEを確認して解析してください。</p>
-           </div>
-           <details class="compact-guide vbt-auto-details">
-             <summary>自動検出が難しいとき</summary>
-@@ -3230,6 +3343,13 @@
-         warningType: status.warningType,
-         warningMessage: status.warningMessage
-       });
-+      const detectedRepCount = velocityData.primaryVbtMetric?.repCountDetected
-+        ?? velocityData.measurement?.detectedReps
-+        ?? (velocityData.measurement?.repMetrics || []).length
-+        ?? null;
-+      if (Number.isFinite(Number(detectedRepCount)) && Number(detectedRepCount) > 0) {
-+        record.reps = Number(detectedRepCount);
-+      }
-       record.analysis = { ...(record.analysis || {}), velocityData };
-       record.updatedAt = new Date().toISOString();
-       await saveVideoRecord(record);
-@@ -3548,7 +3668,7 @@
-       date: els.date.value || today(),
-       lift: els.lift.value,
-       weight: Number(els.weight.value || 0),
--      reps: Number(els.reps.value || 0),
-+      reps: els.reps ? Number(els.reps.value || 0) : null,
-       rpe: Number(els.rpe.value || 0),
-       setType: els.setType.value,
-       videoName: file.name,
+ 
+   function getRoiHitHandleRadius(canvas) {
+     const scale = getCanvasVisualScale(canvas);
+-    return Math.max(26 * scale.x, 22);
++    return Math.max(28 * scale.x, 24);
+   }
+ 
+   function drawPoint(ctx, point, label, color) {
+@@ -2730,36 +2861,53 @@
+   function drawPlateRoi(ctx, roi) {
+     if (!roi) return;
+     const scale = getCanvasVisualScale(ctx.canvas);
+-    const lineWidth = Math.max(2.5 * scale.x, 2);
++    const lineWidth = Math.max(2.2 * scale.x, 1.6);
+     const handleRadius = getRoiVisualHandleRadius(ctx.canvas);
++    const markerLength = getRoiCornerMarkerLength(ctx.canvas);
+     const center = roiCenter(roi);
+     ctx.save();
+-    ctx.fillStyle = "rgba(34, 197, 94, 0.06)";
++    ctx.fillStyle = "rgba(34, 197, 94, 0.035)";
+     ctx.strokeStyle = "rgba(34, 197, 94, 0.96)";
+     ctx.lineWidth = lineWidth;
+     ctx.fillRect(roi.x, roi.y, roi.width, roi.height);
+     ctx.strokeRect(roi.x, roi.y, roi.width, roi.height);
+     ctx.beginPath();
+-    ctx.moveTo(center.x - roi.width * 0.10, center.y);
+-    ctx.lineTo(center.x + roi.width * 0.10, center.y);
+-    ctx.moveTo(center.x, center.y - roi.height * 0.10);
+-    ctx.lineTo(center.x, center.y + roi.height * 0.10);
++    ctx.moveTo(center.x - roi.width * 0.08, center.y);
++    ctx.lineTo(center.x + roi.width * 0.08, center.y);
++    ctx.moveTo(center.x, center.y - roi.height * 0.08);
++    ctx.lineTo(center.x, center.y + roi.height * 0.08);
+     ctx.stroke();
+-    roiHandles(roi).forEach((handle) => {
++
++    // 見た目の四隅は小さなL字＋小点にする。
++    // タップ判定は roiHitTarget() 側で大きく残すため、スマホでも触りやすさは維持する。
++    ctx.strokeStyle = "rgba(34, 197, 94, 0.98)";
++    ctx.fillStyle = "rgba(255, 250, 242, 0.92)";
++    ctx.lineWidth = Math.max(2.4 * scale.x, 1.8);
++    const corners = [
++      { x: roi.x, y: roi.y, sx: 1, sy: 1 },
++      { x: roi.x + roi.width, y: roi.y, sx: -1, sy: 1 },
++      { x: roi.x, y: roi.y + roi.height, sx: 1, sy: -1 },
++      { x: roi.x + roi.width, y: roi.y + roi.height, sx: -1, sy: -1 }
++    ];
++    corners.forEach((corner) => {
+       ctx.beginPath();
+-      ctx.fillStyle = "#fffaf2";
+-      ctx.strokeStyle = "rgba(34, 197, 94, 0.98)";
+-      ctx.lineWidth = Math.max(2 * scale.x, 1.5);
+-      ctx.arc(handle.x, handle.y, handleRadius, 0, Math.PI * 2);
++      ctx.moveTo(corner.x, corner.y);
++      ctx.lineTo(corner.x + markerLength * corner.sx, corner.y);
++      ctx.moveTo(corner.x, corner.y);
++      ctx.lineTo(corner.x, corner.y + markerLength * corner.sy);
++      ctx.stroke();
++      ctx.beginPath();
++      ctx.arc(corner.x, corner.y, handleRadius, 0, Math.PI * 2);
+       ctx.fill();
+       ctx.stroke();
+     });
+-    ctx.font = `900 ${Math.max(11 * scale.x, 12)}px system-ui`;
+-    ctx.strokeStyle = "rgba(23, 23, 23, 0.82)";
+-    ctx.lineWidth = Math.max(4 * scale.x, 3);
+-    ctx.strokeText("ROI", roi.x + 6 * scale.x, Math.max(20 * scale.x, roi.y - 8 * scale.x));
++
++    ctx.font = `900 ${Math.max(10 * scale.x, 11)}px system-ui`;
++    ctx.strokeStyle = "rgba(23, 23, 23, 0.74)";
++    ctx.lineWidth = Math.max(3 * scale.x, 2);
++    ctx.strokeText("ROI", roi.x + 5 * scale.x, Math.max(18 * scale.x, roi.y - 7 * scale.x));
+     ctx.fillStyle = "#fffaf2";
+-    ctx.fillText("ROI", roi.x + 6 * scale.x, Math.max(20 * scale.x, roi.y - 8 * scale.x));
++    ctx.fillText("ROI", roi.x + 5 * scale.x, Math.max(18 * scale.x, roi.y - 7 * scale.x));
+     ctx.restore();
+   }
+ 
+@@ -3023,6 +3171,8 @@
+       trimEnd: null,
+       wizardStep: "trim",
+       autoPlateCandidate: null,
++      autoPlateCandidates: [],
++      selectedCandidateIndex: null,
+       autoDetectionConfidence: "unknown",
+       autoDetectionMessage: null
+     });
+@@ -3770,6 +3920,8 @@
+     if (wizardStep) return setVbtWizardStep(wizardStep.closest("dialog"), wizardStep.dataset.vbtWizardStep);
+     const autoDetect = event.target.closest("[data-vbt-auto-detect]");
+     if (autoDetect) return runAutoPlateDetection(autoDetect);
++    const candidateSelect = event.target.closest("[data-vbt-candidate-select]");
++    if (candidateSelect) return selectAutoPlateCandidate(candidateSelect);
+     const confirmPlate = event.target.closest("[data-vbt-confirm-plate]");
+     if (confirmPlate) return confirmAutoDetectedPlate(confirmPlate);
+     const manualPlate = event.target.closest("[data-vbt-manual-plate]");
