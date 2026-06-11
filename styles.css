@@ -17850,7 +17850,7 @@ html body .vbt-wizard-screen[data-vbt-step="trim"] .vbt-wizard-actions {
   }
 }
 
-/* v173 VBT candidate-pick UI */
+/* v174 VBT lifter-first candidate-pick UI */
 html body .vbt-candidate-strip {
   display: grid;
   gap: 8px;
