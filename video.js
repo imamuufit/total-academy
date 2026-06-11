@@ -10,8 +10,9 @@
   const VBT_PERSON_SEGMENTATION_ENABLED = true;
   const VBT_TFJS_URL = "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js";
   const VBT_BODYPIX_URL = "https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix@2.2.1/dist/body-pix.min.js";
-  const VBT_DEEP_DETECT_MIN_MS = 14000;
-  const VBT_DEEP_DETECT_FRAME_SIZE = 640;
+  const VBT_DEEP_DETECT_MIN_MS = 30000;
+  const VBT_DEEP_RESULT_ANALYSIS_MIN_MS = 12000;
+  const VBT_DEEP_DETECT_FRAME_SIZE = 720;
   const VBT_DEEP_DETECT_PERSON_SEGMENT_EVERY = 1;
   let bodyPixModelPromise = null;
 
@@ -810,31 +811,58 @@
     const segments = movementSegmentsFromPath(smoothed);
     const phases = [];
     const limit = Number(expectedReps) > 0 ? Number(expectedReps) : Infinity;
+    const yValues = smoothed.map((point) => Number(point.y)).filter(Number.isFinite);
+    const yRange = yValues.length ? Math.max(...yValues) - Math.min(...yValues) : 0;
+    const minPrimaryTravel = Math.max(8, yRange * 0.24);
+    const minReturnTravel = Math.max(6, yRange * 0.18);
+    const minRepDuration = lift === "DL" ? 0.22 : 0.18;
+    const floorCooldownSeconds = lift === "DL" ? 0.75 : 0.35;
+
+    const segmentTravel = (segment) => Number(segment?.travel) || Math.abs(Number(smoothed[segment?.endIndex]?.y) - Number(smoothed[segment?.startIndex]?.y));
+    const segmentDuration = (segment) => Number(segment?.duration) || (Number(smoothed[segment?.endIndex]?.time) - Number(smoothed[segment?.startIndex]?.time));
+    const segmentEndTime = (segment) => Number(segment?.endTime ?? smoothed[segment?.endIndex]?.time);
+    const segmentStartTime = (segment) => Number(segment?.startTime ?? smoothed[segment?.startIndex]?.time);
 
     if (pattern === "bottom-top-bottom") {
+      let lastFloorReturnTime = null;
+      let lastConcentricTravel = null;
       for (let index = 0; index < segments.length && phases.length < limit; index += 1) {
         const concentric = segments[index];
         if (!concentric || concentric.direction !== -1) continue;
-        const eccentric = segments.slice(index + 1).find((segment) => segment.direction === 1) || null;
+        const conTravel = segmentTravel(concentric);
+        const conDuration = segmentDuration(concentric);
+        const startsTooSoonAfterFloor = Number.isFinite(lastFloorReturnTime) && (segmentStartTime(concentric) - lastFloorReturnTime) < floorCooldownSeconds;
+        const bounceLike = startsTooSoonAfterFloor && conTravel < Math.max(minPrimaryTravel * 1.15, (lastConcentricTravel || minPrimaryTravel) * 0.52);
+        if (conTravel < minPrimaryTravel || conDuration < minRepDuration || bounceLike) continue;
+
+        const eccentricIndex = segments.slice(index + 1).findIndex((segment) => segment.direction === 1 && segmentTravel(segment) >= minReturnTravel);
+        const eccentric = eccentricIndex >= 0 ? segments[index + 1 + eccentricIndex] : null;
         phases.push({
           repIndex: phases.length + 1,
           concentric: { startIndex: concentric.startIndex, endIndex: concentric.endIndex },
           eccentric: eccentric ? { startIndex: eccentric.startIndex, endIndex: eccentric.endIndex } : null,
-          restBeforeSeconds: phases.length ? Math.max(0, Number(smoothed[concentric.startIndex].time) - Number(smoothed[phases.at(-1).eccentric?.endIndex ?? phases.at(-1).concentric.endIndex]?.time)) : null
+          restBeforeSeconds: phases.length ? Math.max(0, segmentStartTime(concentric) - Number(smoothed[phases.at(-1).eccentric?.endIndex ?? phases.at(-1).concentric.endIndex]?.time)) : null
         });
-        if (eccentric) index = segments.findIndex((segment) => segment.startIndex === eccentric.startIndex);
+        lastConcentricTravel = conTravel;
+        if (eccentric) {
+          lastFloorReturnTime = segmentEndTime(eccentric);
+          index = segments.findIndex((segment) => segment.startIndex === eccentric.startIndex);
+        } else {
+          lastFloorReturnTime = segmentEndTime(concentric);
+        }
       }
     } else {
       for (let index = 0; index < segments.length && phases.length < limit; index += 1) {
         const eccentric = segments[index];
         if (!eccentric || eccentric.direction !== 1) continue;
-        const concentric = segments.slice(index + 1).find((segment) => segment.direction === -1) || null;
+        if (segmentTravel(eccentric) < minReturnTravel || segmentDuration(eccentric) < 0.18) continue;
+        const concentric = segments.slice(index + 1).find((segment) => segment.direction === -1 && segmentTravel(segment) >= minPrimaryTravel && segmentDuration(segment) >= minRepDuration) || null;
         if (!concentric) continue;
         phases.push({
           repIndex: phases.length + 1,
           eccentric: { startIndex: eccentric.startIndex, endIndex: eccentric.endIndex },
           concentric: { startIndex: concentric.startIndex, endIndex: concentric.endIndex },
-          restBeforeSeconds: phases.length ? Math.max(0, Number(smoothed[eccentric.startIndex].time) - Number(smoothed[phases.at(-1).concentric.endIndex].time)) : null
+          restBeforeSeconds: phases.length ? Math.max(0, segmentStartTime(eccentric) - Number(smoothed[phases.at(-1).concentric.endIndex].time)) : null
         });
         index = segments.findIndex((segment) => segment.startIndex === concentric.startIndex);
       }
@@ -1258,7 +1286,7 @@
     if (!referenceTemplate) throw new Error("緑枠が動画端に近すぎます。少し内側へ移動してください。");
 
     const sampleLimit = getVbtTrackingSampleLimit();
-    const sampleCount = clamp(Math.round((end - start) * 15), 18, sampleLimit);
+    const sampleCount = clamp(Math.round((end - start) * 24), 40, sampleLimit);
     const rawPath = [];
     let currentRoi = { ...scaledRoi };
     const searchRadiusX = Math.max(12, scaledRoi.width * 0.75);
@@ -1339,6 +1367,7 @@
 
     return {
       mode: "plate-roi-timeseries",
+      analysisMode: "deep-precision-standard",
       trackingMode: "plate-roi-timeseries",
       trackingConfidence,
       trackingWarning: trackingWarning || null,
@@ -1357,6 +1386,7 @@
       },
       measurement: {
         mode: "plate-roi-timeseries",
+        analysisMode: "deep-precision-standard",
         lift: record.lift,
         expectedReps: null,
         detectedReps: detectedRepCount,
@@ -1438,7 +1468,7 @@
     const narrowScreen = typeof window !== "undefined" && window.matchMedia?.("(max-width: 760px)")?.matches;
     const touchDevice = typeof navigator !== "undefined" && Number(navigator.maxTouchPoints) > 0;
     const compactTouchDevice = touchDevice && typeof window !== "undefined" && Number(window.innerWidth) <= 1024;
-    return narrowScreen || compactTouchDevice ? 110 : 240;
+    return narrowScreen || compactTouchDevice ? 220 : 420;
   }
 
   function seekVideo(video, time, timeoutMs = 2500) {
@@ -2224,6 +2254,12 @@
     return bodyPixModelPromise;
   }
 
+  function preloadVbtAiModel() {
+    if (!VBT_PERSON_SEGMENTATION_ENABLED || bodyPixModelPromise) return;
+    // VBTを開いた時点で人物AIを先読みし、解析時に「常駐」に近い状態へ寄せる。
+    loadBodyPixModel().catch((error) => console.warn("VBT AI preload failed", error));
+  }
+
   function personSegmentationBounds(segmentation, width, height) {
     if (!segmentation?.data) return null;
     const data = segmentation.data;
@@ -2782,7 +2818,7 @@
     const duration = Math.max(0.1, end - start);
     // Qwik VBTのように、少し待ってでも動画全体を丁寧に見る。
     // 1枚/数枚の静止画判定ではなく、セット全体の時間的一貫性を評価する。
-    const count = clamp(Math.round(duration * 3.2), 28, 84);
+    const count = clamp(Math.round(duration * 5.0), 48, 140);
     const times = [];
     for (let index = 0; index < count; index += 1) {
       const ratio = count === 1 ? 0 : index / (count - 1);
@@ -2797,10 +2833,10 @@
 
   function deepDetectMinimumWaitMs(sampleCount, durationSeconds) {
     const deviceTouch = typeof navigator !== "undefined" && Number(navigator.maxTouchPoints) > 0;
-    const base = deviceTouch ? 12000 : 9000;
-    const sampleBonus = Math.min(9000, Math.max(0, sampleCount - 30) * 130);
-    const durationBonus = Math.min(6000, Math.max(0, Number(durationSeconds) || 0) * 190);
-    return clamp(base + sampleBonus + durationBonus, 9000, VBT_DEEP_DETECT_MIN_MS + 9000);
+    const base = VBT_DEEP_DETECT_MIN_MS;
+    const sampleBonus = Math.min(5000, Math.max(0, sampleCount - 60) * 70);
+    const durationBonus = Math.min(4000, Math.max(0, Number(durationSeconds) || 0) * 120);
+    return clamp(base + sampleBonus + durationBonus, VBT_DEEP_DETECT_MIN_MS, VBT_DEEP_DETECT_MIN_MS + 9000);
   }
 
   async function waitForDeepDetectBudget(startedAt, targetMs, progress, message = "検出結果を確認中…") {
@@ -3110,7 +3146,7 @@
     const previousText = button.textContent;
     try {
       button.disabled = true;
-      button.textContent = "検出中...";
+      button.textContent = "精密解析中...";
       setVbtWizardStep(dialog, "auto-detect-loading");
       const state = vbtState(dialog);
       const start = hasFiniteNumber(state.trimStart) ? Number(state.trimStart) : 0;
@@ -4144,17 +4180,25 @@
     if (!record || !dialog || !resultBox) return;
     try {
       setVbtWizardStep(dialog, "analyzing");
+      const analysisStartedAt = performance.now();
       button.disabled = true;
       button.textContent = "計測中...";
       const guide = dialog.querySelector("[data-vbt-video-guide]");
-      if (guide) guide.textContent = mode === "plate-roi-track" ? "緑枠のプレートを追跡しています" : mode === "manual-2point" ? "開始点と終了点から計算しています" : "中心点を追跡しています";
+      if (guide) guide.textContent = "1/8 プレート軌跡を高密度に解析しています";
       const videoStatus = dialog.querySelector("[data-vbt-video-status]");
-      if (videoStatus) videoStatus.textContent = mediaStatusMessage("tracking");
+      if (videoStatus) videoStatus.textContent = "精密解析中です。リフター、バー、プレート、軌跡、レップ区間を照合しています。";
       const velocityData = mode === "manual-2point"
         ? await measureManualTwoPoint(dialog, record)
         : mode === "plate-roi-track"
           ? await trackPlateTimeSeries(dialog, record)
           : await trackPlatePath(dialog, record);
+      if (guide) guide.textContent = "6/8 レップ区間と待機時間を分離しています";
+      if (videoStatus) videoStatus.textContent = "床バウンド、トップ待機、呼吸区間を除外して速度を整理しています。";
+      await waitForDeepDetectBudget(analysisStartedAt, VBT_DEEP_RESULT_ANALYSIS_MIN_MS, (message, percent) => {
+        if (guide) guide.textContent = message;
+        if (videoStatus) videoStatus.textContent = `精密解析 ${Math.round(percent)}%`;
+      }, "7/8 速度とレップ区間を再確認中…");
+      if (guide) guide.textContent = "8/8 結果を整理しています";
       const status = getVbtAnalysisStatus(velocityData);
       Object.assign(velocityData, {
         analysisStatus: status.analysisStatus,
@@ -4563,9 +4607,10 @@
     if (open) {
       updateStorageStatus();
       renderVbtHistory();
+      preloadVbtAiModel();
     }
   });
-  els.addMode.addEventListener("click", () => showMode("add"));
+  els.addMode.addEventListener("click", () => { showMode("add"); preloadVbtAiModel(); });
   els.libraryMode.addEventListener("click", () => showMode("library"));
   els.quickMeasure?.addEventListener("click", openLatestForMeasurement);
   els.quickCompare?.addEventListener("click", () => {
