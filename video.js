@@ -7,6 +7,11 @@
   const VBT_STORE_NAME = "vbtRecords";
   const MAX_FILE_BYTES = 350 * 1024 * 1024;
   const DEFAULT_PLATE_DIAMETER_CM = 45;
+  const VBT_PERSON_SEGMENTATION_ENABLED = true;
+  const VBT_TFJS_URL = "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js";
+  const VBT_BODYPIX_URL = "https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix@2.2.1/dist/body-pix.min.js";
+  let bodyPixModelPromise = null;
+
   const GENERAL_RPE_VELOCITY = {
     SQ: { 7: "0.42〜0.52", 8: "0.32〜0.42", 9: "0.24〜0.32" },
     BP: { 7: "0.32〜0.42", 8: "0.22〜0.32", 9: "0.14〜0.22" },
@@ -2144,6 +2149,204 @@
   }
 
 
+
+  function loadExternalScript(src, globalCheck, timeoutMs = 9000) {
+    return new Promise((resolve, reject) => {
+      if (typeof globalCheck === "function" && globalCheck()) {
+        resolve(true);
+        return;
+      }
+      const existing = Array.from(document.scripts || []).find((script) => script.src === src);
+      let settled = false;
+      const done = () => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        resolve(true);
+      };
+      const fail = () => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        reject(new Error("人物AIモデルの読み込みに失敗しました。"));
+      };
+      const timer = setTimeout(fail, timeoutMs);
+      if (existing) {
+        existing.addEventListener("load", done, { once: true });
+        existing.addEventListener("error", fail, { once: true });
+        if (typeof globalCheck === "function" && globalCheck()) done();
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = src;
+      script.async = true;
+      script.crossOrigin = "anonymous";
+      script.addEventListener("load", done, { once: true });
+      script.addEventListener("error", fail, { once: true });
+      document.head.appendChild(script);
+    });
+  }
+
+  async function loadBodyPixModel(progress) {
+    if (!VBT_PERSON_SEGMENTATION_ENABLED) return null;
+    if (bodyPixModelPromise) return bodyPixModelPromise;
+    bodyPixModelPromise = (async () => {
+      if (!navigator.onLine) return null;
+      try {
+        if (typeof progress === "function") progress("人物AIモデルを読み込み中…", 4);
+        await loadExternalScript(VBT_TFJS_URL, () => Boolean(window.tf), 11000);
+        await loadExternalScript(VBT_BODYPIX_URL, () => Boolean(window.bodyPix), 11000);
+        if (!window.bodyPix?.load) return null;
+        if (typeof progress === "function") progress("人物AIモデルを初期化中…", 8);
+        const model = await window.bodyPix.load({
+          architecture: "MobileNetV1",
+          outputStride: 16,
+          multiplier: 0.50,
+          quantBytes: 2
+        });
+        return model;
+      } catch (error) {
+        console.warn("BodyPix load failed", error);
+        return null;
+      }
+    })();
+    return bodyPixModelPromise;
+  }
+
+  async function segmentPersonFrame(model, frame) {
+    if (!model || !frame?.canvas) return null;
+    try {
+      return await model.segmentPerson(frame.canvas, {
+        internalResolution: "medium",
+        segmentationThreshold: 0.68,
+        maxDetections: 1,
+        scoreThreshold: 0.25,
+        nmsRadius: 20
+      });
+    } catch (error) {
+      console.warn("Person segmentation failed", error);
+      return null;
+    }
+  }
+
+  function personMaskAt(context, x, y) {
+    if (!context?.personMask) return 0;
+    const px = clamp(Math.round(x), 0, context.width - 1);
+    const py = clamp(Math.round(y), 0, context.height - 1);
+    return context.personMask[py * context.width + px] ? 1 : 0;
+  }
+
+  function personMaskScoreForRoi(context, roi) {
+    if (!context?.personMask || !roi) return 0;
+    const step = Math.max(3, Math.round(Math.min(roi.width, roi.height) / 7));
+    let hits = 0;
+    let samples = 0;
+    for (let y = roi.y; y <= roi.y + roi.height; y += step) {
+      for (let x = roi.x; x <= roi.x + roi.width; x += step) {
+        samples += 1;
+        hits += personMaskAt(context, x, y);
+      }
+    }
+    return samples ? clamp(hits / samples, 0, 1) : 0;
+  }
+
+  function personProximityScore(context, candidate) {
+    if (!context?.personRoi || !candidate) return 0;
+    const cx = candidate.x + candidate.width / 2;
+    const cy = candidate.y + candidate.height / 2;
+    const roi = context.personRoi;
+    const ex = Math.max(candidate.width * 1.9, context.width * 0.12);
+    const ey = Math.max(candidate.height * 1.7, context.height * 0.10);
+    const insideExpanded = cx >= roi.x - ex && cx <= roi.x + roi.width + ex && cy >= roi.y - ey && cy <= roi.y + roi.height + ey;
+    const closestX = clamp(cx, roi.x, roi.x + roi.width);
+    const closestY = clamp(cy, roi.y, roi.y + roi.height);
+    const dx = Math.abs(cx - closestX) / Math.max(context.width * 0.30, 1);
+    const dy = Math.abs(cy - closestY) / Math.max(context.height * 0.26, 1);
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    const base = clamp(1 - distance, 0, 1);
+    return insideExpanded ? Math.max(base, 0.62) : base * 0.72;
+  }
+
+  function buildPersonSegmentationContext(segmentations, frames, lift) {
+    const usable = (segmentations || []).filter((item) => item?.segmentation?.data && item?.frame?.canvas);
+    if (!usable.length) return null;
+    const width = usable[0].frame.canvas.width;
+    const height = usable[0].frame.canvas.height;
+    const personMask = new Uint8Array(width * height);
+    let total = 0;
+    let xWeighted = 0;
+    let yWeighted = 0;
+    let xMin = width;
+    let yMin = height;
+    let xMax = 0;
+    let yMax = 0;
+    usable.forEach(({ segmentation }) => {
+      const data = segmentation.data || [];
+      const sw = segmentation.width || width;
+      const sh = segmentation.height || height;
+      for (let y = 0; y < height; y += 2) {
+        const sy = clamp(Math.round(y * sh / height), 0, sh - 1);
+        for (let x = 0; x < width; x += 2) {
+          const sx = clamp(Math.round(x * sw / width), 0, sw - 1);
+          if (!data[sy * sw + sx]) continue;
+          const index = y * width + x;
+          personMask[index] = 1;
+          personMask[index + 1] = 1;
+          if (y + 1 < height) {
+            personMask[index + width] = 1;
+            personMask[index + width + 1] = 1;
+          }
+          total += 4;
+          xWeighted += x * 4;
+          yWeighted += y * 4;
+          xMin = Math.min(xMin, x);
+          yMin = Math.min(yMin, y);
+          xMax = Math.max(xMax, x + 2);
+          yMax = Math.max(yMax, y + 2);
+        }
+      }
+    });
+    const pixelRatio = total / Math.max(1, width * height * usable.length);
+    if (!total || pixelRatio < 0.006 || xMax <= xMin || yMax <= yMin) return null;
+
+    const padX = Math.max(width * 0.08, (xMax - xMin) * 0.28);
+    const padY = Math.max(height * 0.06, (yMax - yMin) * 0.22);
+    const personRoi = {
+      x: clamp(xMin - padX, 0, width - 1),
+      y: clamp(yMin - padY, 0, height - 1),
+      width: clamp((xMax - xMin) + padX * 2, 1, width),
+      height: clamp((yMax - yMin) + padY * 2, 1, height)
+    };
+    personRoi.width = Math.min(personRoi.width, width - personRoi.x);
+    personRoi.height = Math.min(personRoi.height, height - personRoi.y);
+
+    const motion = buildLifterMotionContext(frames, lift);
+    const context = {
+      ...(motion || {}),
+      source: "bodypix",
+      width,
+      height,
+      personMask,
+      personRoi,
+      personPixelRatio: pixelRatio,
+      centerX: xWeighted / total,
+      centerY: yWeighted / total,
+      roi: personRoi,
+      frameCount: usable.length,
+      personFrameCount: usable.length,
+      aiPersonDetected: true
+    };
+    if (motion?.heat) {
+      context.heat = motion.heat;
+      context.step = motion.step;
+      context.cols = motion.cols;
+      context.rows = motion.rows;
+      context.maxValue = motion.maxValue;
+      context.motionRoi = motion.roi;
+    }
+    return context;
+  }
+
   function frameLuminanceGrid(frame, step) {
     if (!frame?.ctx || !frame?.canvas) return null;
     const { canvas, ctx } = frame;
@@ -2310,21 +2513,28 @@
   }
 
   function lifterRegionScore(context, candidate) {
-    if (!context?.roi || !candidate) return { score: 0, motionScore: 0, nearScore: 0, outsidePenalty: 0, distanceRatio: null };
+    if (!context?.roi || !candidate) return { score: 0, motionScore: 0, nearScore: 0, personScore: 0, personProximity: 0, outsidePenalty: 0, distanceRatio: null };
     const centerX = candidate.x + candidate.width / 2;
     const centerY = candidate.y + candidate.height / 2;
     const roi = context.roi;
-    const marginX = Math.max(candidate.width * 1.2, context.width * 0.07);
-    const marginY = Math.max(candidate.height * 1.2, context.height * 0.07);
+    const marginX = Math.max(candidate.width * 1.6, context.width * 0.09);
+    const marginY = Math.max(candidate.height * 1.5, context.height * 0.08);
     const inside = centerX >= roi.x - marginX && centerX <= roi.x + roi.width + marginX && centerY >= roi.y - marginY && centerY <= roi.y + roi.height + marginY;
     const dx = Math.abs(centerX - context.centerX) / Math.max(context.width * 0.42, 1);
     const dy = Math.abs(centerY - context.centerY) / Math.max(context.height * 0.38, 1);
     const distanceRatio = Math.sqrt(dx * dx + dy * dy);
     const nearScore = clamp(1 - distanceRatio, 0, 1);
     const motionScore = motionScoreForRoi(context, candidate);
-    const outsidePenalty = inside ? 0 : 88;
-    const score = nearScore * 38 + motionScore * 62 - outsidePenalty;
-    return { score, motionScore, nearScore, outsidePenalty, distanceRatio };
+    const personScore = personMaskScoreForRoi(context, candidate);
+    const personProximity = personProximityScore(context, candidate);
+    const hasAiPerson = Boolean(context.aiPersonDetected);
+    const outsidePenalty = inside ? 0 : (hasAiPerson ? 130 : 88);
+    const score = nearScore * 24
+      + motionScore * 42
+      + personScore * 46
+      + personProximity * 76
+      - outsidePenalty;
+    return { score, motionScore, nearScore, personScore, personProximity, outsidePenalty, distanceRatio };
   }
 
   function detectPlateCandidateFromFrame(frame, options = {}) {
@@ -2393,23 +2603,28 @@
           if (!plateLike) continue;
           if (lift !== "DL" && hasBarLine && barMatch.score < 6 && crossingScore < 10 && lifterEvidence.motionScore < 0.28) continue;
           const barPenalty = hasBarLine && barMatch.score < 8 && crossingScore < 12 ? 34 : 0;
+          const hasAiPerson = Boolean(motionContext?.aiPersonDetected);
+          const farFromPerson = hasAiPerson && lifterEvidence.personProximity < 0.22 && lifterEvidence.personScore < 0.02;
           const staticBackgroundPenalty = motionContext && lifterEvidence.motionScore < 0.10 && lifterEvidence.nearScore < 0.26 ? 86 : 0;
           const lifterOutsidePenalty = motionContext && lifterEvidence.outsidePenalty ? lifterEvidence.outsidePenalty : 0;
-          const score = darkRatio * 50
-            + edgeScore * 0.24
-            + borderScore * 0.16
+          const personMismatchPenalty = farFromPerson ? 105 : 0;
+          const score = darkRatio * 44
+            + edgeScore * 0.22
+            + borderScore * 0.14
             + sideBias
-            + barMatch.score
-            + crossingScore
-            + pairScore
+            + barMatch.score * 1.08
+            + crossingScore * 1.08
+            + pairScore * 0.82
             + lifterEvidence.score
+            + lifterEvidence.personProximity * 58
             - topPenalty
             - floorPenalty
             - bottomTouchPenalty
             - centerPenalty
             - barPenalty
             - staticBackgroundPenalty
-            - lifterOutsidePenalty * 0.20
+            - lifterOutsidePenalty * 0.28
+            - personMismatchPenalty
             - (shadowLike ? 70 : 0)
             - (pillarLike ? 45 : 0);
           const scoredCandidate = {
@@ -2486,7 +2701,7 @@
 
   function makeAutoDetectSampleTimes(start, end) {
     const duration = Math.max(0.1, end - start);
-    const count = clamp(Math.round(duration * 1.15), 10, 22);
+    const count = clamp(Math.round(duration * 1.7), 14, 34);
     const times = [];
     for (let index = 0; index < count; index += 1) {
       const ratio = count === 1 ? 0 : index / (count - 1);
@@ -2536,17 +2751,19 @@
       const barEvidence = items.reduce((sum, item) => sum + Number(item.barScore || 0) + Number(item.crossingScore || 0) * 0.35, 0) / Math.max(1, items.length);
       const pairEvidence = items.reduce((sum, item) => sum + Number(item.pairScore || 0), 0) / Math.max(1, items.length);
       const lifterEvidence = items.reduce((sum, item) => sum + Number(item.lifterNearScore || 0), 0) / Math.max(1, items.length);
+      const personEvidence = items.reduce((sum, item) => sum + Math.max(Number(item.personProximity || 0), Number(item.personScore || 0)), 0) / Math.max(1, items.length);
       const motionEvidence = items.reduce((sum, item) => sum + Number(item.motionScore || 0), 0) / Math.max(1, items.length);
       const movementBonus = motionRatio > 0.12 ? Math.min(34, motionRatio * 38) : (lift === "DL" ? 0 : -18);
       const stabilityBonus = Math.min(36, items.length * 5.5) + countRatio * 18;
       const driftPenalty = horizontalDrift > 1.05 ? 28 : horizontalDrift > 0.62 ? 12 : 0;
-      const staticPenalty = motionEvidence < 0.10 && lifterEvidence < 0.22 ? 54 : 0;
-      const temporalScore = meanScore + stabilityBonus + movementBonus + barEvidence * 0.28 + pairEvidence * 0.34 + lifterEvidence * 28 + motionEvidence * 52 - driftPenalty - staticPenalty;
+      const staticPenalty = motionEvidence < 0.10 && lifterEvidence < 0.22 && personEvidence < 0.24 ? 54 : 0;
+      const temporalScore = meanScore + stabilityBonus + movementBonus + barEvidence * 0.28 + pairEvidence * 0.34 + lifterEvidence * 20 + personEvidence * 56 + motionEvidence * 44 - driftPenalty - staticPenalty;
       group.temporalScore = temporalScore;
       group.motionRatio = motionRatio;
       group.horizontalDrift = horizontalDrift;
       group.meanScore = meanScore;
       group.lifterEvidence = lifterEvidence;
+      group.personEvidence = personEvidence;
       group.motionEvidence = motionEvidence;
       if (!bestGroup || temporalScore > bestGroup.temporalScore) bestGroup = group;
     });
@@ -2568,6 +2785,7 @@
       motionRatio: bestGroup.motionRatio,
       horizontalDrift: bestGroup.horizontalDrift,
       lifterEvidence: bestGroup.lifterEvidence,
+      personEvidence: bestGroup.personEvidence,
       motionEvidence: bestGroup.motionEvidence,
       sampleCount: bestGroup.items.length,
       bestFrameTime: bestItem.sampleTime
@@ -2614,12 +2832,13 @@
       const barEvidence = items.reduce((sum, item) => sum + Number(item.barScore || 0) + Number(item.crossingScore || 0) * 0.35, 0) / Math.max(1, items.length);
       const pairEvidence = items.reduce((sum, item) => sum + Number(item.pairScore || 0), 0) / Math.max(1, items.length);
       const lifterEvidence = items.reduce((sum, item) => sum + Number(item.lifterNearScore || 0), 0) / Math.max(1, items.length);
+      const personEvidence = items.reduce((sum, item) => sum + Math.max(Number(item.personProximity || 0), Number(item.personScore || 0)), 0) / Math.max(1, items.length);
       const motionEvidence = items.reduce((sum, item) => sum + Number(item.motionScore || 0), 0) / Math.max(1, items.length);
       const movementBonus = motionRatio > 0.12 ? Math.min(34, motionRatio * 38) : (lift === "DL" ? 0 : -18);
       const stabilityBonus = Math.min(36, items.length * 5.5) + countRatio * 18;
       const driftPenalty = horizontalDrift > 1.05 ? 28 : horizontalDrift > 0.62 ? 12 : 0;
-      const staticPenalty = motionEvidence < 0.10 && lifterEvidence < 0.22 ? 54 : 0;
-      const temporalScore = meanScore + stabilityBonus + movementBonus + barEvidence * 0.28 + pairEvidence * 0.34 + lifterEvidence * 28 + motionEvidence * 52 - driftPenalty - staticPenalty;
+      const staticPenalty = motionEvidence < 0.10 && lifterEvidence < 0.22 && personEvidence < 0.24 ? 54 : 0;
+      const temporalScore = meanScore + stabilityBonus + movementBonus + barEvidence * 0.28 + pairEvidence * 0.34 + lifterEvidence * 20 + personEvidence * 56 + motionEvidence * 44 - driftPenalty - staticPenalty;
       const first = items[0];
       const bestItem = items.reduce((best, item) => item.score > best.score ? item : best, first);
       const confidence = temporalScore > 125 && motionRatio > 0.10
@@ -2636,6 +2855,7 @@
         motionRatio,
         horizontalDrift,
         lifterEvidence,
+        personEvidence,
         motionEvidence,
         sampleCount: items.length,
         bestFrameTime: bestItem.sampleTime,
@@ -2664,10 +2884,10 @@
           const selected = Number(state.selectedCandidateIndex || 0) === index;
           const confidence = candidate.confidence === "high" ? "高" : candidate.confidence === "middle" ? "中" : "低";
           const move = hasFiniteNumber(candidate.motionRatio) ? Number(candidate.motionRatio).toFixed(2) : "--";
-          const person = hasFiniteNumber(candidate.lifterEvidence) ? Number(candidate.lifterEvidence).toFixed(2) : "--";
+          const person = hasFiniteNumber(candidate.personEvidence ?? candidate.lifterEvidence) ? Number(candidate.personEvidence ?? candidate.lifterEvidence).toFixed(2) : "--";
           const bar = hasFiniteNumber(candidate.barScore) ? Number(candidate.barScore).toFixed(0) : "--";
           return `<button type="button" class="vbt-candidate-button ${selected ? "selected" : ""}" data-vbt-candidate-select="${index}">
-            <strong>候補${index + 1}</strong><span>信頼${confidence} / 人物 ${person} / 動き ${move} / バー ${bar}</span>
+            <strong>候補${index + 1}</strong><span>信頼${confidence} / 人物AI ${person} / 動き ${move} / バー ${bar}</span>
           </button>`;
         }).join("")}
       </div>
@@ -2713,19 +2933,28 @@
       const end = hasFiniteNumber(state.trimEnd) ? Number(state.trimEnd) : Number(video.duration || start + 1);
       const sampleTimes = makeAutoDetectSampleTimes(start, end);
       const sampledFrames = [];
+      const segmentedFrames = [];
       const allCandidates = [];
-      updateAutoDetectProgress(dialog, 1, "1/5 動いているリフター領域を確認中…", 8);
+      const personModel = await loadBodyPixModel((message, percent) => updateAutoDetectProgress(dialog, 1, message, percent));
+      updateAutoDetectProgress(dialog, 1, personModel ? "1/6 人物AIでリフター領域を確認中…" : "1/6 人物AIが使えないため動き検出で確認中…", 10);
       for (let index = 0; index < sampleTimes.length; index += 1) {
         const time = sampleTimes[index];
         await seekVideo(video, time, 2500);
-        sampledFrames.push({ time, frame: frameCanvas(video, 460) });
-        const progress = 8 + ((index + 1) / sampleTimes.length) * 26;
-        updateAutoDetectProgress(dialog, index + 1, "1/5 動いているリフター領域を確認中…", progress);
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        const frame = frameCanvas(video, 500);
+        const item = { time, frame };
+        sampledFrames.push(item);
+        if (personModel && (index % 2 === 0 || sampleTimes.length <= 16)) {
+          const segmentation = await segmentPersonFrame(personModel, frame);
+          if (segmentation) segmentedFrames.push({ ...item, segmentation });
+        }
+        const progress = 10 + ((index + 1) / sampleTimes.length) * 34;
+        updateAutoDetectProgress(dialog, index + 1, personModel ? "1/6 人物AIでリフター領域を確認中…" : "1/6 動いているリフター領域を確認中…", progress);
+        await new Promise((resolve) => setTimeout(resolve, 18));
       }
-      const lifterMotionContext = buildLifterMotionContext(sampledFrames, record.lift);
+      const personContext = buildPersonSegmentationContext(segmentedFrames, sampledFrames, record.lift);
+      const lifterMotionContext = personContext || buildLifterMotionContext(sampledFrames, record.lift);
       setVbtState(dialog, { autoDetectionMotionContext: lifterMotionContext });
-      updateAutoDetectProgress(dialog, 2, lifterMotionContext ? "2/5 リフター周辺のバーベル線を確認中…" : "2/5 リフター領域が弱いため通常検出も併用中…", 40);
+      updateAutoDetectProgress(dialog, 2, lifterMotionContext?.aiPersonDetected ? "2/6 人物領域の近くでバーベル線を確認中…" : lifterMotionContext ? "2/6 リフター周辺のバーベル線を確認中…" : "2/6 リフター領域が弱いため通常検出も併用中…", 46);
       for (let index = 0; index < sampledFrames.length; index += 1) {
         const { time, frame } = sampledFrames[index];
         const candidates = detectPlateCandidateFromFrame(frame, { lift: record.lift, returnCandidates: true, maxCandidates: 6, motionContext: lifterMotionContext }) || [];
@@ -2741,19 +2970,19 @@
       }
       const candidateList = chooseTemporalPlateCandidates(allCandidates, record.lift, 3);
       const bestCandidate = candidateList[0];
-      updateAutoDetectProgress(dialog, 5, "5/5 検出結果を準備中…", 94);
+      updateAutoDetectProgress(dialog, 6, "6/6 検出結果を準備中…", 94);
       if (!bestCandidate) {
         setVbtState(dialog, {
           autoPlateCandidates: [],
           selectedCandidateIndex: null,
           autoDetectionConfidence: "failed",
-          autoDetectionMessage: "動画全体から、リフターが持っているバーベルのプレート候補を見つけられませんでした。手動で最大プレートを囲んでください。"
+          autoDetectionMessage: "人物AIと動画全体の動きから、リフターが持っているバーベルのプレート候補を見つけられませんでした。手動で最大プレートを囲んでください。"
         });
         setVbtWizardStep(dialog, "manual-plate");
         return;
       }
       const lowMessage = "自動検出の信頼度：低。候補を選び、緑枠が最大プレートを囲んでいるか確認してください。";
-      const okMessage = `リフター周辺からプレート候補を${candidateList.length}件見つけました。正しい候補を選び、緑枠が最大プレートを囲んでいれば進んでください。解析フレーム ${bestCandidate.sampleCount || 1}件 / 動き ${(Number(bestCandidate.motionRatio) || 0).toFixed(2)} / 人物 ${(Number(bestCandidate.lifterEvidence) || 0).toFixed(2)}`;
+      const okMessage = `リフター周辺からプレート候補を${candidateList.length}件見つけました。正しい候補を選び、緑枠が最大プレートを囲んでいれば進んでください。解析フレーム ${bestCandidate.sampleCount || 1}件 / 動き ${(Number(bestCandidate.motionRatio) || 0).toFixed(2)} / 人物AI ${(Number(bestCandidate.personEvidence ?? bestCandidate.lifterEvidence) || 0).toFixed(2)}`;
       setVbtState(dialog, {
         plateRoi: bestCandidate.roi,
         autoPlateCandidate: bestCandidate,
@@ -2769,7 +2998,7 @@
     } catch (error) {
       setVbtState(dialog, {
         autoDetectionConfidence: "failed",
-        autoDetectionMessage: error.message || "リフター周辺のバーベル線とプレート候補を検出できませんでした。手動で指定してください。"
+        autoDetectionMessage: error.message || "人物AI・リフター周辺のバーベル線・プレート候補を検出できませんでした。手動で指定してください。"
       });
       setVbtWizardStep(dialog, "manual-plate");
     } finally {

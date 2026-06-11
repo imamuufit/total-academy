@@ -3,5 +3,3 @@ styles.css
 video.js
 sw.js
 manifest.webmanifest
-changed-files.txt
-DIFF
