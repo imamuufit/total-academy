@@ -16,6 +16,13 @@
   const VBT_DEEP_DETECT_PERSON_SEGMENT_EVERY = 1;
   const VBT_MARKER_ROI_MIN_PX = 18;
   const VBT_MARKER_ROI_MAX_PX = 54;
+  const VBT_MULTI_TRACKER_ENABLED = true;
+  const VBT_MULTI_TRACKER_SEARCH_MIN = 14;
+  const VBT_MULTI_TRACKER_TEMPLATE_WEIGHT = 0.38;
+  const VBT_MULTI_TRACKER_EDGE_WEIGHT = 0.22;
+  const VBT_MULTI_TRACKER_HISTOGRAM_WEIGHT = 0.18;
+  const VBT_MULTI_TRACKER_MOTION_WEIGHT = 0.14;
+  const VBT_MULTI_TRACKER_PREDICTION_WEIGHT = 0.08;
   let bodyPixModelPromise = null;
 
   const GENERAL_RPE_VELOCITY = {
@@ -1154,6 +1161,7 @@
   }
 
   function measurementModeLabel(mode) {
+    if (mode === "multi-tracker-timeseries") return "複数トラッカー追跡";
     if (mode === "plate-roi-timeseries") return "プレート追跡";
     if (mode === "plate-roi-track") return "プレートROI追跡";
     if (mode === "marker-assist-timeseries" || mode === "marker-assist") return "マーカー補助（非推奨）";
@@ -1263,6 +1271,160 @@
     return values;
   }
 
+  function clampFrameRoi(roi, width, height) {
+    if (!roi || !width || !height) return null;
+    const minSize = 8;
+    const w = clamp(Number(roi.width) || minSize, minSize, width);
+    const h = clamp(Number(roi.height) || minSize, minSize, height);
+    return {
+      x: clamp(Number(roi.x) || 0, 0, Math.max(0, width - w - 1)),
+      y: clamp(Number(roi.y) || 0, 0, Math.max(0, height - h - 1)),
+      width: w,
+      height: h
+    };
+  }
+
+  function grayAt(frame, x, y) {
+    if (!frame?.gray || !frame.width || !frame.height) return 0;
+    const ix = clamp(Math.round(x), 0, frame.width - 1);
+    const iy = clamp(Math.round(y), 0, frame.height - 1);
+    return frame.gray[iy * frame.width + ix] || 0;
+  }
+
+  function edgeDensityForRoi(frame, roi, sampleSize = 14) {
+    const safe = clampFrameRoi(roi, frame?.width || 0, frame?.height || 0);
+    if (!frame?.gray || !safe) return 0;
+    let edge = 0;
+    let samples = 0;
+    for (let sy = 1; sy < sampleSize - 1; sy += 1) {
+      for (let sx = 1; sx < sampleSize - 1; sx += 1) {
+        const x = safe.x + (sx / sampleSize) * safe.width;
+        const y = safe.y + (sy / sampleSize) * safe.height;
+        const gx = Math.abs(grayAt(frame, x + 1, y) - grayAt(frame, x - 1, y));
+        const gy = Math.abs(grayAt(frame, x, y + 1) - grayAt(frame, x, y - 1));
+        edge += Math.min(255, gx + gy);
+        samples += 1;
+      }
+    }
+    return samples ? edge / samples : 0;
+  }
+
+  function histogramForRoi(frame, roi, bins = 12, sampleSize = 18) {
+    const safe = clampFrameRoi(roi, frame?.width || 0, frame?.height || 0);
+    if (!frame?.gray || !safe) return null;
+    const hist = new Array(bins).fill(0);
+    let total = 0;
+    for (let sy = 0; sy < sampleSize; sy += 1) {
+      for (let sx = 0; sx < sampleSize; sx += 1) {
+        const x = safe.x + ((sx + 0.5) / sampleSize) * safe.width;
+        const y = safe.y + ((sy + 0.5) / sampleSize) * safe.height;
+        const lum = grayAt(frame, x, y);
+        const bin = clamp(Math.floor((lum / 256) * bins), 0, bins - 1);
+        hist[bin] += 1;
+        total += 1;
+      }
+    }
+    return hist.map((value) => value / Math.max(1, total));
+  }
+
+  function histogramDistance(a, b) {
+    if (!a || !b || a.length !== b.length) return 1;
+    let distance = 0;
+    for (let i = 0; i < a.length; i += 1) distance += Math.abs(a[i] - b[i]);
+    return clamp(distance / 2, 0, 1);
+  }
+
+  function roiMotionEvidence(currentFrame, previousFrame, roi, sampleSize = 12) {
+    if (!currentFrame?.gray || !previousFrame?.gray || !roi) return 0;
+    const safe = clampFrameRoi(roi, currentFrame.width, currentFrame.height);
+    if (!safe) return 0;
+    let diff = 0;
+    let samples = 0;
+    for (let sy = 0; sy < sampleSize; sy += 1) {
+      for (let sx = 0; sx < sampleSize; sx += 1) {
+        const x = safe.x + ((sx + 0.5) / sampleSize) * safe.width;
+        const y = safe.y + ((sy + 0.5) / sampleSize) * safe.height;
+        diff += Math.abs(grayAt(currentFrame, x, y) - grayAt(previousFrame, x, y));
+        samples += 1;
+      }
+    }
+    return samples ? clamp(diff / samples / 48, 0, 1) : 0;
+  }
+
+  function buildMultiTrackerReference(frame, roi) {
+    const safe = clampFrameRoi(roi, frame.width, frame.height);
+    if (!safe) return null;
+    return {
+      roi: safe,
+      template: sampleGrayRoi(frame, safe),
+      edgeDensity: edgeDensityForRoi(frame, safe),
+      histogram: histogramForRoi(frame, safe)
+    };
+  }
+
+  function multiTrackerCandidateScore({ frame, previousFrame, roi, reference, predictedCenter }) {
+    const safe = clampFrameRoi(roi, frame.width, frame.height);
+    if (!safe || !reference) return null;
+    const candidateTemplate = sampleGrayRoi(frame, safe);
+    if (!candidateTemplate) return null;
+    const templateRaw = patchScore(reference.template, candidateTemplate);
+    const templateQuality = 1 / (1 + Math.max(0, templateRaw) / 1500);
+    const edgeDensity = edgeDensityForRoi(frame, safe);
+    const edgeQuality = 1 / (1 + Math.abs(edgeDensity - reference.edgeDensity) / 26);
+    const histogram = histogramForRoi(frame, safe);
+    const histogramQuality = 1 - histogramDistance(reference.histogram, histogram);
+    const motionQuality = previousFrame ? roiMotionEvidence(frame, previousFrame, safe) : 0.45;
+    const center = roiCenter(safe);
+    const predictionDistance = predictedCenter ? pixelDistance(center, predictedCenter) : 0;
+    const predictionScale = Math.max(8, Math.min(safe.width, safe.height) * 0.7);
+    const predictionQuality = predictedCenter ? 1 / (1 + predictionDistance / predictionScale) : 0.55;
+    const fusedQuality = clamp(
+      templateQuality * VBT_MULTI_TRACKER_TEMPLATE_WEIGHT
+      + edgeQuality * VBT_MULTI_TRACKER_EDGE_WEIGHT
+      + histogramQuality * VBT_MULTI_TRACKER_HISTOGRAM_WEIGHT
+      + motionQuality * VBT_MULTI_TRACKER_MOTION_WEIGHT
+      + predictionQuality * VBT_MULTI_TRACKER_PREDICTION_WEIGHT,
+      0,
+      1
+    );
+    return {
+      roi: safe,
+      fusedQuality,
+      templateQuality,
+      edgeQuality,
+      histogramQuality,
+      motionQuality,
+      predictionQuality,
+      templateRaw,
+      center
+    };
+  }
+
+  function searchMultiTrackerRoi({ frame, previousFrame, currentRoi, reference, previousCenter, previousVelocity, searchRadiusX, searchRadiusY, step }) {
+    const predictedCenter = previousCenter && previousVelocity
+      ? { x: previousCenter.x + previousVelocity.x, y: previousCenter.y + previousVelocity.y }
+      : previousCenter;
+    let best = null;
+    let validCandidates = 0;
+    for (let dy = -searchRadiusY; dy <= searchRadiusY; dy += step) {
+      for (let dx = -searchRadiusX; dx <= searchRadiusX; dx += step) {
+        const candidateRoi = clampFrameRoi({
+          x: currentRoi.x + dx,
+          y: currentRoi.y + dy,
+          width: currentRoi.width,
+          height: currentRoi.height
+        }, frame.width, frame.height);
+        const scored = multiTrackerCandidateScore({ frame, previousFrame, roi: candidateRoi, reference, predictedCenter });
+        if (!scored) continue;
+        validCandidates += 1;
+        if (!best || scored.fusedQuality > best.fusedQuality) best = scored;
+      }
+    }
+    if (!best) return { roi: currentRoi, validCandidates, fusedQuality: 0, failed: true };
+    return { ...best, validCandidates, failed: false };
+  }
+
+
   async function trackPlateRoiPath(dialog, record) {
     const video = dialog.querySelector("video");
     const state = vbtState(dialog);
@@ -1283,7 +1445,8 @@
     const aspectWarning = markerMode ? null : roiAspectWarning(plateRoi);
 
     await seekVideo(video, start);
-    const first = frameCanvas(video, 320);
+    const trackingFrameWidth = 360;
+    const first = frameCanvas(video, trackingFrameWidth);
     const scale = first.scale;
     const scaledRoi = {
       x: trackingRoi.x * scale,
@@ -1291,48 +1454,55 @@
       width: trackingRoi.width * scale,
       height: trackingRoi.height * scale
     };
-    const referenceTemplate = sampleGrayRoi(grayFrame(first.ctx), scaledRoi);
-    if (!referenceTemplate) throw new Error("緑枠が動画端に近すぎます。少し内側へ移動してください。");
+    const firstGray = grayFrame(first.ctx);
+    const reference = buildMultiTrackerReference(firstGray, scaledRoi);
+    if (!reference?.template) throw new Error("緑枠が動画端に近すぎます。少し内側へ移動してください。");
 
     const sampleLimit = getVbtTrackingSampleLimit();
-    const sampleCount = clamp(Math.round((end - start) * 24), 40, sampleLimit);
+    const sampleCount = clamp(Math.round((end - start) * 26), 48, sampleLimit);
     const rawPath = [];
-    let currentRoi = { ...scaledRoi };
-    const searchRadiusX = markerMode ? Math.max(20, scaledRoi.width * 2.8) : Math.max(12, scaledRoi.width * 0.75);
-    const searchRadiusY = markerMode ? Math.max(28, scaledRoi.height * 4.2) : Math.max(18, scaledRoi.height * 1.25);
-    const step = markerMode ? clamp(Math.round(Math.min(scaledRoi.width, scaledRoi.height) * 0.18), 2, 6) : clamp(Math.round(Math.min(scaledRoi.width, scaledRoi.height) * 0.12), 3, 8);
+    let currentRoi = { ...reference.roi };
+    let previousFrame = null;
+    let previousCenter = null;
+    let previousVelocity = null;
+    const searchRadiusX = markerMode ? Math.max(20, scaledRoi.width * 2.8) : Math.max(VBT_MULTI_TRACKER_SEARCH_MIN, scaledRoi.width * 0.95);
+    const searchRadiusY = markerMode ? Math.max(28, scaledRoi.height * 4.2) : Math.max(VBT_MULTI_TRACKER_SEARCH_MIN, scaledRoi.height * 1.55);
+    const step = markerMode ? clamp(Math.round(Math.min(scaledRoi.width, scaledRoi.height) * 0.18), 2, 6) : clamp(Math.round(Math.min(scaledRoi.width, scaledRoi.height) * 0.11), 3, 7);
 
     for (let i = 0; i <= sampleCount; i += 1) {
       const time = start + ((end - start) * i) / sampleCount;
       await seekVideo(video, time);
-      const frame = frameCanvas(video, 320);
-      const gray = grayFrame(frame.ctx);
-      let bestRoi = currentRoi;
-      let bestScore = Infinity;
-      for (let dy = -searchRadiusY; dy <= searchRadiusY; dy += step) {
-        for (let dx = -searchRadiusX; dx <= searchRadiusX; dx += step) {
-          const candidateRoi = {
-            x: currentRoi.x + dx,
-            y: currentRoi.y + dy,
-            width: currentRoi.width,
-            height: currentRoi.height
-          };
-          const candidate = sampleGrayRoi(gray, candidateRoi);
-          const score = patchScore(referenceTemplate, candidate);
-          if (score < bestScore) {
-            bestScore = score;
-            bestRoi = candidateRoi;
-          }
-        }
+      const frameShot = frameCanvas(video, trackingFrameWidth);
+      const frameGray = grayFrame(frameShot.ctx);
+      const result = VBT_MULTI_TRACKER_ENABLED
+        ? searchMultiTrackerRoi({ frame: frameGray, previousFrame, currentRoi, reference, previousCenter, previousVelocity, searchRadiusX, searchRadiusY, step })
+        : { roi: currentRoi, fusedQuality: 0.5, templateQuality: 0.5, edgeQuality: 0.5, histogramQuality: 0.5, motionQuality: 0.5, predictionQuality: 0.5, templateRaw: null };
+      currentRoi = result.roi || currentRoi;
+      const center = roiCenter(currentRoi);
+      if (previousCenter && center) {
+        previousVelocity = {
+          x: clamp(center.x - previousCenter.x, -searchRadiusX * 0.5, searchRadiusX * 0.5),
+          y: clamp(center.y - previousCenter.y, -searchRadiusY * 0.5, searchRadiusY * 0.5)
+        };
       }
-      currentRoi = bestRoi;
-      const center = roiCenter(bestRoi);
+      previousCenter = center;
+      previousFrame = frameGray;
+      const trackerQuality = Number(result.fusedQuality) || 0;
+      const score = Math.round((1 - trackerQuality) * 2400);
       rawPath.push({
         time,
-        x: center.x / frame.scale,
-        y: center.y / frame.scale,
-        score: Math.round(bestScore),
-        confidence: Number.isFinite(bestScore) ? 1 / (1 + bestScore / 1000) : null
+        x: center.x / frameShot.scale,
+        y: center.y / frameShot.scale,
+        score,
+        confidence: trackerQuality,
+        tracker: {
+          template: result.templateQuality,
+          edge: result.edgeQuality,
+          histogram: result.histogramQuality,
+          motion: result.motionQuality,
+          prediction: result.predictionQuality,
+          validCandidates: result.validCandidates || 0
+        }
       });
     }
 
@@ -1378,9 +1548,10 @@
     ].filter(Boolean).join(" ");
 
     return {
-      mode: markerMode ? "marker-assist-timeseries" : "plate-roi-timeseries",
+      mode: markerMode ? "marker-assist-timeseries" : "multi-tracker-timeseries",
       analysisMode: "deep-precision-standard",
-      trackingMode: markerMode ? "marker-assist-timeseries" : "plate-roi-timeseries",
+      trackingMode: markerMode ? "marker-assist-timeseries" : "multi-tracker-timeseries",
+      trackerFusion: markerMode ? null : "template-edge-histogram-motion-prediction",
       trackingConfidence,
       trackingWarning: trackingWarning || null,
       lift: record.lift,
@@ -1400,8 +1571,9 @@
         roiAspectRatio: plateRoi.width / plateRoi.height
       },
       measurement: {
-        mode: markerMode ? "marker-assist-timeseries" : "plate-roi-timeseries",
+        mode: markerMode ? "marker-assist-timeseries" : "multi-tracker-timeseries",
         analysisMode: "deep-precision-standard",
+        trackerFusion: markerMode ? null : "template-edge-histogram-motion-prediction",
         lift: record.lift,
         expectedReps: null,
         detectedReps: detectedRepCount,
@@ -1421,6 +1593,7 @@
         plateDiameterPixels,
         metersPerPixel,
         trackPath: path,
+        trackerDiagnostics: rawPath.map((point) => ({ time: point.time, confidence: point.confidence, score: point.score, tracker: point.tracker })).slice(0, 240),
         repMetrics,
         primaryVbtMetric,
         repVelocities: repMetrics.map((metric) => ({
