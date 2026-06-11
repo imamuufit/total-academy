@@ -1156,7 +1156,7 @@
   function measurementModeLabel(mode) {
     if (mode === "plate-roi-timeseries") return "プレート追跡";
     if (mode === "plate-roi-track") return "プレートROI追跡";
-    if (mode === "marker-assist-timeseries" || mode === "marker-assist") return "マーカー補助";
+    if (mode === "marker-assist-timeseries" || mode === "marker-assist") return "マーカー補助（非推奨）";
     if (mode === "manual-2point") return "手動2点";
     return "中心点追跡β";
   }
@@ -1267,7 +1267,7 @@
     const video = dialog.querySelector("video");
     const state = vbtState(dialog);
     if (!video?.videoWidth || !video?.videoHeight) throw new Error("動画を読み込んでから追跡してください。");
-    if (!state.plateRoi && !(state.trackingMode === "marker-assist" && state.markerRoi)) throw new Error("緑枠をプレート外周に合わせるか、マーカー補助でマーカーを指定してください。");
+    if (!state.plateRoi && !(state.trackingMode === "marker-assist" && state.markerRoi)) throw new Error("緑枠をプレート外周に合わせてください。自動検出が不安定な場合は、プレート付近を1回タップして補助してください。");
     const start = hasFiniteNumber(state.trimStart) ? Number(state.trimStart) : 0;
     const savedEnd = hasFiniteNumber(state.trimEnd) ? Number(state.trimEnd) : Number(video.duration);
     const end = savedEnd > start + 0.2 ? savedEnd : Number(video.duration);
@@ -2664,6 +2664,50 @@
     return { score, motionScore, nearScore, personScore, personProximity, outsidePenalty, distanceRatio };
   }
 
+
+  function plateShapeEvidence(luminanceAt, candidate) {
+    if (!candidate) return { score: 0, ringScore: 0, hubScore: 0, roundnessScore: 0, fillScore: 0 };
+    const size = candidate.width;
+    const cx = candidate.x + size / 2;
+    const cy = candidate.y + size / 2;
+    const radius = size / 2;
+    const angles = 32;
+    let ringContrast = 0;
+    let ringDark = 0;
+    let ringSamples = 0;
+    let innerDark = 0;
+    let innerSamples = 0;
+    let hubContrast = 0;
+    let validEdgeDirections = 0;
+
+    for (let i = 0; i < angles; i += 1) {
+      const a = (Math.PI * 2 * i) / angles;
+      const cos = Math.cos(a);
+      const sin = Math.sin(a);
+      const rOuter = radius * 0.48;
+      const rMid = radius * 0.34;
+      const rInner = radius * 0.18;
+      const outer = luminanceAt(cx + cos * rOuter, cy + sin * rOuter);
+      const mid = luminanceAt(cx + cos * rMid, cy + sin * rMid);
+      const inner = luminanceAt(cx + cos * rInner, cy + sin * rInner);
+      const contrast = Math.abs(outer - mid) + Math.abs(mid - inner);
+      ringContrast += contrast;
+      if (outer < 118 || mid < 118) ringDark += 1;
+      if (inner < 135) innerDark += 1;
+      if (contrast > 26) validEdgeDirections += 1;
+      ringSamples += 1;
+      innerSamples += 1;
+      hubContrast += Math.abs(luminanceAt(cx + cos * radius * 0.07, cy + sin * radius * 0.07) - inner);
+    }
+
+    const ringScore = clamp((ringContrast / Math.max(1, ringSamples)) * 0.72, 0, 34);
+    const fillScore = clamp((ringDark / Math.max(1, ringSamples)) * 24, 0, 24);
+    const hubScore = clamp((hubContrast / Math.max(1, ringSamples)) * 0.46 + (innerDark / Math.max(1, innerSamples)) * 8, 0, 20);
+    const roundnessScore = clamp((validEdgeDirections / Math.max(1, ringSamples)) * 32, 0, 32);
+    const score = clamp(ringScore + fillScore + hubScore + roundnessScore, 0, 92);
+    return { score, ringScore, hubScore, roundnessScore, fillScore };
+  }
+
   function detectPlateCandidateFromFrame(frame, options = {}) {
     if (!frame?.ctx || !frame?.canvas) return null;
     const { canvas, ctx, scale } = frame;
@@ -2719,6 +2763,7 @@
           const barMatch = barbellLineMatchScore(candidate, barLines, size);
           const crossingScore = barbellCrossingEvidence(luminanceAt, width, height, candidate);
           const pairScore = platePairEvidence(luminanceAt, width, height, candidate);
+          const shapeEvidence = plateShapeEvidence(luminanceAt, candidate);
           const lifterEvidence = lifterRegionScore(motionContext, candidate);
           const centerPenalty = Math.abs(centerX / width - 0.5) < 0.10 ? 16 : 0;
           const topPenalty = centerY < height * 0.08 ? 20 : 0;
@@ -2730,7 +2775,7 @@
           const deadliftHighPenalty = lift === "DL" && centerY < height * 0.48 ? 135 : 0;
           const shadowLike = darkRatio > 0.74 && edgeScore < 20;
           const pillarLike = borderScore > 70 && darkRatio < 0.18 && crossingScore < 12;
-          const plateLike = darkRatio >= 0.14 && edgeScore >= 14 && borderScore >= 4;
+          const plateLike = (darkRatio >= 0.14 && edgeScore >= 14 && borderScore >= 4) || shapeEvidence.score >= 38;
           if (!plateLike) continue;
           if (lift !== "DL" && hasBarLine && barMatch.score < 6 && crossingScore < 10 && lifterEvidence.motionScore < 0.28) continue;
           const barPenalty = hasBarLine && barMatch.score < 8 && crossingScore < 12 ? 34 : 0;
@@ -2739,9 +2784,10 @@
           const staticBackgroundPenalty = motionContext && lifterEvidence.motionScore < 0.10 && lifterEvidence.nearScore < 0.26 ? 86 : 0;
           const lifterOutsidePenalty = motionContext && lifterEvidence.outsidePenalty ? lifterEvidence.outsidePenalty : 0;
           const personMismatchPenalty = farFromPerson ? 105 : 0;
-          const score = darkRatio * 44
-            + edgeScore * 0.22
-            + borderScore * 0.14
+          const score = darkRatio * 28
+            + edgeScore * 0.18
+            + borderScore * 0.10
+            + shapeEvidence.score * 1.18
             + sideBias
             + barMatch.score * 1.08
             + crossingScore * 1.08
@@ -2773,6 +2819,10 @@
             barY: barMatch.line?.y ?? null,
             crossingScore,
             pairScore,
+            shapeScore: shapeEvidence.score,
+            ringScore: shapeEvidence.ringScore,
+            roundnessScore: shapeEvidence.roundnessScore,
+            hubScore: shapeEvidence.hubScore,
             hasBarLine,
             lifterScore: lifterEvidence.score,
             lifterNearScore: lifterEvidence.nearScore,
@@ -2804,6 +2854,10 @@
         barY: item.barY,
         crossingScore: item.crossingScore,
         pairScore: item.pairScore,
+        shapeScore: item.shapeScore,
+        ringScore: item.ringScore,
+        roundnessScore: item.roundnessScore,
+        hubScore: item.hubScore,
         hasBarLine: item.hasBarLine,
         lifterScore: item.lifterScore,
         lifterNearScore: item.lifterNearScore,
@@ -2910,6 +2964,7 @@
       const countRatio = items.length / Math.max(1, clean.length);
       const barEvidence = items.reduce((sum, item) => sum + Number(item.barScore || 0) + Number(item.crossingScore || 0) * 0.35, 0) / Math.max(1, items.length);
       const pairEvidence = items.reduce((sum, item) => sum + Number(item.pairScore || 0), 0) / Math.max(1, items.length);
+      const shapeEvidence = items.reduce((sum, item) => sum + Number(item.shapeScore || 0), 0) / Math.max(1, items.length);
       const lifterEvidence = items.reduce((sum, item) => sum + Number(item.lifterNearScore || 0), 0) / Math.max(1, items.length);
       const personEvidence = items.reduce((sum, item) => sum + Math.max(Number(item.personProximity || 0), Number(item.personScore || 0)), 0) / Math.max(1, items.length);
       const motionEvidence = items.reduce((sum, item) => sum + Number(item.motionScore || 0), 0) / Math.max(1, items.length);
@@ -2917,13 +2972,14 @@
       const stabilityBonus = Math.min(36, items.length * 5.5) + countRatio * 18;
       const driftPenalty = horizontalDrift > 1.05 ? 28 : horizontalDrift > 0.62 ? 12 : 0;
       const staticPenalty = motionEvidence < 0.10 && lifterEvidence < 0.22 && personEvidence < 0.24 ? 54 : 0;
-      const temporalScore = meanScore + stabilityBonus + movementBonus + barEvidence * 0.28 + pairEvidence * 0.34 + lifterEvidence * 20 + personEvidence * 56 + motionEvidence * 44 - driftPenalty - staticPenalty;
+      const temporalScore = meanScore + stabilityBonus + movementBonus + barEvidence * 0.28 + pairEvidence * 0.26 + shapeEvidence * 0.72 + lifterEvidence * 14 + personEvidence * 38 + motionEvidence * 44 - driftPenalty - staticPenalty;
       group.temporalScore = temporalScore;
       group.motionRatio = motionRatio;
       group.horizontalDrift = horizontalDrift;
       group.meanScore = meanScore;
       group.lifterEvidence = lifterEvidence;
       group.personEvidence = personEvidence;
+      group.shapeEvidence = shapeEvidence;
       group.motionEvidence = motionEvidence;
       if (!bestGroup || temporalScore > bestGroup.temporalScore) bestGroup = group;
     });
@@ -2946,6 +3002,7 @@
       horizontalDrift: bestGroup.horizontalDrift,
       lifterEvidence: bestGroup.lifterEvidence,
       personEvidence: bestGroup.personEvidence,
+      shapeEvidence: bestGroup.shapeEvidence,
       motionEvidence: bestGroup.motionEvidence,
       sampleCount: bestGroup.items.length,
       bestFrameTime: bestItem.sampleTime
@@ -2991,6 +3048,7 @@
       const countRatio = items.length / Math.max(1, clean.length);
       const barEvidence = items.reduce((sum, item) => sum + Number(item.barScore || 0) + Number(item.crossingScore || 0) * 0.35, 0) / Math.max(1, items.length);
       const pairEvidence = items.reduce((sum, item) => sum + Number(item.pairScore || 0), 0) / Math.max(1, items.length);
+      const shapeEvidence = items.reduce((sum, item) => sum + Number(item.shapeScore || 0), 0) / Math.max(1, items.length);
       const lifterEvidence = items.reduce((sum, item) => sum + Number(item.lifterNearScore || 0), 0) / Math.max(1, items.length);
       const personEvidence = items.reduce((sum, item) => sum + Math.max(Number(item.personProximity || 0), Number(item.personScore || 0)), 0) / Math.max(1, items.length);
       const motionEvidence = items.reduce((sum, item) => sum + Number(item.motionScore || 0), 0) / Math.max(1, items.length);
@@ -2998,7 +3056,7 @@
       const stabilityBonus = Math.min(36, items.length * 5.5) + countRatio * 18;
       const driftPenalty = horizontalDrift > 1.05 ? 28 : horizontalDrift > 0.62 ? 12 : 0;
       const staticPenalty = motionEvidence < 0.10 && lifterEvidence < 0.22 && personEvidence < 0.24 ? 54 : 0;
-      const temporalScore = meanScore + stabilityBonus + movementBonus + barEvidence * 0.28 + pairEvidence * 0.34 + lifterEvidence * 20 + personEvidence * 56 + motionEvidence * 44 - driftPenalty - staticPenalty;
+      const temporalScore = meanScore + stabilityBonus + movementBonus + barEvidence * 0.28 + pairEvidence * 0.26 + shapeEvidence * 0.72 + lifterEvidence * 14 + personEvidence * 38 + motionEvidence * 44 - driftPenalty - staticPenalty;
       const first = items[0];
       const bestItem = items.reduce((best, item) => item.score > best.score ? item : best, first);
       const confidence = temporalScore > 125 && motionRatio > 0.10
@@ -3016,6 +3074,7 @@
         horizontalDrift,
         lifterEvidence,
         personEvidence,
+        shapeEvidence,
         motionEvidence,
         sampleCount: items.length,
         bestFrameTime: bestItem.sampleTime,
@@ -3044,10 +3103,10 @@
           const selected = Number(state.selectedCandidateIndex || 0) === index;
           const confidence = candidate.confidence === "high" ? "高" : candidate.confidence === "middle" ? "中" : "低";
           const move = hasFiniteNumber(candidate.motionRatio) ? Number(candidate.motionRatio).toFixed(2) : "--";
-          const person = hasFiniteNumber(candidate.personEvidence ?? candidate.lifterEvidence) ? Number(candidate.personEvidence ?? candidate.lifterEvidence).toFixed(2) : "--";
+          const shape = hasFiniteNumber(candidate.shapeEvidence ?? candidate.shapeScore) ? Number(candidate.shapeEvidence ?? candidate.shapeScore).toFixed(0) : "--";
           const bar = hasFiniteNumber(candidate.barScore) ? Number(candidate.barScore).toFixed(0) : "--";
           return `<button type="button" class="vbt-candidate-button ${selected ? "selected" : ""}" data-vbt-candidate-select="${index}">
-            <strong>候補${index + 1}</strong><span>信頼${confidence} / 人物AI ${person} / 動き ${move} / バー ${bar}</span>
+            <strong>候補${index + 1}</strong><span>信頼${confidence} / 形状 ${shape} / 動き ${move} / バー ${bar}</span>
           </button>`;
         }).join("")}
       </div>
@@ -3085,15 +3144,17 @@
   function weakAutoPlateCandidates(candidates) {
     const list = (candidates || []).filter((item) => item?.roi);
     if (!list.length) return true;
-    const bestPerson = Math.max(...list.map((item) => Number(item.personEvidence ?? item.lifterEvidence ?? 0) || 0));
+    const bestShape = Math.max(...list.map((item) => Number(item.shapeEvidence ?? item.shapeScore ?? 0) || 0));
     const bestMotion = Math.max(...list.map((item) => Number(item.motionRatio ?? item.motionScore ?? 0) || 0));
     const bestBar = Math.max(...list.map((item) => Number(item.barScore ?? 0) || 0));
-    const highConfidence = list.some((item) => item.confidence === "high" && (Number(item.personEvidence ?? item.lifterEvidence ?? 0) > 0.10 || Number(item.motionRatio ?? 0) > 0.58));
+    const bestPerson = Math.max(...list.map((item) => Number(item.personEvidence ?? item.lifterEvidence ?? 0) || 0));
+    const highConfidence = list.some((item) => item.confidence === "high" && Number(item.shapeEvidence ?? item.shapeScore ?? 0) >= 42 && (Number(item.motionRatio ?? 0) > 0.28 || Number(item.barScore ?? 0) >= 38));
     if (highConfidence) return false;
-    // 人物AIが全候補0に近い場合は、候補を無理に出さずにユーザーの1タップで探索範囲を教えてもらう。
-    if (bestPerson < 0.06 && bestMotion < 0.62) return true;
-    // バーらしさだけで候補を出すと、ラックや奥の器具を拾いやすい。
-    if (bestPerson < 0.08 && bestBar < 45) return true;
+    // 人物AIが0の動画では人物スコアを信用しない。プレート形状・バー接続・動きを主判定にする。
+    if (bestShape < 36) return true;
+    if (bestBar < 30 && bestMotion < 0.42) return true;
+    // 候補が人物から遠く、かつプレート形状も弱いならタップ補助へ逃がす。
+    if (bestPerson < 0.04 && bestShape < 48 && bestMotion < 0.50) return true;
     return false;
   }
 
@@ -3288,11 +3349,11 @@
           selectedCandidateIndex: null,
           autoPlateCandidate: null
         });
-        showAnchorAssistStep(dialog, `人物AI・動き・バー接続の確信度が低いため、自動候補を採用しませんでした。実際のプレート付近を1回タップしてください。解析フレーム ${sampleTimes.length}件 / 人物AI ${(Number(bestCandidate.personEvidence ?? bestCandidate.lifterEvidence) || 0).toFixed(2)} / 動き ${(Number(bestCandidate.motionRatio) || 0).toFixed(2)}`);
+        showAnchorAssistStep(dialog, `プレート形状・バー接続・動きの確信度が低いため、自動候補を採用しませんでした。実際のプレート付近を1回タップしてください。解析フレーム ${sampleTimes.length}件 / 形状 ${(Number(bestCandidate.shapeEvidence ?? bestCandidate.shapeScore) || 0).toFixed(0)} / 動き ${(Number(bestCandidate.motionRatio) || 0).toFixed(2)}`);
         return;
       }
       const lowMessage = "自動検出の信頼度：低。候補を選び、緑枠が最大プレートを囲んでいるか確認してください。";
-      const okMessage = `リフター周辺からプレート候補を${candidateList.length}件見つけました。正しい候補を選び、緑枠が最大プレートを囲んでいれば進んでください。確認フレーム ${sampleTimes.length}件 / 採用フレーム ${bestCandidate.sampleCount || 1}件 / 動き ${(Number(bestCandidate.motionRatio) || 0).toFixed(2)} / 人物AI ${(Number(bestCandidate.personEvidence ?? bestCandidate.lifterEvidence) || 0).toFixed(2)}`;
+      const okMessage = `プレートの外周形状とバー接続から候補を${candidateList.length}件見つけました。正しい候補を選び、緑枠が最大プレートを囲んでいれば進んでください。確認フレーム ${sampleTimes.length}件 / 採用フレーム ${bestCandidate.sampleCount || 1}件 / 形状 ${(Number(bestCandidate.shapeEvidence ?? bestCandidate.shapeScore) || 0).toFixed(0)} / 動き ${(Number(bestCandidate.motionRatio) || 0).toFixed(2)}`;
       setVbtState(dialog, {
         plateRoi: bestCandidate.roi,
         autoPlateCandidate: bestCandidate,
@@ -3410,7 +3471,6 @@
           <div class="vbt-wizard-actions three">
             <button class="text-button" type="button" data-vbt-wizard-step="trim">戻る</button>
             <button class="text-button" type="button" data-vbt-manual-plate>手動で調整</button>
-            <button class="text-button" type="button" data-vbt-marker-assist>マーカー追跡</button>
             <button class="primary-button inline vbt-wizard-primary" type="button" data-vbt-confirm-plate>見えます</button>
           </div>
         </section>
@@ -3433,11 +3493,9 @@
           </div>
           <div class="vbt-roi-actions">
             <button class="text-button" type="button" data-vbt-roi-init>緑枠を表示</button>
-            <button class="text-button" type="button" data-vbt-marker-assist>マーカー追跡を使う</button>
             <button class="text-button" type="button" data-vbt-wizard-step="trim">戻る</button>
             <button class="primary-button inline" type="button" data-vbt-confirm-plate>このプレートで進む</button>
           </div>
-          <p class="video-storage-note compact vbt-marker-note">白/蛍光テープなどをプレートやスリーブに貼った場合は、マーカー追跡を使うと背景ラックや黒床に吸われにくくなります。</p>
           <details class="vbt-roi-nudge" open>
             <summary>緑枠を微調整</summary>
             <div class="vbt-nudge-grid">
