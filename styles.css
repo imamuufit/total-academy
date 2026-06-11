@@ -17908,3 +17908,32 @@ html body .video-storage-note.compact {
     min-height: 44px;
   }
 }
+
+/* v178: VBT semi-auto anchor assist */
+.vbt-anchor-guide {
+  border: 1px solid var(--line, #ded6c8);
+  border-radius: 14px;
+  background: rgba(255,250,242,0.88);
+  padding: 12px 14px;
+  display: grid;
+  gap: 4px;
+  margin: 10px 0;
+}
+.vbt-anchor-guide strong {
+  font-size: 0.86rem;
+  color: var(--text-main, #171717);
+}
+.vbt-anchor-guide span {
+  font-weight: 900;
+  color: var(--text-main, #171717);
+}
+.vbt-anchor-guide small {
+  color: var(--text-sub, #526179);
+  font-weight: 700;
+}
+.vbt-overlay.anchor-active {
+  cursor: crosshair;
+}
+.vbt-overlay.anchor-active::after {
+  content: "";
+}

@@ -1897,6 +1897,7 @@
     return {
       trim: "動画をトリミング",
       "auto-detect-loading": "プレートを検出中",
+      "anchor-assist": "プレート付近をタップ",
       "auto-detect-confirm": "プレートを確認",
       "manual-plate": "プレートを指定",
       "set-info": "セット情報",
@@ -1922,7 +1923,7 @@
   }
 
   function vbtWizardStepOrder(step) {
-    const order = ["trim", "auto-detect-loading", "auto-detect-confirm", "manual-plate", "set-info", "analyzing", "result"];
+    const order = ["trim", "auto-detect-loading", "anchor-assist", "auto-detect-confirm", "manual-plate", "set-info", "analyzing", "result"];
     const index = order.indexOf(step);
     return index >= 0 ? index : 0;
   }
@@ -1941,7 +1942,13 @@
       drawVbtOverlay(dialog);
       drawRoiPreview(dialog);
     }
+    if (step === "anchor-assist") {
+      setVbtState(dialog, { anchorAssistMode: true, anchorAssistType: "plate" });
+      dialog.querySelector("[data-vbt-canvas]")?.classList.add("active", "roi-active", "anchor-active");
+      drawVbtOverlay(dialog);
+    }
     if (step === "auto-detect-confirm") {
+      setVbtState(dialog, { anchorAssistMode: false, anchorAssistType: null });
       dialog.querySelector("[data-vbt-canvas]")?.classList.add("active", "roi-active");
       renderAutoCandidateList(dialog);
       drawVbtOverlay(dialog);
@@ -3018,6 +3025,83 @@
     drawRoiPreview(dialog);
   }
 
+
+  function weakAutoPlateCandidates(candidates) {
+    const list = (candidates || []).filter((item) => item?.roi);
+    if (!list.length) return true;
+    const bestPerson = Math.max(...list.map((item) => Number(item.personEvidence ?? item.lifterEvidence ?? 0) || 0));
+    const bestMotion = Math.max(...list.map((item) => Number(item.motionRatio ?? item.motionScore ?? 0) || 0));
+    const bestBar = Math.max(...list.map((item) => Number(item.barScore ?? 0) || 0));
+    const highConfidence = list.some((item) => item.confidence === "high" && (Number(item.personEvidence ?? item.lifterEvidence ?? 0) > 0.10 || Number(item.motionRatio ?? 0) > 0.58));
+    if (highConfidence) return false;
+    // 人物AIが全候補0に近い場合は、候補を無理に出さずにユーザーの1タップで探索範囲を教えてもらう。
+    if (bestPerson < 0.06 && bestMotion < 0.62) return true;
+    // バーらしさだけで候補を出すと、ラックや奥の器具を拾いやすい。
+    if (bestPerson < 0.08 && bestBar < 45) return true;
+    return false;
+  }
+
+  function showAnchorAssistStep(dialog, message) {
+    if (!dialog) return;
+    const video = dialog.querySelector("video");
+    setVbtState(dialog, {
+      anchorAssistMode: true,
+      anchorAssistType: "plate",
+      anchorPoint: null,
+      userAnchorUsed: false,
+      autoDetectionConfidence: "anchor-needed",
+      autoDetectionMessage: message || "自動検出が不安定です。プレート付近を1回タップすると、その周辺から自動で緑枠を作ります。"
+    });
+    if (video) video.pause();
+    const canvas = dialog.querySelector("[data-vbt-canvas]");
+    canvas?.classList.add("active", "roi-active", "anchor-active");
+    const note = dialog.querySelector("[data-vbt-anchor-note]");
+    if (note) note.textContent = vbtState(dialog).autoDetectionMessage;
+    setVbtWizardStep(dialog, "anchor-assist");
+  }
+
+  function estimateAnchorPlateSize(video, point) {
+    const detected = estimatePlateDiameterPixels(video, point);
+    const base = Math.min(video.videoWidth || 1, video.videoHeight || 1);
+    if (hasFiniteNumber(detected)) return clamp(Number(detected), base * 0.10, base * 0.32);
+    return clamp(base * 0.18, 52, base * 0.30);
+  }
+
+  function roiFromAnchorPoint(video, point) {
+    const size = estimateAnchorPlateSize(video, point);
+    return clampPlateRoi({
+      x: point.x - size / 2,
+      y: point.y - size / 2,
+      width: size,
+      height: size
+    }, video.videoWidth, video.videoHeight);
+  }
+
+  function applyAnchorAssistPoint(dialog, point) {
+    const video = dialog?.querySelector("video");
+    if (!dialog || !video?.videoWidth || !video?.videoHeight || !point) return;
+    const roi = roiFromAnchorPoint(video, point);
+    setVbtState(dialog, {
+      plateRoi: roi,
+      anchorPoint: point,
+      anchorAssistMode: false,
+      anchorAssistType: null,
+      userAnchorUsed: true,
+      trackingMode: "plate-roi-track",
+      path: [],
+      autoDetectionConfidence: "user-anchor",
+      autoDetectionMessage: "タップ位置の周辺から緑枠を作りました。最大プレートを囲んでいれば進んでください。ズレていれば微調整してください。",
+      autoPlateCandidate: { roi, confidence: "user-anchor", userAnchor: true },
+      autoPlateCandidates: [{ roi, confidence: "user-anchor", userAnchor: true, score: 100 }],
+      selectedCandidateIndex: 0
+    });
+    const note = dialog.querySelector("[data-vbt-auto-note]");
+    if (note) note.textContent = vbtState(dialog).autoDetectionMessage;
+    setVbtWizardStep(dialog, "auto-detect-confirm");
+    drawVbtOverlay(dialog);
+    drawRoiPreview(dialog);
+  }
+
   async function runAutoPlateDetection(button) {
     const dialog = button.closest("dialog");
     const video = dialog?.querySelector("video");
@@ -3078,13 +3162,16 @@
       const bestCandidate = candidateList[0];
       updateAutoDetectProgress(dialog, 8, "8/8 検出結果を準備中…", 98);
       if (!bestCandidate) {
+        showAnchorAssistStep(dialog, `自動検出だけではプレート候補を絞れませんでした。解析フレーム ${sampleTimes.length}件を確認しました。実際のプレート付近を1回タップしてください。`);
+        return;
+      }
+      if (weakAutoPlateCandidates(candidateList)) {
         setVbtState(dialog, {
-          autoPlateCandidates: [],
+          autoPlateCandidates: candidateList,
           selectedCandidateIndex: null,
-          autoDetectionConfidence: "failed",
-          autoDetectionMessage: `人物AIと動画全体の動きから、リフターが持っているバーベルのプレート候補を見つけられませんでした。解析フレーム ${sampleTimes.length}件を確認しました。手動で最大プレートを囲んでください。`
+          autoPlateCandidate: null
         });
-        setVbtWizardStep(dialog, "manual-plate");
+        showAnchorAssistStep(dialog, `人物AI・動き・バー接続の確信度が低いため、自動候補を採用しませんでした。実際のプレート付近を1回タップしてください。解析フレーム ${sampleTimes.length}件 / 人物AI ${(Number(bestCandidate.personEvidence ?? bestCandidate.lifterEvidence) || 0).toFixed(2)} / 動き ${(Number(bestCandidate.motionRatio) || 0).toFixed(2)}`);
         return;
       }
       const lowMessage = "自動検出の信頼度：低。候補を選び、緑枠が最大プレートを囲んでいるか確認してください。";
@@ -3104,9 +3191,9 @@
     } catch (error) {
       setVbtState(dialog, {
         autoDetectionConfidence: "failed",
-        autoDetectionMessage: error.message || "人物AI・リフター周辺のバーベル線・プレート候補を検出できませんでした。手動で指定してください。"
+        autoDetectionMessage: error.message || "人物AI・リフター周辺のバーベル線・プレート候補を検出できませんでした。プレート付近を1回タップしてください。"
       });
-      setVbtWizardStep(dialog, "manual-plate");
+      showAnchorAssistStep(dialog, vbtState(dialog).autoDetectionMessage);
     } finally {
       button.disabled = false;
       button.textContent = previousText;
@@ -3171,6 +3258,24 @@
             <p data-vbt-detect-progress>1/8 リフター領域を確認中…</p>
             <div class="vbt-detect-progress-bar"><span data-vbt-detect-progress-bar style="width: 12%"></span></div>
             <small>速度より精度を優先し、動画全体からリフター・バーベル線・プレートの動きの一貫性を確認します。</small>
+          </div>
+        </section>
+
+        <section class="vbt-wizard-screen" data-vbt-step="anchor-assist">
+          <div class="video-check-head">
+            <strong>プレート付近をタップ</strong>
+            <small>半自動補助</small>
+          </div>
+          <p class="video-storage-note" data-vbt-anchor-note>自動検出が不安定です。動画上で実際のプレート付近を1回タップしてください。タップ周辺から緑枠を自動作成します。</p>
+          <div class="vbt-anchor-guide">
+            <strong>操作</strong>
+            <span>動画上の最大プレートの中心付近を1回タップ</span>
+            <small>細かい四角形調整ではなく、まず「ここがプレート」と教えるだけでOKです。</small>
+          </div>
+          <div class="vbt-wizard-actions three">
+            <button class="text-button" type="button" data-vbt-wizard-step="trim">戻る</button>
+            <button class="text-button" type="button" data-vbt-manual-plate>緑枠で手動調整</button>
+            <button class="primary-button inline vbt-wizard-primary" type="button" data-vbt-anchor-enable>タップ待機中</button>
           </div>
         </section>
 
@@ -3307,7 +3412,11 @@
       autoPlateCandidates: [],
       selectedCandidateIndex: null,
       autoDetectionConfidence: "unknown",
-      autoDetectionMessage: null
+      autoDetectionMessage: null,
+      anchorAssistMode: false,
+      anchorAssistType: null,
+      anchorPoint: null,
+      userAnchorUsed: false
     };
   }
 
@@ -3604,6 +3713,7 @@
     const canvas = event.target.closest("[data-vbt-canvas]");
     if (!dialog || !canvas || !syncVbtCanvas(dialog)) return false;
     const state = vbtState(dialog);
+    if (state.anchorAssistMode) return false;
     if (!state.plateRoi || state.pickMode) return false;
     const point = canvasPointFromEvent(canvas, event);
     const target = roiHitTarget(canvas, state.plateRoi, point);
@@ -3688,8 +3798,13 @@
     const canvas = event.target.closest("[data-vbt-canvas]");
     if (!dialog || !canvas || !syncVbtCanvas(dialog)) return;
     const state = vbtState(dialog);
-    if (!state.pickMode) return;
     const point = canvasPointFromEvent(canvas, event);
+    if (state.anchorAssistMode) {
+      event.preventDefault();
+      applyAnchorAssistPoint(dialog, point);
+      return;
+    }
+    if (!state.pickMode) return;
     const next = {
       path: [],
       trackingConfidence: state.pickMode === "target" ? state.trackingConfidence : "unknown",
@@ -3732,7 +3847,11 @@
       autoPlateCandidates: [],
       selectedCandidateIndex: null,
       autoDetectionConfidence: "unknown",
-      autoDetectionMessage: null
+      autoDetectionMessage: null,
+      anchorAssistMode: false,
+      anchorAssistType: null,
+      anchorPoint: null,
+      userAnchorUsed: false
     });
     const resultBox = dialog.querySelector("[data-vbt-result]");
     if (resultBox) resultBox.innerHTML = vbtResultMarkup(null);
@@ -4484,6 +4603,12 @@
     if (confirmPlate) return confirmAutoDetectedPlate(confirmPlate);
     const manualPlate = event.target.closest("[data-vbt-manual-plate]");
     if (manualPlate) return showManualPlateSelection(manualPlate);
+    const anchorEnable = event.target.closest("[data-vbt-anchor-enable]");
+    if (anchorEnable) {
+      const dialog = anchorEnable.closest("dialog");
+      if (dialog) showAnchorAssistStep(dialog, vbtState(dialog).autoDetectionMessage || "プレート付近を1回タップしてください。");
+      return;
+    }
     const playToggle = event.target.closest("[data-vbt-play-toggle]");
     if (playToggle) return toggleVbtPlayback(playToggle);
     const setTrim = event.target.closest("[data-vbt-set-trim-from-playhead]");
