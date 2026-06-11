@@ -10,6 +10,9 @@
   const VBT_PERSON_SEGMENTATION_ENABLED = true;
   const VBT_TFJS_URL = "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js";
   const VBT_BODYPIX_URL = "https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix@2.2.1/dist/body-pix.min.js";
+  const VBT_DEEP_DETECT_MIN_MS = 14000;
+  const VBT_DEEP_DETECT_FRAME_SIZE = 640;
+  const VBT_DEEP_DETECT_PERSON_SEGMENT_EVERY = 1;
   let bodyPixModelPromise = null;
 
   const GENERAL_RPE_VELOCITY = {
@@ -1985,7 +1988,8 @@
         return {
           xMin: width * 0.03,
           xMax: width * 0.97,
-          yMin: height * 0.28,
+          // DLは床上のプレートが主対象。上部ラック・照明・背景器具を拾いにくくする。
+          yMin: height * 0.38,
           yMax: height * 0.96,
           floorPenaltyY: null,
           name: "deadlift"
@@ -2009,7 +2013,7 @@
       case "BP":
         return { xMin: width * 0.05, xMax: width * 0.95, yMin: height * 0.10, yMax: height * 0.72 };
       case "DL":
-        return { xMin: width * 0.04, xMax: width * 0.96, yMin: height * 0.34, yMax: height * 0.92 };
+        return { xMin: width * 0.04, xMax: width * 0.96, yMin: height * 0.42, yMax: height * 0.92 };
       default:
         return { xMin: width * 0.04, xMax: width * 0.96, yMin: height * 0.10, yMax: height * 0.90 };
     }
@@ -2213,14 +2217,77 @@
     return bodyPixModelPromise;
   }
 
+  function personSegmentationBounds(segmentation, width, height) {
+    if (!segmentation?.data) return null;
+    const data = segmentation.data;
+    const sw = segmentation.width || width;
+    const sh = segmentation.height || height;
+    let xMin = width;
+    let yMin = height;
+    let xMax = 0;
+    let yMax = 0;
+    let hits = 0;
+    const step = 3;
+    for (let y = 0; y < height; y += step) {
+      const sy = clamp(Math.round(y * sh / height), 0, sh - 1);
+      for (let x = 0; x < width; x += step) {
+        const sx = clamp(Math.round(x * sw / width), 0, sw - 1);
+        if (!data[sy * sw + sx]) continue;
+        hits += 1;
+        xMin = Math.min(xMin, x);
+        yMin = Math.min(yMin, y);
+        xMax = Math.max(xMax, x);
+        yMax = Math.max(yMax, y);
+      }
+    }
+    if (!hits || xMax <= xMin || yMax <= yMin) return null;
+    return { xMin, yMin, xMax, yMax, hits, width: xMax - xMin, height: yMax - yMin };
+  }
+
+  function pickBestPersonSegmentation(segmentations, frame) {
+    const list = Array.isArray(segmentations) ? segmentations : [segmentations].filter(Boolean);
+    if (!list.length || !frame?.canvas) return null;
+    const width = frame.canvas.width;
+    const height = frame.canvas.height;
+    let best = null;
+    list.forEach((segmentation) => {
+      const bounds = personSegmentationBounds(segmentation, width, height);
+      if (!bounds) return;
+      const centerX = (bounds.xMin + bounds.xMax) / 2;
+      const centerY = (bounds.yMin + bounds.yMax) / 2;
+      const areaRatio = (bounds.width * bounds.height) / Math.max(1, width * height);
+      const centralScore = 1 - Math.min(1, Math.abs(centerX / width - 0.5) * 1.75);
+      const lowerScore = clamp(centerY / height, 0, 1);
+      const shapeScore = bounds.height > bounds.width * 0.75 ? 1 : 0.62;
+      // 黒ウェアや暗い床に影響されないよう、色ではなく「人物マスクの大きさ・中央性・縦長性」で選ぶ。
+      const score = areaRatio * 120 + centralScore * 34 + lowerScore * 18 + shapeScore * 16;
+      if (!best || score > best.score) best = { segmentation, score, bounds };
+    });
+    return best?.segmentation || null;
+  }
+
   async function segmentPersonFrame(model, frame) {
     if (!model || !frame?.canvas) return null;
     try {
+      // まず複数人物検出を試す。背景の人物や鏡像があるジム環境では、最大人物/中央人物を選ぶ。
+      if (typeof model.segmentMultiPerson === "function") {
+        const people = await model.segmentMultiPerson(frame.canvas, {
+          internalResolution: "high",
+          segmentationThreshold: 0.48,
+          maxDetections: 4,
+          scoreThreshold: 0.12,
+          nmsRadius: 18,
+          minKeypointScore: 0.08,
+          refineSteps: 5
+        });
+        const best = pickBestPersonSegmentation(people, frame);
+        if (best) return best;
+      }
       return await model.segmentPerson(frame.canvas, {
-        internalResolution: "medium",
-        segmentationThreshold: 0.68,
+        internalResolution: "high",
+        segmentationThreshold: 0.48,
         maxDetections: 1,
-        scoreThreshold: 0.25,
+        scoreThreshold: 0.12,
         nmsRadius: 20
       });
     } catch (error) {
@@ -2597,6 +2664,10 @@
           const topPenalty = centerY < height * 0.08 ? 20 : 0;
           const floorPenalty = region.floorPenaltyY && centerY > region.floorPenaltyY ? 115 : 0;
           const bottomTouchPenalty = lift !== "DL" && y + size > height * 0.78 ? 105 : 0;
+          // DLでは対象プレートは床〜膝下付近に出やすい。上部ラック・懸垂バー・照明反射を強く除外する。
+          const deadliftTooHigh = lift === "DL" && centerY < height * 0.40;
+          if (deadliftTooHigh && lifterEvidence.motionScore < 0.42 && crossingScore < 22) continue;
+          const deadliftHighPenalty = lift === "DL" && centerY < height * 0.48 ? 135 : 0;
           const shadowLike = darkRatio > 0.74 && edgeScore < 20;
           const pillarLike = borderScore > 70 && darkRatio < 0.18 && crossingScore < 12;
           const plateLike = darkRatio >= 0.14 && edgeScore >= 14 && borderScore >= 4;
@@ -2620,6 +2691,7 @@
             - topPenalty
             - floorPenalty
             - bottomTouchPenalty
+            - deadliftHighPenalty
             - centerPenalty
             - barPenalty
             - staticBackgroundPenalty
@@ -2701,13 +2773,41 @@
 
   function makeAutoDetectSampleTimes(start, end) {
     const duration = Math.max(0.1, end - start);
-    const count = clamp(Math.round(duration * 1.7), 14, 34);
+    // Qwik VBTのように、少し待ってでも動画全体を丁寧に見る。
+    // 1枚/数枚の静止画判定ではなく、セット全体の時間的一貫性を評価する。
+    const count = clamp(Math.round(duration * 3.2), 28, 84);
     const times = [];
     for (let index = 0; index < count; index += 1) {
       const ratio = count === 1 ? 0 : index / (count - 1);
       times.push(clamp(start + duration * ratio, start, end));
     }
-    return [...new Set(times.map((time) => Number(time.toFixed(3))))];
+    // 開始直後・中央・終盤を必ず含め、動きが少ない/待機がある動画でも候補評価を安定させる。
+    [0.03, 0.10, 0.20, 0.35, 0.50, 0.65, 0.80, 0.90, 0.97].forEach((ratio) => {
+      times.push(clamp(start + duration * ratio, start, end));
+    });
+    return [...new Set(times.map((time) => Number(time.toFixed(3))))].sort((a, b) => a - b);
+  }
+
+  function deepDetectMinimumWaitMs(sampleCount, durationSeconds) {
+    const deviceTouch = typeof navigator !== "undefined" && Number(navigator.maxTouchPoints) > 0;
+    const base = deviceTouch ? 12000 : 9000;
+    const sampleBonus = Math.min(9000, Math.max(0, sampleCount - 30) * 130);
+    const durationBonus = Math.min(6000, Math.max(0, Number(durationSeconds) || 0) * 190);
+    return clamp(base + sampleBonus + durationBonus, 9000, VBT_DEEP_DETECT_MIN_MS + 9000);
+  }
+
+  async function waitForDeepDetectBudget(startedAt, targetMs, progress, message = "検出結果を確認中…") {
+    const elapsed = performance.now() - startedAt;
+    const remaining = Math.max(0, Number(targetMs) - elapsed);
+    if (!remaining) return;
+    const steps = Math.max(4, Math.ceil(remaining / 450));
+    for (let index = 0; index < steps; index += 1) {
+      if (typeof progress === "function") {
+        const percent = 88 + ((index + 1) / steps) * 9;
+        progress(message, percent);
+      }
+      await new Promise((resolve) => setTimeout(resolve, Math.min(550, remaining / steps)));
+    }
   }
 
   function chooseTemporalPlateCandidate(candidates, lift) {
@@ -2931,58 +3031,64 @@
       const state = vbtState(dialog);
       const start = hasFiniteNumber(state.trimStart) ? Number(state.trimStart) : 0;
       const end = hasFiniteNumber(state.trimEnd) ? Number(state.trimEnd) : Number(video.duration || start + 1);
+      const detectStartedAt = performance.now();
       const sampleTimes = makeAutoDetectSampleTimes(start, end);
+      const deepBudgetMs = deepDetectMinimumWaitMs(sampleTimes.length, end - start);
       const sampledFrames = [];
       const segmentedFrames = [];
       const allCandidates = [];
       const personModel = await loadBodyPixModel((message, percent) => updateAutoDetectProgress(dialog, 1, message, percent));
-      updateAutoDetectProgress(dialog, 1, personModel ? "1/6 人物AIでリフター領域を確認中…" : "1/6 人物AIが使えないため動き検出で確認中…", 10);
+      updateAutoDetectProgress(dialog, 1, personModel ? "1/8 人物AIでリフター領域を確認中…" : "1/8 人物AIが使えないため動き検出で確認中…", 8);
       for (let index = 0; index < sampleTimes.length; index += 1) {
         const time = sampleTimes[index];
         await seekVideo(video, time, 2500);
-        const frame = frameCanvas(video, 500);
+        const frame = frameCanvas(video, VBT_DEEP_DETECT_FRAME_SIZE);
         const item = { time, frame };
         sampledFrames.push(item);
-        if (personModel && (index % 2 === 0 || sampleTimes.length <= 16)) {
+        if (personModel && (index % VBT_DEEP_DETECT_PERSON_SEGMENT_EVERY === 0 || sampleTimes.length <= 24)) {
           const segmentation = await segmentPersonFrame(personModel, frame);
           if (segmentation) segmentedFrames.push({ ...item, segmentation });
         }
-        const progress = 10 + ((index + 1) / sampleTimes.length) * 34;
-        updateAutoDetectProgress(dialog, index + 1, personModel ? "1/6 人物AIでリフター領域を確認中…" : "1/6 動いているリフター領域を確認中…", progress);
-        await new Promise((resolve) => setTimeout(resolve, 18));
+        const progress = 8 + ((index + 1) / sampleTimes.length) * 32;
+        updateAutoDetectProgress(dialog, index + 1, personModel ? "1/8 人物AIでリフター領域を確認中…" : "1/8 動いているリフター領域を確認中…", progress);
+        await new Promise((resolve) => setTimeout(resolve, 28));
       }
       const personContext = buildPersonSegmentationContext(segmentedFrames, sampledFrames, record.lift);
       const lifterMotionContext = personContext || buildLifterMotionContext(sampledFrames, record.lift);
       setVbtState(dialog, { autoDetectionMotionContext: lifterMotionContext });
-      updateAutoDetectProgress(dialog, 2, lifterMotionContext?.aiPersonDetected ? "2/6 人物領域の近くでバーベル線を確認中…" : lifterMotionContext ? "2/6 リフター周辺のバーベル線を確認中…" : "2/6 リフター領域が弱いため通常検出も併用中…", 46);
+      updateAutoDetectProgress(dialog, 2, lifterMotionContext?.aiPersonDetected ? "2/8 人物領域と動きの重なりを確認中…" : lifterMotionContext ? "2/8 リフター周辺の動き領域を確認中…" : "2/8 リフター領域が弱いため通常検出も併用中…", 42);
       for (let index = 0; index < sampledFrames.length; index += 1) {
         const { time, frame } = sampledFrames[index];
-        const candidates = detectPlateCandidateFromFrame(frame, { lift: record.lift, returnCandidates: true, maxCandidates: 6, motionContext: lifterMotionContext }) || [];
+        const candidates = detectPlateCandidateFromFrame(frame, { lift: record.lift, returnCandidates: true, maxCandidates: 10, motionContext: lifterMotionContext }) || [];
         candidates.forEach((candidate) => allCandidates.push({ ...candidate, sampleTime: time, sampleIndex: index }));
-        const progress = 42 + ((index + 1) / sampledFrames.length) * 42;
-        const message = index < sampledFrames.length * 0.34
-          ? "3/5 リフター周辺のプレート候補を抽出中…"
-          : index < sampledFrames.length * 0.72
-            ? "4/5 バー接続と動きを照合中…"
-            : "5/5 最も安定した候補を選択中…";
+        const progress = 42 + ((index + 1) / sampledFrames.length) * 40;
+        const message = index < sampledFrames.length * 0.25
+          ? "3/8 バーベル線と候補プレートを抽出中…"
+          : index < sampledFrames.length * 0.50
+            ? "4/8 候補がリフター周辺にあるか照合中…"
+            : index < sampledFrames.length * 0.75
+              ? "5/8 動画内で一緒に動く候補を検証中…"
+              : "6/8 影・床・背景ラックを除外中…";
         updateAutoDetectProgress(dialog, index + 1, message, progress);
         await new Promise((resolve) => setTimeout(resolve, 0));
       }
+      updateAutoDetectProgress(dialog, 7, "7/8 候補を時間的一貫性で再評価中…", 84);
+      await waitForDeepDetectBudget(detectStartedAt, deepBudgetMs, (message, percent) => updateAutoDetectProgress(dialog, 7, message, percent), "7/8 動画全体の候補スコアを再確認中…");
       const candidateList = chooseTemporalPlateCandidates(allCandidates, record.lift, 3);
       const bestCandidate = candidateList[0];
-      updateAutoDetectProgress(dialog, 6, "6/6 検出結果を準備中…", 94);
+      updateAutoDetectProgress(dialog, 8, "8/8 検出結果を準備中…", 98);
       if (!bestCandidate) {
         setVbtState(dialog, {
           autoPlateCandidates: [],
           selectedCandidateIndex: null,
           autoDetectionConfidence: "failed",
-          autoDetectionMessage: "人物AIと動画全体の動きから、リフターが持っているバーベルのプレート候補を見つけられませんでした。手動で最大プレートを囲んでください。"
+          autoDetectionMessage: `人物AIと動画全体の動きから、リフターが持っているバーベルのプレート候補を見つけられませんでした。解析フレーム ${sampleTimes.length}件を確認しました。手動で最大プレートを囲んでください。`
         });
         setVbtWizardStep(dialog, "manual-plate");
         return;
       }
       const lowMessage = "自動検出の信頼度：低。候補を選び、緑枠が最大プレートを囲んでいるか確認してください。";
-      const okMessage = `リフター周辺からプレート候補を${candidateList.length}件見つけました。正しい候補を選び、緑枠が最大プレートを囲んでいれば進んでください。解析フレーム ${bestCandidate.sampleCount || 1}件 / 動き ${(Number(bestCandidate.motionRatio) || 0).toFixed(2)} / 人物AI ${(Number(bestCandidate.personEvidence ?? bestCandidate.lifterEvidence) || 0).toFixed(2)}`;
+      const okMessage = `リフター周辺からプレート候補を${candidateList.length}件見つけました。正しい候補を選び、緑枠が最大プレートを囲んでいれば進んでください。確認フレーム ${sampleTimes.length}件 / 採用フレーム ${bestCandidate.sampleCount || 1}件 / 動き ${(Number(bestCandidate.motionRatio) || 0).toFixed(2)} / 人物AI ${(Number(bestCandidate.personEvidence ?? bestCandidate.lifterEvidence) || 0).toFixed(2)}`;
       setVbtState(dialog, {
         plateRoi: bestCandidate.roi,
         autoPlateCandidate: bestCandidate,
@@ -3062,9 +3168,9 @@
           <div class="vbt-wizard-loading vbt-detect-loading">
             <span class="vbt-loader-orb" aria-hidden="true"></span>
             <strong>プレートを検出中</strong>
-            <p data-vbt-detect-progress>1/4 バーベル線を確認中…</p>
+            <p data-vbt-detect-progress>1/8 リフター領域を確認中…</p>
             <div class="vbt-detect-progress-bar"><span data-vbt-detect-progress-bar style="width: 12%"></span></div>
-            <small>少し時間を使って、動画全体からバーベルと一緒に動くプレートを探します。</small>
+            <small>速度より精度を優先し、動画全体からリフター・バーベル線・プレートの動きの一貫性を確認します。</small>
           </div>
         </section>
 
@@ -3254,12 +3360,12 @@
 
   function getRoiVisualHandleRadius(canvas) {
     const scale = getCanvasVisualScale(canvas);
-    return Math.max(4.5 * scale.x, 3.5);
+    return Math.max(3.2 * scale.x, 2.6);
   }
 
   function getRoiCornerMarkerLength(canvas) {
     const scale = getCanvasVisualScale(canvas);
-    return Math.max(14 * scale.x, 10);
+    return Math.max(10 * scale.x, 7);
   }
 
   function getRoiHitHandleRadius(canvas) {
