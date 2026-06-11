@@ -14,6 +14,8 @@
   const VBT_DEEP_RESULT_ANALYSIS_MIN_MS = 12000;
   const VBT_DEEP_DETECT_FRAME_SIZE = 720;
   const VBT_DEEP_DETECT_PERSON_SEGMENT_EVERY = 1;
+  const VBT_MARKER_ROI_MIN_PX = 18;
+  const VBT_MARKER_ROI_MAX_PX = 54;
   let bodyPixModelPromise = null;
 
   const GENERAL_RPE_VELOCITY = {
@@ -1154,6 +1156,7 @@
   function measurementModeLabel(mode) {
     if (mode === "plate-roi-timeseries") return "プレート追跡";
     if (mode === "plate-roi-track") return "プレートROI追跡";
+    if (mode === "marker-assist-timeseries" || mode === "marker-assist") return "マーカー補助";
     if (mode === "manual-2point") return "手動2点";
     return "中心点追跡β";
   }
@@ -1264,23 +1267,29 @@
     const video = dialog.querySelector("video");
     const state = vbtState(dialog);
     if (!video?.videoWidth || !video?.videoHeight) throw new Error("動画を読み込んでから追跡してください。");
-    if (!state.plateRoi) throw new Error("緑枠をプレート外周に合わせてください。");
+    if (!state.plateRoi && !(state.trackingMode === "marker-assist" && state.markerRoi)) throw new Error("緑枠をプレート外周に合わせるか、マーカー補助でマーカーを指定してください。");
     const start = hasFiniteNumber(state.trimStart) ? Number(state.trimStart) : 0;
     const savedEnd = hasFiniteNumber(state.trimEnd) ? Number(state.trimEnd) : Number(video.duration);
     const end = savedEnd > start + 0.2 ? savedEnd : Number(video.duration);
     if (!Number.isFinite(end) || end <= start + 0.2) throw new Error("測定範囲を少し広げてください。");
     const plateDiameterCm = readPlateDiameterCm(dialog);
-    const plateRoi = clampPlateRoi(state.plateRoi, video.videoWidth, video.videoHeight);
-    const aspectWarning = roiAspectWarning(plateRoi);
+    const markerMode = (state.trackingMode === "marker-assist" || state.trackingMode === "marker-assist-timeseries") && state.markerRoi;
+    const plateRoi = state.plateRoi
+      ? clampPlateRoi(state.plateRoi, video.videoWidth, video.videoHeight)
+      : roiFromAnchorPoint(video, state.markerPoint || roiCenter(state.markerRoi));
+    const trackingRoi = markerMode
+      ? clampPlateRoi(state.markerRoi, video.videoWidth, video.videoHeight)
+      : plateRoi;
+    const aspectWarning = markerMode ? null : roiAspectWarning(plateRoi);
 
     await seekVideo(video, start);
     const first = frameCanvas(video, 320);
     const scale = first.scale;
     const scaledRoi = {
-      x: plateRoi.x * scale,
-      y: plateRoi.y * scale,
-      width: plateRoi.width * scale,
-      height: plateRoi.height * scale
+      x: trackingRoi.x * scale,
+      y: trackingRoi.y * scale,
+      width: trackingRoi.width * scale,
+      height: trackingRoi.height * scale
     };
     const referenceTemplate = sampleGrayRoi(grayFrame(first.ctx), scaledRoi);
     if (!referenceTemplate) throw new Error("緑枠が動画端に近すぎます。少し内側へ移動してください。");
@@ -1289,9 +1298,9 @@
     const sampleCount = clamp(Math.round((end - start) * 24), 40, sampleLimit);
     const rawPath = [];
     let currentRoi = { ...scaledRoi };
-    const searchRadiusX = Math.max(12, scaledRoi.width * 0.75);
-    const searchRadiusY = Math.max(18, scaledRoi.height * 1.25);
-    const step = clamp(Math.round(Math.min(scaledRoi.width, scaledRoi.height) * 0.12), 3, 8);
+    const searchRadiusX = markerMode ? Math.max(20, scaledRoi.width * 2.8) : Math.max(12, scaledRoi.width * 0.75);
+    const searchRadiusY = markerMode ? Math.max(28, scaledRoi.height * 4.2) : Math.max(18, scaledRoi.height * 1.25);
+    const step = markerMode ? clamp(Math.round(Math.min(scaledRoi.width, scaledRoi.height) * 0.18), 2, 6) : clamp(Math.round(Math.min(scaledRoi.width, scaledRoi.height) * 0.12), 3, 8);
 
     for (let i = 0; i <= sampleCount; i += 1) {
       const time = start + ((end - start) * i) / sampleCount;
@@ -1327,7 +1336,10 @@
       });
     }
 
-    const plateDiameterPixels = Math.max(plateRoi.width, plateRoi.height);
+    const markerDiameterEstimate = markerMode && state.markerPoint ? estimatePlateDiameterPixels(video, state.markerPoint) : null;
+    const plateDiameterPixels = markerMode
+      ? (hasFiniteNumber(markerDiameterEstimate) ? Number(markerDiameterEstimate) : Math.max(plateRoi.width, plateRoi.height))
+      : Math.max(plateRoi.width, plateRoi.height);
     const path = smoothTrackPath(smoothTrackingPath(rawPath, plateDiameterPixels));
     const verticalTravelPixels = Math.max(...path.map((point) => point.y)) - Math.min(...path.map((point) => point.y));
     const pathTravelPixels = path.slice(1).reduce((sum, point, index) => sum + pixelDistance(path[index], point), 0);
@@ -1366,9 +1378,9 @@
     ].filter(Boolean).join(" ");
 
     return {
-      mode: "plate-roi-timeseries",
+      mode: markerMode ? "marker-assist-timeseries" : "plate-roi-timeseries",
       analysisMode: "deep-precision-standard",
-      trackingMode: "plate-roi-timeseries",
+      trackingMode: markerMode ? "marker-assist-timeseries" : "plate-roi-timeseries",
       trackingConfidence,
       trackingWarning: trackingWarning || null,
       lift: record.lift,
@@ -1380,17 +1392,22 @@
         plateDiameterPixels,
         metersPerPixel,
         plateRoi,
+        markerRoi: markerMode ? trackingRoi : null,
+        markerPoint: markerMode ? (state.markerPoint || roiCenter(trackingRoi)) : null,
+        markerAssistUsed: Boolean(markerMode),
         roiWidthPixels: plateRoi.width,
         roiHeightPixels: plateRoi.height,
         roiAspectRatio: plateRoi.width / plateRoi.height
       },
       measurement: {
-        mode: "plate-roi-timeseries",
+        mode: markerMode ? "marker-assist-timeseries" : "plate-roi-timeseries",
         analysisMode: "deep-precision-standard",
         lift: record.lift,
         expectedReps: null,
         detectedReps: detectedRepCount,
         startRoi: plateRoi,
+        markerRoi: markerMode ? trackingRoi : null,
+        markerAssistUsed: Boolean(markerMode),
         startTime: start,
         endTime: end,
         durationSeconds,
@@ -3052,7 +3069,10 @@
       autoDetectionMessage: candidate.confidence === "low"
         ? "選択した候補は信頼度が低めです。緑枠が最大プレートを囲んでいるか確認してください。"
         : "選択した候補を緑枠に反映しました。最大プレートを囲んでいれば進んでください。",
-      trackingMode: "plate-roi-track"
+      trackingMode: "plate-roi-track",
+      markerRoi: null,
+      markerPoint: null,
+      markerAssistUsed: false
     });
     const note = dialog.querySelector("[data-vbt-auto-note]");
     if (note) note.textContent = vbtState(dialog).autoDetectionMessage;
@@ -3113,9 +3133,70 @@
     }, video.videoWidth, video.videoHeight);
   }
 
+  function markerRoiFromPoint(video, point) {
+    const base = Math.min(Number(video?.videoWidth) || 1, Number(video?.videoHeight) || 1);
+    const size = clamp(Math.round(base * 0.045), VBT_MARKER_ROI_MIN_PX, VBT_MARKER_ROI_MAX_PX);
+    return clampPlateRoi({
+      x: point.x - size / 2,
+      y: point.y - size / 2,
+      width: size,
+      height: size
+    }, video.videoWidth, video.videoHeight);
+  }
+
+  function applyMarkerAssistPoint(dialog, point) {
+    const video = dialog?.querySelector("video");
+    if (!dialog || !video?.videoWidth || !video?.videoHeight || !point) return;
+    const markerRoi = markerRoiFromPoint(video, point);
+    const calibrationRoi = roiFromAnchorPoint(video, point);
+    setVbtState(dialog, {
+      plateRoi: calibrationRoi,
+      markerRoi,
+      markerPoint: point,
+      anchorPoint: point,
+      anchorAssistMode: false,
+      anchorAssistType: null,
+      userAnchorUsed: true,
+      markerAssistUsed: true,
+      trackingMode: "marker-assist",
+      path: [],
+      autoDetectionConfidence: "marker-anchor",
+      autoDetectionMessage: "マーカー位置を登録しました。緑の大枠は距離換算用、黄色の小枠は追跡用です。ズレがなければ進んでください。",
+      autoPlateCandidate: { roi: calibrationRoi, markerRoi, confidence: "marker-anchor", userAnchor: true, markerAssist: true },
+      autoPlateCandidates: [{ roi: calibrationRoi, markerRoi, confidence: "marker-anchor", userAnchor: true, markerAssist: true, score: 120 }],
+      selectedCandidateIndex: 0
+    });
+    const note = dialog.querySelector("[data-vbt-auto-note]");
+    if (note) note.textContent = vbtState(dialog).autoDetectionMessage;
+    setVbtWizardStep(dialog, "auto-detect-confirm");
+    drawVbtOverlay(dialog);
+    drawRoiPreview(dialog);
+  }
+
+  function startMarkerAssist(button) {
+    const dialog = button?.closest("dialog");
+    if (!dialog) return;
+    setVbtState(dialog, {
+      anchorAssistMode: true,
+      anchorAssistType: "marker",
+      autoDetectionMessage: "白テープ・蛍光テープなど、追跡したい高コントラストマーカーを1回タップしてください。"
+    });
+    const canvas = dialog.querySelector("[data-vbt-canvas]");
+    canvas?.classList.add("active", "roi-active", "anchor-active", "marker-active");
+    const status = dialog.querySelector("[data-vbt-pick-status]");
+    if (status) status.textContent = "マーカーを1回タップしてください。";
+    const guide = dialog.querySelector("[data-vbt-video-guide]");
+    if (guide) guide.textContent = "マーカー補助：白/蛍光テープをタップ";
+    drawVbtOverlay(dialog);
+  }
+
   function applyAnchorAssistPoint(dialog, point) {
     const video = dialog?.querySelector("video");
     if (!dialog || !video?.videoWidth || !video?.videoHeight || !point) return;
+    if (vbtState(dialog).anchorAssistType === "marker") {
+      applyMarkerAssistPoint(dialog, point);
+      return;
+    }
     const roi = roiFromAnchorPoint(video, point);
     setVbtState(dialog, {
       plateRoi: roi,
@@ -3329,6 +3410,7 @@
           <div class="vbt-wizard-actions three">
             <button class="text-button" type="button" data-vbt-wizard-step="trim">戻る</button>
             <button class="text-button" type="button" data-vbt-manual-plate>手動で調整</button>
+            <button class="text-button" type="button" data-vbt-marker-assist>マーカー追跡</button>
             <button class="primary-button inline vbt-wizard-primary" type="button" data-vbt-confirm-plate>見えます</button>
           </div>
         </section>
@@ -3351,9 +3433,11 @@
           </div>
           <div class="vbt-roi-actions">
             <button class="text-button" type="button" data-vbt-roi-init>緑枠を表示</button>
+            <button class="text-button" type="button" data-vbt-marker-assist>マーカー追跡を使う</button>
             <button class="text-button" type="button" data-vbt-wizard-step="trim">戻る</button>
             <button class="primary-button inline" type="button" data-vbt-confirm-plate>このプレートで進む</button>
           </div>
+          <p class="video-storage-note compact vbt-marker-note">白/蛍光テープなどをプレートやスリーブに貼った場合は、マーカー追跡を使うと背景ラックや黒床に吸われにくくなります。</p>
           <details class="vbt-roi-nudge" open>
             <summary>緑枠を微調整</summary>
             <div class="vbt-nudge-grid">
@@ -3561,6 +3645,31 @@
     ];
   }
 
+  function drawMarkerRoi(ctx, roi) {
+    if (!roi) return;
+    const scale = getCanvasVisualScale(ctx.canvas);
+    const center = roiCenter(roi);
+    ctx.save();
+    ctx.strokeStyle = "rgba(250, 204, 21, 0.98)";
+    ctx.fillStyle = "rgba(250, 204, 21, 0.10)";
+    ctx.lineWidth = Math.max(2.2 * scale.x, 1.6);
+    ctx.fillRect(roi.x, roi.y, roi.width, roi.height);
+    ctx.strokeRect(roi.x, roi.y, roi.width, roi.height);
+    ctx.beginPath();
+    ctx.moveTo(center.x - roi.width * 0.28, center.y);
+    ctx.lineTo(center.x + roi.width * 0.28, center.y);
+    ctx.moveTo(center.x, center.y - roi.height * 0.28);
+    ctx.lineTo(center.x, center.y + roi.height * 0.28);
+    ctx.stroke();
+    ctx.font = `900 ${Math.max(10 * scale.x, 11)}px system-ui`;
+    ctx.strokeStyle = "rgba(23, 23, 23, 0.78)";
+    ctx.lineWidth = Math.max(3 * scale.x, 2);
+    ctx.strokeText("MARK", roi.x + 4 * scale.x, Math.max(16 * scale.x, roi.y - 6 * scale.x));
+    ctx.fillStyle = "#fffaf2";
+    ctx.fillText("MARK", roi.x + 4 * scale.x, Math.max(16 * scale.x, roi.y - 6 * scale.x));
+    ctx.restore();
+  }
+
   function drawPlateRoi(ctx, roi) {
     if (!roi) return;
     const scale = getCanvasVisualScale(ctx.canvas);
@@ -3697,7 +3806,7 @@
       ctx.setLineDash([]);
       if (estimatedPath) {
         const anchor = state.path[0];
-        const label = state.trackingMode === "plate-roi-track" || state.trackingMode === "plate-roi-timeseries" ? "プレート軌跡" : "中心点追跡β 参考線";
+        const label = state.trackingMode === "marker-assist" || state.trackingMode === "marker-assist-timeseries" ? "マーカー軌跡" : (state.trackingMode === "plate-roi-track" || state.trackingMode === "plate-roi-timeseries" ? "プレート軌跡" : "中心点追跡β 参考線");
         ctx.font = `900 ${Math.max(13 * scale.x, 16)}px system-ui`;
         ctx.strokeStyle = "rgba(23, 23, 23, 0.82)";
         ctx.lineWidth = Math.max(4 * scale.x, 3);
@@ -3716,6 +3825,7 @@
     drawPoint(ctx, state.endPoint, "終了", "#157f3b");
     if (!state.startPoint && !state.endPoint) drawPoint(ctx, state.targetPoint, "中心", "#b42318");
     drawPlateRoi(ctx, state.plateRoi);
+    drawMarkerRoi(ctx, state.markerRoi);
     drawRoiPreview(dialog);
   }
 
@@ -3887,7 +3997,10 @@
       anchorAssistMode: false,
       anchorAssistType: null,
       anchorPoint: null,
-      userAnchorUsed: false
+      userAnchorUsed: false,
+      markerAssistUsed: false,
+      markerPoint: null,
+      markerRoi: null
     });
     const resultBox = dialog.querySelector("[data-vbt-result]");
     if (resultBox) resultBox.innerHTML = vbtResultMarkup(null);
@@ -3936,7 +4049,10 @@
       endPoint: null,
       path: [],
       trackingConfidence: "unknown",
-      trackingMode: state.plateRoi ? "plate-roi-track" : "manual-2point"
+      trackingMode: state.plateRoi ? "plate-roi-track" : "manual-2point",
+      markerRoi: null,
+      markerPoint: null,
+      markerAssistUsed: false
     });
     if (options.seek === "start") video.currentTime = nextStart;
     if (options.seek === "end") video.currentTime = nextEnd;
@@ -4270,6 +4386,8 @@
         endPoint: mode === "manual-2point" ? velocityData.measurement.endPoint || null : null,
         targetPoint: velocityData.calibration?.targetPoint || null,
         plateRoi: velocityData.calibration?.plateRoi || vbtState(dialog).plateRoi || null,
+        markerRoi: velocityData.calibration?.markerRoi || vbtState(dialog).markerRoi || null,
+        markerPoint: velocityData.calibration?.markerPoint || vbtState(dialog).markerPoint || null,
         path: velocityData.measurement.path || [],
         trackingConfidence: velocityData.trackingConfidence || "unknown",
         trackingMode: velocityData.mode || mode
@@ -4648,6 +4766,8 @@
     if (confirmPlate) return confirmAutoDetectedPlate(confirmPlate);
     const manualPlate = event.target.closest("[data-vbt-manual-plate]");
     if (manualPlate) return showManualPlateSelection(manualPlate);
+    const markerAssist = event.target.closest("[data-vbt-marker-assist]");
+    if (markerAssist) return startMarkerAssist(markerAssist);
     const anchorEnable = event.target.closest("[data-vbt-anchor-enable]");
     if (anchorEnable) {
       const dialog = anchorEnable.closest("dialog");

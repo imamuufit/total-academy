@@ -1,16 +1,356 @@
-diff -ru v178/DIFF v179/DIFF
---- v178/DIFF	2026-06-11 09:59:24.000000000 +0000
-+++ v179/DIFF	2026-06-11 12:35:52.835321804 +0000
-@@ -1,336 +0,0 @@
----- index.html
----- /mnt/data/v178work/index.html	2026-06-11 09:42:41.000000000 +0000
--+++ /mnt/data/v178/index.html	2026-06-11 09:56:57.428294243 +0000
+diff -ru v179_base/DIFF v180/DIFF
+--- v179_base/DIFF	2026-06-11 12:36:14.000000000 +0000
++++ v180/DIFF	2026-06-11 12:36:14.000000000 +0000
+@@ -1,596 +0,0 @@
+-diff -ru v178/DIFF v179/DIFF
+---- v178/DIFF	2026-06-11 09:59:24.000000000 +0000
+-+++ v179/DIFF	2026-06-11 12:35:52.835321804 +0000
+-@@ -1,336 +0,0 @@
+----- index.html
+----- /mnt/data/v178work/index.html	2026-06-11 09:42:41.000000000 +0000
+--+++ /mnt/data/v178/index.html	2026-06-11 09:56:57.428294243 +0000
+--@@ -12,7 +12,7 @@
+--     <link rel="preload" as="image" href="home-bg-lite.jpg">
+--     <link rel="preload" as="image" href="icon-sheet-lite.jpg">
+--     <link rel="apple-touch-icon" href="apple-touch-icon.png">
+---    <link rel="stylesheet" href="styles.css?v=177">
+--+    <link rel="stylesheet" href="styles.css?v=178">
+--   </head>
+--   <body>
+--     <div class="app-shell">
+--@@ -1158,7 +1158,7 @@
+--       </form>
+--     </dialog>
+-- 
+---    <script src="app.js?v=177"></script>
+---    <script src="video.js?v=177"></script>
+--+    <script src="app.js?v=178"></script>
+--+    <script src="video.js?v=178"></script>
+--   </body>
+-- </html>
+--
+----- styles.css
+----- /mnt/data/v178work/styles.css	2026-06-11 09:40:50.000000000 +0000
+--+++ /mnt/data/v178/styles.css	2026-06-11 09:59:02.193627220 +0000
+--@@ -17908,3 +17908,32 @@
+--     min-height: 44px;
+--   }
+-- }
+--+
+--+/* v178: VBT semi-auto anchor assist */
+--+.vbt-anchor-guide {
+--+  border: 1px solid var(--line, #ded6c8);
+--+  border-radius: 14px;
+--+  background: rgba(255,250,242,0.88);
+--+  padding: 12px 14px;
+--+  display: grid;
+--+  gap: 4px;
+--+  margin: 10px 0;
+--+}
+--+.vbt-anchor-guide strong {
+--+  font-size: 0.86rem;
+--+  color: var(--text-main, #171717);
+--+}
+--+.vbt-anchor-guide span {
+--+  font-weight: 900;
+--+  color: var(--text-main, #171717);
+--+}
+--+.vbt-anchor-guide small {
+--+  color: var(--text-sub, #526179);
+--+  font-weight: 700;
+--+}
+--+.vbt-overlay.anchor-active {
+--+  cursor: crosshair;
+--+}
+--+.vbt-overlay.anchor-active::after {
+--+  content: "";
+--+}
+--
+----- video.js
+----- /mnt/data/v178work/video.js	2026-06-11 09:42:40.000000000 +0000
+--+++ /mnt/data/v178/video.js	2026-06-11 09:58:54.742271744 +0000
+--@@ -1897,6 +1897,7 @@
+--     return {
+--       trim: "動画をトリミング",
+--       "auto-detect-loading": "プレートを検出中",
+--+      "anchor-assist": "プレート付近をタップ",
+--       "auto-detect-confirm": "プレートを確認",
+--       "manual-plate": "プレートを指定",
+--       "set-info": "セット情報",
+--@@ -1922,7 +1923,7 @@
+--   }
+-- 
+--   function vbtWizardStepOrder(step) {
+---    const order = ["trim", "auto-detect-loading", "auto-detect-confirm", "manual-plate", "set-info", "analyzing", "result"];
+--+    const order = ["trim", "auto-detect-loading", "anchor-assist", "auto-detect-confirm", "manual-plate", "set-info", "analyzing", "result"];
+--     const index = order.indexOf(step);
+--     return index >= 0 ? index : 0;
+--   }
+--@@ -1941,7 +1942,13 @@
+--       drawVbtOverlay(dialog);
+--       drawRoiPreview(dialog);
+--     }
+--+    if (step === "anchor-assist") {
+--+      setVbtState(dialog, { anchorAssistMode: true, anchorAssistType: "plate" });
+--+      dialog.querySelector("[data-vbt-canvas]")?.classList.add("active", "roi-active", "anchor-active");
+--+      drawVbtOverlay(dialog);
+--+    }
+--     if (step === "auto-detect-confirm") {
+--+      setVbtState(dialog, { anchorAssistMode: false, anchorAssistType: null });
+--       dialog.querySelector("[data-vbt-canvas]")?.classList.add("active", "roi-active");
+--       renderAutoCandidateList(dialog);
+--       drawVbtOverlay(dialog);
+--@@ -3018,6 +3025,83 @@
+--     drawRoiPreview(dialog);
+--   }
+-- 
+--+
+--+  function weakAutoPlateCandidates(candidates) {
+--+    const list = (candidates || []).filter((item) => item?.roi);
+--+    if (!list.length) return true;
+--+    const bestPerson = Math.max(...list.map((item) => Number(item.personEvidence ?? item.lifterEvidence ?? 0) || 0));
+--+    const bestMotion = Math.max(...list.map((item) => Number(item.motionRatio ?? item.motionScore ?? 0) || 0));
+--+    const bestBar = Math.max(...list.map((item) => Number(item.barScore ?? 0) || 0));
+--+    const highConfidence = list.some((item) => item.confidence === "high" && (Number(item.personEvidence ?? item.lifterEvidence ?? 0) > 0.10 || Number(item.motionRatio ?? 0) > 0.58));
+--+    if (highConfidence) return false;
+--+    // 人物AIが全候補0に近い場合は、候補を無理に出さずにユーザーの1タップで探索範囲を教えてもらう。
+--+    if (bestPerson < 0.06 && bestMotion < 0.62) return true;
+--+    // バーらしさだけで候補を出すと、ラックや奥の器具を拾いやすい。
+--+    if (bestPerson < 0.08 && bestBar < 45) return true;
+--+    return false;
+--+  }
+--+
+--+  function showAnchorAssistStep(dialog, message) {
+--+    if (!dialog) return;
+--+    const video = dialog.querySelector("video");
+--+    setVbtState(dialog, {
+--+      anchorAssistMode: true,
+--+      anchorAssistType: "plate",
+--+      anchorPoint: null,
+--+      userAnchorUsed: false,
+--+      autoDetectionConfidence: "anchor-needed",
+--+      autoDetectionMessage: message || "自動検出が不安定です。プレート付近を1回タップすると、その周辺から自動で緑枠を作ります。"
+--+    });
+--+    if (video) video.pause();
+--+    const canvas = dialog.querySelector("[data-vbt-canvas]");
+--+    canvas?.classList.add("active", "roi-active", "anchor-active");
+--+    const note = dialog.querySelector("[data-vbt-anchor-note]");
+--+    if (note) note.textContent = vbtState(dialog).autoDetectionMessage;
+--+    setVbtWizardStep(dialog, "anchor-assist");
+--+  }
+--+
+--+  function estimateAnchorPlateSize(video, point) {
+--+    const detected = estimatePlateDiameterPixels(video, point);
+--+    const base = Math.min(video.videoWidth || 1, video.videoHeight || 1);
+--+    if (hasFiniteNumber(detected)) return clamp(Number(detected), base * 0.10, base * 0.32);
+--+    return clamp(base * 0.18, 52, base * 0.30);
+--+  }
+--+
+--+  function roiFromAnchorPoint(video, point) {
+--+    const size = estimateAnchorPlateSize(video, point);
+--+    return clampPlateRoi({
+--+      x: point.x - size / 2,
+--+      y: point.y - size / 2,
+--+      width: size,
+--+      height: size
+--+    }, video.videoWidth, video.videoHeight);
+--+  }
+--+
+--+  function applyAnchorAssistPoint(dialog, point) {
+--+    const video = dialog?.querySelector("video");
+--+    if (!dialog || !video?.videoWidth || !video?.videoHeight || !point) return;
+--+    const roi = roiFromAnchorPoint(video, point);
+--+    setVbtState(dialog, {
+--+      plateRoi: roi,
+--+      anchorPoint: point,
+--+      anchorAssistMode: false,
+--+      anchorAssistType: null,
+--+      userAnchorUsed: true,
+--+      trackingMode: "plate-roi-track",
+--+      path: [],
+--+      autoDetectionConfidence: "user-anchor",
+--+      autoDetectionMessage: "タップ位置の周辺から緑枠を作りました。最大プレートを囲んでいれば進んでください。ズレていれば微調整してください。",
+--+      autoPlateCandidate: { roi, confidence: "user-anchor", userAnchor: true },
+--+      autoPlateCandidates: [{ roi, confidence: "user-anchor", userAnchor: true, score: 100 }],
+--+      selectedCandidateIndex: 0
+--+    });
+--+    const note = dialog.querySelector("[data-vbt-auto-note]");
+--+    if (note) note.textContent = vbtState(dialog).autoDetectionMessage;
+--+    setVbtWizardStep(dialog, "auto-detect-confirm");
+--+    drawVbtOverlay(dialog);
+--+    drawRoiPreview(dialog);
+--+  }
+--+
+--   async function runAutoPlateDetection(button) {
+--     const dialog = button.closest("dialog");
+--     const video = dialog?.querySelector("video");
+--@@ -3078,13 +3162,16 @@
+--       const bestCandidate = candidateList[0];
+--       updateAutoDetectProgress(dialog, 8, "8/8 検出結果を準備中…", 98);
+--       if (!bestCandidate) {
+--+        showAnchorAssistStep(dialog, `自動検出だけではプレート候補を絞れませんでした。解析フレーム ${sampleTimes.length}件を確認しました。実際のプレート付近を1回タップしてください。`);
+--+        return;
+--+      }
+--+      if (weakAutoPlateCandidates(candidateList)) {
+--         setVbtState(dialog, {
+---          autoPlateCandidates: [],
+--+          autoPlateCandidates: candidateList,
+--           selectedCandidateIndex: null,
+---          autoDetectionConfidence: "failed",
+---          autoDetectionMessage: `人物AIと動画全体の動きから、リフターが持っているバーベルのプレート候補を見つけられませんでした。解析フレーム ${sampleTimes.length}件を確認しました。手動で最大プレートを囲んでください。`
+--+          autoPlateCandidate: null
+--         });
+---        setVbtWizardStep(dialog, "manual-plate");
+--+        showAnchorAssistStep(dialog, `人物AI・動き・バー接続の確信度が低いため、自動候補を採用しませんでした。実際のプレート付近を1回タップしてください。解析フレーム ${sampleTimes.length}件 / 人物AI ${(Number(bestCandidate.personEvidence ?? bestCandidate.lifterEvidence) || 0).toFixed(2)} / 動き ${(Number(bestCandidate.motionRatio) || 0).toFixed(2)}`);
+--         return;
+--       }
+--       const lowMessage = "自動検出の信頼度：低。候補を選び、緑枠が最大プレートを囲んでいるか確認してください。";
+--@@ -3104,9 +3191,9 @@
+--     } catch (error) {
+--       setVbtState(dialog, {
+--         autoDetectionConfidence: "failed",
+---        autoDetectionMessage: error.message || "人物AI・リフター周辺のバーベル線・プレート候補を検出できませんでした。手動で指定してください。"
+--+        autoDetectionMessage: error.message || "人物AI・リフター周辺のバーベル線・プレート候補を検出できませんでした。プレート付近を1回タップしてください。"
+--       });
+---      setVbtWizardStep(dialog, "manual-plate");
+--+      showAnchorAssistStep(dialog, vbtState(dialog).autoDetectionMessage);
+--     } finally {
+--       button.disabled = false;
+--       button.textContent = previousText;
+--@@ -3174,6 +3261,24 @@
+--           </div>
+--         </section>
+-- 
+--+        <section class="vbt-wizard-screen" data-vbt-step="anchor-assist">
+--+          <div class="video-check-head">
+--+            <strong>プレート付近をタップ</strong>
+--+            <small>半自動補助</small>
+--+          </div>
+--+          <p class="video-storage-note" data-vbt-anchor-note>自動検出が不安定です。動画上で実際のプレート付近を1回タップしてください。タップ周辺から緑枠を自動作成します。</p>
+--+          <div class="vbt-anchor-guide">
+--+            <strong>操作</strong>
+--+            <span>動画上の最大プレートの中心付近を1回タップ</span>
+--+            <small>細かい四角形調整ではなく、まず「ここがプレート」と教えるだけでOKです。</small>
+--+          </div>
+--+          <div class="vbt-wizard-actions three">
+--+            <button class="text-button" type="button" data-vbt-wizard-step="trim">戻る</button>
+--+            <button class="text-button" type="button" data-vbt-manual-plate>緑枠で手動調整</button>
+--+            <button class="primary-button inline vbt-wizard-primary" type="button" data-vbt-anchor-enable>タップ待機中</button>
+--+          </div>
+--+        </section>
+--+
+--         <section class="vbt-wizard-screen" data-vbt-step="auto-detect-confirm">
+--           <div class="video-check-head">
+--             <strong>プレートを確認</strong>
+--@@ -3307,7 +3412,11 @@
+--       autoPlateCandidates: [],
+--       selectedCandidateIndex: null,
+--       autoDetectionConfidence: "unknown",
+---      autoDetectionMessage: null
+--+      autoDetectionMessage: null,
+--+      anchorAssistMode: false,
+--+      anchorAssistType: null,
+--+      anchorPoint: null,
+--+      userAnchorUsed: false
+--     };
+--   }
+-- 
+--@@ -3604,6 +3713,7 @@
+--     const canvas = event.target.closest("[data-vbt-canvas]");
+--     if (!dialog || !canvas || !syncVbtCanvas(dialog)) return false;
+--     const state = vbtState(dialog);
+--+    if (state.anchorAssistMode) return false;
+--     if (!state.plateRoi || state.pickMode) return false;
+--     const point = canvasPointFromEvent(canvas, event);
+--     const target = roiHitTarget(canvas, state.plateRoi, point);
+--@@ -3688,8 +3798,13 @@
+--     const canvas = event.target.closest("[data-vbt-canvas]");
+--     if (!dialog || !canvas || !syncVbtCanvas(dialog)) return;
+--     const state = vbtState(dialog);
+---    if (!state.pickMode) return;
+--     const point = canvasPointFromEvent(canvas, event);
+--+    if (state.anchorAssistMode) {
+--+      event.preventDefault();
+--+      applyAnchorAssistPoint(dialog, point);
+--+      return;
+--+    }
+--+    if (!state.pickMode) return;
+--     const next = {
+--       path: [],
+--       trackingConfidence: state.pickMode === "target" ? state.trackingConfidence : "unknown",
+--@@ -3732,7 +3847,11 @@
+--       autoPlateCandidates: [],
+--       selectedCandidateIndex: null,
+--       autoDetectionConfidence: "unknown",
+---      autoDetectionMessage: null
+--+      autoDetectionMessage: null,
+--+      anchorAssistMode: false,
+--+      anchorAssistType: null,
+--+      anchorPoint: null,
+--+      userAnchorUsed: false
+--     });
+--     const resultBox = dialog.querySelector("[data-vbt-result]");
+--     if (resultBox) resultBox.innerHTML = vbtResultMarkup(null);
+--@@ -4484,6 +4603,12 @@
+--     if (confirmPlate) return confirmAutoDetectedPlate(confirmPlate);
+--     const manualPlate = event.target.closest("[data-vbt-manual-plate]");
+--     if (manualPlate) return showManualPlateSelection(manualPlate);
+--+    const anchorEnable = event.target.closest("[data-vbt-anchor-enable]");
+--+    if (anchorEnable) {
+--+      const dialog = anchorEnable.closest("dialog");
+--+      if (dialog) showAnchorAssistStep(dialog, vbtState(dialog).autoDetectionMessage || "プレート付近を1回タップしてください。");
+--+      return;
+--+    }
+--     const playToggle = event.target.closest("[data-vbt-play-toggle]");
+--     if (playToggle) return toggleVbtPlayback(playToggle);
+--     const setTrim = event.target.closest("[data-vbt-set-trim-from-playhead]");
+--
+----- sw.js
+----- /mnt/data/v178work/sw.js	2026-06-11 09:42:41.000000000 +0000
+--+++ /mnt/data/v178/sw.js	2026-06-11 09:56:57.430995854 +0000
+--@@ -1,14 +1,14 @@
+---const CACHE_NAME = "platform-buddy-v177";
+--+const CACHE_NAME = "platform-buddy-v178";
+-- const CORE_ASSETS = [
+--   "./",
+--   "index.html",
+---  "index.html?v=177",
+--+  "index.html?v=178",
+--   "styles.css",
+---  "styles.css?v=177",
+--+  "styles.css?v=178",
+--   "app.js",
+---  "app.js?v=177",
+--+  "app.js?v=178",
+--   "video.js",
+---  "video.js?v=177",
+--+  "video.js?v=178",
+--   "manifest.webmanifest",
+--   "icon.svg",
+--   "apple-touch-icon.png",
+--
+----- manifest.webmanifest
+----- /mnt/data/v178work/manifest.webmanifest	2026-06-11 09:42:41.000000000 +0000
+--+++ /mnt/data/v178/manifest.webmanifest	2026-06-11 09:56:57.431462086 +0000
+--@@ -2,7 +2,7 @@
+--   "name": "Platform Buddy",
+--   "short_name": "Buddy",
+--   "description": "BIG3の現在地と目標を見える化し、PRサイクル、記録、分析、大会準備までつなげるパワーリフティング向けPWAです。",
+---  "start_url": "./index.html?v=177",
+--+  "start_url": "./index.html?v=178",
+--   "scope": "./",
+--   "display": "standalone",
+--   "background_color": "#f4efe6",
+--
+-diff -ru v178/index.html v179/index.html
+---- v178/index.html	2026-06-11 09:56:57.000000000 +0000
+-+++ v179/index.html	2026-06-11 12:35:56.729942176 +0000
 -@@ -12,7 +12,7 @@
 -     <link rel="preload" as="image" href="home-bg-lite.jpg">
 -     <link rel="preload" as="image" href="icon-sheet-lite.jpg">
 -     <link rel="apple-touch-icon" href="apple-touch-icon.png">
---    <link rel="stylesheet" href="styles.css?v=177">
--+    <link rel="stylesheet" href="styles.css?v=178">
+--    <link rel="stylesheet" href="styles.css?v=178">
+-+    <link rel="stylesheet" href="styles.css?v=179">
 -   </head>
 -   <body>
 -     <div class="app-shell">
@@ -18,335 +358,255 @@ diff -ru v178/DIFF v179/DIFF
 -       </form>
 -     </dialog>
 - 
---    <script src="app.js?v=177"></script>
---    <script src="video.js?v=177"></script>
--+    <script src="app.js?v=178"></script>
--+    <script src="video.js?v=178"></script>
+--    <script src="app.js?v=178"></script>
+--    <script src="video.js?v=178"></script>
+-+    <script src="app.js?v=179"></script>
+-+    <script src="video.js?v=179"></script>
 -   </body>
 - </html>
--
----- styles.css
----- /mnt/data/v178work/styles.css	2026-06-11 09:40:50.000000000 +0000
--+++ /mnt/data/v178/styles.css	2026-06-11 09:59:02.193627220 +0000
--@@ -17908,3 +17908,32 @@
--     min-height: 44px;
--   }
-- }
--+
--+/* v178: VBT semi-auto anchor assist */
--+.vbt-anchor-guide {
--+  border: 1px solid var(--line, #ded6c8);
--+  border-radius: 14px;
--+  background: rgba(255,250,242,0.88);
--+  padding: 12px 14px;
--+  display: grid;
--+  gap: 4px;
--+  margin: 10px 0;
--+}
--+.vbt-anchor-guide strong {
--+  font-size: 0.86rem;
--+  color: var(--text-main, #171717);
--+}
--+.vbt-anchor-guide span {
--+  font-weight: 900;
--+  color: var(--text-main, #171717);
--+}
--+.vbt-anchor-guide small {
--+  color: var(--text-sub, #526179);
--+  font-weight: 700;
--+}
--+.vbt-overlay.anchor-active {
--+  cursor: crosshair;
--+}
--+.vbt-overlay.anchor-active::after {
--+  content: "";
--+}
--
----- video.js
----- /mnt/data/v178work/video.js	2026-06-11 09:42:40.000000000 +0000
--+++ /mnt/data/v178/video.js	2026-06-11 09:58:54.742271744 +0000
--@@ -1897,6 +1897,7 @@
--     return {
--       trim: "動画をトリミング",
--       "auto-detect-loading": "プレートを検出中",
--+      "anchor-assist": "プレート付近をタップ",
--       "auto-detect-confirm": "プレートを確認",
--       "manual-plate": "プレートを指定",
--       "set-info": "セット情報",
--@@ -1922,7 +1923,7 @@
--   }
-- 
--   function vbtWizardStepOrder(step) {
---    const order = ["trim", "auto-detect-loading", "auto-detect-confirm", "manual-plate", "set-info", "analyzing", "result"];
--+    const order = ["trim", "auto-detect-loading", "anchor-assist", "auto-detect-confirm", "manual-plate", "set-info", "analyzing", "result"];
--     const index = order.indexOf(step);
--     return index >= 0 ? index : 0;
--   }
--@@ -1941,7 +1942,13 @@
--       drawVbtOverlay(dialog);
--       drawRoiPreview(dialog);
--     }
--+    if (step === "anchor-assist") {
--+      setVbtState(dialog, { anchorAssistMode: true, anchorAssistType: "plate" });
--+      dialog.querySelector("[data-vbt-canvas]")?.classList.add("active", "roi-active", "anchor-active");
--+      drawVbtOverlay(dialog);
--+    }
--     if (step === "auto-detect-confirm") {
--+      setVbtState(dialog, { anchorAssistMode: false, anchorAssistType: null });
--       dialog.querySelector("[data-vbt-canvas]")?.classList.add("active", "roi-active");
--       renderAutoCandidateList(dialog);
--       drawVbtOverlay(dialog);
--@@ -3018,6 +3025,83 @@
--     drawRoiPreview(dialog);
--   }
-- 
--+
--+  function weakAutoPlateCandidates(candidates) {
--+    const list = (candidates || []).filter((item) => item?.roi);
--+    if (!list.length) return true;
--+    const bestPerson = Math.max(...list.map((item) => Number(item.personEvidence ?? item.lifterEvidence ?? 0) || 0));
--+    const bestMotion = Math.max(...list.map((item) => Number(item.motionRatio ?? item.motionScore ?? 0) || 0));
--+    const bestBar = Math.max(...list.map((item) => Number(item.barScore ?? 0) || 0));
--+    const highConfidence = list.some((item) => item.confidence === "high" && (Number(item.personEvidence ?? item.lifterEvidence ?? 0) > 0.10 || Number(item.motionRatio ?? 0) > 0.58));
--+    if (highConfidence) return false;
--+    // 人物AIが全候補0に近い場合は、候補を無理に出さずにユーザーの1タップで探索範囲を教えてもらう。
--+    if (bestPerson < 0.06 && bestMotion < 0.62) return true;
--+    // バーらしさだけで候補を出すと、ラックや奥の器具を拾いやすい。
--+    if (bestPerson < 0.08 && bestBar < 45) return true;
--+    return false;
--+  }
--+
--+  function showAnchorAssistStep(dialog, message) {
--+    if (!dialog) return;
--+    const video = dialog.querySelector("video");
--+    setVbtState(dialog, {
--+      anchorAssistMode: true,
--+      anchorAssistType: "plate",
--+      anchorPoint: null,
--+      userAnchorUsed: false,
--+      autoDetectionConfidence: "anchor-needed",
--+      autoDetectionMessage: message || "自動検出が不安定です。プレート付近を1回タップすると、その周辺から自動で緑枠を作ります。"
--+    });
--+    if (video) video.pause();
--+    const canvas = dialog.querySelector("[data-vbt-canvas]");
--+    canvas?.classList.add("active", "roi-active", "anchor-active");
--+    const note = dialog.querySelector("[data-vbt-anchor-note]");
--+    if (note) note.textContent = vbtState(dialog).autoDetectionMessage;
--+    setVbtWizardStep(dialog, "anchor-assist");
--+  }
--+
--+  function estimateAnchorPlateSize(video, point) {
--+    const detected = estimatePlateDiameterPixels(video, point);
--+    const base = Math.min(video.videoWidth || 1, video.videoHeight || 1);
--+    if (hasFiniteNumber(detected)) return clamp(Number(detected), base * 0.10, base * 0.32);
--+    return clamp(base * 0.18, 52, base * 0.30);
--+  }
--+
--+  function roiFromAnchorPoint(video, point) {
--+    const size = estimateAnchorPlateSize(video, point);
--+    return clampPlateRoi({
--+      x: point.x - size / 2,
--+      y: point.y - size / 2,
--+      width: size,
--+      height: size
--+    }, video.videoWidth, video.videoHeight);
--+  }
--+
--+  function applyAnchorAssistPoint(dialog, point) {
--+    const video = dialog?.querySelector("video");
--+    if (!dialog || !video?.videoWidth || !video?.videoHeight || !point) return;
--+    const roi = roiFromAnchorPoint(video, point);
--+    setVbtState(dialog, {
--+      plateRoi: roi,
--+      anchorPoint: point,
--+      anchorAssistMode: false,
--+      anchorAssistType: null,
--+      userAnchorUsed: true,
--+      trackingMode: "plate-roi-track",
--+      path: [],
--+      autoDetectionConfidence: "user-anchor",
--+      autoDetectionMessage: "タップ位置の周辺から緑枠を作りました。最大プレートを囲んでいれば進んでください。ズレていれば微調整してください。",
--+      autoPlateCandidate: { roi, confidence: "user-anchor", userAnchor: true },
--+      autoPlateCandidates: [{ roi, confidence: "user-anchor", userAnchor: true, score: 100 }],
--+      selectedCandidateIndex: 0
--+    });
--+    const note = dialog.querySelector("[data-vbt-auto-note]");
--+    if (note) note.textContent = vbtState(dialog).autoDetectionMessage;
--+    setVbtWizardStep(dialog, "auto-detect-confirm");
--+    drawVbtOverlay(dialog);
--+    drawRoiPreview(dialog);
--+  }
--+
--   async function runAutoPlateDetection(button) {
--     const dialog = button.closest("dialog");
--     const video = dialog?.querySelector("video");
--@@ -3078,13 +3162,16 @@
--       const bestCandidate = candidateList[0];
--       updateAutoDetectProgress(dialog, 8, "8/8 検出結果を準備中…", 98);
--       if (!bestCandidate) {
--+        showAnchorAssistStep(dialog, `自動検出だけではプレート候補を絞れませんでした。解析フレーム ${sampleTimes.length}件を確認しました。実際のプレート付近を1回タップしてください。`);
--+        return;
--+      }
--+      if (weakAutoPlateCandidates(candidateList)) {
--         setVbtState(dialog, {
---          autoPlateCandidates: [],
--+          autoPlateCandidates: candidateList,
--           selectedCandidateIndex: null,
---          autoDetectionConfidence: "failed",
---          autoDetectionMessage: `人物AIと動画全体の動きから、リフターが持っているバーベルのプレート候補を見つけられませんでした。解析フレーム ${sampleTimes.length}件を確認しました。手動で最大プレートを囲んでください。`
--+          autoPlateCandidate: null
--         });
---        setVbtWizardStep(dialog, "manual-plate");
--+        showAnchorAssistStep(dialog, `人物AI・動き・バー接続の確信度が低いため、自動候補を採用しませんでした。実際のプレート付近を1回タップしてください。解析フレーム ${sampleTimes.length}件 / 人物AI ${(Number(bestCandidate.personEvidence ?? bestCandidate.lifterEvidence) || 0).toFixed(2)} / 動き ${(Number(bestCandidate.motionRatio) || 0).toFixed(2)}`);
--         return;
--       }
--       const lowMessage = "自動検出の信頼度：低。候補を選び、緑枠が最大プレートを囲んでいるか確認してください。";
--@@ -3104,9 +3191,9 @@
--     } catch (error) {
--       setVbtState(dialog, {
--         autoDetectionConfidence: "failed",
---        autoDetectionMessage: error.message || "人物AI・リフター周辺のバーベル線・プレート候補を検出できませんでした。手動で指定してください。"
--+        autoDetectionMessage: error.message || "人物AI・リフター周辺のバーベル線・プレート候補を検出できませんでした。プレート付近を1回タップしてください。"
--       });
---      setVbtWizardStep(dialog, "manual-plate");
--+      showAnchorAssistStep(dialog, vbtState(dialog).autoDetectionMessage);
--     } finally {
--       button.disabled = false;
--       button.textContent = previousText;
--@@ -3174,6 +3261,24 @@
--           </div>
--         </section>
-- 
--+        <section class="vbt-wizard-screen" data-vbt-step="anchor-assist">
--+          <div class="video-check-head">
--+            <strong>プレート付近をタップ</strong>
--+            <small>半自動補助</small>
--+          </div>
--+          <p class="video-storage-note" data-vbt-anchor-note>自動検出が不安定です。動画上で実際のプレート付近を1回タップしてください。タップ周辺から緑枠を自動作成します。</p>
--+          <div class="vbt-anchor-guide">
--+            <strong>操作</strong>
--+            <span>動画上の最大プレートの中心付近を1回タップ</span>
--+            <small>細かい四角形調整ではなく、まず「ここがプレート」と教えるだけでOKです。</small>
--+          </div>
--+          <div class="vbt-wizard-actions three">
--+            <button class="text-button" type="button" data-vbt-wizard-step="trim">戻る</button>
--+            <button class="text-button" type="button" data-vbt-manual-plate>緑枠で手動調整</button>
--+            <button class="primary-button inline vbt-wizard-primary" type="button" data-vbt-anchor-enable>タップ待機中</button>
--+          </div>
--+        </section>
--+
--         <section class="vbt-wizard-screen" data-vbt-step="auto-detect-confirm">
--           <div class="video-check-head">
--             <strong>プレートを確認</strong>
--@@ -3307,7 +3412,11 @@
--       autoPlateCandidates: [],
--       selectedCandidateIndex: null,
--       autoDetectionConfidence: "unknown",
---      autoDetectionMessage: null
--+      autoDetectionMessage: null,
--+      anchorAssistMode: false,
--+      anchorAssistType: null,
--+      anchorPoint: null,
--+      userAnchorUsed: false
--     };
--   }
-- 
--@@ -3604,6 +3713,7 @@
--     const canvas = event.target.closest("[data-vbt-canvas]");
--     if (!dialog || !canvas || !syncVbtCanvas(dialog)) return false;
--     const state = vbtState(dialog);
--+    if (state.anchorAssistMode) return false;
--     if (!state.plateRoi || state.pickMode) return false;
--     const point = canvasPointFromEvent(canvas, event);
--     const target = roiHitTarget(canvas, state.plateRoi, point);
--@@ -3688,8 +3798,13 @@
--     const canvas = event.target.closest("[data-vbt-canvas]");
--     if (!dialog || !canvas || !syncVbtCanvas(dialog)) return;
--     const state = vbtState(dialog);
---    if (!state.pickMode) return;
--     const point = canvasPointFromEvent(canvas, event);
--+    if (state.anchorAssistMode) {
--+      event.preventDefault();
--+      applyAnchorAssistPoint(dialog, point);
--+      return;
--+    }
--+    if (!state.pickMode) return;
--     const next = {
--       path: [],
--       trackingConfidence: state.pickMode === "target" ? state.trackingConfidence : "unknown",
--@@ -3732,7 +3847,11 @@
--       autoPlateCandidates: [],
--       selectedCandidateIndex: null,
--       autoDetectionConfidence: "unknown",
---      autoDetectionMessage: null
--+      autoDetectionMessage: null,
--+      anchorAssistMode: false,
--+      anchorAssistType: null,
--+      anchorPoint: null,
--+      userAnchorUsed: false
--     });
--     const resultBox = dialog.querySelector("[data-vbt-result]");
--     if (resultBox) resultBox.innerHTML = vbtResultMarkup(null);
--@@ -4484,6 +4603,12 @@
--     if (confirmPlate) return confirmAutoDetectedPlate(confirmPlate);
--     const manualPlate = event.target.closest("[data-vbt-manual-plate]");
--     if (manualPlate) return showManualPlateSelection(manualPlate);
--+    const anchorEnable = event.target.closest("[data-vbt-anchor-enable]");
--+    if (anchorEnable) {
--+      const dialog = anchorEnable.closest("dialog");
--+      if (dialog) showAnchorAssistStep(dialog, vbtState(dialog).autoDetectionMessage || "プレート付近を1回タップしてください。");
--+      return;
--+    }
--     const playToggle = event.target.closest("[data-vbt-play-toggle]");
--     if (playToggle) return toggleVbtPlayback(playToggle);
--     const setTrim = event.target.closest("[data-vbt-set-trim-from-playhead]");
--
----- sw.js
----- /mnt/data/v178work/sw.js	2026-06-11 09:42:41.000000000 +0000
--+++ /mnt/data/v178/sw.js	2026-06-11 09:56:57.430995854 +0000
--@@ -1,14 +1,14 @@
---const CACHE_NAME = "platform-buddy-v177";
--+const CACHE_NAME = "platform-buddy-v178";
-- const CORE_ASSETS = [
--   "./",
--   "index.html",
---  "index.html?v=177",
--+  "index.html?v=178",
--   "styles.css",
---  "styles.css?v=177",
--+  "styles.css?v=178",
--   "app.js",
---  "app.js?v=177",
--+  "app.js?v=178",
--   "video.js",
---  "video.js?v=177",
--+  "video.js?v=178",
--   "manifest.webmanifest",
--   "icon.svg",
--   "apple-touch-icon.png",
--
----- manifest.webmanifest
----- /mnt/data/v178work/manifest.webmanifest	2026-06-11 09:42:41.000000000 +0000
--+++ /mnt/data/v178/manifest.webmanifest	2026-06-11 09:56:57.431462086 +0000
+-diff -ru v178/manifest.webmanifest v179/manifest.webmanifest
+---- v178/manifest.webmanifest	2026-06-11 09:56:57.000000000 +0000
+-+++ v179/manifest.webmanifest	2026-06-11 12:35:56.730833779 +0000
 -@@ -2,7 +2,7 @@
 -   "name": "Platform Buddy",
 -   "short_name": "Buddy",
 -   "description": "BIG3の現在地と目標を見える化し、PRサイクル、記録、分析、大会準備までつなげるパワーリフティング向けPWAです。",
---  "start_url": "./index.html?v=177",
--+  "start_url": "./index.html?v=178",
+--  "start_url": "./index.html?v=178",
+-+  "start_url": "./index.html?v=179",
 -   "scope": "./",
 -   "display": "standalone",
 -   "background_color": "#f4efe6",
--
-diff -ru v178/index.html v179/index.html
---- v178/index.html	2026-06-11 09:56:57.000000000 +0000
-+++ v179/index.html	2026-06-11 12:35:56.729942176 +0000
+-diff -ru v178/sw.js v179/sw.js
+---- v178/sw.js	2026-06-11 09:56:57.000000000 +0000
+-+++ v179/sw.js	2026-06-11 12:35:56.730339161 +0000
+-@@ -1,14 +1,14 @@
+--const CACHE_NAME = "platform-buddy-v178";
+-+const CACHE_NAME = "platform-buddy-v179";
+- const CORE_ASSETS = [
+-   "./",
+-   "index.html",
+--  "index.html?v=178",
+-+  "index.html?v=179",
+-   "styles.css",
+--  "styles.css?v=178",
+-+  "styles.css?v=179",
+-   "app.js",
+--  "app.js?v=178",
+-+  "app.js?v=179",
+-   "video.js",
+--  "video.js?v=178",
+-+  "video.js?v=179",
+-   "manifest.webmanifest",
+-   "icon.svg",
+-   "apple-touch-icon.png",
+-diff -ru v178/video.js v179/video.js
+---- v178/video.js	2026-06-11 09:58:54.000000000 +0000
+-+++ v179/video.js	2026-06-11 12:35:54.785417955 +0000
+-@@ -10,8 +10,9 @@
+-   const VBT_PERSON_SEGMENTATION_ENABLED = true;
+-   const VBT_TFJS_URL = "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js";
+-   const VBT_BODYPIX_URL = "https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix@2.2.1/dist/body-pix.min.js";
+--  const VBT_DEEP_DETECT_MIN_MS = 14000;
+--  const VBT_DEEP_DETECT_FRAME_SIZE = 640;
+-+  const VBT_DEEP_DETECT_MIN_MS = 30000;
+-+  const VBT_DEEP_RESULT_ANALYSIS_MIN_MS = 12000;
+-+  const VBT_DEEP_DETECT_FRAME_SIZE = 720;
+-   const VBT_DEEP_DETECT_PERSON_SEGMENT_EVERY = 1;
+-   let bodyPixModelPromise = null;
+- 
+-@@ -810,31 +811,58 @@
+-     const segments = movementSegmentsFromPath(smoothed);
+-     const phases = [];
+-     const limit = Number(expectedReps) > 0 ? Number(expectedReps) : Infinity;
+-+    const yValues = smoothed.map((point) => Number(point.y)).filter(Number.isFinite);
+-+    const yRange = yValues.length ? Math.max(...yValues) - Math.min(...yValues) : 0;
+-+    const minPrimaryTravel = Math.max(8, yRange * 0.24);
+-+    const minReturnTravel = Math.max(6, yRange * 0.18);
+-+    const minRepDuration = lift === "DL" ? 0.22 : 0.18;
+-+    const floorCooldownSeconds = lift === "DL" ? 0.75 : 0.35;
+-+
+-+    const segmentTravel = (segment) => Number(segment?.travel) || Math.abs(Number(smoothed[segment?.endIndex]?.y) - Number(smoothed[segment?.startIndex]?.y));
+-+    const segmentDuration = (segment) => Number(segment?.duration) || (Number(smoothed[segment?.endIndex]?.time) - Number(smoothed[segment?.startIndex]?.time));
+-+    const segmentEndTime = (segment) => Number(segment?.endTime ?? smoothed[segment?.endIndex]?.time);
+-+    const segmentStartTime = (segment) => Number(segment?.startTime ?? smoothed[segment?.startIndex]?.time);
+- 
+-     if (pattern === "bottom-top-bottom") {
+-+      let lastFloorReturnTime = null;
+-+      let lastConcentricTravel = null;
+-       for (let index = 0; index < segments.length && phases.length < limit; index += 1) {
+-         const concentric = segments[index];
+-         if (!concentric || concentric.direction !== -1) continue;
+--        const eccentric = segments.slice(index + 1).find((segment) => segment.direction === 1) || null;
+-+        const conTravel = segmentTravel(concentric);
+-+        const conDuration = segmentDuration(concentric);
+-+        const startsTooSoonAfterFloor = Number.isFinite(lastFloorReturnTime) && (segmentStartTime(concentric) - lastFloorReturnTime) < floorCooldownSeconds;
+-+        const bounceLike = startsTooSoonAfterFloor && conTravel < Math.max(minPrimaryTravel * 1.15, (lastConcentricTravel || minPrimaryTravel) * 0.52);
+-+        if (conTravel < minPrimaryTravel || conDuration < minRepDuration || bounceLike) continue;
+-+
+-+        const eccentricIndex = segments.slice(index + 1).findIndex((segment) => segment.direction === 1 && segmentTravel(segment) >= minReturnTravel);
+-+        const eccentric = eccentricIndex >= 0 ? segments[index + 1 + eccentricIndex] : null;
+-         phases.push({
+-           repIndex: phases.length + 1,
+-           concentric: { startIndex: concentric.startIndex, endIndex: concentric.endIndex },
+-           eccentric: eccentric ? { startIndex: eccentric.startIndex, endIndex: eccentric.endIndex } : null,
+--          restBeforeSeconds: phases.length ? Math.max(0, Number(smoothed[concentric.startIndex].time) - Number(smoothed[phases.at(-1).eccentric?.endIndex ?? phases.at(-1).concentric.endIndex]?.time)) : null
+-+          restBeforeSeconds: phases.length ? Math.max(0, segmentStartTime(concentric) - Number(smoothed[phases.at(-1).eccentric?.endIndex ?? phases.at(-1).concentric.endIndex]?.time)) : null
+-         });
+--        if (eccentric) index = segments.findIndex((segment) => segment.startIndex === eccentric.startIndex);
+-+        lastConcentricTravel = conTravel;
+-+        if (eccentric) {
+-+          lastFloorReturnTime = segmentEndTime(eccentric);
+-+          index = segments.findIndex((segment) => segment.startIndex === eccentric.startIndex);
+-+        } else {
+-+          lastFloorReturnTime = segmentEndTime(concentric);
+-+        }
+-       }
+-     } else {
+-       for (let index = 0; index < segments.length && phases.length < limit; index += 1) {
+-         const eccentric = segments[index];
+-         if (!eccentric || eccentric.direction !== 1) continue;
+--        const concentric = segments.slice(index + 1).find((segment) => segment.direction === -1) || null;
+-+        if (segmentTravel(eccentric) < minReturnTravel || segmentDuration(eccentric) < 0.18) continue;
+-+        const concentric = segments.slice(index + 1).find((segment) => segment.direction === -1 && segmentTravel(segment) >= minPrimaryTravel && segmentDuration(segment) >= minRepDuration) || null;
+-         if (!concentric) continue;
+-         phases.push({
+-           repIndex: phases.length + 1,
+-           eccentric: { startIndex: eccentric.startIndex, endIndex: eccentric.endIndex },
+-           concentric: { startIndex: concentric.startIndex, endIndex: concentric.endIndex },
+--          restBeforeSeconds: phases.length ? Math.max(0, Number(smoothed[eccentric.startIndex].time) - Number(smoothed[phases.at(-1).concentric.endIndex].time)) : null
+-+          restBeforeSeconds: phases.length ? Math.max(0, segmentStartTime(eccentric) - Number(smoothed[phases.at(-1).concentric.endIndex].time)) : null
+-         });
+-         index = segments.findIndex((segment) => segment.startIndex === concentric.startIndex);
+-       }
+-@@ -1258,7 +1286,7 @@
+-     if (!referenceTemplate) throw new Error("緑枠が動画端に近すぎます。少し内側へ移動してください。");
+- 
+-     const sampleLimit = getVbtTrackingSampleLimit();
+--    const sampleCount = clamp(Math.round((end - start) * 15), 18, sampleLimit);
+-+    const sampleCount = clamp(Math.round((end - start) * 24), 40, sampleLimit);
+-     const rawPath = [];
+-     let currentRoi = { ...scaledRoi };
+-     const searchRadiusX = Math.max(12, scaledRoi.width * 0.75);
+-@@ -1339,6 +1367,7 @@
+- 
+-     return {
+-       mode: "plate-roi-timeseries",
+-+      analysisMode: "deep-precision-standard",
+-       trackingMode: "plate-roi-timeseries",
+-       trackingConfidence,
+-       trackingWarning: trackingWarning || null,
+-@@ -1357,6 +1386,7 @@
+-       },
+-       measurement: {
+-         mode: "plate-roi-timeseries",
+-+        analysisMode: "deep-precision-standard",
+-         lift: record.lift,
+-         expectedReps: null,
+-         detectedReps: detectedRepCount,
+-@@ -1438,7 +1468,7 @@
+-     const narrowScreen = typeof window !== "undefined" && window.matchMedia?.("(max-width: 760px)")?.matches;
+-     const touchDevice = typeof navigator !== "undefined" && Number(navigator.maxTouchPoints) > 0;
+-     const compactTouchDevice = touchDevice && typeof window !== "undefined" && Number(window.innerWidth) <= 1024;
+--    return narrowScreen || compactTouchDevice ? 110 : 240;
+-+    return narrowScreen || compactTouchDevice ? 220 : 420;
+-   }
+- 
+-   function seekVideo(video, time, timeoutMs = 2500) {
+-@@ -2224,6 +2254,12 @@
+-     return bodyPixModelPromise;
+-   }
+- 
+-+  function preloadVbtAiModel() {
+-+    if (!VBT_PERSON_SEGMENTATION_ENABLED || bodyPixModelPromise) return;
+-+    // VBTを開いた時点で人物AIを先読みし、解析時に「常駐」に近い状態へ寄せる。
+-+    loadBodyPixModel().catch((error) => console.warn("VBT AI preload failed", error));
+-+  }
+-+
+-   function personSegmentationBounds(segmentation, width, height) {
+-     if (!segmentation?.data) return null;
+-     const data = segmentation.data;
+-@@ -2782,7 +2818,7 @@
+-     const duration = Math.max(0.1, end - start);
+-     // Qwik VBTのように、少し待ってでも動画全体を丁寧に見る。
+-     // 1枚/数枚の静止画判定ではなく、セット全体の時間的一貫性を評価する。
+--    const count = clamp(Math.round(duration * 3.2), 28, 84);
+-+    const count = clamp(Math.round(duration * 5.0), 48, 140);
+-     const times = [];
+-     for (let index = 0; index < count; index += 1) {
+-       const ratio = count === 1 ? 0 : index / (count - 1);
+-@@ -2797,10 +2833,10 @@
+- 
+-   function deepDetectMinimumWaitMs(sampleCount, durationSeconds) {
+-     const deviceTouch = typeof navigator !== "undefined" && Number(navigator.maxTouchPoints) > 0;
+--    const base = deviceTouch ? 12000 : 9000;
+--    const sampleBonus = Math.min(9000, Math.max(0, sampleCount - 30) * 130);
+--    const durationBonus = Math.min(6000, Math.max(0, Number(durationSeconds) || 0) * 190);
+--    return clamp(base + sampleBonus + durationBonus, 9000, VBT_DEEP_DETECT_MIN_MS + 9000);
+-+    const base = VBT_DEEP_DETECT_MIN_MS;
+-+    const sampleBonus = Math.min(5000, Math.max(0, sampleCount - 60) * 70);
+-+    const durationBonus = Math.min(4000, Math.max(0, Number(durationSeconds) || 0) * 120);
+-+    return clamp(base + sampleBonus + durationBonus, VBT_DEEP_DETECT_MIN_MS, VBT_DEEP_DETECT_MIN_MS + 9000);
+-   }
+- 
+-   async function waitForDeepDetectBudget(startedAt, targetMs, progress, message = "検出結果を確認中…") {
+-@@ -3110,7 +3146,7 @@
+-     const previousText = button.textContent;
+-     try {
+-       button.disabled = true;
+--      button.textContent = "検出中...";
+-+      button.textContent = "精密解析中...";
+-       setVbtWizardStep(dialog, "auto-detect-loading");
+-       const state = vbtState(dialog);
+-       const start = hasFiniteNumber(state.trimStart) ? Number(state.trimStart) : 0;
+-@@ -4144,17 +4180,25 @@
+-     if (!record || !dialog || !resultBox) return;
+-     try {
+-       setVbtWizardStep(dialog, "analyzing");
+-+      const analysisStartedAt = performance.now();
+-       button.disabled = true;
+-       button.textContent = "計測中...";
+-       const guide = dialog.querySelector("[data-vbt-video-guide]");
+--      if (guide) guide.textContent = mode === "plate-roi-track" ? "緑枠のプレートを追跡しています" : mode === "manual-2point" ? "開始点と終了点から計算しています" : "中心点を追跡しています";
+-+      if (guide) guide.textContent = "1/8 プレート軌跡を高密度に解析しています";
+-       const videoStatus = dialog.querySelector("[data-vbt-video-status]");
+--      if (videoStatus) videoStatus.textContent = mediaStatusMessage("tracking");
+-+      if (videoStatus) videoStatus.textContent = "精密解析中です。リフター、バー、プレート、軌跡、レップ区間を照合しています。";
+-       const velocityData = mode === "manual-2point"
+-         ? await measureManualTwoPoint(dialog, record)
+-         : mode === "plate-roi-track"
+-           ? await trackPlateTimeSeries(dialog, record)
+-           : await trackPlatePath(dialog, record);
+-+      if (guide) guide.textContent = "6/8 レップ区間と待機時間を分離しています";
+-+      if (videoStatus) videoStatus.textContent = "床バウンド、トップ待機、呼吸区間を除外して速度を整理しています。";
+-+      await waitForDeepDetectBudget(analysisStartedAt, VBT_DEEP_RESULT_ANALYSIS_MIN_MS, (message, percent) => {
+-+        if (guide) guide.textContent = message;
+-+        if (videoStatus) videoStatus.textContent = `精密解析 ${Math.round(percent)}%`;
+-+      }, "7/8 速度とレップ区間を再確認中…");
+-+      if (guide) guide.textContent = "8/8 結果を整理しています";
+-       const status = getVbtAnalysisStatus(velocityData);
+-       Object.assign(velocityData, {
+-         analysisStatus: status.analysisStatus,
+-@@ -4563,9 +4607,10 @@
+-     if (open) {
+-       updateStorageStatus();
+-       renderVbtHistory();
+-+      preloadVbtAiModel();
+-     }
+-   });
+--  els.addMode.addEventListener("click", () => showMode("add"));
+-+  els.addMode.addEventListener("click", () => { showMode("add"); preloadVbtAiModel(); });
+-   els.libraryMode.addEventListener("click", () => showMode("library"));
+-   els.quickMeasure?.addEventListener("click", openLatestForMeasurement);
+-   els.quickCompare?.addEventListener("click", () => {
+diff -ru v179_base/index.html v180/index.html
+--- v179_base/index.html	2026-06-11 12:35:56.000000000 +0000
++++ v180/index.html	2026-06-11 12:43:35.555809581 +0000
 @@ -12,7 +12,7 @@
      <link rel="preload" as="image" href="home-bg-lite.jpg">
      <link rel="preload" as="image" href="icon-sheet-lite.jpg">
      <link rel="apple-touch-icon" href="apple-touch-icon.png">
--    <link rel="stylesheet" href="styles.css?v=178">
-+    <link rel="stylesheet" href="styles.css?v=179">
+-    <link rel="stylesheet" href="styles.css?v=179">
++    <link rel="stylesheet" href="styles.css?v=180">
    </head>
    <body>
      <div class="app-shell">
@@ -354,243 +614,377 @@ diff -ru v178/index.html v179/index.html
        </form>
      </dialog>
  
--    <script src="app.js?v=178"></script>
--    <script src="video.js?v=178"></script>
-+    <script src="app.js?v=179"></script>
-+    <script src="video.js?v=179"></script>
+-    <script src="app.js?v=179"></script>
+-    <script src="video.js?v=179"></script>
++    <script src="app.js?v=180"></script>
++    <script src="video.js?v=180"></script>
    </body>
  </html>
-diff -ru v178/manifest.webmanifest v179/manifest.webmanifest
---- v178/manifest.webmanifest	2026-06-11 09:56:57.000000000 +0000
-+++ v179/manifest.webmanifest	2026-06-11 12:35:56.730833779 +0000
+diff -ru v179_base/manifest.webmanifest v180/manifest.webmanifest
+--- v179_base/manifest.webmanifest	2026-06-11 12:35:56.000000000 +0000
++++ v180/manifest.webmanifest	2026-06-11 12:43:35.557170666 +0000
 @@ -2,7 +2,7 @@
    "name": "Platform Buddy",
    "short_name": "Buddy",
    "description": "BIG3の現在地と目標を見える化し、PRサイクル、記録、分析、大会準備までつなげるパワーリフティング向けPWAです。",
--  "start_url": "./index.html?v=178",
-+  "start_url": "./index.html?v=179",
+-  "start_url": "./index.html?v=179",
++  "start_url": "./index.html?v=180",
    "scope": "./",
    "display": "standalone",
    "background_color": "#f4efe6",
-diff -ru v178/sw.js v179/sw.js
---- v178/sw.js	2026-06-11 09:56:57.000000000 +0000
-+++ v179/sw.js	2026-06-11 12:35:56.730339161 +0000
+diff -ru v179_base/styles.css v180/styles.css
+--- v179_base/styles.css	2026-06-11 12:35:52.000000000 +0000
++++ v180/styles.css	2026-06-11 12:43:51.955887628 +0000
+@@ -17937,3 +17937,17 @@
+ .vbt-overlay.anchor-active::after {
+   content: "";
+ }
++
++/* v180: VBT marker assist mode */
++html body .vbt-marker-note {
++  border-left: 3px solid rgba(250, 204, 21, 0.9);
++  background: rgba(250, 204, 21, 0.08);
++  padding: 8px 10px;
++  border-radius: 10px;
++}
++html body .vbt-overlay.marker-active {
++  cursor: crosshair;
++}
++html body .vbt-wizard-actions.three .text-button[data-vbt-marker-assist] {
++  border-color: rgba(250, 204, 21, 0.45);
++}
+diff -ru v179_base/sw.js v180/sw.js
+--- v179_base/sw.js	2026-06-11 12:35:56.000000000 +0000
++++ v180/sw.js	2026-06-11 12:43:35.556648950 +0000
 @@ -1,14 +1,14 @@
--const CACHE_NAME = "platform-buddy-v178";
-+const CACHE_NAME = "platform-buddy-v179";
+-const CACHE_NAME = "platform-buddy-v179";
++const CACHE_NAME = "platform-buddy-v180";
  const CORE_ASSETS = [
    "./",
    "index.html",
--  "index.html?v=178",
-+  "index.html?v=179",
+-  "index.html?v=179",
++  "index.html?v=180",
    "styles.css",
--  "styles.css?v=178",
-+  "styles.css?v=179",
+-  "styles.css?v=179",
++  "styles.css?v=180",
    "app.js",
--  "app.js?v=178",
-+  "app.js?v=179",
+-  "app.js?v=179",
++  "app.js?v=180",
    "video.js",
--  "video.js?v=178",
-+  "video.js?v=179",
+-  "video.js?v=179",
++  "video.js?v=180",
    "manifest.webmanifest",
    "icon.svg",
    "apple-touch-icon.png",
-diff -ru v178/video.js v179/video.js
---- v178/video.js	2026-06-11 09:58:54.000000000 +0000
-+++ v179/video.js	2026-06-11 12:35:54.785417955 +0000
-@@ -10,8 +10,9 @@
-   const VBT_PERSON_SEGMENTATION_ENABLED = true;
-   const VBT_TFJS_URL = "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js";
-   const VBT_BODYPIX_URL = "https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix@2.2.1/dist/body-pix.min.js";
--  const VBT_DEEP_DETECT_MIN_MS = 14000;
--  const VBT_DEEP_DETECT_FRAME_SIZE = 640;
-+  const VBT_DEEP_DETECT_MIN_MS = 30000;
-+  const VBT_DEEP_RESULT_ANALYSIS_MIN_MS = 12000;
-+  const VBT_DEEP_DETECT_FRAME_SIZE = 720;
+diff -ru v179_base/video.js v180/video.js
+--- v179_base/video.js	2026-06-11 12:35:54.000000000 +0000
++++ v180/video.js	2026-06-11 12:44:34.446944621 +0000
+@@ -14,6 +14,8 @@
+   const VBT_DEEP_RESULT_ANALYSIS_MIN_MS = 12000;
+   const VBT_DEEP_DETECT_FRAME_SIZE = 720;
    const VBT_DEEP_DETECT_PERSON_SEGMENT_EVERY = 1;
++  const VBT_MARKER_ROI_MIN_PX = 18;
++  const VBT_MARKER_ROI_MAX_PX = 54;
    let bodyPixModelPromise = null;
  
-@@ -810,31 +811,58 @@
-     const segments = movementSegmentsFromPath(smoothed);
-     const phases = [];
-     const limit = Number(expectedReps) > 0 ? Number(expectedReps) : Infinity;
-+    const yValues = smoothed.map((point) => Number(point.y)).filter(Number.isFinite);
-+    const yRange = yValues.length ? Math.max(...yValues) - Math.min(...yValues) : 0;
-+    const minPrimaryTravel = Math.max(8, yRange * 0.24);
-+    const minReturnTravel = Math.max(6, yRange * 0.18);
-+    const minRepDuration = lift === "DL" ? 0.22 : 0.18;
-+    const floorCooldownSeconds = lift === "DL" ? 0.75 : 0.35;
-+
-+    const segmentTravel = (segment) => Number(segment?.travel) || Math.abs(Number(smoothed[segment?.endIndex]?.y) - Number(smoothed[segment?.startIndex]?.y));
-+    const segmentDuration = (segment) => Number(segment?.duration) || (Number(smoothed[segment?.endIndex]?.time) - Number(smoothed[segment?.startIndex]?.time));
-+    const segmentEndTime = (segment) => Number(segment?.endTime ?? smoothed[segment?.endIndex]?.time);
-+    const segmentStartTime = (segment) => Number(segment?.startTime ?? smoothed[segment?.startIndex]?.time);
+   const GENERAL_RPE_VELOCITY = {
+@@ -1154,6 +1156,7 @@
+   function measurementModeLabel(mode) {
+     if (mode === "plate-roi-timeseries") return "プレート追跡";
+     if (mode === "plate-roi-track") return "プレートROI追跡";
++    if (mode === "marker-assist-timeseries" || mode === "marker-assist") return "マーカー補助";
+     if (mode === "manual-2point") return "手動2点";
+     return "中心点追跡β";
+   }
+@@ -1264,23 +1267,29 @@
+     const video = dialog.querySelector("video");
+     const state = vbtState(dialog);
+     if (!video?.videoWidth || !video?.videoHeight) throw new Error("動画を読み込んでから追跡してください。");
+-    if (!state.plateRoi) throw new Error("緑枠をプレート外周に合わせてください。");
++    if (!state.plateRoi && !(state.trackingMode === "marker-assist" && state.markerRoi)) throw new Error("緑枠をプレート外周に合わせるか、マーカー補助でマーカーを指定してください。");
+     const start = hasFiniteNumber(state.trimStart) ? Number(state.trimStart) : 0;
+     const savedEnd = hasFiniteNumber(state.trimEnd) ? Number(state.trimEnd) : Number(video.duration);
+     const end = savedEnd > start + 0.2 ? savedEnd : Number(video.duration);
+     if (!Number.isFinite(end) || end <= start + 0.2) throw new Error("測定範囲を少し広げてください。");
+     const plateDiameterCm = readPlateDiameterCm(dialog);
+-    const plateRoi = clampPlateRoi(state.plateRoi, video.videoWidth, video.videoHeight);
+-    const aspectWarning = roiAspectWarning(plateRoi);
++    const markerMode = (state.trackingMode === "marker-assist" || state.trackingMode === "marker-assist-timeseries") && state.markerRoi;
++    const plateRoi = state.plateRoi
++      ? clampPlateRoi(state.plateRoi, video.videoWidth, video.videoHeight)
++      : roiFromAnchorPoint(video, state.markerPoint || roiCenter(state.markerRoi));
++    const trackingRoi = markerMode
++      ? clampPlateRoi(state.markerRoi, video.videoWidth, video.videoHeight)
++      : plateRoi;
++    const aspectWarning = markerMode ? null : roiAspectWarning(plateRoi);
  
-     if (pattern === "bottom-top-bottom") {
-+      let lastFloorReturnTime = null;
-+      let lastConcentricTravel = null;
-       for (let index = 0; index < segments.length && phases.length < limit; index += 1) {
-         const concentric = segments[index];
-         if (!concentric || concentric.direction !== -1) continue;
--        const eccentric = segments.slice(index + 1).find((segment) => segment.direction === 1) || null;
-+        const conTravel = segmentTravel(concentric);
-+        const conDuration = segmentDuration(concentric);
-+        const startsTooSoonAfterFloor = Number.isFinite(lastFloorReturnTime) && (segmentStartTime(concentric) - lastFloorReturnTime) < floorCooldownSeconds;
-+        const bounceLike = startsTooSoonAfterFloor && conTravel < Math.max(minPrimaryTravel * 1.15, (lastConcentricTravel || minPrimaryTravel) * 0.52);
-+        if (conTravel < minPrimaryTravel || conDuration < minRepDuration || bounceLike) continue;
-+
-+        const eccentricIndex = segments.slice(index + 1).findIndex((segment) => segment.direction === 1 && segmentTravel(segment) >= minReturnTravel);
-+        const eccentric = eccentricIndex >= 0 ? segments[index + 1 + eccentricIndex] : null;
-         phases.push({
-           repIndex: phases.length + 1,
-           concentric: { startIndex: concentric.startIndex, endIndex: concentric.endIndex },
-           eccentric: eccentric ? { startIndex: eccentric.startIndex, endIndex: eccentric.endIndex } : null,
--          restBeforeSeconds: phases.length ? Math.max(0, Number(smoothed[concentric.startIndex].time) - Number(smoothed[phases.at(-1).eccentric?.endIndex ?? phases.at(-1).concentric.endIndex]?.time)) : null
-+          restBeforeSeconds: phases.length ? Math.max(0, segmentStartTime(concentric) - Number(smoothed[phases.at(-1).eccentric?.endIndex ?? phases.at(-1).concentric.endIndex]?.time)) : null
-         });
--        if (eccentric) index = segments.findIndex((segment) => segment.startIndex === eccentric.startIndex);
-+        lastConcentricTravel = conTravel;
-+        if (eccentric) {
-+          lastFloorReturnTime = segmentEndTime(eccentric);
-+          index = segments.findIndex((segment) => segment.startIndex === eccentric.startIndex);
-+        } else {
-+          lastFloorReturnTime = segmentEndTime(concentric);
-+        }
-       }
-     } else {
-       for (let index = 0; index < segments.length && phases.length < limit; index += 1) {
-         const eccentric = segments[index];
-         if (!eccentric || eccentric.direction !== 1) continue;
--        const concentric = segments.slice(index + 1).find((segment) => segment.direction === -1) || null;
-+        if (segmentTravel(eccentric) < minReturnTravel || segmentDuration(eccentric) < 0.18) continue;
-+        const concentric = segments.slice(index + 1).find((segment) => segment.direction === -1 && segmentTravel(segment) >= minPrimaryTravel && segmentDuration(segment) >= minRepDuration) || null;
-         if (!concentric) continue;
-         phases.push({
-           repIndex: phases.length + 1,
-           eccentric: { startIndex: eccentric.startIndex, endIndex: eccentric.endIndex },
-           concentric: { startIndex: concentric.startIndex, endIndex: concentric.endIndex },
--          restBeforeSeconds: phases.length ? Math.max(0, Number(smoothed[eccentric.startIndex].time) - Number(smoothed[phases.at(-1).concentric.endIndex].time)) : null
-+          restBeforeSeconds: phases.length ? Math.max(0, segmentStartTime(eccentric) - Number(smoothed[phases.at(-1).concentric.endIndex].time)) : null
-         });
-         index = segments.findIndex((segment) => segment.startIndex === concentric.startIndex);
-       }
-@@ -1258,7 +1286,7 @@
+     await seekVideo(video, start);
+     const first = frameCanvas(video, 320);
+     const scale = first.scale;
+     const scaledRoi = {
+-      x: plateRoi.x * scale,
+-      y: plateRoi.y * scale,
+-      width: plateRoi.width * scale,
+-      height: plateRoi.height * scale
++      x: trackingRoi.x * scale,
++      y: trackingRoi.y * scale,
++      width: trackingRoi.width * scale,
++      height: trackingRoi.height * scale
+     };
+     const referenceTemplate = sampleGrayRoi(grayFrame(first.ctx), scaledRoi);
      if (!referenceTemplate) throw new Error("緑枠が動画端に近すぎます。少し内側へ移動してください。");
- 
-     const sampleLimit = getVbtTrackingSampleLimit();
--    const sampleCount = clamp(Math.round((end - start) * 15), 18, sampleLimit);
-+    const sampleCount = clamp(Math.round((end - start) * 24), 40, sampleLimit);
+@@ -1289,9 +1298,9 @@
+     const sampleCount = clamp(Math.round((end - start) * 24), 40, sampleLimit);
      const rawPath = [];
      let currentRoi = { ...scaledRoi };
-     const searchRadiusX = Math.max(12, scaledRoi.width * 0.75);
-@@ -1339,6 +1367,7 @@
+-    const searchRadiusX = Math.max(12, scaledRoi.width * 0.75);
+-    const searchRadiusY = Math.max(18, scaledRoi.height * 1.25);
+-    const step = clamp(Math.round(Math.min(scaledRoi.width, scaledRoi.height) * 0.12), 3, 8);
++    const searchRadiusX = markerMode ? Math.max(20, scaledRoi.width * 2.8) : Math.max(12, scaledRoi.width * 0.75);
++    const searchRadiusY = markerMode ? Math.max(28, scaledRoi.height * 4.2) : Math.max(18, scaledRoi.height * 1.25);
++    const step = markerMode ? clamp(Math.round(Math.min(scaledRoi.width, scaledRoi.height) * 0.18), 2, 6) : clamp(Math.round(Math.min(scaledRoi.width, scaledRoi.height) * 0.12), 3, 8);
+ 
+     for (let i = 0; i <= sampleCount; i += 1) {
+       const time = start + ((end - start) * i) / sampleCount;
+@@ -1327,7 +1336,10 @@
+       });
+     }
+ 
+-    const plateDiameterPixels = Math.max(plateRoi.width, plateRoi.height);
++    const markerDiameterEstimate = markerMode && state.markerPoint ? estimatePlateDiameterPixels(video, state.markerPoint) : null;
++    const plateDiameterPixels = markerMode
++      ? (hasFiniteNumber(markerDiameterEstimate) ? Number(markerDiameterEstimate) : Math.max(plateRoi.width, plateRoi.height))
++      : Math.max(plateRoi.width, plateRoi.height);
+     const path = smoothTrackPath(smoothTrackingPath(rawPath, plateDiameterPixels));
+     const verticalTravelPixels = Math.max(...path.map((point) => point.y)) - Math.min(...path.map((point) => point.y));
+     const pathTravelPixels = path.slice(1).reduce((sum, point, index) => sum + pixelDistance(path[index], point), 0);
+@@ -1366,9 +1378,9 @@
+     ].filter(Boolean).join(" ");
  
      return {
-       mode: "plate-roi-timeseries",
-+      analysisMode: "deep-precision-standard",
-       trackingMode: "plate-roi-timeseries",
+-      mode: "plate-roi-timeseries",
++      mode: markerMode ? "marker-assist-timeseries" : "plate-roi-timeseries",
+       analysisMode: "deep-precision-standard",
+-      trackingMode: "plate-roi-timeseries",
++      trackingMode: markerMode ? "marker-assist-timeseries" : "plate-roi-timeseries",
        trackingConfidence,
        trackingWarning: trackingWarning || null,
-@@ -1357,6 +1386,7 @@
+       lift: record.lift,
+@@ -1380,17 +1392,22 @@
+         plateDiameterPixels,
+         metersPerPixel,
+         plateRoi,
++        markerRoi: markerMode ? trackingRoi : null,
++        markerPoint: markerMode ? (state.markerPoint || roiCenter(trackingRoi)) : null,
++        markerAssistUsed: Boolean(markerMode),
+         roiWidthPixels: plateRoi.width,
+         roiHeightPixels: plateRoi.height,
+         roiAspectRatio: plateRoi.width / plateRoi.height
        },
        measurement: {
-         mode: "plate-roi-timeseries",
-+        analysisMode: "deep-precision-standard",
+-        mode: "plate-roi-timeseries",
++        mode: markerMode ? "marker-assist-timeseries" : "plate-roi-timeseries",
+         analysisMode: "deep-precision-standard",
          lift: record.lift,
          expectedReps: null,
          detectedReps: detectedRepCount,
-@@ -1438,7 +1468,7 @@
-     const narrowScreen = typeof window !== "undefined" && window.matchMedia?.("(max-width: 760px)")?.matches;
-     const touchDevice = typeof navigator !== "undefined" && Number(navigator.maxTouchPoints) > 0;
-     const compactTouchDevice = touchDevice && typeof window !== "undefined" && Number(window.innerWidth) <= 1024;
--    return narrowScreen || compactTouchDevice ? 110 : 240;
-+    return narrowScreen || compactTouchDevice ? 220 : 420;
+         startRoi: plateRoi,
++        markerRoi: markerMode ? trackingRoi : null,
++        markerAssistUsed: Boolean(markerMode),
+         startTime: start,
+         endTime: end,
+         durationSeconds,
+@@ -3052,7 +3069,10 @@
+       autoDetectionMessage: candidate.confidence === "low"
+         ? "選択した候補は信頼度が低めです。緑枠が最大プレートを囲んでいるか確認してください。"
+         : "選択した候補を緑枠に反映しました。最大プレートを囲んでいれば進んでください。",
+-      trackingMode: "plate-roi-track"
++      trackingMode: "plate-roi-track",
++      markerRoi: null,
++      markerPoint: null,
++      markerAssistUsed: false
+     });
+     const note = dialog.querySelector("[data-vbt-auto-note]");
+     if (note) note.textContent = vbtState(dialog).autoDetectionMessage;
+@@ -3113,9 +3133,70 @@
+     }, video.videoWidth, video.videoHeight);
    }
  
-   function seekVideo(video, time, timeoutMs = 2500) {
-@@ -2224,6 +2254,12 @@
-     return bodyPixModelPromise;
-   }
- 
-+  function preloadVbtAiModel() {
-+    if (!VBT_PERSON_SEGMENTATION_ENABLED || bodyPixModelPromise) return;
-+    // VBTを開いた時点で人物AIを先読みし、解析時に「常駐」に近い状態へ寄せる。
-+    loadBodyPixModel().catch((error) => console.warn("VBT AI preload failed", error));
++  function markerRoiFromPoint(video, point) {
++    const base = Math.min(Number(video?.videoWidth) || 1, Number(video?.videoHeight) || 1);
++    const size = clamp(Math.round(base * 0.045), VBT_MARKER_ROI_MIN_PX, VBT_MARKER_ROI_MAX_PX);
++    return clampPlateRoi({
++      x: point.x - size / 2,
++      y: point.y - size / 2,
++      width: size,
++      height: size
++    }, video.videoWidth, video.videoHeight);
 +  }
 +
-   function personSegmentationBounds(segmentation, width, height) {
-     if (!segmentation?.data) return null;
-     const data = segmentation.data;
-@@ -2782,7 +2818,7 @@
-     const duration = Math.max(0.1, end - start);
-     // Qwik VBTのように、少し待ってでも動画全体を丁寧に見る。
-     // 1枚/数枚の静止画判定ではなく、セット全体の時間的一貫性を評価する。
--    const count = clamp(Math.round(duration * 3.2), 28, 84);
-+    const count = clamp(Math.round(duration * 5.0), 48, 140);
-     const times = [];
-     for (let index = 0; index < count; index += 1) {
-       const ratio = count === 1 ? 0 : index / (count - 1);
-@@ -2797,10 +2833,10 @@
- 
-   function deepDetectMinimumWaitMs(sampleCount, durationSeconds) {
-     const deviceTouch = typeof navigator !== "undefined" && Number(navigator.maxTouchPoints) > 0;
--    const base = deviceTouch ? 12000 : 9000;
--    const sampleBonus = Math.min(9000, Math.max(0, sampleCount - 30) * 130);
--    const durationBonus = Math.min(6000, Math.max(0, Number(durationSeconds) || 0) * 190);
--    return clamp(base + sampleBonus + durationBonus, 9000, VBT_DEEP_DETECT_MIN_MS + 9000);
-+    const base = VBT_DEEP_DETECT_MIN_MS;
-+    const sampleBonus = Math.min(5000, Math.max(0, sampleCount - 60) * 70);
-+    const durationBonus = Math.min(4000, Math.max(0, Number(durationSeconds) || 0) * 120);
-+    return clamp(base + sampleBonus + durationBonus, VBT_DEEP_DETECT_MIN_MS, VBT_DEEP_DETECT_MIN_MS + 9000);
++  function applyMarkerAssistPoint(dialog, point) {
++    const video = dialog?.querySelector("video");
++    if (!dialog || !video?.videoWidth || !video?.videoHeight || !point) return;
++    const markerRoi = markerRoiFromPoint(video, point);
++    const calibrationRoi = roiFromAnchorPoint(video, point);
++    setVbtState(dialog, {
++      plateRoi: calibrationRoi,
++      markerRoi,
++      markerPoint: point,
++      anchorPoint: point,
++      anchorAssistMode: false,
++      anchorAssistType: null,
++      userAnchorUsed: true,
++      markerAssistUsed: true,
++      trackingMode: "marker-assist",
++      path: [],
++      autoDetectionConfidence: "marker-anchor",
++      autoDetectionMessage: "マーカー位置を登録しました。緑の大枠は距離換算用、黄色の小枠は追跡用です。ズレがなければ進んでください。",
++      autoPlateCandidate: { roi: calibrationRoi, markerRoi, confidence: "marker-anchor", userAnchor: true, markerAssist: true },
++      autoPlateCandidates: [{ roi: calibrationRoi, markerRoi, confidence: "marker-anchor", userAnchor: true, markerAssist: true, score: 120 }],
++      selectedCandidateIndex: 0
++    });
++    const note = dialog.querySelector("[data-vbt-auto-note]");
++    if (note) note.textContent = vbtState(dialog).autoDetectionMessage;
++    setVbtWizardStep(dialog, "auto-detect-confirm");
++    drawVbtOverlay(dialog);
++    drawRoiPreview(dialog);
++  }
++
++  function startMarkerAssist(button) {
++    const dialog = button?.closest("dialog");
++    if (!dialog) return;
++    setVbtState(dialog, {
++      anchorAssistMode: true,
++      anchorAssistType: "marker",
++      autoDetectionMessage: "白テープ・蛍光テープなど、追跡したい高コントラストマーカーを1回タップしてください。"
++    });
++    const canvas = dialog.querySelector("[data-vbt-canvas]");
++    canvas?.classList.add("active", "roi-active", "anchor-active", "marker-active");
++    const status = dialog.querySelector("[data-vbt-pick-status]");
++    if (status) status.textContent = "マーカーを1回タップしてください。";
++    const guide = dialog.querySelector("[data-vbt-video-guide]");
++    if (guide) guide.textContent = "マーカー補助：白/蛍光テープをタップ";
++    drawVbtOverlay(dialog);
++  }
++
+   function applyAnchorAssistPoint(dialog, point) {
+     const video = dialog?.querySelector("video");
+     if (!dialog || !video?.videoWidth || !video?.videoHeight || !point) return;
++    if (vbtState(dialog).anchorAssistType === "marker") {
++      applyMarkerAssistPoint(dialog, point);
++      return;
++    }
+     const roi = roiFromAnchorPoint(video, point);
+     setVbtState(dialog, {
+       plateRoi: roi,
+@@ -3329,6 +3410,7 @@
+           <div class="vbt-wizard-actions three">
+             <button class="text-button" type="button" data-vbt-wizard-step="trim">戻る</button>
+             <button class="text-button" type="button" data-vbt-manual-plate>手動で調整</button>
++            <button class="text-button" type="button" data-vbt-marker-assist>マーカー追跡</button>
+             <button class="primary-button inline vbt-wizard-primary" type="button" data-vbt-confirm-plate>見えます</button>
+           </div>
+         </section>
+@@ -3351,9 +3433,11 @@
+           </div>
+           <div class="vbt-roi-actions">
+             <button class="text-button" type="button" data-vbt-roi-init>緑枠を表示</button>
++            <button class="text-button" type="button" data-vbt-marker-assist>マーカー追跡を使う</button>
+             <button class="text-button" type="button" data-vbt-wizard-step="trim">戻る</button>
+             <button class="primary-button inline" type="button" data-vbt-confirm-plate>このプレートで進む</button>
+           </div>
++          <p class="video-storage-note compact vbt-marker-note">白/蛍光テープなどをプレートやスリーブに貼った場合は、マーカー追跡を使うと背景ラックや黒床に吸われにくくなります。</p>
+           <details class="vbt-roi-nudge" open>
+             <summary>緑枠を微調整</summary>
+             <div class="vbt-nudge-grid">
+@@ -3561,6 +3645,31 @@
+     ];
    }
  
-   async function waitForDeepDetectBudget(startedAt, targetMs, progress, message = "検出結果を確認中…") {
-@@ -3110,7 +3146,7 @@
-     const previousText = button.textContent;
-     try {
-       button.disabled = true;
--      button.textContent = "検出中...";
-+      button.textContent = "精密解析中...";
-       setVbtWizardStep(dialog, "auto-detect-loading");
-       const state = vbtState(dialog);
-       const start = hasFiniteNumber(state.trimStart) ? Number(state.trimStart) : 0;
-@@ -4144,17 +4180,25 @@
-     if (!record || !dialog || !resultBox) return;
-     try {
-       setVbtWizardStep(dialog, "analyzing");
-+      const analysisStartedAt = performance.now();
-       button.disabled = true;
-       button.textContent = "計測中...";
-       const guide = dialog.querySelector("[data-vbt-video-guide]");
--      if (guide) guide.textContent = mode === "plate-roi-track" ? "緑枠のプレートを追跡しています" : mode === "manual-2point" ? "開始点と終了点から計算しています" : "中心点を追跡しています";
-+      if (guide) guide.textContent = "1/8 プレート軌跡を高密度に解析しています";
-       const videoStatus = dialog.querySelector("[data-vbt-video-status]");
--      if (videoStatus) videoStatus.textContent = mediaStatusMessage("tracking");
-+      if (videoStatus) videoStatus.textContent = "精密解析中です。リフター、バー、プレート、軌跡、レップ区間を照合しています。";
-       const velocityData = mode === "manual-2point"
-         ? await measureManualTwoPoint(dialog, record)
-         : mode === "plate-roi-track"
-           ? await trackPlateTimeSeries(dialog, record)
-           : await trackPlatePath(dialog, record);
-+      if (guide) guide.textContent = "6/8 レップ区間と待機時間を分離しています";
-+      if (videoStatus) videoStatus.textContent = "床バウンド、トップ待機、呼吸区間を除外して速度を整理しています。";
-+      await waitForDeepDetectBudget(analysisStartedAt, VBT_DEEP_RESULT_ANALYSIS_MIN_MS, (message, percent) => {
-+        if (guide) guide.textContent = message;
-+        if (videoStatus) videoStatus.textContent = `精密解析 ${Math.round(percent)}%`;
-+      }, "7/8 速度とレップ区間を再確認中…");
-+      if (guide) guide.textContent = "8/8 結果を整理しています";
-       const status = getVbtAnalysisStatus(velocityData);
-       Object.assign(velocityData, {
-         analysisStatus: status.analysisStatus,
-@@ -4563,9 +4607,10 @@
-     if (open) {
-       updateStorageStatus();
-       renderVbtHistory();
-+      preloadVbtAiModel();
-     }
-   });
--  els.addMode.addEventListener("click", () => showMode("add"));
-+  els.addMode.addEventListener("click", () => { showMode("add"); preloadVbtAiModel(); });
-   els.libraryMode.addEventListener("click", () => showMode("library"));
-   els.quickMeasure?.addEventListener("click", openLatestForMeasurement);
-   els.quickCompare?.addEventListener("click", () => {
++  function drawMarkerRoi(ctx, roi) {
++    if (!roi) return;
++    const scale = getCanvasVisualScale(ctx.canvas);
++    const center = roiCenter(roi);
++    ctx.save();
++    ctx.strokeStyle = "rgba(250, 204, 21, 0.98)";
++    ctx.fillStyle = "rgba(250, 204, 21, 0.10)";
++    ctx.lineWidth = Math.max(2.2 * scale.x, 1.6);
++    ctx.fillRect(roi.x, roi.y, roi.width, roi.height);
++    ctx.strokeRect(roi.x, roi.y, roi.width, roi.height);
++    ctx.beginPath();
++    ctx.moveTo(center.x - roi.width * 0.28, center.y);
++    ctx.lineTo(center.x + roi.width * 0.28, center.y);
++    ctx.moveTo(center.x, center.y - roi.height * 0.28);
++    ctx.lineTo(center.x, center.y + roi.height * 0.28);
++    ctx.stroke();
++    ctx.font = `900 ${Math.max(10 * scale.x, 11)}px system-ui`;
++    ctx.strokeStyle = "rgba(23, 23, 23, 0.78)";
++    ctx.lineWidth = Math.max(3 * scale.x, 2);
++    ctx.strokeText("MARK", roi.x + 4 * scale.x, Math.max(16 * scale.x, roi.y - 6 * scale.x));
++    ctx.fillStyle = "#fffaf2";
++    ctx.fillText("MARK", roi.x + 4 * scale.x, Math.max(16 * scale.x, roi.y - 6 * scale.x));
++    ctx.restore();
++  }
++
+   function drawPlateRoi(ctx, roi) {
+     if (!roi) return;
+     const scale = getCanvasVisualScale(ctx.canvas);
+@@ -3697,7 +3806,7 @@
+       ctx.setLineDash([]);
+       if (estimatedPath) {
+         const anchor = state.path[0];
+-        const label = state.trackingMode === "plate-roi-track" || state.trackingMode === "plate-roi-timeseries" ? "プレート軌跡" : "中心点追跡β 参考線";
++        const label = state.trackingMode === "marker-assist" || state.trackingMode === "marker-assist-timeseries" ? "マーカー軌跡" : (state.trackingMode === "plate-roi-track" || state.trackingMode === "plate-roi-timeseries" ? "プレート軌跡" : "中心点追跡β 参考線");
+         ctx.font = `900 ${Math.max(13 * scale.x, 16)}px system-ui`;
+         ctx.strokeStyle = "rgba(23, 23, 23, 0.82)";
+         ctx.lineWidth = Math.max(4 * scale.x, 3);
+@@ -3716,6 +3825,7 @@
+     drawPoint(ctx, state.endPoint, "終了", "#157f3b");
+     if (!state.startPoint && !state.endPoint) drawPoint(ctx, state.targetPoint, "中心", "#b42318");
+     drawPlateRoi(ctx, state.plateRoi);
++    drawMarkerRoi(ctx, state.markerRoi);
+     drawRoiPreview(dialog);
+   }
+ 
+@@ -3887,7 +3997,10 @@
+       anchorAssistMode: false,
+       anchorAssistType: null,
+       anchorPoint: null,
+-      userAnchorUsed: false
++      userAnchorUsed: false,
++      markerAssistUsed: false,
++      markerPoint: null,
++      markerRoi: null
+     });
+     const resultBox = dialog.querySelector("[data-vbt-result]");
+     if (resultBox) resultBox.innerHTML = vbtResultMarkup(null);
+@@ -3936,7 +4049,10 @@
+       endPoint: null,
+       path: [],
+       trackingConfidence: "unknown",
+-      trackingMode: state.plateRoi ? "plate-roi-track" : "manual-2point"
++      trackingMode: state.plateRoi ? "plate-roi-track" : "manual-2point",
++      markerRoi: null,
++      markerPoint: null,
++      markerAssistUsed: false
+     });
+     if (options.seek === "start") video.currentTime = nextStart;
+     if (options.seek === "end") video.currentTime = nextEnd;
+@@ -4270,6 +4386,8 @@
+         endPoint: mode === "manual-2point" ? velocityData.measurement.endPoint || null : null,
+         targetPoint: velocityData.calibration?.targetPoint || null,
+         plateRoi: velocityData.calibration?.plateRoi || vbtState(dialog).plateRoi || null,
++        markerRoi: velocityData.calibration?.markerRoi || vbtState(dialog).markerRoi || null,
++        markerPoint: velocityData.calibration?.markerPoint || vbtState(dialog).markerPoint || null,
+         path: velocityData.measurement.path || [],
+         trackingConfidence: velocityData.trackingConfidence || "unknown",
+         trackingMode: velocityData.mode || mode
+@@ -4648,6 +4766,8 @@
+     if (confirmPlate) return confirmAutoDetectedPlate(confirmPlate);
+     const manualPlate = event.target.closest("[data-vbt-manual-plate]");
+     if (manualPlate) return showManualPlateSelection(manualPlate);
++    const markerAssist = event.target.closest("[data-vbt-marker-assist]");
++    if (markerAssist) return startMarkerAssist(markerAssist);
+     const anchorEnable = event.target.closest("[data-vbt-anchor-enable]");
+     if (anchorEnable) {
+       const dialog = anchorEnable.closest("dialog");
