@@ -1,5 +1,4 @@
 index.html
-styles.css
 video.js
 sw.js
 manifest.webmanifest
