@@ -1,6 +1,9 @@
-v183.11-vbt-rep-count-guard-dl-bounce-filter
+platform-buddy v183.12 changed files
 
-Changed files:
+Base:
+- platform-buddy-v183.11-vbt-rep-count-guard-dl-bounce-filter-changed-files.zip
+
+Changed:
 - video.js
 - sw.js
 - manifest.webmanifest
@@ -8,11 +11,10 @@ Changed files:
 - DIFF
 
 Summary:
-- 入力Rep数をVBTレップ区間検出の最終採用条件に使用。
-- DL x2 の動画で、4/4 や 5/5 として保存される誤認定を防ぐ安全装置を追加。
-- DLの有効Repに最小ROM・最小挙上時間・速度外れ値ゲートを追加。
-- 9〜20cm程度の小さい上下動を床バウンド/微細揺れ/追跡ズレとして除外。
-- 検出候補が入力Rep数を超えた場合、ROM・速度・時間の整合が良い上位Repだけを採用。
-- 測定データに detectedBeforeFilter / excludedRepCount / excludedRepMetrics を保存。
-- 結果警告に除外候補数を表示。
-- PWAキャッシュを v183.11 に更新。
+- Replaced the user-facing plate ROI square with a center-dot anchor + thin diameter ring display.
+- Canvas tap/drag now sets the plate center point directly.
+- Tracking uses trackingAnchorPoint as the primary plate center reference.
+- Visual ring/hidden tracking window remains tied to locked plate diameter pixels; ROI size is no longer user-facing.
+- Removed normal width/height nudge buttons from the manual correction UI.
+- Kept plate diameter cm input and locked pixel-diameter calibration separated from the visible center point.
+- Updated PWA cache/version to v183.12.

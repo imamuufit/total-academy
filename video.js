@@ -24,7 +24,7 @@
   const VBT_MULTI_TRACKER_HISTOGRAM_WEIGHT = 0.18;
   const VBT_MULTI_TRACKER_MOTION_WEIGHT = 0.14;
   const VBT_MULTI_TRACKER_PREDICTION_WEIGHT = 0.08;
-  const VBT_DEBUG_TRACE_VERSION = "v183.11-rep-count-guard-dl-bounce-filter";
+  const VBT_DEBUG_TRACE_VERSION = "v183.12-center-dot-anchor";
   const VBT_DEBUG_MONTAGE_PANELS = 5;
   const VBT_DL_MIN_VALID_ROM_M = 0.30;
   const VBT_DL_SOFT_MIN_VALID_ROM_M = 0.24;
@@ -294,12 +294,12 @@
         displayableResult: false,
         profileEligible: false,
         warningType: "no-result",
-        warningMessage: "解析結果を取得できませんでした。緑枠と動画範囲を確認してください。"
+        warningMessage: "解析結果を取得できませんでした。中心点と動画範囲を確認してください。"
       };
     }
     if (trackingConfidence === "low") warnings.push("追跡信頼度が低めです。結果は参考値として扱ってください。");
     if (existingWarning) warnings.push(String(existingWarning));
-    if (detectedReps <= 0 && !repMetrics.length) warnings.push("レップ検出ができていません。動画範囲または緑枠を確認してください。");
+    if (detectedReps <= 0 && !repMetrics.length) warnings.push("レップ検出ができていません。動画範囲または中心点を確認してください。");
     if (expectedReps > 0 && detectedReps > 0 && detectedReps !== expectedReps) warnings.push(`検出レップ数は${detectedReps}/${expectedReps}です。`);
     if (Number.isFinite(lastRepVelocity) && lastRepVelocity < 0.08) warnings.push("最終レップ速度がかなり低く出ています。追跡ズレを確認してください。");
     else if (Number.isFinite(lastRepVelocity) && lastRepVelocity < 0.10) warnings.push("最終レップ速度が低めです。結果は保存し、要確認として扱います。");
@@ -650,7 +650,7 @@
         return {
           title: "立位スタートのプレートを囲む",
           shortGuide: "スクワットはトップから始まり、下降→挙上を解析します。",
-          detailGuide: "ボトムを最初に指定する必要はありません。立位スタート時のプレートを緑枠で囲んでください。",
+          detailGuide: "ボトムを最初に指定する必要はありません。立位スタート時のプレートを中心点で囲んでください。",
           movementPattern: "top-bottom-top"
         };
       case "BP":
@@ -664,7 +664,7 @@
         return {
           title: "床位置のプレートを囲む",
           shortGuide: "デッドリフトは床から始まり、挙上→下降を解析します。",
-          detailGuide: "床にあるプレートを緑枠で囲んでください。床からロックアウトまでを挙上として解析します。",
+          detailGuide: "床にあるプレートを中心点で囲んでください。床からロックアウトまでを挙上として解析します。",
           movementPattern: "bottom-top-bottom"
         };
       default:
@@ -1168,9 +1168,9 @@
 
   function validateRepDetection(metrics, expectedReps) {
     const detected = metrics?.length || 0;
-    if (!detected) return "レップ検出が不安定です。緑枠がプレートから外れていないか確認してください。";
+    if (!detected) return "レップ検出が不安定です。中心点がプレートから外れていないか確認してください。";
     if (Number(expectedReps) > 0 && detected !== Number(expectedReps)) {
-      return `検出レップ数は${detected}/${Number(expectedReps)}です。トリミング範囲と緑枠を確認してください。`;
+      return `検出レップ数は${detected}/${Number(expectedReps)}です。トリミング範囲と中心点を確認してください。`;
     }
     const warning = metrics.find((metric) => metric.qualityWarning || metric.warning);
     return warning?.qualityWarning || warning?.warning || null;
@@ -1257,6 +1257,7 @@
     if (mode === "multi-tracker-timeseries") return "複数トラッカー追跡";
     if (mode === "plate-roi-timeseries") return "プレート追跡";
     if (mode === "plate-roi-track") return "プレートROI追跡";
+    if (mode === "plate-center-anchor") return "中心点アンカー追跡";
     if (mode === "marker-assist-timeseries" || mode === "marker-assist") return "マーカー補助（非推奨）";
     if (mode === "manual-2point") return "手動2点";
     return "中心点追跡β";
@@ -1325,7 +1326,7 @@
     if (!roi?.width || !roi?.height) return null;
     const ratio = roi.width / roi.height;
     return ratio < 0.65 || ratio > 1.55
-      ? "緑枠が大きく歪んでいます。できるだけプレート外周に合わせてください。"
+      ? "中心点が大きく歪んでいます。できるだけプレート外周に合わせてください。"
       : null;
   }
 
@@ -1522,7 +1523,7 @@
     const video = dialog.querySelector("video");
     const state = vbtState(dialog);
     if (!video?.videoWidth || !video?.videoHeight) throw new Error("動画を読み込んでから追跡してください。");
-    if (!state.plateRoi && !(state.trackingMode === "marker-assist" && state.markerRoi)) throw new Error("緑枠をプレート外周に合わせてください。自動検出が不安定な場合は、プレート付近を1回タップして補助してください。");
+    if (!state.plateRoi && !(state.trackingMode === "marker-assist" && state.markerRoi)) throw new Error("中心点をプレート外周に合わせてください。自動検出が不安定な場合は、プレート付近を1回タップして補助してください。");
     const start = hasFiniteNumber(state.trimStart) ? Number(state.trimStart) : 0;
     const savedEnd = hasFiniteNumber(state.trimEnd) ? Number(state.trimEnd) : Number(video.duration);
     const end = savedEnd > start + 0.2 ? savedEnd : Number(video.duration);
@@ -1565,7 +1566,7 @@
     }
     const firstGray = grayFrame(first.ctx);
     const reference = buildMultiTrackerReference(firstGray, scaledRoi);
-    if (!reference?.template) throw new Error("緑枠が動画端に近すぎます。少し内側へ移動してください。");
+    if (!reference?.template) throw new Error("中心点が動画端に近すぎます。少し内側へ移動してください。");
 
     const sampleLimit = getVbtTrackingSampleLimit();
     const sampleCount = clamp(Math.round((end - start) * 18), 36, sampleLimit);
@@ -1623,7 +1624,7 @@
     const verticalTravelPixels = Math.max(...path.map((point) => point.y)) - Math.min(...path.map((point) => point.y));
     const pathTravelPixels = path.slice(1).reduce((sum, point, index) => sum + pixelDistance(path[index], point), 0);
     if (verticalTravelPixels < Math.max(3, plateDiameterPixels * 0.035)) {
-      throw new Error("プレートの上下移動を捉えられませんでした。緑枠と測定範囲を確認してください。");
+      throw new Error("プレートの上下移動を捉えられませんでした。中心点と測定範囲を確認してください。");
     }
     const metersPerPixel = (plateDiameterCm / 100) / plateDiameterPixels;
     const expectedReps = expectedRepCountFromRecord(record);
@@ -1891,7 +1892,7 @@
     });
     const warning = measurementWarning({ durationSeconds, distanceMeters, meanVelocity, reps: record.reps });
     const trackingWarning = trackingConfidence === "low"
-      ? "追跡の信頼度が低いです。緑枠を見直すか、手動2点で確認してください。"
+      ? "追跡の信頼度が低いです。中心点を見直すか、手動2点で確認してください。"
       : warning || null;
     return {
       mode: "center-point-beta",
@@ -2022,7 +2023,7 @@
     return `
       <section class="vbt-error-card">
         <strong>解析できませんでした</strong>
-        <p>${escapeHtml(status.warningMessage || "動画範囲と緑枠を確認して、もう一度解析してください。")}</p>
+        <p>${escapeHtml(status.warningMessage || "動画範囲と中心点を確認して、もう一度解析してください。")}</p>
       </section>
     `;
   }
@@ -3095,12 +3096,13 @@
     const source = state?.calibrationSource === "manual-lock" ? "手動固定"
       : state?.calibrationSource === "auto-candidate" ? "自動候補"
         : state?.calibrationSource === "user-anchor" ? "タップ補助"
-          : state?.calibrationSource || "固定";
+          : state?.calibrationSource === "center-dot" ? "中心点"
+            : state?.calibrationSource || "固定";
     return `換算基準 ${Math.round(pixels)}px / ${Number(plateDiameterCm).toFixed(1)}cm / ${source} / ${(metersPerPixel * 1000).toFixed(2)}mm/px / ROIサイズ非連動`;
   }
 
   function normalizePlateRoiForTracking(dialog, roi, video) {
-    // 緑枠ROIは「ユーザーが見ている候補位置」。解析時の追跡窓・距離換算とは分離する。
+    // 中心点ROIは「ユーザーが見ている候補位置」。解析時の追跡窓・距離換算とは分離する。
     return clampPlateRoi(roi, video.videoWidth, video.videoHeight);
   }
 
@@ -3109,7 +3111,7 @@
     const locked = Number(lockedPixels || getLockedPlateDiameterPixels(state, roi));
     if (!Number.isFinite(locked) || locked <= 20) return clampPlateRoi(roi, video.videoWidth, video.videoHeight);
     const center = getTrackingAnchorPoint(state, roi);
-    // v183.09: 緑枠のサイズではなく「固定直径px + 中心点」から追跡窓を再生成する。
+    // v183.09: 中心点のサイズではなく「固定直径px + 中心点」から追跡窓を再生成する。
     // これにより、ROIを大きく/小さくしても速度換算・追跡窓サイズが変わらない。
     const ratio = lift === "DL" ? 0.96 : 0.92;
     const minSize = Math.max(28, locked * 0.72);
@@ -3140,6 +3142,33 @@
     const anchor = state?.trackingAnchorPoint || state?.plateCenterPoint || state?.autoPlateCandidate?.trackingAnchorPoint || null;
     if (anchor && hasFiniteNumber(anchor.x) && hasFiniteNumber(anchor.y)) return { x: Number(anchor.x), y: Number(anchor.y) };
     return roiCenter(roi || state?.plateRoi);
+  }
+
+  function setPlateCenterAnchor(dialog, point, source = "center-dot") {
+    const video = dialog?.querySelector("video");
+    if (!dialog || !video?.videoWidth || !video?.videoHeight || !point) return null;
+    const state = vbtState(dialog);
+    const safePoint = {
+      x: clamp(Number(point.x) || 0, 0, video.videoWidth),
+      y: clamp(Number(point.y) || 0, 0, video.videoHeight)
+    };
+    // v183.12: 表示UIは丸い中心点。内部の追跡窓と換算直径pxは別管理。
+    const existingPixels = getLockedPlateDiameterPixels(state, state?.plateRoi);
+    const estimatedPixels = estimateAnchorPlateSize(video, safePoint);
+    const calibrationPixels = Number.isFinite(existingPixels) && existingPixels > 20 ? existingPixels : estimatedPixels;
+    const visualRoi = lockedVisualRoiFromCenter({ ...state, calibrationPlateDiameterPixels: calibrationPixels, plateRoiLockedDiameterPixels: calibrationPixels }, safePoint, video, state?.record?.lift || "DL", state?.plateRoi)
+      || roiFromAnchorPoint(video, safePoint);
+    setVbtState(dialog, {
+      plateRoi: visualRoi,
+      trackingAnchorPoint: safePoint,
+      plateCenterPoint: safePoint,
+      calibrationPlateDiameterPixels: calibrationPixels,
+      plateRoiLockedDiameterPixels: calibrationPixels,
+      calibrationSource: source,
+      path: [],
+      trackingMode: "plate-center-anchor"
+    });
+    return { point: safePoint, roi: visualRoi, calibrationPixels };
   }
 
   function lockedVisualRoiFromCenter(state, center, video, lift = "SQ", fallbackRoi = null) {
@@ -4349,7 +4378,7 @@
     const state = vbtState(dialog);
     const candidates = Array.isArray(state.autoPlateCandidates) ? state.autoPlateCandidates : [];
     if (!candidates.length) {
-      list.innerHTML = `<p class="video-storage-note compact">候補が少ないため、緑枠を確認してズレていれば手動で調整してください。</p>`;
+      list.innerHTML = `<p class="video-storage-note compact">候補が少ないため、中心点を確認してズレていれば手動で調整してください。</p>`;
       return;
     }
     list.innerHTML = `
@@ -4390,8 +4419,8 @@
       autoPlateCandidate: { ...candidate, trackingAnchorPoint: anchor, calibrationDiameterPixels: calibrationPixels, lockedDiameterPixels: calibrationPixels },
       autoDetectionConfidence: candidate.confidence || "low",
       autoDetectionMessage: candidate.confidence === "low"
-        ? "選択した候補は信頼度が低めです。緑枠が最大プレートを囲んでいるか確認してください。"
-        : "選択した候補を緑枠に反映しました。最大プレートを囲んでいれば進んでください。",
+        ? "選択した候補は信頼度が低めです。中心点が最大プレートを囲んでいるか確認してください。"
+        : "選択した候補を中心点に反映しました。最大プレートを囲んでいれば進んでください。",
       trackingMode: "plate-roi-track",
       markerRoi: null,
       markerPoint: null,
@@ -4441,7 +4470,7 @@
       anchorPoint: null,
       userAnchorUsed: false,
       autoDetectionConfidence: "anchor-needed",
-      autoDetectionMessage: message || "自動検出が不安定です。プレート付近を1回タップすると、その周辺から自動で緑枠を作ります。"
+      autoDetectionMessage: message || "自動検出が不安定です。プレート付近を1回タップすると、その周辺から自動で中心点を作ります。"
     });
     if (video) video.pause();
     const canvas = dialog.querySelector("[data-vbt-canvas]");
@@ -4546,7 +4575,7 @@
       trackingMode: "plate-roi-track",
       path: [],
       autoDetectionConfidence: "user-anchor",
-      autoDetectionMessage: "タップ位置の周辺から緑枠を作りました。最大プレートを囲んでいれば進んでください。ズレていれば微調整してください。",
+      autoDetectionMessage: "タップ位置の周辺から中心点を作りました。最大プレートを囲んでいれば進んでください。ズレていれば微調整してください。",
       autoPlateCandidate: { roi, confidence: "user-anchor", userAnchor: true, calibrationDiameterPixels: calibrationPixels },
       autoPlateCandidates: [{ roi, confidence: "user-anchor", userAnchor: true, score: 100, calibrationDiameterPixels: calibrationPixels }],
       selectedCandidateIndex: 0
@@ -4679,8 +4708,8 @@
         showAnchorAssistStep(dialog, message);
         return;
       }
-      const lowMessage = "自動検出の信頼度：低。候補を選び、緑枠が最大プレートを囲んでいるか確認してください。";
-      const okMessage = `プレートの外周形状とバー接続から候補を${candidateList.length}件見つけました。正しい候補を選び、緑枠が最大プレートを囲んでいれば進んでください。確認フレーム ${sampleTimes.length}件 / 採用フレーム ${bestCandidate.sampleCount || 1}件 / 形状 ${(Number(bestCandidate.shapeEvidence ?? bestCandidate.shapeScore) || 0).toFixed(0)} / 円盤 ${(Number(bestCandidate.discEvidence ?? bestCandidate.discScore) || 0).toFixed(0)} / 中心 ${(Number(bestCandidate.hubEvidence ?? bestCandidate.hubCenterScore) || 0).toFixed(0)} / 動き ${(Number(bestCandidate.motionRatio) || 0).toFixed(2)}`;
+      const lowMessage = "自動検出の信頼度：低。候補を選び、中心点が最大プレートを囲んでいるか確認してください。";
+      const okMessage = `プレートの外周形状とバー接続から候補を${candidateList.length}件見つけました。正しい候補を選び、中心点が最大プレートを囲んでいれば進んでください。確認フレーム ${sampleTimes.length}件 / 採用フレーム ${bestCandidate.sampleCount || 1}件 / 形状 ${(Number(bestCandidate.shapeEvidence ?? bestCandidate.shapeScore) || 0).toFixed(0)} / 円盤 ${(Number(bestCandidate.discEvidence ?? bestCandidate.discScore) || 0).toFixed(0)} / 中心 ${(Number(bestCandidate.hubEvidence ?? bestCandidate.hubCenterScore) || 0).toFixed(0)} / 動き ${(Number(bestCandidate.motionRatio) || 0).toFixed(2)}`;
       const resultMessage = bestCandidate.confidence === "low" ? lowMessage : okMessage;
       const bestCalibrationPixels = candidateCalibrationPixels(bestCandidate, bestCandidate.roi);
       const bestAnchor = roiCenter(bestCandidate.roi);
@@ -4741,7 +4770,7 @@
     const dialog = button.closest("dialog");
     if (!dialog) return;
     const status = dialog.querySelector("[data-vbt-pick-status]");
-    if (status) status.textContent = "プレート候補を確定しました。緑枠と速度換算基準は切り離して保存します。";
+    if (status) status.textContent = "プレート候補を確定しました。中心点と速度換算基準は切り離して保存します。";
     setVbtWizardStep(dialog, "set-info");
     drawCalibrationStatus(dialog);
   }
@@ -4804,7 +4833,7 @@
             <strong>プレート付近をタップ</strong>
             <small>半自動補助</small>
           </div>
-          <p class="video-storage-note" data-vbt-anchor-note>自動検出が不安定です。動画上で実際のプレート付近を1回タップしてください。タップ周辺から緑枠を自動作成します。</p>
+          <p class="video-storage-note" data-vbt-anchor-note>自動検出が不安定です。動画上で実際のプレート付近を1回タップしてください。タップ周辺から中心点を自動作成します。</p>
           <div class="vbt-anchor-guide">
             <strong>操作</strong>
             <span>動画上の最大プレートの中心付近を1回タップ</span>
@@ -4813,7 +4842,7 @@
           <div class="vbt-debug-panel" data-vbt-debug-panel></div>
           <div class="vbt-wizard-actions three">
             <button class="text-button" type="button" data-vbt-wizard-step="trim">戻る</button>
-            <button class="text-button" type="button" data-vbt-manual-plate>緑枠で手動調整</button>
+            <button class="text-button" type="button" data-vbt-manual-plate>中心点で手動調整</button>
             <button class="primary-button inline vbt-wizard-primary" type="button" data-vbt-anchor-enable>タップ待機中</button>
           </div>
         </section>
@@ -4823,12 +4852,12 @@
             <strong>プレートを確認</strong>
             <small>自動検出β</small>
           </div>
-          <p class="video-storage-note" data-vbt-auto-note>この緑枠が最大プレートを囲んでいれば「見えます」を押してください。</p>
+          <p class="video-storage-note" data-vbt-auto-note>この中心点が最大プレートを囲んでいれば「見えます」を押してください。</p>
           <div class="vbt-candidate-strip" data-vbt-candidate-list></div>
           <div class="vbt-debug-panel" data-vbt-debug-panel></div>
           <div class="vbt-calibration-lock-note">
             <strong data-vbt-calibration-status>${escapeHtml(calibrationLabel(initialVbtState(record), plateDiameterCm))}</strong>
-            <small>緑枠は追跡範囲です。速度換算はプレート直径cmと固定した見た目直径pxで行います。</small>
+            <small>中心点は追跡範囲です。速度換算はプレート直径cmと固定した見た目直径pxで行います。</small>
           </div>
           <div class="vbt-roi-preview">
             <canvas data-vbt-roi-preview-canvas></canvas>
@@ -4858,33 +4887,27 @@
             <label>直径 cm<input data-vbt-plate-cm type="number" inputmode="decimal" min="30" max="60" step="0.1" value="${escapeHtml(plateDiameterCm)}"></label>
           </div>
           <div class="vbt-roi-actions">
-            <button class="text-button" type="button" data-vbt-roi-init>緑枠を表示</button>
+            <button class="text-button" type="button" data-vbt-roi-init>中心点を表示</button>
             <button class="text-button" type="button" data-vbt-wizard-step="trim">戻る</button>
-            <button class="primary-button inline" type="button" data-vbt-confirm-plate>このプレートで進む</button>
+            <button class="primary-button inline" type="button" data-vbt-confirm-plate>この中心点で進む</button>
           </div>
           <details class="vbt-roi-nudge" open>
-            <summary>緑枠を微調整</summary>
+            <summary>中心点を微調整</summary>
             <div class="vbt-nudge-grid">
               <button class="text-button" type="button" data-vbt-roi-nudge="up" aria-label="上へ">↑</button>
-              <button class="text-button" type="button" data-vbt-roi-nudge="smaller">小さく</button>
-              <button class="text-button" type="button" data-vbt-roi-nudge="larger">大きく</button>
               <button class="text-button" type="button" data-vbt-roi-nudge="left" aria-label="左へ">←</button>
               <button class="text-button" type="button" data-vbt-roi-nudge="down" aria-label="下へ">↓</button>
               <button class="text-button" type="button" data-vbt-roi-nudge="right" aria-label="右へ">→</button>
-              <button class="text-button" type="button" data-vbt-roi-nudge="narrower">横幅−</button>
-              <button class="text-button" type="button" data-vbt-roi-nudge="wider">横幅＋</button>
-              <button class="text-button" type="button" data-vbt-roi-nudge="shorter">縦幅−</button>
-              <button class="text-button" type="button" data-vbt-roi-nudge="taller">縦幅＋</button>
             </div>
-            <p>緑枠は位置合わせ用です。通常操作ではサイズ変更を止めています。速度換算を変える時だけ下の固定ボタンを使います。</p>
-            <button class="text-button" type="button" data-vbt-lock-calibration>この緑枠を直径基準に固定</button>
+            <p>丸い点がプレート中心です。円リングは直径換算の確認用で、通常操作では速度換算に使う直径pxを変えません。</p>
+            <button class="text-button" type="button" data-vbt-lock-calibration>この円リングを直径基準に固定</button>
             <p class="video-storage-note compact" data-vbt-calibration-status>${escapeHtml(calibrationLabel(initialVbtState(record), plateDiameterCm))}</p>
           </details>
           <div class="vbt-roi-preview">
             <canvas data-vbt-roi-preview-canvas></canvas>
             <span>ROI拡大プレビュー</span>
           </div>
-          <div class="vbt-markers"><span data-vbt-pick-status>${calibration.plateRoi ? "緑枠を保存済み" : "緑枠は未設定"}</span></div>
+          <div class="vbt-markers"><span data-vbt-pick-status>${calibration.plateRoi ? "中心点を保存済み" : "中心点は未設定"}</span></div>
         </section>
 
         <section class="vbt-wizard-screen" data-vbt-step="set-info">
@@ -4911,7 +4934,7 @@
           <p class="video-storage-note compact" data-vbt-calibration-status>${escapeHtml(calibrationLabel(initialVbtState(record), plateDiameterCm))}</p>
           <details class="compact-guide vbt-auto-details">
             <summary>自動検出が難しいとき</summary>
-            <p>緑枠とトリミングを見直し、難しい場合だけ手動2点で確認します。</p>
+            <p>中心点とトリミングを見直し、難しい場合だけ手動2点で確認します。</p>
             <div class="vbt-controls">
               <button class="text-button" type="button" data-vbt-pick="start">開始点を選ぶ</button>
               <button class="text-button" type="button" data-vbt-pick="end">終了点を選ぶ</button>
@@ -5115,53 +5138,50 @@
   function drawPlateRoi(ctx, roi) {
     if (!roi) return;
     const scale = getCanvasVisualScale(ctx.canvas);
-    const lineWidth = Math.max(2.2 * scale.x, 1.6);
-    const handleRadius = getRoiVisualHandleRadius(ctx.canvas);
-    const markerLength = getRoiCornerMarkerLength(ctx.canvas);
     const center = roiCenter(roi);
+    const radius = Math.max(8 * scale.x, Math.max(Number(roi.width) || 0, Number(roi.height) || 0) / 2);
+    const dotRadius = Math.max(5 * scale.x, 6);
     ctx.save();
-    ctx.fillStyle = "rgba(34, 197, 94, 0.035)";
-    ctx.strokeStyle = "rgba(34, 197, 94, 0.96)";
-    ctx.lineWidth = lineWidth;
-    ctx.fillRect(roi.x, roi.y, roi.width, roi.height);
-    ctx.strokeRect(roi.x, roi.y, roi.width, roi.height);
+
+    // v183.12: 四角ROI表示を主役から外し、プレート中心点アンカーを表示する。
+    // 薄い円リングは「入力プレート径に対応する画面上の直径px」の確認用で、
+    // 速度計算は trackingAnchorPoint のY座標と固定diameter pxを使う。
+    ctx.strokeStyle = "rgba(34, 197, 94, 0.88)";
+    ctx.fillStyle = "rgba(34, 197, 94, 0.055)";
+    ctx.lineWidth = Math.max(2.4 * scale.x, 2);
     ctx.beginPath();
-    ctx.moveTo(center.x - roi.width * 0.08, center.y);
-    ctx.lineTo(center.x + roi.width * 0.08, center.y);
-    ctx.moveTo(center.x, center.y - roi.height * 0.08);
-    ctx.lineTo(center.x, center.y + roi.height * 0.08);
+    ctx.arc(center.x, center.y, radius, 0, Math.PI * 2);
+    ctx.fill();
     ctx.stroke();
 
-    // 見た目の四隅は小さなL字＋小点にする。
-    // タップ判定は roiHitTarget() 側で大きく残すため、スマホでも触りやすさは維持する。
-    ctx.strokeStyle = "rgba(34, 197, 94, 0.98)";
-    ctx.fillStyle = "rgba(255, 250, 242, 0.92)";
-    ctx.lineWidth = Math.max(2.4 * scale.x, 1.8);
-    const corners = [
-      { x: roi.x, y: roi.y, sx: 1, sy: 1 },
-      { x: roi.x + roi.width, y: roi.y, sx: -1, sy: 1 },
-      { x: roi.x, y: roi.y + roi.height, sx: 1, sy: -1 },
-      { x: roi.x + roi.width, y: roi.y + roi.height, sx: -1, sy: -1 }
-    ];
-    corners.forEach((corner) => {
-      ctx.beginPath();
-      ctx.moveTo(corner.x, corner.y);
-      ctx.lineTo(corner.x + markerLength * corner.sx, corner.y);
-      ctx.moveTo(corner.x, corner.y);
-      ctx.lineTo(corner.x, corner.y + markerLength * corner.sy);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(corner.x, corner.y, handleRadius, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-    });
+    ctx.strokeStyle = "rgba(255, 250, 242, 0.95)";
+    ctx.lineWidth = Math.max(3 * scale.x, 2.2);
+    ctx.beginPath();
+    ctx.arc(center.x, center.y, dotRadius + 3 * scale.x, 0, Math.PI * 2);
+    ctx.stroke();
 
-    ctx.font = `900 ${Math.max(10 * scale.x, 11)}px system-ui`;
-    ctx.strokeStyle = "rgba(23, 23, 23, 0.74)";
+    ctx.fillStyle = "rgba(34, 197, 94, 0.98)";
+    ctx.beginPath();
+    ctx.arc(center.x, center.y, dotRadius, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = "rgba(23, 23, 23, 0.80)";
     ctx.lineWidth = Math.max(3 * scale.x, 2);
-    ctx.strokeText("ROI", roi.x + 5 * scale.x, Math.max(18 * scale.x, roi.y - 7 * scale.x));
+    ctx.beginPath();
+    ctx.moveTo(center.x - radius * 0.18, center.y);
+    ctx.lineTo(center.x + radius * 0.18, center.y);
+    ctx.moveTo(center.x, center.y - radius * 0.18);
+    ctx.lineTo(center.x, center.y + radius * 0.18);
+    ctx.stroke();
+
+    ctx.font = `900 ${Math.max(10 * scale.x, 12)}px system-ui`;
+    const labelX = center.x + Math.max(10 * scale.x, 12);
+    const labelY = center.y - Math.max(10 * scale.x, 12);
+    ctx.strokeStyle = "rgba(23, 23, 23, 0.82)";
+    ctx.lineWidth = Math.max(3 * scale.x, 2);
+    ctx.strokeText("中心", labelX, labelY);
     ctx.fillStyle = "#fffaf2";
-    ctx.fillText("ROI", roi.x + 5 * scale.x, Math.max(18 * scale.x, roi.y - 7 * scale.x));
+    ctx.fillText("中心", labelX, labelY);
     ctx.restore();
   }
 
@@ -5223,8 +5243,8 @@
     if (normalized) setVbtState(dialog, { plateRoi: normalized, trackingAnchorPoint: roiCenter(normalized), plateCenterPoint: roiCenter(normalized) });
     const status = dialog.querySelector("[data-vbt-pick-status]");
     if (status) status.textContent = pixels
-      ? `現在の緑枠を距離換算の直径基準に固定しました：${Math.round(pixels)}px。`
-      : "緑枠を確認してください。";
+      ? `現在の中心点を距離換算の直径基準に固定しました：${Math.round(pixels)}px。`
+      : "中心点を確認してください。";
     drawCalibrationStatus(dialog);
   }
 
@@ -5240,7 +5260,7 @@
     const sizeAction = ["smaller", "larger", "wider", "narrower", "taller", "shorter"].includes(action);
     const status = dialog.querySelector("[data-vbt-pick-status]");
     if (sizeAction) {
-      if (status) status.textContent = "v183.09では通常操作のROIサイズ変更を停止しています。速度換算を変える場合だけ『この緑枠を直径基準に固定』を使います。";
+      if (status) status.textContent = "中心点方式では通常操作のサイズ変更を停止しています。換算直径pxを更新する場合だけ「この円リングを直径基準に固定」を使います。";
       drawVbtOverlay(dialog);
       drawCalibrationStatus(dialog);
       return;
@@ -5249,7 +5269,7 @@
     const anchor = roiCenter(next);
     next = normalizePlateRoiToLockedWindow(dialog, next);
     setVbtState(dialog, { plateRoi: next, trackingAnchorPoint: anchor, plateCenterPoint: anchor, path: [], trackingMode: "plate-roi-track" });
-    if (status) status.textContent = roiAspectWarning(next) || "緑枠を移動しました。速度換算の直径基準と追跡窓サイズは固定したままです。";
+    if (status) status.textContent = roiAspectWarning(next) || "中心点を移動しました。速度換算の直径基準と追跡窓サイズは固定したままです。";
     drawVbtOverlay(dialog);
     drawCalibrationStatus(dialog);
   }
@@ -5329,9 +5349,9 @@
     video.pause();
     dialog.querySelector("[data-vbt-canvas]")?.classList.add("active", "roi-active");
     const status = dialog.querySelector("[data-vbt-pick-status]");
-    if (status) status.textContent = roiAspectWarning(roi) || "緑枠はドラッグで位置だけ合わせます。速度換算の直径基準と追跡窓サイズは別で固定されます。";
+    if (status) status.textContent = roiAspectWarning(roi) || "丸い点をプレート中心に合わせます。円リングは直径換算の確認用で、速度計算は中心点の上下移動を使います。";
     const guide = dialog.querySelector("[data-vbt-video-guide]");
-    if (guide) guide.textContent = "緑枠をプレート外周に合わせる";
+    if (guide) guide.textContent = "丸い点をプレート中心に合わせる";
     drawVbtOverlay(dialog);
   }
 
@@ -5341,16 +5361,20 @@
     if (!dialog || !canvas || !syncVbtCanvas(dialog)) return false;
     const state = vbtState(dialog);
     if (state.anchorAssistMode) return false;
-    if (!state.plateRoi || state.pickMode) return false;
+    if (state.pickMode) return false;
+    if (!state.plateRoi && !canvas.classList.contains("roi-active")) return false;
     const point = canvasPointFromEvent(canvas, event);
-    const target = roiHitTarget(canvas, state.plateRoi, point);
-    if (!target) return false;
     event.preventDefault();
     canvas.setPointerCapture?.(event.pointerId);
+    const applied = setPlateCenterAnchor(dialog, point, state.calibrationSource || "center-dot");
     setVbtState(dialog, {
-      roiMode: target.type,
-      roiDrag: { start: point, roi: { ...state.plateRoi }, handle: target.handle }
+      roiMode: "anchor-move",
+      roiDrag: { start: point, anchor: applied?.point || point }
     });
+    const status = dialog.querySelector("[data-vbt-pick-status]");
+    if (status) status.textContent = "中心点を設定中です。丸い点をプレート中心に合わせてください。";
+    drawVbtOverlay(dialog);
+    drawCalibrationStatus(dialog);
     return true;
   }
 
@@ -5358,31 +5382,12 @@
     const dialog = event.target.closest("dialog");
     const canvas = event.target.closest("[data-vbt-canvas]");
     const state = vbtState(dialog);
-    if (!dialog || !canvas || !state.roiMode || !state.roiDrag) return false;
+    if (!dialog || !canvas || state.roiMode !== "anchor-move" || !state.roiDrag) return false;
     event.preventDefault();
-    const video = dialog.querySelector("video");
     const point = canvasPointFromEvent(canvas, event);
-    const start = state.roiDrag.start;
-    const original = state.roiDrag.roi;
-    const dx = point.x - start.x;
-    const dy = point.y - start.y;
-    let next = { ...original };
-    // v183.09: オーバーレイ操作は「位置合わせ専用」。
-    // サイズ変更は速度換算・追跡窓に混ざるため、通常ドラッグでは無効化する。
-    next.x += dx;
-    next.y += dy;
-    next = clampPlateRoi(next, video.videoWidth, video.videoHeight);
-    const anchor = roiCenter(next);
-    const normalized = normalizePlateRoiToLockedWindow(dialog, next);
-    setVbtState(dialog, {
-      plateRoi: normalized,
-      trackingAnchorPoint: anchor,
-      plateCenterPoint: anchor,
-      path: [],
-      trackingMode: "plate-roi-track"
-    });
+    setPlateCenterAnchor(dialog, point, state.calibrationSource || "center-dot");
     const status = dialog.querySelector("[data-vbt-pick-status]");
-    if (status) status.textContent = roiAspectWarning(next) || "緑枠の位置を合わせています。サイズを変えても速度換算の直径基準は変わりません。";
+    if (status) status.textContent = "プレート中心点を移動しています。ROIサイズは速度換算に使いません。";
     drawVbtOverlay(dialog);
     drawCalibrationStatus(dialog);
     return true;
@@ -5392,12 +5397,12 @@
     const dialog = event.target.closest("dialog");
     const canvas = event.target.closest("[data-vbt-canvas]");
     const state = vbtState(dialog);
-    if (!dialog || !canvas || !state.roiMode) return false;
+    if (!dialog || !canvas || state.roiMode !== "anchor-move") return false;
     event.preventDefault();
     canvas.releasePointerCapture?.(event.pointerId);
     setVbtState(dialog, { roiMode: null, roiDrag: null });
     const status = dialog.querySelector("[data-vbt-pick-status]");
-    if (status) status.textContent = roiAspectWarning(vbtState(dialog).plateRoi) || "緑枠を設定しました。追跡窓と速度換算の直径基準は分離されています。";
+    if (status) status.textContent = "中心点を固定しました。速度計算はこの点の上下移動と固定直径pxを使います。";
     drawVbtOverlay(dialog);
     drawCalibrationStatus(dialog);
     return true;
@@ -5903,7 +5908,7 @@
       setVbtWizardStep(dialog, "result");
       resultBox.innerHTML = `<section class="vbt-error-card"><strong>解析できませんでした</strong><p>${escapeHtml(error.message || "速度を計算できませんでした。")}</p><button class="text-button" type="button" data-vbt-manual-plate>プレートを調整</button></section>`;
       const guide = dialog.querySelector("[data-vbt-video-guide]");
-      if (guide) guide.textContent = error.message || "緑枠と測定範囲を確認してください";
+      if (guide) guide.textContent = error.message || "中心点と測定範囲を確認してください";
       button.textContent = mode === "manual-2point" ? "手動2点で確認" : mode === "plate-roi-track" ? "3. プレートを追跡して解析" : "中心点追跡β";
       button.disabled = false;
     }
