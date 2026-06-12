@@ -1,21 +1,14 @@
-v183.04.02 feedback learning data patch
+v183.04.03 AIレップ自動検出前提の修正
 
-Base:
-- v183.04.01-vbt-stable-rebuild-center-dot-repguard
-
-Changed files:
-- index.html
+変更ファイル:
 - video.js
-- styles.css
 - sw.js
 - manifest.webmanifest
-- changed-files.txt
-- DIFF
 
-Summary:
-- Added development-only feedback controls after auto plate detection.
-- Added Good / Bad / Correct center buttons for each detected candidate.
-- Saves detection feedback locally in localStorage for up to 500 samples.
-- Feedback payload includes lift, weight, reps, trim, selected candidate, all candidate scores, corrected center point, and compact debug trace summary.
-- Added JSON export for accumulated detection-learning data.
-- Kept v183.04.01 stable detection engine and center-dot operation unchanged.
+変更内容:
+- レップ入力欄が廃止されている前提に合わせ、record.reps を期待Rep数として扱わないよう修正。
+- AI検出後に record.reps を上書きせず、aiDetectedReps / detectedReps として保存するよう変更。
+- 既存/過去レコードの record.reps が1などで残っていても、次回解析の上限として使わない安全装置を追加。
+- 入力Rep数がない場合でも複数レップを拾いやすいよう、モーションバースト型の自動Rep検出fallbackを追加。
+- saved VBT record には検出Rep数を保存し、動画元レコードはAI判定モードを維持。
+- フィードバックJSONで record.reps が null だった状況に合わせて、表示/保存/警告文をAI判定前提へ整理。

@@ -24,7 +24,7 @@
   const VBT_MULTI_TRACKER_HISTOGRAM_WEIGHT = 0.18;
   const VBT_MULTI_TRACKER_MOTION_WEIGHT = 0.14;
   const VBT_MULTI_TRACKER_PREDICTION_WEIGHT = 0.08;
-  const VBT_DEBUG_TRACE_VERSION = "v183.04.02-feedback-learning-data";
+  const VBT_DEBUG_TRACE_VERSION = "v183.04.03-ai-rep-detect-no-input";
   const VBT_DETECTION_FEEDBACK_KEY = "platformBuddyVbtDetectionFeedbackV1";
   const VBT_DL_MIN_VALID_ROM_M = 0.30;
   const VBT_DL_SOFT_MIN_VALID_ROM_M = 0.24;
@@ -265,7 +265,8 @@
 
   function videoTitle(record) {
     const weight = record.weight ? `${formatNumber(record.weight)}kg` : "重量未入力";
-    const reps = record.reps ? ` x ${formatNumber(record.reps)}` : "";
+    const titleReps = record.userProvidedReps === true ? record.reps : (record.aiDetectedReps || record.detectedReps || null);
+    const reps = titleReps ? ` x ${formatNumber(titleReps)}${record.userProvidedReps === true ? "" : " AI"}` : "";
     const rpe = record.rpe ? ` @${formatNumber(record.rpe)}` : "";
     return `${liftLabel(record.lift)} ${weight}${reps}${rpe}`;
   }
@@ -282,7 +283,7 @@
     const distanceMeters = finiteOrNaN(measurement.distanceMeters ?? data?.distanceMeters);
     const durationSeconds = finiteOrNaN(measurement.durationSeconds ?? data?.durationSeconds);
     const detectedReps = Number(measurement.detectedReps ?? primary.repCountDetected ?? repMetrics.length);
-    const expectedReps = Number(measurement.expectedReps ?? data?.reps ?? velocityData.reps);
+    const expectedReps = Number(measurement.expectedReps ?? null);
     const trackingConfidence = velocityData.trackingConfidence || measurement.trackingConfidence || data?.trackingConfidence || "unknown";
     const plateDiameterCm = finiteOrNaN(calibration.plateDiameterCm ?? measurement.plateDiameterCm ?? data?.plateDiameterCm);
     const existingWarning = velocityData.trackingWarning || measurement.warning || velocityData.warning || data?.warningMessage || data?.warning;
@@ -353,7 +354,7 @@
     const peakVelocityRaw = primaryVbtMetric.bestRepConcentricMeanVelocity ?? record?.peakVelocity;
     const velocityLossPercentRaw = primaryVbtMetric.velocityLossPercent ?? record?.velocityLossPercent;
     const detectedRepsRaw = measurement.detectedReps ?? primaryVbtMetric.repCountDetected;
-    const expectedRepsRaw = measurement.expectedReps ?? record?.reps ?? velocityData.reps;
+    const expectedRepsRaw = measurement.expectedReps ?? (record?.userProvidedReps === true || record?.repsSource === "user" ? record?.reps : null);
     const lastRepVelocity = hasFiniteNumber(lastRepVelocityRaw) ? Number(lastRepVelocityRaw) : null;
     const peakVelocity = hasFiniteNumber(peakVelocityRaw) ? Number(peakVelocityRaw) : null;
     const velocityLossPercent = hasFiniteNumber(velocityLossPercentRaw) ? Number(velocityLossPercentRaw) : null;
@@ -819,6 +820,65 @@
     return phases;
   }
 
+  function detectAutoRepPhasesByMotionBursts(path, lift) {
+    const smoothed = smoothTrackPath(path);
+    if (!Array.isArray(smoothed) || smoothed.length < 6) return [];
+    const yValues = smoothed.map((point) => Number(point.y)).filter(Number.isFinite);
+    const yRange = yValues.length ? Math.max(...yValues) - Math.min(...yValues) : 0;
+    if (!Number.isFinite(yRange) || yRange < 8) return [];
+    const phases = [];
+    const minPrimaryTravel = Math.max(7, yRange * (lift === "DL" ? 0.20 : 0.18));
+    const minReturnTravel = Math.max(5, yRange * (lift === "DL" ? 0.14 : 0.13));
+    const minDuration = lift === "DL" ? 0.18 : 0.16;
+    const segments = movementSegmentsFromPath(smoothed);
+    const travelOf = (segment) => Number(segment?.travel) || Math.abs(Number(smoothed[segment?.endIndex]?.y) - Number(smoothed[segment?.startIndex]?.y));
+    const durationOf = (segment) => Number(segment?.duration) || (Number(smoothed[segment?.endIndex]?.time) - Number(smoothed[segment?.startIndex]?.time));
+    const startTimeOf = (segment) => Number(segment?.startTime ?? smoothed[segment?.startIndex]?.time ?? 0);
+    const endTimeOf = (segment) => Number(segment?.endTime ?? smoothed[segment?.endIndex]?.time ?? 0);
+
+    if (lift === "DL") {
+      let lastAcceptedStart = -Infinity;
+      for (let index = 0; index < segments.length; index += 1) {
+        const concentric = segments[index];
+        if (!concentric || concentric.direction !== -1) continue;
+        const travel = travelOf(concentric);
+        const duration = durationOf(concentric);
+        const startTime = startTimeOf(concentric);
+        if (travel < minPrimaryTravel || duration < minDuration) continue;
+        if (startTime - lastAcceptedStart < 0.65 && travel < minPrimaryTravel * 1.35) continue;
+        const eccentric = segments.slice(index + 1).find((segment) => segment.direction === 1 && travelOf(segment) >= minReturnTravel) || null;
+        phases.push({
+          repIndex: phases.length + 1,
+          concentric: { startIndex: concentric.startIndex, endIndex: concentric.endIndex },
+          eccentric: eccentric ? { startIndex: eccentric.startIndex, endIndex: eccentric.endIndex } : null,
+          restBeforeSeconds: phases.length ? Math.max(0, startTime - endTimeOf(segments.find((segment) => segment.endIndex === phases.at(-1).eccentric?.endIndex) || concentric)) : null,
+          autoDetected: true
+        });
+        lastAcceptedStart = startTime;
+        if (eccentric) index = Math.max(index, segments.findIndex((segment) => segment.startIndex === eccentric.startIndex));
+      }
+      return phases;
+    }
+
+    for (let index = 0; index < segments.length; index += 1) {
+      const eccentric = segments[index];
+      if (!eccentric || eccentric.direction !== 1) continue;
+      if (travelOf(eccentric) < minReturnTravel || durationOf(eccentric) < minDuration) continue;
+      const concentricIndex = segments.slice(index + 1).findIndex((segment) => segment.direction === -1 && travelOf(segment) >= minPrimaryTravel && durationOf(segment) >= minDuration);
+      if (concentricIndex < 0) continue;
+      const concentric = segments[index + 1 + concentricIndex];
+      phases.push({
+        repIndex: phases.length + 1,
+        eccentric: { startIndex: eccentric.startIndex, endIndex: eccentric.endIndex },
+        concentric: { startIndex: concentric.startIndex, endIndex: concentric.endIndex },
+        restBeforeSeconds: phases.length ? Math.max(0, startTimeOf(eccentric) - Number(smoothed[phases.at(-1).concentric.endIndex]?.time || 0)) : null,
+        autoDetected: true
+      });
+      index = segments.findIndex((segment) => segment.startIndex === concentric.startIndex);
+    }
+    return phases;
+  }
+
   function detectRepPhases(path, lift, expectedReps) {
     const smoothed = smoothTrackPath(path);
     if (smoothed.length < 5) return [];
@@ -884,7 +944,11 @@
       }
     }
 
-    return phases.length ? phases : detectRepPhasesByTurns(path, lift, expectedReps);
+    const turnFallback = detectRepPhasesByTurns(path, lift, expectedReps);
+    const autoBurstFallback = Number(expectedReps) > 0 ? [] : detectAutoRepPhasesByMotionBursts(path, lift);
+    const primary = phases.length ? phases : turnFallback;
+    if (!Number(expectedReps) && autoBurstFallback.length > primary.length) return autoBurstFallback;
+    return primary.length ? primary : autoBurstFallback;
   }
 
   function getTrimLengthWarning(lift, reps, durationSeconds) {
@@ -1068,8 +1132,19 @@
   }
 
   function expectedRepCountFromRecord(record) {
-    const reps = Number(record?.reps);
-    return Number.isFinite(reps) && reps > 0 ? Math.round(reps) : null;
+    // v183.04.03: レップ入力欄は廃止済み。record.reps は過去のAI検出結果として残ることがあるため、
+    // これを「ユーザー入力の期待Rep数」として扱うと、次回解析が1Repなどに固定されてしまう。
+    const explicit = Number(record?.expectedReps);
+    if (Number.isFinite(explicit) && explicit > 0) return Math.round(explicit);
+    if (record?.userProvidedReps === true || record?.repsSource === "user") {
+      const reps = Number(record?.reps);
+      return Number.isFinite(reps) && reps > 0 ? Math.round(reps) : null;
+    }
+    return null;
+  }
+
+  function hasUserExpectedReps(record) {
+    return expectedRepCountFromRecord(record) !== null;
   }
 
   function minimumRomMetersForLift(lift) {
@@ -1140,8 +1215,8 @@
       .map((metric, index) => ({
         ...metric,
         repIndex: index + 1,
-        qualityNote: metric.qualityNote || (hasExpected ? "入力Rep数に合わせて採用" : metric.qualityNote),
-        repQuality: metric.repQuality ? { ...metric.repQuality, note: metric.repQuality.note || (hasExpected ? "入力Rep数に合わせて採用" : null) } : metric.repQuality
+        qualityNote: metric.qualityNote || (hasExpected ? "入力Rep数に合わせて採用" : "AI自動検出"),
+        repQuality: metric.repQuality ? { ...metric.repQuality, note: metric.repQuality.note || (hasExpected ? "入力Rep数に合わせて採用" : "AI自動検出") } : metric.repQuality
       }));
 
     return {
@@ -1649,7 +1724,7 @@
       aspectWarning,
       trackingConfidence === "low" ? "追跡の信頼度が低めです。手動2点測定でも確認してください。" : null,
       repWarning || null,
-      repFilter.excludedCount ? `除外候補 ${repFilter.excludedCount}件（床バウンド/微細揺れ/入力Rep数超過）` : null,
+      repFilter.excludedCount ? `除外候補 ${repFilter.excludedCount}件（床バウンド/微細揺れ${expectedReps ? "/入力Rep数超過" : ""}）` : null,
       getTrimLengthWarning(record.lift, expectedReps || detectedRepCount || null, durationSeconds)
     ].filter(Boolean).join(" ");
 
@@ -1662,7 +1737,7 @@
       trackingWarning: trackingWarning || null,
       lift: record.lift,
       weight: Number(record.weight) || null,
-      reps: expectedReps || detectedRepCount || Number(record.reps) || null,
+      reps: detectedRepCount || expectedReps || (record.userProvidedReps === true ? Number(record.reps) : null) || null,
       rpe: Number(record.rpe) || null,
       calibration: {
         plateDiameterCm,
@@ -1887,7 +1962,7 @@
       trackingWarning,
       lift: record.lift,
       weight: Number(record.weight) || null,
-      reps: Number(record.reps) || null,
+      reps: Number(detectedRepCount) || Number(record.aiDetectedReps) || (record.userProvidedReps === true ? Number(record.reps) : null) || null,
       rpe: Number(record.rpe) || null,
       calibration: { plateDiameterCm, plateDiameterPixels, metersPerPixel, targetPoint, estimatedPlatePixels: estimatedPlatePixels || null },
       measurement: {
@@ -2023,7 +2098,7 @@
     const bestVelocityRaw = primary.bestRepConcentricMeanVelocity;
     const velocityLossRaw = primary.velocityLossPercent;
     const detectedRepsRaw = measurement.detectedReps ?? primary.repCountDetected;
-    const expectedRepsRaw = measurement.expectedReps ?? data.reps;
+    const expectedRepsRaw = measurement.expectedReps ?? null;
     const lastVelocity = hasFiniteNumber(lastVelocityRaw) ? Number(lastVelocityRaw) : null;
     const setAverage = hasFiniteNumber(setAverageRaw) ? Number(setAverageRaw) : null;
     const heroVelocity = lastVelocity !== null ? lastVelocity : setAverage;
@@ -3842,7 +3917,8 @@
       id: record?.id || null,
       lift: record?.lift || null,
       weight: hasFiniteNumber(record?.weight) ? Number(record.weight) : null,
-      reps: hasFiniteNumber(record?.reps) ? Number(record.reps) : null,
+      reps: record?.userProvidedReps === true && hasFiniteNumber(record?.reps) ? Number(record.reps) : null,
+        aiDetectedReps: hasFiniteNumber(record?.aiDetectedReps) ? Number(record.aiDetectedReps) : null,
       rpe: hasFiniteNumber(record?.rpe) ? Number(record.rpe) : null,
       createdAt: record?.createdAt || record?.date || null,
       video: {
@@ -4588,7 +4664,7 @@
     const startGuide = getVbtStartGuide(record.lift);
     const initialStep = vbtWizardInitialStep(record);
     const resultMarkup = vbtResultMarkup({ ...measurement, ...velocityData, lift: record.lift, rpe: record.rpe });
-    const recordRepLabel = record.reps ? ` × ${formatNumber(record.reps)}` : " × AI判定";
+    const recordRepLabel = record.userProvidedReps === true && record.reps ? ` × ${formatNumber(record.reps)}` : (record.aiDetectedReps ? ` × ${formatNumber(record.aiDetectedReps)} AI` : " × AI判定");
     const setSummary = `${liftLabel(record.lift)} ${formatNumber(record.weight)}kg${recordRepLabel} @${formatNumber(record.rpe)}`;
     return `
       <section class="manual-vbt-card vbt-wizard" data-vbt-card data-vbt-wizard-root>
@@ -5572,7 +5648,11 @@
         ?? (velocityData.measurement?.repMetrics || []).length
         ?? null;
       if (Number.isFinite(Number(detectedRepCount)) && Number(detectedRepCount) > 0) {
-        record.reps = Number(detectedRepCount);
+        record.aiDetectedReps = Number(detectedRepCount);
+        record.detectedReps = Number(detectedRepCount);
+        if (record.userProvidedReps === true || record.repsSource === "user") {
+          record.reps = Number(record.reps) || Number(detectedRepCount);
+        }
       }
       record.analysis = { ...(record.analysis || {}), velocityData };
       record.updatedAt = new Date().toISOString();
@@ -5587,7 +5667,7 @@
         liftLabel: liftLabel(record.lift),
         weight: Number(record.weight) || null,
         weightKg: Number(record.weight) || null,
-        reps: Number(record.reps) || null,
+        reps: Number(detectedRepCount) || Number(record.aiDetectedReps) || (record.userProvidedReps === true ? Number(record.reps) : null) || null,
         rpe: Number(record.rpe) || null,
         subjectiveRpe: Number(record.rpe) || null,
         tag: record.setType || null,
@@ -5895,7 +5975,10 @@
       date: els.date.value || today(),
       lift: els.lift.value,
       weight: Number(els.weight.value || 0),
-      reps: els.reps ? Number(els.reps.value || 0) : null,
+      reps: els.reps && Number(els.reps.value || 0) > 0 ? Number(els.reps.value || 0) : null,
+      userProvidedReps: Boolean(els.reps && Number(els.reps.value || 0) > 0),
+      repsSource: els.reps && Number(els.reps.value || 0) > 0 ? "user" : "ai",
+      aiDetectedReps: null,
       rpe: Number(els.rpe.value || 0),
       setType: els.setType.value,
       videoName: file.name,
