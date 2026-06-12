@@ -10,10 +10,11 @@
   const VBT_PERSON_SEGMENTATION_ENABLED = true;
   const VBT_TFJS_URL = "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js";
   const VBT_BODYPIX_URL = "https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix@2.2.1/dist/body-pix.min.js";
-  const VBT_DEEP_DETECT_MIN_MS = 30000;
-  const VBT_DEEP_RESULT_ANALYSIS_MIN_MS = 12000;
-  const VBT_DEEP_DETECT_FRAME_SIZE = 720;
-  const VBT_DEEP_DETECT_PERSON_SEGMENT_EVERY = 1;
+  const VBT_DEEP_DETECT_MIN_MS = 6500;
+  const VBT_DEEP_RESULT_ANALYSIS_MIN_MS = 3500;
+  const VBT_DEEP_DETECT_FRAME_SIZE = 560;
+  const VBT_DEEP_DETECT_PERSON_SEGMENT_EVERY = 6;
+  const VBT_PERSON_MODEL_DETECT_TIMEOUT_MS = 2500;
   const VBT_MARKER_ROI_MIN_PX = 18;
   const VBT_MARKER_ROI_MAX_PX = 54;
   const VBT_MULTI_TRACKER_ENABLED = true;
@@ -23,7 +24,7 @@
   const VBT_MULTI_TRACKER_HISTOGRAM_WEIGHT = 0.18;
   const VBT_MULTI_TRACKER_MOTION_WEIGHT = 0.14;
   const VBT_MULTI_TRACKER_PREDICTION_WEIGHT = 0.08;
-  const VBT_DEBUG_TRACE_VERSION = "v183.02-dl-plate-disc-snap-auto-detect";
+  const VBT_DEBUG_TRACE_VERSION = "v183.03-fast-disc-detect-budget";
   const VBT_DEBUG_MONTAGE_PANELS = 5;
   let bodyPixModelPromise = null;
 
@@ -1470,7 +1471,7 @@
     if (!reference?.template) throw new Error("緑枠が動画端に近すぎます。少し内側へ移動してください。");
 
     const sampleLimit = getVbtTrackingSampleLimit();
-    const sampleCount = clamp(Math.round((end - start) * 26), 48, sampleLimit);
+    const sampleCount = clamp(Math.round((end - start) * 18), 36, sampleLimit);
     const rawPath = [];
     let currentRoi = { ...reference.roi };
     let previousFrame = null;
@@ -1669,7 +1670,7 @@
     const narrowScreen = typeof window !== "undefined" && window.matchMedia?.("(max-width: 760px)")?.matches;
     const touchDevice = typeof navigator !== "undefined" && Number(navigator.maxTouchPoints) > 0;
     const compactTouchDevice = touchDevice && typeof window !== "undefined" && Number(window.innerWidth) <= 1024;
-    return narrowScreen || compactTouchDevice ? 220 : 420;
+    return narrowScreen || compactTouchDevice ? 160 : 280;
   }
 
   function seekVideo(video, time, timeoutMs = 2500) {
@@ -2459,8 +2460,15 @@
 
   function preloadVbtAiModel() {
     if (!VBT_PERSON_SEGMENTATION_ENABLED || bodyPixModelPromise) return;
-    // VBTを開いた時点で人物AIを先読みし、解析時に「常駐」に近い状態へ寄せる。
-    loadBodyPixModel().catch((error) => console.warn("VBT AI preload failed", error));
+    const touchDevice = typeof navigator !== "undefined" && Number(navigator.maxTouchPoints) > 0;
+    if (touchDevice) return;
+    // 人物AIは重いため、実機の操作中にはブロックしない。PCのみアイドル時間に先読みする。
+    const runner = () => loadBodyPixModel().catch((error) => console.warn("VBT AI preload failed", error));
+    if (typeof window !== "undefined" && typeof window.requestIdleCallback === "function") {
+      window.requestIdleCallback(runner, { timeout: 6000 });
+    } else {
+      setTimeout(runner, 2500);
+    }
   }
 
   function personSegmentationBounds(segmentation, width, height) {
@@ -2518,19 +2526,19 @@
       // まず複数人物検出を試す。背景の人物や鏡像があるジム環境では、最大人物/中央人物を選ぶ。
       if (typeof model.segmentMultiPerson === "function") {
         const people = await model.segmentMultiPerson(frame.canvas, {
-          internalResolution: "high",
+          internalResolution: "medium",
           segmentationThreshold: 0.48,
-          maxDetections: 4,
+          maxDetections: 3,
           scoreThreshold: 0.12,
           nmsRadius: 18,
           minKeypointScore: 0.08,
-          refineSteps: 5
+          refineSteps: 2
         });
         const best = pickBestPersonSegmentation(people, frame);
         if (best) return best;
       }
       return await model.segmentPerson(frame.canvas, {
-        internalResolution: "high",
+        internalResolution: "medium",
         segmentationThreshold: 0.48,
         maxDetections: 1,
         scoreThreshold: 0.12,
@@ -3645,16 +3653,20 @@
 
   function makeAutoDetectSampleTimes(start, end) {
     const duration = Math.max(0.1, end - start);
-    // Qwik VBTのように、少し待ってでも動画全体を丁寧に見る。
-    // 1枚/数枚の静止画判定ではなく、セット全体の時間的一貫性を評価する。
-    const count = clamp(Math.round(duration * 5.0), 48, 140);
+    // 実機では「待たされる体感」が離脱につながるため、検出は高速精密に寄せる。
+    // 全フレームを見るのではなく、開始・中盤・終盤の要所を押さえ、候補の一貫性を短時間で評価する。
+    const touchDevice = typeof navigator !== "undefined" && Number(navigator.maxTouchPoints) > 0;
+    const narrowScreen = typeof window !== "undefined" && window.matchMedia?.("(max-width: 760px)")?.matches;
+    const maxFrames = touchDevice || narrowScreen ? 46 : 68;
+    const minFrames = touchDevice || narrowScreen ? 22 : 28;
+    const count = clamp(Math.round(duration * (touchDevice || narrowScreen ? 1.9 : 2.5)), minFrames, maxFrames);
     const times = [];
     for (let index = 0; index < count; index += 1) {
       const ratio = count === 1 ? 0 : index / (count - 1);
       times.push(clamp(start + duration * ratio, start, end));
     }
     // 開始直後・中央・終盤を必ず含め、動きが少ない/待機がある動画でも候補評価を安定させる。
-    [0.03, 0.10, 0.20, 0.35, 0.50, 0.65, 0.80, 0.90, 0.97].forEach((ratio) => {
+    [0.04, 0.12, 0.25, 0.50, 0.75, 0.88, 0.96].forEach((ratio) => {
       times.push(clamp(start + duration * ratio, start, end));
     });
     return [...new Set(times.map((time) => Number(time.toFixed(3))))].sort((a, b) => a - b);
@@ -3663,9 +3675,10 @@
   function deepDetectMinimumWaitMs(sampleCount, durationSeconds) {
     const deviceTouch = typeof navigator !== "undefined" && Number(navigator.maxTouchPoints) > 0;
     const base = VBT_DEEP_DETECT_MIN_MS;
-    const sampleBonus = Math.min(5000, Math.max(0, sampleCount - 60) * 70);
-    const durationBonus = Math.min(4000, Math.max(0, Number(durationSeconds) || 0) * 120);
-    return clamp(base + sampleBonus + durationBonus, VBT_DEEP_DETECT_MIN_MS, VBT_DEEP_DETECT_MIN_MS + 9000);
+    const sampleBonus = Math.min(1800, Math.max(0, sampleCount - 32) * 45);
+    const durationBonus = Math.min(1200, Math.max(0, Number(durationSeconds) || 0) * 45);
+    const touchPenalty = deviceTouch ? -1200 : 0;
+    return clamp(base + sampleBonus + durationBonus + touchPenalty, 4200, VBT_DEEP_DETECT_MIN_MS + 3200);
   }
 
   async function waitForDeepDetectBudget(startedAt, targetMs, progress, message = "検出結果を確認中…") {
@@ -4112,7 +4125,7 @@
     let candidateList = [];
     try {
       button.disabled = true;
-      button.textContent = "精密解析中...";
+      button.textContent = "高速検出中...";
       setVbtWizardStep(dialog, "auto-detect-loading");
       const state = vbtState(dialog);
       start = hasFiniteNumber(state.trimStart) ? Number(state.trimStart) : 0;
@@ -4123,7 +4136,12 @@
       sampledFrames = [];
       segmentedFrames = [];
       allCandidates = [];
-      personModel = await loadBodyPixModel((message, percent) => updateAutoDetectProgress(dialog, 1, message, percent));
+      personModel = bodyPixModelPromise
+        ? await Promise.race([
+          bodyPixModelPromise,
+          new Promise((resolve) => setTimeout(() => resolve(null), VBT_PERSON_MODEL_DETECT_TIMEOUT_MS))
+        ])
+        : null;
       updateAutoDetectProgress(dialog, 1, personModel ? "1/8 人物AIでリフター領域を確認中…" : "1/8 人物AIが使えないため動き検出で確認中…", 8);
       for (let index = 0; index < sampleTimes.length; index += 1) {
         const time = sampleTimes[index];
@@ -4131,13 +4149,13 @@
         const frame = frameCanvas(video, VBT_DEEP_DETECT_FRAME_SIZE);
         const item = { time, frame };
         sampledFrames.push(item);
-        if (personModel && (index % VBT_DEEP_DETECT_PERSON_SEGMENT_EVERY === 0 || sampleTimes.length <= 24)) {
+        if (personModel && (index % VBT_DEEP_DETECT_PERSON_SEGMENT_EVERY === 0 || index === sampleTimes.length - 1)) {
           const segmentation = await segmentPersonFrame(personModel, frame);
           if (segmentation) segmentedFrames.push({ ...item, segmentation });
         }
         const progress = 8 + ((index + 1) / sampleTimes.length) * 32;
         updateAutoDetectProgress(dialog, index + 1, personModel ? "1/8 人物AIでリフター領域を確認中…" : "1/8 動いているリフター領域を確認中…", progress);
-        await new Promise((resolve) => setTimeout(resolve, 28));
+        await new Promise((resolve) => setTimeout(resolve, 4));
       }
       personContext = buildPersonSegmentationContext(segmentedFrames, sampledFrames, record.lift);
       lifterMotionContext = personContext || buildLifterMotionContext(sampledFrames, record.lift);
