@@ -1,26 +1,21 @@
-platform-buddy v183.13 changed files
+v183.04.01 stable rebuild patch
 
-Base: v183.12 center-dot anchor
-Purpose: Fix under-detection where a 2-rep DL video could be displayed as 1 rep after switching to center-point anchor tracking.
+Base:
+- v183.04-vbt-fast-two-pass-detect
 
 Changed files:
+- index.html
 - video.js
 - sw.js
 - manifest.webmanifest
 - changed-files.txt
 - DIFF
 
-Key changes:
-- Pass the user/input rep count into VBT rep-phase detection instead of detecting phases with a null expected count.
-- Add expected-rep window fallback segmentation for DL/SQ/BP.
-  - If normal motion segmentation finds fewer phases than the input rep count, the analyzer splits the trimmed set into expected rep windows and finds each rep's primary top/bottom turn inside that window.
-  - This is intended as a safety net for center-dot tracking when one rep is missed by turn/segment detection.
-- Keep the v183.12 center-dot anchor UI and ROI/calibration separation.
-- Mark fallback-derived reps with a note: 入力Rep数を基準に区間を補完.
-- Keep the DL rep-count guard and ROM/bounce filters from v183.11.
-- Updated PWA cache/version to v183.13.
-
-Validation:
-- node --check video.js: OK
-- node --check sw.js: OK
-- python3 -m json.tool manifest.webmanifest: OK
+Summary:
+- Restored v183.04 detection engine as the stable baseline.
+- Added center-dot style operation on top of v183.04 without importing the later unstable analysis engine.
+- Kept the internal tracking window, but the user-facing overlay is now a center dot + diameter ring.
+- Disabled normal ROI resize operations from the manual adjustment UI.
+- Manual pointer operation now moves the center point while preserving the internal tracking window size.
+- Added minimal expected-rep guard and DL bounce/short-ROM filtering so 2-rep videos are less likely to be saved as 4/5 reps.
+- Preserved v183.04 two-pass detection timing/logic.
