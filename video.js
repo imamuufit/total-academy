@@ -24,7 +24,7 @@
   const VBT_MULTI_TRACKER_HISTOGRAM_WEIGHT = 0.18;
   const VBT_MULTI_TRACKER_MOTION_WEIGHT = 0.14;
   const VBT_MULTI_TRACKER_PREDICTION_WEIGHT = 0.08;
-  const VBT_DEBUG_TRACE_VERSION = "v183.12-center-dot-anchor";
+  const VBT_DEBUG_TRACE_VERSION = "v183.13-input-rep-window-guard";
   const VBT_DEBUG_MONTAGE_PANELS = 5;
   const VBT_DL_MIN_VALID_ROM_M = 0.30;
   const VBT_DL_SOFT_MIN_VALID_ROM_M = 0.24;
@@ -818,6 +818,78 @@
     return phases;
   }
 
+  function detectRepPhasesByExpectedWindows(path, lift, expectedReps) {
+    const expected = Number(expectedReps);
+    const smoothed = smoothTrackPath(path);
+    if (!Number.isFinite(expected) || expected <= 0 || smoothed.length < Math.max(6, expected * 4)) return [];
+
+    const guide = getVbtStartGuide(lift);
+    const pattern = guide.movementPattern === "auto" ? "top-bottom-top" : guide.movementPattern;
+    const yValues = smoothed.map((point) => Number(point.y)).filter(Number.isFinite);
+    const yRange = yValues.length ? Math.max(...yValues) - Math.min(...yValues) : 0;
+    if (!Number.isFinite(yRange) || yRange < 4) return [];
+
+    const phases = [];
+    const n = smoothed.length;
+    const padding = Math.max(2, Math.round(n / Math.max(12, expected * 7)));
+    const findExtremeIndex = (from, to, wantMin) => {
+      const start = clamp(Math.round(from), 0, n - 1);
+      const end = clamp(Math.round(to), start, n - 1);
+      let bestIndex = start;
+      let bestValue = Number(smoothed[start]?.y);
+      for (let index = start + 1; index <= end; index += 1) {
+        const value = Number(smoothed[index]?.y);
+        if (!Number.isFinite(value)) continue;
+        if ((wantMin && value < bestValue) || (!wantMin && value > bestValue)) {
+          bestIndex = index;
+          bestValue = value;
+        }
+      }
+      return bestIndex;
+    };
+
+    const minWindowTravel = Math.max(3, yRange * (lift === "DL" ? 0.14 : 0.12));
+
+    for (let rep = 0; rep < expected; rep += 1) {
+      const baseStart = Math.floor((rep * (n - 1)) / expected);
+      const baseEnd = rep === expected - 1 ? n - 1 : Math.floor(((rep + 1) * (n - 1)) / expected);
+      const windowStart = clamp(baseStart - padding, 0, n - 1);
+      const windowEnd = clamp(baseEnd + padding, windowStart + 2, n - 1);
+
+      if (pattern === "bottom-top-bottom") {
+        const topIndex = findExtremeIndex(windowStart, windowEnd, true);
+        const startIndex = findExtremeIndex(windowStart, Math.max(windowStart, topIndex - 1), false);
+        const endIndex = findExtremeIndex(Math.min(windowEnd, topIndex + 1), windowEnd, false);
+        const upTravel = Math.abs(Number(smoothed[topIndex]?.y) - Number(smoothed[startIndex]?.y));
+        const downTravel = Math.abs(Number(smoothed[endIndex]?.y) - Number(smoothed[topIndex]?.y));
+        if (topIndex > startIndex && endIndex > topIndex && upTravel >= minWindowTravel) {
+          phases.push({
+            repIndex: phases.length + 1,
+            concentric: { startIndex, endIndex: topIndex },
+            eccentric: downTravel >= Math.max(2, minWindowTravel * 0.45) ? { startIndex: topIndex, endIndex } : null,
+            expectedWindowFallback: true
+          });
+        }
+      } else {
+        const bottomIndex = findExtremeIndex(windowStart, windowEnd, false);
+        const startIndex = findExtremeIndex(windowStart, Math.max(windowStart, bottomIndex - 1), true);
+        const endIndex = findExtremeIndex(Math.min(windowEnd, bottomIndex + 1), windowEnd, true);
+        const downTravel = Math.abs(Number(smoothed[bottomIndex]?.y) - Number(smoothed[startIndex]?.y));
+        const upTravel = Math.abs(Number(smoothed[endIndex]?.y) - Number(smoothed[bottomIndex]?.y));
+        if (bottomIndex > startIndex && endIndex > bottomIndex && upTravel >= minWindowTravel) {
+          phases.push({
+            repIndex: phases.length + 1,
+            eccentric: downTravel >= Math.max(2, minWindowTravel * 0.45) ? { startIndex, endIndex: bottomIndex } : null,
+            concentric: { startIndex: bottomIndex, endIndex },
+            expectedWindowFallback: true
+          });
+        }
+      }
+    }
+
+    return phases.slice(0, expected);
+  }
+
   function detectRepPhases(path, lift, expectedReps) {
     const smoothed = smoothTrackPath(path);
     if (smoothed.length < 5) return [];
@@ -880,6 +952,17 @@
           restBeforeSeconds: phases.length ? Math.max(0, segmentStartTime(eccentric) - Number(smoothed[phases.at(-1).concentric.endIndex].time)) : null
         });
         index = segments.findIndex((segment) => segment.startIndex === concentric.startIndex);
+      }
+    }
+
+    if (Number(expectedReps) > 0 && phases.length < Number(expectedReps)) {
+      const windowFallback = detectRepPhasesByExpectedWindows(smoothed, lift, expectedReps);
+      if (windowFallback.length >= Number(expectedReps) || windowFallback.length > phases.length) {
+        return windowFallback;
+      }
+      const turnFallback = detectRepPhasesByTurns(smoothed, lift, expectedReps);
+      if (turnFallback.length >= Number(expectedReps) || turnFallback.length > phases.length) {
+        return turnFallback;
       }
     }
 
@@ -1045,7 +1128,8 @@
         totalRomMeters,
         pauseDuration: eccentric && concentric ? (Math.max(0, (concentric.startTime || 0) - (eccentric.endTime || 0)) || null) : null,
         restBeforeSeconds: phase.restBeforeSeconds || null,
-        confidence: "high",
+        expectedWindowFallback: Boolean(phase.expectedWindowFallback),
+        confidence: phase.expectedWindowFallback ? "middle" : "high",
         warning: null
       };
       const repQuality = getRepQuality(metric, {
@@ -1140,8 +1224,8 @@
       .map((metric, index) => ({
         ...metric,
         repIndex: index + 1,
-        qualityNote: metric.qualityNote || (hasExpected ? "入力Rep数に合わせて採用" : metric.qualityNote),
-        repQuality: metric.repQuality ? { ...metric.repQuality, note: metric.repQuality.note || (hasExpected ? "入力Rep数に合わせて採用" : null) } : metric.repQuality
+        qualityNote: metric.qualityNote || (metric.expectedWindowFallback ? "入力Rep数を基準に区間を補完" : hasExpected ? "入力Rep数に合わせて採用" : metric.qualityNote),
+        repQuality: metric.repQuality ? { ...metric.repQuality, note: metric.repQuality.note || (metric.expectedWindowFallback ? "入力Rep数を基準に区間を補完" : hasExpected ? "入力Rep数に合わせて採用" : null) } : metric.repQuality
       }));
 
     return {
@@ -1628,7 +1712,7 @@
     }
     const metersPerPixel = (plateDiameterCm / 100) / plateDiameterPixels;
     const expectedReps = expectedRepCountFromRecord(record);
-    const rawRepPhases = detectRepPhases(path, record.lift, null);
+    const rawRepPhases = detectRepPhases(path, record.lift, expectedReps);
     const rawRepMetrics = calculateRepVelocityMetrics(rawRepPhases, { path, metersPerPixel, lift: record.lift, expectedReps });
     const repFilter = sanitizeRepMetricsForExpectedCount(rawRepMetrics, expectedReps, record.lift);
     const repMetrics = repFilter.metrics;

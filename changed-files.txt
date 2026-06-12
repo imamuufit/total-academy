@@ -1,20 +1,26 @@
-platform-buddy v183.12 changed files
+platform-buddy v183.13 changed files
 
-Base:
-- platform-buddy-v183.11-vbt-rep-count-guard-dl-bounce-filter-changed-files.zip
+Base: v183.12 center-dot anchor
+Purpose: Fix under-detection where a 2-rep DL video could be displayed as 1 rep after switching to center-point anchor tracking.
 
-Changed:
+Changed files:
 - video.js
 - sw.js
 - manifest.webmanifest
 - changed-files.txt
 - DIFF
 
-Summary:
-- Replaced the user-facing plate ROI square with a center-dot anchor + thin diameter ring display.
-- Canvas tap/drag now sets the plate center point directly.
-- Tracking uses trackingAnchorPoint as the primary plate center reference.
-- Visual ring/hidden tracking window remains tied to locked plate diameter pixels; ROI size is no longer user-facing.
-- Removed normal width/height nudge buttons from the manual correction UI.
-- Kept plate diameter cm input and locked pixel-diameter calibration separated from the visible center point.
-- Updated PWA cache/version to v183.12.
+Key changes:
+- Pass the user/input rep count into VBT rep-phase detection instead of detecting phases with a null expected count.
+- Add expected-rep window fallback segmentation for DL/SQ/BP.
+  - If normal motion segmentation finds fewer phases than the input rep count, the analyzer splits the trimmed set into expected rep windows and finds each rep's primary top/bottom turn inside that window.
+  - This is intended as a safety net for center-dot tracking when one rep is missed by turn/segment detection.
+- Keep the v183.12 center-dot anchor UI and ROI/calibration separation.
+- Mark fallback-derived reps with a note: 入力Rep数を基準に区間を補完.
+- Keep the DL rep-count guard and ROM/bounce filters from v183.11.
+- Updated PWA cache/version to v183.13.
+
+Validation:
+- node --check video.js: OK
+- node --check sw.js: OK
+- python3 -m json.tool manifest.webmanifest: OK
