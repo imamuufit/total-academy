@@ -24,7 +24,8 @@
   const VBT_MULTI_TRACKER_HISTOGRAM_WEIGHT = 0.18;
   const VBT_MULTI_TRACKER_MOTION_WEIGHT = 0.14;
   const VBT_MULTI_TRACKER_PREDICTION_WEIGHT = 0.08;
-  const VBT_DEBUG_TRACE_VERSION = "v183.04.01-stable-rebuild-center-dot";
+  const VBT_DEBUG_TRACE_VERSION = "v183.04.02-feedback-learning-data";
+  const VBT_DETECTION_FEEDBACK_KEY = "platformBuddyVbtDetectionFeedbackV1";
   const VBT_DL_MIN_VALID_ROM_M = 0.30;
   const VBT_DL_SOFT_MIN_VALID_ROM_M = 0.24;
   const VBT_MIN_CONCENTRIC_DURATION_S = 0.20;
@@ -2269,6 +2270,7 @@
       dialog.querySelector("[data-vbt-canvas]")?.classList.add("active", "roi-active");
       drawVbtOverlay(dialog);
       drawRoiPreview(dialog);
+      renderVbtFeedbackPanel(dialog);
     }
     if (step === "anchor-assist") {
       setVbtState(dialog, { anchorAssistMode: true, anchorAssistType: "plate" });
@@ -2280,6 +2282,7 @@
       setVbtState(dialog, { anchorAssistMode: false, anchorAssistType: null });
       dialog.querySelector("[data-vbt-canvas]")?.classList.add("active", "roi-active");
       renderAutoCandidateList(dialog);
+      renderVbtFeedbackPanel(dialog);
       renderVbtDebugPanel(dialog);
       drawVbtOverlay(dialog);
       drawRoiPreview(dialog);
@@ -3751,6 +3754,194 @@
     setTimeout(() => URL.revokeObjectURL(url), 5000);
   }
 
+
+  function loadVbtDetectionFeedback() {
+    try {
+      const raw = localStorage.getItem(VBT_DETECTION_FEEDBACK_KEY);
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+      console.warn("VBT feedback load failed", error);
+      return [];
+    }
+  }
+
+  function saveVbtDetectionFeedbackItems(items) {
+    try {
+      const capped = Array.isArray(items) ? items.slice(-500) : [];
+      localStorage.setItem(VBT_DETECTION_FEEDBACK_KEY, JSON.stringify(capped));
+      return capped;
+    } catch (error) {
+      console.warn("VBT feedback save failed", error);
+      return loadVbtDetectionFeedback();
+    }
+  }
+
+  function summarizeFeedbackTrace(trace) {
+    if (!trace) return null;
+    return {
+      status: trace.status || null,
+      version: trace.version || VBT_DEBUG_TRACE_VERSION,
+      message: trace.message || null,
+      sampling: {
+        actualFrameCount: trace.sampling?.actualFrameCount ?? null,
+        duration: trace.sampling?.duration ?? null
+      },
+      person: {
+        aiPersonDetected: Boolean(trace.person?.aiPersonDetected),
+        segmentedFrameCount: trace.person?.segmentedFrameCount ?? 0,
+        fallbackUsed: Boolean(trace.person?.fallbackUsed)
+      },
+      timing: {
+        elapsedMs: trace.timing?.elapsedMs ?? null
+      },
+      winner: trace.winner || null
+    };
+  }
+
+  function summarizeFeedbackCandidate(candidate, index = null) {
+    if (!candidate) return null;
+    const roi = candidate.roi || null;
+    return {
+      index,
+      confidence: candidate.confidence || null,
+      score: hasFiniteNumber(candidate.score) ? Number(candidate.score) : null,
+      roi: roi ? {
+        x: Math.round(Number(roi.x) || 0),
+        y: Math.round(Number(roi.y) || 0),
+        width: Math.round(Number(roi.width) || 0),
+        height: Math.round(Number(roi.height) || 0),
+        centerX: Math.round((Number(roi.x) || 0) + (Number(roi.width) || 0) / 2),
+        centerY: Math.round((Number(roi.y) || 0) + (Number(roi.height) || 0) / 2)
+      } : null,
+      shape: hasFiniteNumber(candidate.shapeEvidence ?? candidate.shapeScore) ? Number(candidate.shapeEvidence ?? candidate.shapeScore) : null,
+      disc: hasFiniteNumber(candidate.discEvidence ?? candidate.discScore) ? Number(candidate.discEvidence ?? candidate.discScore) : null,
+      motion: hasFiniteNumber(candidate.motionRatio ?? candidate.motionScore) ? Number(candidate.motionRatio ?? candidate.motionScore) : null,
+      bar: hasFiniteNumber(candidate.barScore) ? Number(candidate.barScore) : null,
+      person: hasFiniteNumber(candidate.personEvidence ?? candidate.lifterEvidence) ? Number(candidate.personEvidence ?? candidate.lifterEvidence) : null,
+      context: hasFiniteNumber(candidate.contextEvidence ?? candidate.contextPriorScore) ? Number(candidate.contextEvidence ?? candidate.contextPriorScore) : null,
+      sampleCount: candidate.sampleCount ?? candidate.groupItems ?? null
+    };
+  }
+
+  function currentVbtFeedbackPoint(dialog) {
+    const state = vbtState(dialog);
+    const point = state.trackingAnchorPoint || state.plateCenterPoint || (state.plateRoi ? roiCenter(state.plateRoi) : null);
+    if (!point) return null;
+    return {
+      x: Math.round(Number(point.x) || 0),
+      y: Math.round(Number(point.y) || 0)
+    };
+  }
+
+  function feedbackRecordMeta(dialog) {
+    const record = dialog?._vbtRecord || vbtState(dialog).autoDetectionDebug?.record || null;
+    const video = dialog?.querySelector("video");
+    const state = vbtState(dialog);
+    return {
+      id: record?.id || null,
+      lift: record?.lift || null,
+      weight: hasFiniteNumber(record?.weight) ? Number(record.weight) : null,
+      reps: hasFiniteNumber(record?.reps) ? Number(record.reps) : null,
+      rpe: hasFiniteNumber(record?.rpe) ? Number(record.rpe) : null,
+      createdAt: record?.createdAt || record?.date || null,
+      video: {
+        width: video?.videoWidth || null,
+        height: video?.videoHeight || null,
+        duration: hasFiniteNumber(video?.duration) ? Number(video.duration) : null
+      },
+      trim: {
+        start: hasFiniteNumber(state.trimStart) ? Number(state.trimStart) : null,
+        end: hasFiniteNumber(state.trimEnd) ? Number(state.trimEnd) : null
+      },
+      calibration: {
+        plateDiameterCm: hasFiniteNumber(state.plateDiameterCm) ? Number(state.plateDiameterCm) : DEFAULT_PLATE_DIAMETER_CM,
+        plateRoi: state.plateRoi || null,
+        centerPoint: currentVbtFeedbackPoint(dialog)
+      }
+    };
+  }
+
+  function saveVbtDetectionFeedback(dialog, verdict) {
+    if (!dialog) return;
+    const state = vbtState(dialog);
+    const candidates = Array.isArray(state.autoPlateCandidates) ? state.autoPlateCandidates : [];
+    const selectedIndex = hasFiniteNumber(state.selectedCandidateIndex) ? Number(state.selectedCandidateIndex) : null;
+    const selectedCandidate = selectedIndex !== null ? candidates[selectedIndex] : state.autoPlateCandidate;
+    const item = {
+      id: `feedback-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      savedAt: new Date().toISOString(),
+      appVersion: VBT_DEBUG_TRACE_VERSION,
+      verdict,
+      record: feedbackRecordMeta(dialog),
+      selectedCandidate: summarizeFeedbackCandidate(selectedCandidate, selectedIndex),
+      allCandidates: candidates.map((candidate, index) => summarizeFeedbackCandidate(candidate, index)),
+      correctedCenterPoint: verdict === "corrected" || verdict === "good" ? currentVbtFeedbackPoint(dialog) : null,
+      trace: summarizeFeedbackTrace(state.autoDetectionDebug)
+    };
+    const list = loadVbtDetectionFeedback();
+    list.push(item);
+    saveVbtDetectionFeedbackItems(list);
+    renderVbtFeedbackPanel(dialog, verdict);
+  }
+
+  function renderVbtFeedbackPanel(dialog, justSaved = null) {
+    const panels = dialog?.querySelectorAll("[data-vbt-feedback-panel]");
+    if (!panels?.length) return;
+    const list = loadVbtDetectionFeedback();
+    const state = vbtState(dialog);
+    const selectedIndex = hasFiniteNumber(state.selectedCandidateIndex) ? Number(state.selectedCandidateIndex) : 0;
+    const recent = list.slice(-1)[0];
+    const just = justSaved ? `<p class="video-storage-note compact success">保存しました: ${justSaved === "good" ? "正解候補" : justSaved === "bad" ? "不正解候補" : "正解中心点"}</p>` : "";
+    panels.forEach((panel) => {
+      panel.innerHTML = `
+        <div class="vbt-feedback-box">
+          <div class="vbt-feedback-head">
+            <strong>開発用フィードバック</strong>
+            <small>保存済み ${list.length}件</small>
+          </div>
+          <p class="video-storage-note compact">候補${Number(selectedIndex) + 1}の正誤を保存します。違う場合は丸点を正しいプレート中心へ合わせてから「正解中心を保存」を押してください。</p>
+          ${just}
+          <div class="vbt-feedback-actions">
+            <button type="button" class="text-button compact" data-vbt-feedback="good">👍 良い</button>
+            <button type="button" class="text-button compact" data-vbt-feedback="bad">👎 違う</button>
+            <button type="button" class="primary-button inline compact" data-vbt-feedback="corrected">🎯 正解中心を保存</button>
+            <button type="button" class="text-button compact" data-vbt-export-feedback>学習JSONを書き出す</button>
+          </div>
+          ${recent ? `<p class="video-storage-note compact">直近: ${escapeHtml(recent.verdict)} / ${escapeHtml(recent.record?.lift || "--")} / ${escapeHtml(recent.savedAt || "")}</p>` : ""}
+        </div>`;
+    });
+  }
+
+  function handleVbtDetectionFeedback(button) {
+    const dialog = button?.closest("dialog");
+    const verdict = button?.dataset?.vbtFeedback;
+    if (!dialog || !verdict) return;
+    saveVbtDetectionFeedback(dialog, verdict);
+  }
+
+  function exportVbtDetectionFeedback(button) {
+    const dialog = button?.closest("dialog");
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      appVersion: VBT_DEBUG_TRACE_VERSION,
+      count: loadVbtDetectionFeedback().length,
+      items: loadVbtDetectionFeedback()
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    const lift = dialog?._vbtRecord?.lift || "vbt";
+    const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+    anchor.href = url;
+    anchor.download = `platform-buddy-${lift}-detection-feedback-${stamp}.json`;
+    document.body.append(anchor);
+    anchor.click();
+    anchor.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    renderVbtFeedbackPanel(dialog);
+  }
+
   function makeAutoDetectSampleTimes(start, end) {
     const duration = Math.max(0.1, end - start);
     // v183.04: プレート検出は「数分待つ精密検出」ではなく、体感10秒以内の短時間検出へ戻す。
@@ -4053,6 +4244,7 @@
     const note = dialog.querySelector("[data-vbt-auto-note]");
     if (note) note.textContent = vbtState(dialog).autoDetectionMessage;
     renderAutoCandidateList(dialog);
+    renderVbtFeedbackPanel(dialog);
     renderVbtDebugPanel(dialog);
     drawVbtOverlay(dialog);
     drawRoiPreview(dialog);
@@ -4461,6 +4653,7 @@
           </div>
           <p class="video-storage-note" data-vbt-auto-note>丸点が最大プレートの中心に近ければ「見えます」を押してください。</p>
           <div class="vbt-candidate-strip" data-vbt-candidate-list></div>
+          <div data-vbt-feedback-panel></div>
           <div class="vbt-debug-panel" data-vbt-debug-panel></div>
           <div class="vbt-roi-preview">
             <canvas data-vbt-roi-preview-canvas></canvas>
@@ -4508,6 +4701,7 @@
             <canvas data-vbt-roi-preview-canvas></canvas>
             <span>中心点拡大プレビュー</span>
           </div>
+          <div data-vbt-feedback-panel></div>
           <div class="vbt-markers"><span data-vbt-pick-status>${calibration.plateRoi ? "中心点を保存済み" : "中心点は未設定"}</span></div>
         </section>
 
@@ -5614,6 +5808,7 @@
     const dialog = ensureViewerDialog();
     const url = createObjectUrl(record.videoBlob);
     dialog._vbtState = initialVbtState(record);
+    dialog._vbtRecord = record;
     dialog.innerHTML = `
       <form method="dialog" class="video-viewer-card">
         <div class="section-title">
@@ -5807,6 +6002,10 @@
     if (candidateSelect) return selectAutoPlateCandidate(candidateSelect);
     const debugExport = event.target.closest("[data-vbt-export-debug]");
     if (debugExport) return exportVbtDebugTrace(debugExport);
+    const feedback = event.target.closest("[data-vbt-feedback]");
+    if (feedback) return handleVbtDetectionFeedback(feedback);
+    const feedbackExport = event.target.closest("[data-vbt-export-feedback]");
+    if (feedbackExport) return exportVbtDetectionFeedback(feedbackExport);
     const confirmPlate = event.target.closest("[data-vbt-confirm-plate]");
     if (confirmPlate) return confirmAutoDetectedPlate(confirmPlate);
     const manualPlate = event.target.closest("[data-vbt-manual-plate]");

@@ -18060,3 +18060,42 @@ html body .vbt-wizard-actions.three .text-button[data-vbt-marker-assist] {
     grid-template-columns: 1fr;
   }
 }
+
+/* v183.04.02 VBT detection feedback learning data */
+.vbt-feedback-box {
+  border: 1px solid rgba(34, 197, 94, 0.22);
+  background: rgba(236, 253, 245, 0.72);
+  border-radius: 14px;
+  padding: 12px;
+  margin: 10px 0;
+  display: grid;
+  gap: 8px;
+}
+.vbt-feedback-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+.vbt-feedback-head strong {
+  font-size: 0.94rem;
+  color: #17351f;
+}
+.vbt-feedback-head small {
+  color: #38634a;
+  font-weight: 800;
+}
+.vbt-feedback-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.video-storage-note.success {
+  color: #136c36;
+  font-weight: 900;
+}
+@media (max-width: 680px) {
+  .vbt-feedback-actions > button {
+    flex: 1 1 calc(50% - 8px);
+  }
+}

@@ -1,21 +1,21 @@
-v183.04.01 stable rebuild patch
+v183.04.02 feedback learning data patch
 
 Base:
-- v183.04-vbt-fast-two-pass-detect
+- v183.04.01-vbt-stable-rebuild-center-dot-repguard
 
 Changed files:
 - index.html
 - video.js
+- styles.css
 - sw.js
 - manifest.webmanifest
 - changed-files.txt
 - DIFF
 
 Summary:
-- Restored v183.04 detection engine as the stable baseline.
-- Added center-dot style operation on top of v183.04 without importing the later unstable analysis engine.
-- Kept the internal tracking window, but the user-facing overlay is now a center dot + diameter ring.
-- Disabled normal ROI resize operations from the manual adjustment UI.
-- Manual pointer operation now moves the center point while preserving the internal tracking window size.
-- Added minimal expected-rep guard and DL bounce/short-ROM filtering so 2-rep videos are less likely to be saved as 4/5 reps.
-- Preserved v183.04 two-pass detection timing/logic.
+- Added development-only feedback controls after auto plate detection.
+- Added Good / Bad / Correct center buttons for each detected candidate.
+- Saves detection feedback locally in localStorage for up to 500 samples.
+- Feedback payload includes lift, weight, reps, trim, selected candidate, all candidate scores, corrected center point, and compact debug trace summary.
+- Added JSON export for accumulated detection-learning data.
+- Kept v183.04.01 stable detection engine and center-dot operation unchanged.
