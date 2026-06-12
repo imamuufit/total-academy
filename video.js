@@ -10,10 +10,10 @@
   const VBT_PERSON_SEGMENTATION_ENABLED = true;
   const VBT_TFJS_URL = "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js";
   const VBT_BODYPIX_URL = "https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix@2.2.1/dist/body-pix.min.js";
-  const VBT_DEEP_DETECT_MIN_MS = 6500;
+  const VBT_DEEP_DETECT_MIN_MS = 2800;
   const VBT_DEEP_RESULT_ANALYSIS_MIN_MS = 3500;
-  const VBT_DEEP_DETECT_FRAME_SIZE = 560;
-  const VBT_DEEP_DETECT_PERSON_SEGMENT_EVERY = 6;
+  const VBT_DEEP_DETECT_FRAME_SIZE = 448;
+  const VBT_DEEP_DETECT_PERSON_SEGMENT_EVERY = 8;
   const VBT_PERSON_MODEL_DETECT_TIMEOUT_MS = 2500;
   const VBT_MARKER_ROI_MIN_PX = 18;
   const VBT_MARKER_ROI_MAX_PX = 54;
@@ -24,7 +24,7 @@
   const VBT_MULTI_TRACKER_HISTOGRAM_WEIGHT = 0.18;
   const VBT_MULTI_TRACKER_MOTION_WEIGHT = 0.14;
   const VBT_MULTI_TRACKER_PREDICTION_WEIGHT = 0.08;
-  const VBT_DEBUG_TRACE_VERSION = "v183.03-fast-disc-detect-budget";
+  const VBT_DEBUG_TRACE_VERSION = "v183.04-fast-two-pass-detect";
   const VBT_DEBUG_MONTAGE_PANELS = 5;
   let bodyPixModelPromise = null;
 
@@ -3048,9 +3048,9 @@
     const baseCenterX = candidate.x + candidate.width / 2;
     const baseCenterY = candidate.y + candidate.height / 2;
     let best = null;
-    const sizeFactors = [0.72, 0.84, 0.96, 1.08];
-    const offsets = [-0.62, -0.38, -0.18, 0, 0.18, 0.36];
-    const xOffsets = [-0.24, -0.10, 0, 0.10, 0.24];
+    const sizeFactors = [0.78, 0.94, 1.08];
+    const offsets = [-0.38, -0.16, 0.10, 0.30];
+    const xOffsets = [-0.14, 0, 0.14];
     sizeFactors.forEach((factor) => {
       const size = clamp(Math.round(baseSize * factor), 30, Math.min(width, height) * 0.34);
       offsets.forEach((oy) => {
@@ -3112,8 +3112,9 @@
         for (let x = Math.round(region.xMin); x <= xEnd; x += step) {
           const centerX = x + size / 2;
           const centerY = y + size / 2;
-          let candidate = { x, y, width: size, height: size };
-          candidate = refinePlateCandidateByDisc(luminanceAt, candidate, lift, width, height);
+          // v183.04: ここで全候補に円盤スナップを掛けると、候補数×120probeになり検出が数分化する。
+          // まず粗い候補を高速に評価し、最終候補だけを後段でスナップする二段階方式にする。
+          const candidate = { x, y, width: size, height: size };
           const refinedCenterX = candidate.x + candidate.width / 2;
           const refinedCenterY = candidate.y + candidate.height / 2;
           const sideBias = Math.abs(refinedCenterX / width - 0.5) * preferSides * 100;
@@ -3238,11 +3239,14 @@
     }
     const minScore = hasBarLine ? 48 : 58;
     const toResult = (item) => {
+      const snapped = lift === "DL" ? refinePlateCandidateByDisc(luminanceAt, item, lift, width, height) : item;
+      const snapShape = snapped === item ? null : plateShapeEvidence(luminanceAt, snapped);
+      const snapDisc = snapped === item ? null : plateDiscMassEvidence(luminanceAt, snapped);
       const roi = clampPlateRoi({
-        x: item.x / scale,
-        y: item.y / scale,
-        width: item.width / scale,
-        height: item.height / scale
+        x: snapped.x / scale,
+        y: snapped.y / scale,
+        width: snapped.width / scale,
+        height: snapped.height / scale
       }, Math.round(width / scale), Math.round(height / scale));
       const confidence = item.score > 88 && item.barScore > 10 ? "high" : item.score > 64 ? "middle" : "low";
       return {
@@ -3256,18 +3260,18 @@
         barY: item.barY,
         crossingScore: item.crossingScore,
         pairScore: item.pairScore,
-        shapeScore: item.shapeScore,
-        discScore: item.discScore,
-        discMassScore: item.discMassScore,
-        centerMassScore: item.centerMassScore,
-        cornerContrastScore: item.cornerContrastScore,
-        insideDarkRatio: item.insideDarkRatio,
-        cornerDarkRatio: item.cornerDarkRatio,
-        floorSpecklePenalty: item.floorSpecklePenalty,
-        ringScore: item.ringScore,
-        roundnessScore: item.roundnessScore,
-        hubScore: item.hubScore,
-        fillScore: item.fillScore,
+        shapeScore: snapShape?.score ?? item.shapeScore,
+        discScore: snapDisc?.score ?? item.discScore,
+        discMassScore: snapDisc?.discMassScore ?? item.discMassScore,
+        centerMassScore: snapDisc?.centerMassScore ?? item.centerMassScore,
+        cornerContrastScore: snapDisc?.cornerContrastScore ?? item.cornerContrastScore,
+        insideDarkRatio: snapDisc?.insideDarkRatio ?? item.insideDarkRatio,
+        cornerDarkRatio: snapDisc?.cornerDarkRatio ?? item.cornerDarkRatio,
+        floorSpecklePenalty: snapDisc?.floorSpecklePenalty ?? item.floorSpecklePenalty,
+        ringScore: snapShape?.ringScore ?? item.ringScore,
+        roundnessScore: snapShape?.roundnessScore ?? item.roundnessScore,
+        hubScore: snapShape?.hubScore ?? item.hubScore,
+        fillScore: snapShape?.fillScore ?? item.fillScore,
         hasBarLine: item.hasBarLine,
         lifterScore: item.lifterScore,
         lifterNearScore: item.lifterNearScore,
@@ -3286,8 +3290,8 @@
     candidates.sort((a, b) => b.score - a.score);
     if (options.returnCandidates) {
       return candidates
-        .filter((item) => item.score >= Math.max(28, minScore - 24))
-        .slice(0, options.maxCandidates || 6)
+        .filter((item) => item.score >= Math.max(34, minScore - 18))
+        .slice(0, Math.min(options.maxCandidates || 5, lift === "DL" ? 5 : 6))
         .map(toResult);
     }
     if (!best || best.score < minScore) return null;
@@ -3653,32 +3657,31 @@
 
   function makeAutoDetectSampleTimes(start, end) {
     const duration = Math.max(0.1, end - start);
-    // 実機では「待たされる体感」が離脱につながるため、検出は高速精密に寄せる。
-    // 全フレームを見るのではなく、開始・中盤・終盤の要所を押さえ、候補の一貫性を短時間で評価する。
+    // v183.04: プレート検出は「数分待つ精密検出」ではなく、体感10秒以内の短時間検出へ戻す。
+    // 候補抽出が重いため、動画全体を間引いて、開始・中盤・終盤の代表フレームに限定する。
     const touchDevice = typeof navigator !== "undefined" && Number(navigator.maxTouchPoints) > 0;
     const narrowScreen = typeof window !== "undefined" && window.matchMedia?.("(max-width: 760px)")?.matches;
-    const maxFrames = touchDevice || narrowScreen ? 46 : 68;
-    const minFrames = touchDevice || narrowScreen ? 22 : 28;
-    const count = clamp(Math.round(duration * (touchDevice || narrowScreen ? 1.9 : 2.5)), minFrames, maxFrames);
+    const maxFrames = touchDevice || narrowScreen ? 18 : 26;
+    const minFrames = touchDevice || narrowScreen ? 10 : 14;
+    const count = clamp(Math.round(duration * (touchDevice || narrowScreen ? 0.75 : 1.05)), minFrames, maxFrames);
     const times = [];
     for (let index = 0; index < count; index += 1) {
       const ratio = count === 1 ? 0 : index / (count - 1);
       times.push(clamp(start + duration * ratio, start, end));
     }
-    // 開始直後・中央・終盤を必ず含め、動きが少ない/待機がある動画でも候補評価を安定させる。
-    [0.04, 0.12, 0.25, 0.50, 0.75, 0.88, 0.96].forEach((ratio) => {
+    [0.06, 0.18, 0.36, 0.50, 0.68, 0.84, 0.96].forEach((ratio) => {
       times.push(clamp(start + duration * ratio, start, end));
     });
     return [...new Set(times.map((time) => Number(time.toFixed(3))))].sort((a, b) => a - b);
   }
 
   function deepDetectMinimumWaitMs(sampleCount, durationSeconds) {
+    // 人工的な待機は最小化する。実処理が遅い場合にさらに待たせない。
     const deviceTouch = typeof navigator !== "undefined" && Number(navigator.maxTouchPoints) > 0;
-    const base = VBT_DEEP_DETECT_MIN_MS;
-    const sampleBonus = Math.min(1800, Math.max(0, sampleCount - 32) * 45);
-    const durationBonus = Math.min(1200, Math.max(0, Number(durationSeconds) || 0) * 45);
-    const touchPenalty = deviceTouch ? -1200 : 0;
-    return clamp(base + sampleBonus + durationBonus + touchPenalty, 4200, VBT_DEEP_DETECT_MIN_MS + 3200);
+    const base = deviceTouch ? 1600 : 2200;
+    const sampleBonus = Math.min(500, Math.max(0, sampleCount - 16) * 30);
+    const durationBonus = Math.min(500, Math.max(0, Number(durationSeconds) || 0) * 18);
+    return clamp(base + sampleBonus + durationBonus, 1200, 3200);
   }
 
   async function waitForDeepDetectBudget(startedAt, targetMs, progress, message = "検出結果を確認中…") {
@@ -4161,9 +4164,18 @@
       lifterMotionContext = personContext || buildLifterMotionContext(sampledFrames, record.lift);
       setVbtState(dialog, { autoDetectionMotionContext: lifterMotionContext });
       updateAutoDetectProgress(dialog, 2, lifterMotionContext?.aiPersonDetected ? "2/8 人物領域と動きの重なりを確認中…" : lifterMotionContext ? "2/8 リフター周辺の動き領域を確認中…" : "2/8 リフター領域が弱いため通常検出も併用中…", 42);
+      const candidateStageStartedAt = performance.now();
+      const candidateStageBudgetMs = (typeof navigator !== "undefined" && Number(navigator.maxTouchPoints) > 0) ? 7200 : 9800;
+      let candidateFramesChecked = 0;
       for (let index = 0; index < sampledFrames.length; index += 1) {
+        const elapsedCandidateMs = performance.now() - candidateStageStartedAt;
+        if (elapsedCandidateMs > candidateStageBudgetMs && allCandidates.length >= 8 && candidateFramesChecked >= 8) {
+          updateAutoDetectProgress(dialog, 6, "6/8 時間内に取得できた候補で再評価中…", 82);
+          break;
+        }
         const { time, frame } = sampledFrames[index];
-        const candidates = detectPlateCandidateFromFrame(frame, { lift: record.lift, returnCandidates: true, maxCandidates: 10, motionContext: lifterMotionContext }) || [];
+        const candidates = detectPlateCandidateFromFrame(frame, { lift: record.lift, returnCandidates: true, maxCandidates: 5, motionContext: lifterMotionContext }) || [];
+        candidateFramesChecked += 1;
         candidates.forEach((candidate) => allCandidates.push({ ...candidate, sampleTime: time, sampleIndex: index }));
         const progress = 42 + ((index + 1) / sampledFrames.length) * 40;
         const message = index < sampledFrames.length * 0.25
