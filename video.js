@@ -24,7 +24,7 @@
   const VBT_MULTI_TRACKER_HISTOGRAM_WEIGHT = 0.18;
   const VBT_MULTI_TRACKER_MOTION_WEIGHT = 0.14;
   const VBT_MULTI_TRACKER_PREDICTION_WEIGHT = 0.08;
-  const VBT_DEBUG_TRACE_VERSION = "v183.08-stable-tracking-window-balanced-detect";
+  const VBT_DEBUG_TRACE_VERSION = "v183.09-roi-anchor-calibration-isolated";
   const VBT_DEBUG_MONTAGE_PANELS = 5;
   let bodyPixModelPromise = null;
 
@@ -1443,12 +1443,13 @@
       ? clampPlateRoi(state.plateRoi, video.videoWidth, video.videoHeight)
       : roiFromAnchorPoint(video, state.markerPoint || roiCenter(state.markerRoi));
     const plateRoi = markerMode ? plateRoiBase : normalizePlateRoiForTracking(dialog, plateRoiBase, video);
+    const trackingAnchorPoint = getTrackingAnchorPoint(state, plateRoi);
     const calibrationDiameterPixels = markerMode
       ? null
-      : (getLockedPlateDiameterPixels(state, plateRoi) || candidateCalibrationPixels(state.autoPlateCandidate, plateRoi));
+      : (getLockedPlateDiameterPixels(state, plateRoi) || candidateCalibrationPixels(state.autoPlateCandidate, null));
     const trackingRoi = markerMode
       ? clampPlateRoi(state.markerRoi, video.videoWidth, video.videoHeight)
-      : buildStableTrackingRoiFromCalibration(state, plateRoi, video, record?.lift, calibrationDiameterPixels);
+      : buildStableTrackingRoiFromCalibration({ ...state, trackingAnchorPoint }, plateRoi, video, record?.lift, calibrationDiameterPixels);
     const aspectWarning = markerMode ? null : roiAspectWarning(trackingRoi);
 
     await seekVideo(video, start);
@@ -1527,7 +1528,7 @@
     const markerDiameterEstimate = markerMode && state.markerPoint ? estimatePlateDiameterPixels(video, state.markerPoint) : null;
     const plateDiameterPixels = markerMode
       ? (hasFiniteNumber(markerDiameterEstimate) ? Number(markerDiameterEstimate) : Math.max(plateRoi.width, plateRoi.height))
-      : (calibrationDiameterPixels || getLockedPlateDiameterPixels(state, plateRoi) || Math.max(plateRoi.width, plateRoi.height));
+      : (calibrationDiameterPixels || getLockedPlateDiameterPixels(state, plateRoi) || Math.max(trackingRoi.width, trackingRoi.height));
     const path = smoothTrackPath(smoothTrackingPath(rawPath, plateDiameterPixels));
     const verticalTravelPixels = Math.max(...path.map((point) => point.y)) - Math.min(...path.map((point) => point.y));
     const pathTravelPixels = path.slice(1).reduce((sum, point, index) => sum + pixelDistance(path[index], point), 0);
@@ -1585,6 +1586,7 @@
         plateRoi,
         markerRoi: markerMode ? trackingRoi : null,
         markerPoint: markerMode ? (state.markerPoint || roiCenter(trackingRoi)) : null,
+        trackingAnchorPoint: markerMode ? null : trackingAnchorPoint,
         markerAssistUsed: Boolean(markerMode),
         roiWidthPixels: plateRoi.width,
         roiHeightPixels: plateRoi.height,
@@ -1614,6 +1616,7 @@
         metersPerPixel,
         calibrationSource: state.calibrationSource || "roi-fallback",
         trackingRoi,
+        trackingAnchorPoint: markerMode ? null : trackingAnchorPoint,
         trackPath: path,
         trackerDiagnostics: rawPath.map((point) => ({ time: point.time, confidence: point.confidence, score: point.score, tracker: point.tracker })).slice(0, 240),
         repMetrics,
@@ -2982,7 +2985,8 @@
     setVbtState(dialog, {
       calibrationPlateDiameterPixels: pixels,
       plateRoiLockedDiameterPixels: pixels,
-      calibrationSource: source
+      calibrationSource: source,
+      trackingAnchorPoint: roiCenter(roi)
     });
     return pixels;
   }
@@ -2995,7 +2999,7 @@
       : state?.calibrationSource === "auto-candidate" ? "自動候補"
         : state?.calibrationSource === "user-anchor" ? "タップ補助"
           : state?.calibrationSource || "固定";
-    return `換算基準 ${Math.round(pixels)}px / ${Number(plateDiameterCm).toFixed(1)}cm / ${source} / ${(metersPerPixel * 1000).toFixed(2)}mm/px`;
+    return `換算基準 ${Math.round(pixels)}px / ${Number(plateDiameterCm).toFixed(1)}cm / ${source} / ${(metersPerPixel * 1000).toFixed(2)}mm/px / ROIサイズ非連動`;
   }
 
   function normalizePlateRoiForTracking(dialog, roi, video) {
@@ -3007,9 +3011,9 @@
     if (!roi || !video?.videoWidth || !video?.videoHeight) return roi;
     const locked = Number(lockedPixels || getLockedPlateDiameterPixels(state, roi));
     if (!Number.isFinite(locked) || locked <= 20) return clampPlateRoi(roi, video.videoWidth, video.videoHeight);
-    const center = roiCenter(roi);
-    // v183.08: ROIを小さくしても追跡窓サイズは固定。
-    // 距離換算に使う直径pxを基準に、プレート面を十分含む安定窓を作る。
+    const center = getTrackingAnchorPoint(state, roi);
+    // v183.09: 緑枠のサイズではなく「固定直径px + 中心点」から追跡窓を再生成する。
+    // これにより、ROIを大きく/小さくしても速度換算・追跡窓サイズが変わらない。
     const ratio = lift === "DL" ? 0.96 : 0.92;
     const minSize = Math.max(28, locked * 0.72);
     const maxSize = Math.max(minSize + 2, locked * 1.10);
@@ -3033,6 +3037,37 @@
       width: size,
       height: size
     }, frameWidth, frameHeight);
+  }
+
+  function getTrackingAnchorPoint(state, roi = null) {
+    const anchor = state?.trackingAnchorPoint || state?.plateCenterPoint || state?.autoPlateCandidate?.trackingAnchorPoint || null;
+    if (anchor && hasFiniteNumber(anchor.x) && hasFiniteNumber(anchor.y)) return { x: Number(anchor.x), y: Number(anchor.y) };
+    return roiCenter(roi || state?.plateRoi);
+  }
+
+  function lockedVisualRoiFromCenter(state, center, video, lift = "SQ", fallbackRoi = null) {
+    if (!center || !video?.videoWidth || !video?.videoHeight) return fallbackRoi ? clampPlateRoi(fallbackRoi, video?.videoWidth || 1, video?.videoHeight || 1) : null;
+    const locked = getLockedPlateDiameterPixels(state, fallbackRoi);
+    const fallbackSize = fallbackRoi ? Math.max(Number(fallbackRoi.width) || 0, Number(fallbackRoi.height) || 0) : Math.min(video.videoWidth, video.videoHeight) * 0.18;
+    const baseSize = Number.isFinite(locked) && locked > 20 ? locked : fallbackSize;
+    const ratio = lift === "DL" ? 0.96 : 0.92;
+    const size = clamp(baseSize * ratio, Math.max(34, baseSize * 0.72), Math.max(38, baseSize * 1.10));
+    return clampPlateRoi({
+      x: center.x - size / 2,
+      y: center.y - size / 2,
+      width: size,
+      height: size
+    }, video.videoWidth, video.videoHeight);
+  }
+
+  function normalizePlateRoiToLockedWindow(dialog, roi) {
+    const video = dialog?.querySelector("video");
+    if (!dialog || !video?.videoWidth || !video?.videoHeight || !roi) return roi;
+    const state = vbtState(dialog);
+    const center = roiCenter(roi);
+    const locked = getLockedPlateDiameterPixels(state, roi);
+    if (!Number.isFinite(locked) || locked <= 20) return clampPlateRoi(roi, video.videoWidth, video.videoHeight);
+    return lockedVisualRoiFromCenter(state, center, video, state?.record?.lift || "DL", roi);
   }
 
   function plateShapeEvidence(luminanceAt, candidate) {
@@ -4142,13 +4177,16 @@
     const candidate = candidates[index];
     if (!candidate?.roi) return;
     const calibrationPixels = candidateCalibrationPixels(candidate, candidate.roi);
+    const anchor = roiCenter(candidate.roi);
     setVbtState(dialog, {
       selectedCandidateIndex: index,
       plateRoi: candidate.roi,
+      trackingAnchorPoint: anchor,
+      plateCenterPoint: anchor,
       calibrationPlateDiameterPixels: calibrationPixels,
       plateRoiLockedDiameterPixels: calibrationPixels,
       calibrationSource: "auto-candidate",
-      autoPlateCandidate: { ...candidate, calibrationDiameterPixels: calibrationPixels, lockedDiameterPixels: calibrationPixels },
+      autoPlateCandidate: { ...candidate, trackingAnchorPoint: anchor, calibrationDiameterPixels: calibrationPixels, lockedDiameterPixels: calibrationPixels },
       autoDetectionConfidence: candidate.confidence || "low",
       autoDetectionMessage: candidate.confidence === "low"
         ? "選択した候補は信頼度が低めです。緑枠が最大プレートを囲んでいるか確認してください。"
@@ -4444,15 +4482,19 @@
       const okMessage = `プレートの外周形状とバー接続から候補を${candidateList.length}件見つけました。正しい候補を選び、緑枠が最大プレートを囲んでいれば進んでください。確認フレーム ${sampleTimes.length}件 / 採用フレーム ${bestCandidate.sampleCount || 1}件 / 形状 ${(Number(bestCandidate.shapeEvidence ?? bestCandidate.shapeScore) || 0).toFixed(0)} / 円盤 ${(Number(bestCandidate.discEvidence ?? bestCandidate.discScore) || 0).toFixed(0)} / 動き ${(Number(bestCandidate.motionRatio) || 0).toFixed(2)}`;
       const resultMessage = bestCandidate.confidence === "low" ? lowMessage : okMessage;
       const bestCalibrationPixels = candidateCalibrationPixels(bestCandidate, bestCandidate.roi);
+      const bestAnchor = roiCenter(bestCandidate.roi);
       setVbtState(dialog, {
         plateRoi: bestCandidate.roi,
+        trackingAnchorPoint: bestAnchor,
+        plateCenterPoint: bestAnchor,
         calibrationPlateDiameterPixels: bestCalibrationPixels,
         plateRoiLockedDiameterPixels: bestCalibrationPixels,
         calibrationSource: "auto-candidate",
-        autoPlateCandidate: { ...bestCandidate, calibrationDiameterPixels: bestCalibrationPixels, lockedDiameterPixels: bestCalibrationPixels },
+        autoPlateCandidate: { ...bestCandidate, trackingAnchorPoint: bestAnchor, calibrationDiameterPixels: bestCalibrationPixels, lockedDiameterPixels: bestCalibrationPixels },
         autoPlateCandidates: candidateList.map((candidate) => {
           const pixels = candidateCalibrationPixels(candidate, candidate.roi);
-          return { ...candidate, calibrationDiameterPixels: pixels, lockedDiameterPixels: pixels };
+          const anchor = roiCenter(candidate.roi);
+          return { ...candidate, trackingAnchorPoint: anchor, calibrationDiameterPixels: pixels, lockedDiameterPixels: pixels };
         }),
         selectedCandidateIndex: 0,
         autoDetectionConfidence: bestCandidate.confidence,
@@ -4633,7 +4675,7 @@
               <button class="text-button" type="button" data-vbt-roi-nudge="shorter">縦幅−</button>
               <button class="text-button" type="button" data-vbt-roi-nudge="taller">縦幅＋</button>
             </div>
-            <p>緑枠の移動・サイズ調整は追跡窓の調整です。速度換算の基準は勝手に変えません。</p>
+            <p>緑枠は位置合わせ用です。通常操作ではサイズ変更を止めています。速度換算を変える時だけ下の固定ボタンを使います。</p>
             <button class="text-button" type="button" data-vbt-lock-calibration>この緑枠を直径基準に固定</button>
             <p class="video-storage-note compact" data-vbt-calibration-status>${escapeHtml(calibrationLabel(initialVbtState(record), plateDiameterCm))}</p>
           </details>
@@ -4928,9 +4970,11 @@
     // v183.08: 通常操作では「移動」を優先。
     // ROIサイズ変更が速度結果へ混ざって見えるため、枠内タッチはすべて移動扱いにする。
     if (inside) return { type: "move", handle: null };
+    // 角ハンドルも通常はリサイズではなく移動に統一する。
+    // ROIサイズは速度換算へ混ざりやすいため、手動固定ボタンでのみ変更する。
     const radius = Math.max(7, getRoiHitHandleRadius(canvas) * 0.42);
     const handle = roiHandles(roi).find((item) => pixelDistance(item, point) <= radius);
-    if (handle) return { type: "resize", handle: handle.name };
+    if (handle) return { type: "move", handle: null };
     return null;
   }
 
@@ -4974,6 +5018,8 @@
     if (!dialog || !video?.videoWidth || !video?.videoHeight || !state.plateRoi) return;
     const roi = clampPlateRoi(state.plateRoi, video.videoWidth, video.videoHeight);
     const pixels = setCalibrationPixelsFromRoi(dialog, roi, "manual-lock");
+    const normalized = normalizePlateRoiToLockedWindow(dialog, roi);
+    if (normalized) setVbtState(dialog, { plateRoi: normalized, trackingAnchorPoint: roiCenter(normalized), plateCenterPoint: roiCenter(normalized) });
     const status = dialog.querySelector("[data-vbt-pick-status]");
     if (status) status.textContent = pixels
       ? `現在の緑枠を距離換算の直径基準に固定しました：${Math.round(pixels)}px。`
@@ -4990,16 +5036,19 @@
     if (action === "down") roi.y += amount;
     if (action === "left") roi.x -= amount;
     if (action === "right") roi.x += amount;
-    if (action === "smaller") { roi.x += amount; roi.y += amount; roi.width -= amount * 2; roi.height -= amount * 2; }
-    if (action === "larger") { roi.x -= amount; roi.y -= amount; roi.width += amount * 2; roi.height += amount * 2; }
-    if (action === "wider") { roi.x -= amount; roi.width += amount * 2; }
-    if (action === "narrower") { roi.x += amount; roi.width -= amount * 2; }
-    if (action === "taller") { roi.y -= amount; roi.height += amount * 2; }
-    if (action === "shorter") { roi.y += amount; roi.height -= amount * 2; }
-    const next = clampPlateRoi(roi, video.videoWidth, video.videoHeight);
-    setVbtState(dialog, { plateRoi: next, path: [], trackingMode: "plate-roi-track" });
+    const sizeAction = ["smaller", "larger", "wider", "narrower", "taller", "shorter"].includes(action);
     const status = dialog.querySelector("[data-vbt-pick-status]");
-    if (status) status.textContent = roiAspectWarning(next) || "緑枠を微調整しました。速度換算の直径基準は固定したままです。";
+    if (sizeAction) {
+      if (status) status.textContent = "v183.09では通常操作のROIサイズ変更を停止しています。速度換算を変える場合だけ『この緑枠を直径基準に固定』を使います。";
+      drawVbtOverlay(dialog);
+      drawCalibrationStatus(dialog);
+      return;
+    }
+    let next = clampPlateRoi(roi, video.videoWidth, video.videoHeight);
+    const anchor = roiCenter(next);
+    next = normalizePlateRoiToLockedWindow(dialog, next);
+    setVbtState(dialog, { plateRoi: next, trackingAnchorPoint: anchor, plateCenterPoint: anchor, path: [], trackingMode: "plate-roi-track" });
+    if (status) status.textContent = roiAspectWarning(next) || "緑枠を移動しました。速度換算の直径基準と追跡窓サイズは固定したままです。";
     drawVbtOverlay(dialog);
     drawCalibrationStatus(dialog);
   }
@@ -5060,8 +5109,11 @@
     const state = vbtState(dialog);
     const roi = state.plateRoi ? clampPlateRoi(state.plateRoi, video.videoWidth, video.videoHeight) : defaultPlateRoi(video);
     const calibrationPixels = getLockedPlateDiameterPixels(state, roi) || candidateCalibrationPixels(null, roi);
+    const anchor = roiCenter(roi);
     setVbtState(dialog, {
       plateRoi: roi,
+      trackingAnchorPoint: getTrackingAnchorPoint(state, roi) || anchor,
+      plateCenterPoint: getTrackingAnchorPoint(state, roi) || anchor,
       calibrationPlateDiameterPixels: calibrationPixels,
       plateRoiLockedDiameterPixels: calibrationPixels,
       calibrationSource: state.calibrationSource || "manual-init",
@@ -5076,7 +5128,7 @@
     video.pause();
     dialog.querySelector("[data-vbt-canvas]")?.classList.add("active", "roi-active");
     const status = dialog.querySelector("[data-vbt-pick-status]");
-    if (status) status.textContent = roiAspectWarning(roi) || "緑枠はドラッグで位置合わせします。速度換算の直径基準は別で固定されます。";
+    if (status) status.textContent = roiAspectWarning(roi) || "緑枠はドラッグで位置だけ合わせます。速度換算の直径基準と追跡窓サイズは別で固定されます。";
     const guide = dialog.querySelector("[data-vbt-video-guide]");
     if (guide) guide.textContent = "緑枠をプレート外周に合わせる";
     drawVbtOverlay(dialog);
@@ -5114,24 +5166,20 @@
     const dx = point.x - start.x;
     const dy = point.y - start.y;
     let next = { ...original };
-    if (state.roiMode === "move") {
-      next.x += dx;
-      next.y += dy;
-    } else {
-      const handle = state.roiDrag.handle;
-      const left = handle.includes("w") ? original.x + dx : original.x;
-      const right = handle.includes("e") ? original.x + original.width + dx : original.x + original.width;
-      const top = handle.includes("n") ? original.y + dy : original.y;
-      const bottom = handle.includes("s") ? original.y + original.height + dy : original.y + original.height;
-      next = { x: Math.min(left, right), y: Math.min(top, bottom), width: Math.abs(right - left), height: Math.abs(bottom - top) };
-      // プレート外周ROIは基本的に正方形として扱う。縦横比が崩れるとcm/px換算が揺れる。
-      const size = Math.max(next.width, next.height);
-      const cx = next.x + next.width / 2;
-      const cy = next.y + next.height / 2;
-      next = { x: cx - size / 2, y: cy - size / 2, width: size, height: size };
-    }
+    // v183.09: オーバーレイ操作は「位置合わせ専用」。
+    // サイズ変更は速度換算・追跡窓に混ざるため、通常ドラッグでは無効化する。
+    next.x += dx;
+    next.y += dy;
     next = clampPlateRoi(next, video.videoWidth, video.videoHeight);
-    setVbtState(dialog, { plateRoi: next, path: [], trackingMode: "plate-roi-track" });
+    const anchor = roiCenter(next);
+    const normalized = normalizePlateRoiToLockedWindow(dialog, next);
+    setVbtState(dialog, {
+      plateRoi: normalized,
+      trackingAnchorPoint: anchor,
+      plateCenterPoint: anchor,
+      path: [],
+      trackingMode: "plate-roi-track"
+    });
     const status = dialog.querySelector("[data-vbt-pick-status]");
     if (status) status.textContent = roiAspectWarning(next) || "緑枠の位置を合わせています。サイズを変えても速度換算の直径基準は変わりません。";
     drawVbtOverlay(dialog);

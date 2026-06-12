@@ -1,8 +1,8 @@
-const CACHE_NAME = "platform-buddy-v183-08";
+const CACHE_NAME = "platform-buddy-v183-09";
 const CORE_ASSETS = [
   "./",
   "index.html",
-  "index.html?v=183.08",
+  "index.html?v=183.09",
   "styles.css",
   "styles.css?v=183.08",
   "app.js",

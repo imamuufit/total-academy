@@ -1,22 +1,27 @@
-Platform Buddy v183.08 - VBT stable tracking window + balanced detect
+v183.09-vbt-roi-anchor-calibration-isolated
 
-Changed files:
-- index.html
+変更ファイル:
+- video.js
 - manifest.webmanifest
 - sw.js
-- video.js
+- changed-files.txt
+- DIFF
 
-Summary:
-- Restored a balanced auto-detect budget after the ultra-fast pass reduced DL plate detection accuracy.
-- Increased representative detection frames moderately without returning to the several-minute deep detect behavior.
-- Raised detection frame size to improve plate/rack separation.
-- Decoupled ROI manipulation from tracking-window size and distance calibration.
-- Analysis now builds a stable tracking window from the locked plate diameter pixels around the ROI center.
-- DL disc snap preserves tracking-window size, so snapping changes position, not scale.
-- ROI touches inside the rectangle are treated as move operations; resize is only possible from just outside the small corner handles.
-- Updated PWA cache and query versions to v183.08.
+目的:
+- ROIの位置調整、ROIサイズ、速度換算基準をさらに明確に切り離す。
+- 同じ動画でROIサイズを変えた時に速度結果が大きく変わる問題を抑制する。
+- v183.08の検出精度を維持しつつ、ROI操作の設計を「位置合わせ専用」に寄せる。
 
-Checks:
-- node --check video.js: OK
-- node --check sw.js: OK
-- python3 -m json.tool manifest.webmanifest: OK
+主な変更:
+- trackingAnchorPoint / plateCenterPoint を追加し、追跡はROIサイズではなく中心点を基準にする。
+- 追跡窓サイズは固定されたプレート直径pxから再生成する。
+- ROIの通常ドラッグは移動専用に変更。
+- 角ハンドルによるリサイズを通常操作では無効化。
+- 微調整ボタンのサイズ変更系操作を停止し、直径基準変更は「この緑枠を直径基準に固定」だけに限定。
+- 自動候補選択時に中心点と直径pxを同時に固定。
+- 測定結果のcalibration/measurementにtrackingAnchorPointを保存。
+- 換算基準表示に「ROIサイズ非連動」を明記。
+
+確認:
+- node --check video.js OK
+- python3 -m json.tool manifest.webmanifest OK
