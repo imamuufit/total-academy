@@ -1,6 +1,22 @@
-index.html
-manifest.webmanifest
-sw.js
-video.js
-changed-files.txt
-DIFF
+Platform Buddy v183.08 - VBT stable tracking window + balanced detect
+
+Changed files:
+- index.html
+- manifest.webmanifest
+- sw.js
+- video.js
+
+Summary:
+- Restored a balanced auto-detect budget after the ultra-fast pass reduced DL plate detection accuracy.
+- Increased representative detection frames moderately without returning to the several-minute deep detect behavior.
+- Raised detection frame size to improve plate/rack separation.
+- Decoupled ROI manipulation from tracking-window size and distance calibration.
+- Analysis now builds a stable tracking window from the locked plate diameter pixels around the ROI center.
+- DL disc snap preserves tracking-window size, so snapping changes position, not scale.
+- ROI touches inside the rectangle are treated as move operations; resize is only possible from just outside the small corner handles.
+- Updated PWA cache and query versions to v183.08.
+
+Checks:
+- node --check video.js: OK
+- node --check sw.js: OK
+- python3 -m json.tool manifest.webmanifest: OK

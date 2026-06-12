@@ -10,9 +10,9 @@
   const VBT_PERSON_SEGMENTATION_ENABLED = true;
   const VBT_TFJS_URL = "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js";
   const VBT_BODYPIX_URL = "https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix@2.2.1/dist/body-pix.min.js";
-  const VBT_DEEP_DETECT_MIN_MS = 900;
-  const VBT_DEEP_RESULT_ANALYSIS_MIN_MS = 2500;
-  const VBT_DEEP_DETECT_FRAME_SIZE = 416;
+  const VBT_DEEP_DETECT_MIN_MS = 0;
+  const VBT_DEEP_RESULT_ANALYSIS_MIN_MS = 1200;
+  const VBT_DEEP_DETECT_FRAME_SIZE = 512;
   const VBT_DEEP_DETECT_PERSON_SEGMENT_EVERY = 99;
   const VBT_PERSON_MODEL_DETECT_TIMEOUT_MS = 700;
   const VBT_MARKER_ROI_MIN_PX = 18;
@@ -24,7 +24,7 @@
   const VBT_MULTI_TRACKER_HISTOGRAM_WEIGHT = 0.18;
   const VBT_MULTI_TRACKER_MOTION_WEIGHT = 0.14;
   const VBT_MULTI_TRACKER_PREDICTION_WEIGHT = 0.08;
-  const VBT_DEBUG_TRACE_VERSION = "v183.06-dl-center-gate-roi-size-lock";
+  const VBT_DEBUG_TRACE_VERSION = "v183.08-stable-tracking-window-balanced-detect";
   const VBT_DEBUG_MONTAGE_PANELS = 5;
   let bodyPixModelPromise = null;
 
@@ -1443,10 +1443,13 @@
       ? clampPlateRoi(state.plateRoi, video.videoWidth, video.videoHeight)
       : roiFromAnchorPoint(video, state.markerPoint || roiCenter(state.markerRoi));
     const plateRoi = markerMode ? plateRoiBase : normalizePlateRoiForTracking(dialog, plateRoiBase, video);
+    const calibrationDiameterPixels = markerMode
+      ? null
+      : (getLockedPlateDiameterPixels(state, plateRoi) || candidateCalibrationPixels(state.autoPlateCandidate, plateRoi));
     const trackingRoi = markerMode
       ? clampPlateRoi(state.markerRoi, video.videoWidth, video.videoHeight)
-      : plateRoi;
-    const aspectWarning = markerMode ? null : roiAspectWarning(plateRoi);
+      : buildStableTrackingRoiFromCalibration(state, plateRoi, video, record?.lift, calibrationDiameterPixels);
+    const aspectWarning = markerMode ? null : roiAspectWarning(trackingRoi);
 
     await seekVideo(video, start);
     const trackingFrameWidth = 360;
@@ -1464,8 +1467,10 @@
         const index = (clamp(Math.round(y), 0, first.canvas.height - 1) * first.canvas.width + clamp(Math.round(x), 0, first.canvas.width - 1)) * 4;
         return firstPixels[index] * 0.299 + firstPixels[index + 1] * 0.587 + firstPixels[index + 2] * 0.114;
       };
-      // ROIサイズや床の入り方で速度が変わりすぎるため、初回フレームでプレート円盤の中心へ内部スナップする。
-      scaledRoi = refinePlateCandidateByDisc(firstLum, scaledRoi, "DL", first.canvas.width, first.canvas.height);
+      // 初回フレームでプレート円盤の中心へ内部スナップするが、追跡窓サイズは固定する。
+      // 位置合わせと速度換算を分離し、ROIサイズ変更で速度が跳ねる副作用を抑える。
+      const refinedRoi = refinePlateCandidateByDisc(firstLum, scaledRoi, "DL", first.canvas.width, first.canvas.height);
+      scaledRoi = preserveRoiSizeAroundCenter(refinedRoi, scaledRoi, first.canvas.width, first.canvas.height);
     }
     const firstGray = grayFrame(first.ctx);
     const reference = buildMultiTrackerReference(firstGray, scaledRoi);
@@ -1522,7 +1527,7 @@
     const markerDiameterEstimate = markerMode && state.markerPoint ? estimatePlateDiameterPixels(video, state.markerPoint) : null;
     const plateDiameterPixels = markerMode
       ? (hasFiniteNumber(markerDiameterEstimate) ? Number(markerDiameterEstimate) : Math.max(plateRoi.width, plateRoi.height))
-      : (getLockedPlateDiameterPixels(state, plateRoi) || Math.max(plateRoi.width, plateRoi.height));
+      : (calibrationDiameterPixels || getLockedPlateDiameterPixels(state, plateRoi) || Math.max(plateRoi.width, plateRoi.height));
     const path = smoothTrackPath(smoothTrackingPath(rawPath, plateDiameterPixels));
     const verticalTravelPixels = Math.max(...path.map((point) => point.y)) - Math.min(...path.map((point) => point.y));
     const pathTravelPixels = path.slice(1).reduce((sum, point, index) => sum + pixelDistance(path[index], point), 0);
@@ -1575,6 +1580,8 @@
         plateDiameterCm,
         plateDiameterPixels,
         metersPerPixel,
+        calibrationSource: state.calibrationSource || "roi-fallback",
+        trackingRoi,
         plateRoi,
         markerRoi: markerMode ? trackingRoi : null,
         markerPoint: markerMode ? (state.markerPoint || roiCenter(trackingRoi)) : null,
@@ -1605,6 +1612,8 @@
         plateDiameterCm,
         plateDiameterPixels,
         metersPerPixel,
+        calibrationSource: state.calibrationSource || "roi-fallback",
+        trackingRoi,
         trackPath: path,
         trackerDiagnostics: rawPath.map((point) => ({ time: point.time, confidence: point.confidence, score: point.score, tracker: point.tracker })).slice(0, 240),
         repMetrics,
@@ -2945,29 +2954,85 @@
   }
 
   function getLockedPlateDiameterPixels(state, roi) {
-    const locked = Number(state?.plateRoiLockedDiameterPixels || state?.autoPlateCandidate?.lockedDiameterPixels || state?.autoPlateCandidate?.diameterPixels);
+    const locked = Number(
+      state?.calibrationPlateDiameterPixels
+      || state?.plateRoiLockedDiameterPixels
+      || state?.autoPlateCandidate?.calibrationDiameterPixels
+      || state?.autoPlateCandidate?.lockedDiameterPixels
+      || state?.autoPlateCandidate?.diameterPixels
+    );
     if (Number.isFinite(locked) && locked > 20) return locked;
     return roi ? Math.max(Number(roi.width) || 0, Number(roi.height) || 0) : null;
   }
 
+  function candidateCalibrationPixels(candidate, roi = null) {
+    const value = Number(candidate?.calibrationDiameterPixels || candidate?.lockedDiameterPixels || candidate?.diameterPixels);
+    if (Number.isFinite(value) && value > 20) return value;
+    const sourceRoi = roi || candidate?.roi;
+    if (!sourceRoi) return null;
+    const width = Number(sourceRoi.width) || 0;
+    const height = Number(sourceRoi.height) || 0;
+    const size = Math.max(width, height);
+    return Number.isFinite(size) && size > 20 ? size : null;
+  }
+
+  function setCalibrationPixelsFromRoi(dialog, roi, source = "manual-roi") {
+    const pixels = candidateCalibrationPixels(null, roi);
+    if (!dialog || !Number.isFinite(pixels) || pixels <= 20) return null;
+    setVbtState(dialog, {
+      calibrationPlateDiameterPixels: pixels,
+      plateRoiLockedDiameterPixels: pixels,
+      calibrationSource: source
+    });
+    return pixels;
+  }
+
+  function calibrationLabel(state, plateDiameterCm = DEFAULT_PLATE_DIAMETER_CM) {
+    const pixels = getLockedPlateDiameterPixels(state, state?.plateRoi);
+    if (!Number.isFinite(pixels) || pixels <= 0) return "換算基準 未固定";
+    const metersPerPixel = (Number(plateDiameterCm) / 100) / pixels;
+    const source = state?.calibrationSource === "manual-lock" ? "手動固定"
+      : state?.calibrationSource === "auto-candidate" ? "自動候補"
+        : state?.calibrationSource === "user-anchor" ? "タップ補助"
+          : state?.calibrationSource || "固定";
+    return `換算基準 ${Math.round(pixels)}px / ${Number(plateDiameterCm).toFixed(1)}cm / ${source} / ${(metersPerPixel * 1000).toFixed(2)}mm/px`;
+  }
+
   function normalizePlateRoiForTracking(dialog, roi, video) {
-    const state = vbtState(dialog);
-    const safe = clampPlateRoi(roi, video.videoWidth, video.videoHeight);
-    const locked = getLockedPlateDiameterPixels(state, safe);
-    if (!Number.isFinite(locked) || locked <= 20) return safe;
-    const currentSize = Math.max(safe.width, safe.height);
-    const center = roiCenter(safe);
-    // ユーザーが位置だけ直したつもりで枠サイズが縮むと、cm/px換算が大きくなり速度が速く出る。
-    // 自動候補のプレート径を基準に、解析時だけ正方形ROIへ戻してキャリブレーションを安定させる。
-    const shouldLock = Math.abs(currentSize - locked) / Math.max(locked, 1) > 0.12 || Math.abs(safe.width - safe.height) / Math.max(currentSize, 1) > 0.18;
-    if (!shouldLock) return safe;
-    const size = clamp(locked, Math.min(video.videoWidth, video.videoHeight) * 0.09, Math.min(video.videoWidth, video.videoHeight) * 0.42);
+    // 緑枠ROIは「ユーザーが見ている候補位置」。解析時の追跡窓・距離換算とは分離する。
+    return clampPlateRoi(roi, video.videoWidth, video.videoHeight);
+  }
+
+  function buildStableTrackingRoiFromCalibration(state, roi, video, lift = "SQ", lockedPixels = null) {
+    if (!roi || !video?.videoWidth || !video?.videoHeight) return roi;
+    const locked = Number(lockedPixels || getLockedPlateDiameterPixels(state, roi));
+    if (!Number.isFinite(locked) || locked <= 20) return clampPlateRoi(roi, video.videoWidth, video.videoHeight);
+    const center = roiCenter(roi);
+    // v183.08: ROIを小さくしても追跡窓サイズは固定。
+    // 距離換算に使う直径pxを基準に、プレート面を十分含む安定窓を作る。
+    const ratio = lift === "DL" ? 0.96 : 0.92;
+    const minSize = Math.max(28, locked * 0.72);
+    const maxSize = Math.max(minSize + 2, locked * 1.10);
+    const size = clamp(locked * ratio, minSize, maxSize);
     return clampPlateRoi({
       x: center.x - size / 2,
       y: center.y - size / 2,
       width: size,
       height: size
     }, video.videoWidth, video.videoHeight);
+  }
+
+  function preserveRoiSizeAroundCenter(candidate, referenceRoi, frameWidth, frameHeight) {
+    if (!candidate || !referenceRoi) return candidate || referenceRoi;
+    const size = Math.max(Number(referenceRoi.width) || 0, Number(referenceRoi.height) || 0);
+    if (!Number.isFinite(size) || size <= 0) return candidate;
+    const center = roiCenter(candidate);
+    return clampFrameRoi({
+      x: center.x - size / 2,
+      y: center.y - size / 2,
+      width: size,
+      height: size
+    }, frameWidth, frameHeight);
   }
 
   function plateShapeEvidence(luminanceAt, candidate) {
@@ -3789,23 +3854,23 @@
 
   function makeAutoDetectSampleTimes(start, end) {
     const duration = Math.max(0.1, end - start);
-    // v183.06: 位置解析は「候補を3つ出せる精度」を維持しつつ、体感待ち時間を短縮する。
-    // まず少数の代表フレームで粗検出し、良い候補が出たらそこで打ち切る前提にする。
+    // v183.08: v183.05系の過剰な高速化でラックへ吸われたため、代表フレームを少し戻す。
+    // ただし数分化しないよう、上限は20枚台に抑え、粗検出→上位精査の二段階は維持する。
     const touchDevice = typeof navigator !== "undefined" && Number(navigator.maxTouchPoints) > 0;
     const narrowScreen = typeof window !== "undefined" && window.matchMedia?.("(max-width: 760px)")?.matches;
     const mobileLike = touchDevice || narrowScreen;
-    const maxFrames = mobileLike ? 12 : 16;
-    const minFrames = mobileLike ? 6 : 8;
-    const count = clamp(Math.round(duration * (mobileLike ? 0.34 : 0.48)), minFrames, maxFrames);
+    const maxFrames = mobileLike ? 18 : 24;
+    const minFrames = mobileLike ? 9 : 11;
+    const count = clamp(Math.round(duration * (mobileLike ? 0.50 : 0.66)), minFrames, maxFrames);
     const times = [];
     for (let index = 0; index < count; index += 1) {
       const ratio = count === 1 ? 0 : index / (count - 1);
       times.push(clamp(start + duration * ratio, start, end));
     }
-    [0.08, 0.28, 0.50, 0.72, 0.94].forEach((ratio) => {
+    [0.06, 0.16, 0.28, 0.42, 0.50, 0.64, 0.78, 0.92, 0.98].forEach((ratio) => {
       times.push(clamp(start + duration * ratio, start, end));
     });
-    return [...new Set(times.map((time) => Number(time.toFixed(3))))].sort((a, b) => a - b).slice(0, maxFrames + 3);
+    return [...new Set(times.map((time) => Number(time.toFixed(3))))].sort((a, b) => a - b).slice(0, maxFrames + 4);
   }
 
   function deepDetectMinimumWaitMs(sampleCount, durationSeconds) {
@@ -4076,11 +4141,14 @@
     const candidates = vbtState(dialog).autoPlateCandidates || [];
     const candidate = candidates[index];
     if (!candidate?.roi) return;
+    const calibrationPixels = candidateCalibrationPixels(candidate, candidate.roi);
     setVbtState(dialog, {
       selectedCandidateIndex: index,
       plateRoi: candidate.roi,
-      plateRoiLockedDiameterPixels: Math.max(Number(candidate.roi.width) || 0, Number(candidate.roi.height) || 0),
-      autoPlateCandidate: { ...candidate, lockedDiameterPixels: Math.max(Number(candidate.roi.width) || 0, Number(candidate.roi.height) || 0) },
+      calibrationPlateDiameterPixels: calibrationPixels,
+      plateRoiLockedDiameterPixels: calibrationPixels,
+      calibrationSource: "auto-candidate",
+      autoPlateCandidate: { ...candidate, calibrationDiameterPixels: calibrationPixels, lockedDiameterPixels: calibrationPixels },
       autoDetectionConfidence: candidate.confidence || "low",
       autoDetectionMessage: candidate.confidence === "low"
         ? "選択した候補は信頼度が低めです。緑枠が最大プレートを囲んでいるか確認してください。"
@@ -4226,9 +4294,12 @@
       return;
     }
     const roi = roiFromAnchorPoint(video, point);
+    const calibrationPixels = candidateCalibrationPixels(null, roi);
     setVbtState(dialog, {
       plateRoi: roi,
-      plateRoiLockedDiameterPixels: Math.max(Number(roi.width) || 0, Number(roi.height) || 0),
+      calibrationPlateDiameterPixels: calibrationPixels,
+      plateRoiLockedDiameterPixels: calibrationPixels,
+      calibrationSource: "user-anchor",
       anchorPoint: point,
       anchorAssistMode: false,
       anchorAssistType: null,
@@ -4237,8 +4308,8 @@
       path: [],
       autoDetectionConfidence: "user-anchor",
       autoDetectionMessage: "タップ位置の周辺から緑枠を作りました。最大プレートを囲んでいれば進んでください。ズレていれば微調整してください。",
-      autoPlateCandidate: { roi, confidence: "user-anchor", userAnchor: true },
-      autoPlateCandidates: [{ roi, confidence: "user-anchor", userAnchor: true, score: 100 }],
+      autoPlateCandidate: { roi, confidence: "user-anchor", userAnchor: true, calibrationDiameterPixels: calibrationPixels },
+      autoPlateCandidates: [{ roi, confidence: "user-anchor", userAnchor: true, score: 100, calibrationDiameterPixels: calibrationPixels }],
       selectedCandidateIndex: 0
     });
     const note = dialog.querySelector("[data-vbt-auto-note]");
@@ -4304,7 +4375,7 @@
       setVbtState(dialog, { autoDetectionMotionContext: lifterMotionContext });
       updateAutoDetectProgress(dialog, 2, lifterMotionContext?.aiPersonDetected ? "2/8 人物領域と動きの重なりを確認中…" : lifterMotionContext ? "2/8 リフター周辺の動き領域を確認中…" : "2/8 リフター領域が弱いため通常検出も併用中…", 42);
       const candidateStageStartedAt = performance.now();
-      const candidateStageBudgetMs = (typeof navigator !== "undefined" && Number(navigator.maxTouchPoints) > 0) ? 3600 : 5200;
+      const candidateStageBudgetMs = (typeof navigator !== "undefined" && Number(navigator.maxTouchPoints) > 0) ? 2600 : 3600;
       let candidateFramesChecked = 0;
       for (let index = 0; index < sampledFrames.length; index += 1) {
         const elapsedCandidateMs = performance.now() - candidateStageStartedAt;
@@ -4315,8 +4386,8 @@
         const { time, frame } = sampledFrames[index];
         const remainingFrames = Math.max(1, sampledFrames.length - index);
         const remainingBudget = Math.max(700, candidateStageBudgetMs - (performance.now() - candidateStageStartedAt));
-        const perFrameBudget = clamp(remainingBudget / remainingFrames, 180, (typeof navigator !== "undefined" && Number(navigator.maxTouchPoints) > 0) ? 320 : 460);
-        const candidates = detectPlateCandidateFromFrame(frame, { lift: record.lift, returnCandidates: true, maxCandidates: 3, motionContext: lifterMotionContext, deadlineMs: performance.now() + perFrameBudget, maxInspections: record.lift === "DL" ? 300 : 430, maxExpensiveCandidates: record.lift === "DL" ? 42 : 58 }) || [];
+        const perFrameBudget = clamp(remainingBudget / remainingFrames, 130, (typeof navigator !== "undefined" && Number(navigator.maxTouchPoints) > 0) ? 260 : 360);
+        const candidates = detectPlateCandidateFromFrame(frame, { lift: record.lift, returnCandidates: true, maxCandidates: 3, motionContext: lifterMotionContext, deadlineMs: performance.now() + perFrameBudget, maxInspections: record.lift === "DL" ? 380 : 500, maxExpensiveCandidates: record.lift === "DL" ? 46 : 62 }) || [];
         candidateFramesChecked += 1;
         candidates.forEach((candidate) => allCandidates.push({ ...candidate, sampleTime: time, sampleIndex: index }));
         const progress = 42 + ((index + 1) / sampledFrames.length) * 40;
@@ -4372,11 +4443,17 @@
       const lowMessage = "自動検出の信頼度：低。候補を選び、緑枠が最大プレートを囲んでいるか確認してください。";
       const okMessage = `プレートの外周形状とバー接続から候補を${candidateList.length}件見つけました。正しい候補を選び、緑枠が最大プレートを囲んでいれば進んでください。確認フレーム ${sampleTimes.length}件 / 採用フレーム ${bestCandidate.sampleCount || 1}件 / 形状 ${(Number(bestCandidate.shapeEvidence ?? bestCandidate.shapeScore) || 0).toFixed(0)} / 円盤 ${(Number(bestCandidate.discEvidence ?? bestCandidate.discScore) || 0).toFixed(0)} / 動き ${(Number(bestCandidate.motionRatio) || 0).toFixed(2)}`;
       const resultMessage = bestCandidate.confidence === "low" ? lowMessage : okMessage;
+      const bestCalibrationPixels = candidateCalibrationPixels(bestCandidate, bestCandidate.roi);
       setVbtState(dialog, {
         plateRoi: bestCandidate.roi,
-        plateRoiLockedDiameterPixels: Math.max(Number(bestCandidate.roi?.width) || 0, Number(bestCandidate.roi?.height) || 0),
-        autoPlateCandidate: { ...bestCandidate, lockedDiameterPixels: Math.max(Number(bestCandidate.roi?.width) || 0, Number(bestCandidate.roi?.height) || 0) },
-        autoPlateCandidates: candidateList.map((candidate) => ({ ...candidate, lockedDiameterPixels: Math.max(Number(candidate.roi?.width) || 0, Number(candidate.roi?.height) || 0) })),
+        calibrationPlateDiameterPixels: bestCalibrationPixels,
+        plateRoiLockedDiameterPixels: bestCalibrationPixels,
+        calibrationSource: "auto-candidate",
+        autoPlateCandidate: { ...bestCandidate, calibrationDiameterPixels: bestCalibrationPixels, lockedDiameterPixels: bestCalibrationPixels },
+        autoPlateCandidates: candidateList.map((candidate) => {
+          const pixels = candidateCalibrationPixels(candidate, candidate.roi);
+          return { ...candidate, calibrationDiameterPixels: pixels, lockedDiameterPixels: pixels };
+        }),
         selectedCandidateIndex: 0,
         autoDetectionConfidence: bestCandidate.confidence,
         autoDetectionMessage: resultMessage,
@@ -4421,8 +4498,9 @@
     const dialog = button.closest("dialog");
     if (!dialog) return;
     const status = dialog.querySelector("[data-vbt-pick-status]");
-    if (status) status.textContent = "プレート候補を確定しました。";
+    if (status) status.textContent = "プレート候補を確定しました。緑枠と速度換算基準は切り離して保存します。";
     setVbtWizardStep(dialog, "set-info");
+    drawCalibrationStatus(dialog);
   }
 
   function showManualPlateSelection(button) {
@@ -4505,6 +4583,10 @@
           <p class="video-storage-note" data-vbt-auto-note>この緑枠が最大プレートを囲んでいれば「見えます」を押してください。</p>
           <div class="vbt-candidate-strip" data-vbt-candidate-list></div>
           <div class="vbt-debug-panel" data-vbt-debug-panel></div>
+          <div class="vbt-calibration-lock-note">
+            <strong data-vbt-calibration-status>${escapeHtml(calibrationLabel(initialVbtState(record), plateDiameterCm))}</strong>
+            <small>緑枠は追跡範囲です。速度換算はプレート直径cmと固定した見た目直径pxで行います。</small>
+          </div>
           <div class="vbt-roi-preview">
             <canvas data-vbt-roi-preview-canvas></canvas>
             <span>ROI拡大プレビュー</span>
@@ -4551,7 +4633,9 @@
               <button class="text-button" type="button" data-vbt-roi-nudge="shorter">縦幅−</button>
               <button class="text-button" type="button" data-vbt-roi-nudge="taller">縦幅＋</button>
             </div>
-            <p>表示用の丸は小さく、タップ判定は広く残しています。指で合わせた後の仕上げに使います。</p>
+            <p>緑枠の移動・サイズ調整は追跡窓の調整です。速度換算の基準は勝手に変えません。</p>
+            <button class="text-button" type="button" data-vbt-lock-calibration>この緑枠を直径基準に固定</button>
+            <p class="video-storage-note compact" data-vbt-calibration-status>${escapeHtml(calibrationLabel(initialVbtState(record), plateDiameterCm))}</p>
           </details>
           <div class="vbt-roi-preview">
             <canvas data-vbt-roi-preview-canvas></canvas>
@@ -4571,6 +4655,17 @@
             <em>@${escapeHtml(formatNumber(record.rpe))}</em>
             <p>レップ数は動画解析から自動判定します。重量・日付・RPEを確認して解析してください。</p>
           </div>
+          <div class="vbt-plate-controls">
+            <label>プレート径
+              <select data-vbt-plate-preset>
+                <option value="45" ${Math.abs(plateDiameterCm - 45) < 0.05 ? "selected" : ""}>45.0cm</option>
+                <option value="43" ${Math.abs(plateDiameterCm - 43) < 0.05 ? "selected" : ""}>43.0cm</option>
+                <option value="custom" ${Math.abs(plateDiameterCm - 45) >= 0.05 && Math.abs(plateDiameterCm - 43) >= 0.05 ? "selected" : ""}>カスタム</option>
+              </select>
+            </label>
+            <label>直径 cm<input data-vbt-plate-cm type="number" inputmode="decimal" min="30" max="60" step="0.1" value="${escapeHtml(plateDiameterCm)}"></label>
+          </div>
+          <p class="video-storage-note compact" data-vbt-calibration-status>${escapeHtml(calibrationLabel(initialVbtState(record), plateDiameterCm))}</p>
           <details class="compact-guide vbt-auto-details">
             <summary>自動検出が難しいとき</summary>
             <p>緑枠とトリミングを見直し、難しい場合だけ手動2点で確認します。</p>
@@ -4632,6 +4727,9 @@
       selectedCandidateIndex: null,
       autoDetectionConfidence: "unknown",
       autoDetectionMessage: null,
+      calibrationPlateDiameterPixels: hasFiniteNumber(calibration.plateDiameterPixels) ? Number(calibration.plateDiameterPixels) : null,
+      plateRoiLockedDiameterPixels: hasFiniteNumber(calibration.plateDiameterPixels) ? Number(calibration.plateDiameterPixels) : null,
+      calibrationSource: calibration.calibrationSource || (hasFiniteNumber(calibration.plateDiameterPixels) ? "saved" : null),
       anchorAssistMode: false,
       anchorAssistType: null,
       anchorPoint: null,
@@ -4827,15 +4925,12 @@
   function roiHitTarget(canvas, roi, point) {
     if (!roi || !point) return null;
     const inside = point.x >= roi.x && point.x <= roi.x + roi.width && point.y >= roi.y && point.y <= roi.y + roi.height;
-    const minSide = Math.min(roi.width, roi.height);
-    const innerMargin = Math.max(10, minSide * 0.20);
-    const insideInner = point.x >= roi.x + innerMargin && point.x <= roi.x + roi.width - innerMargin && point.y >= roi.y + innerMargin && point.y <= roi.y + roi.height - innerMargin;
-    // 枠の中央付近は必ず移動扱い。誤リサイズを防ぐ。
-    if (insideInner) return { type: "move", handle: null };
-    const radius = getRoiHitHandleRadius(canvas);
+    // v183.08: 通常操作では「移動」を優先。
+    // ROIサイズ変更が速度結果へ混ざって見えるため、枠内タッチはすべて移動扱いにする。
+    if (inside) return { type: "move", handle: null };
+    const radius = Math.max(7, getRoiHitHandleRadius(canvas) * 0.42);
     const handle = roiHandles(roi).find((item) => pixelDistance(item, point) <= radius);
     if (handle) return { type: "resize", handle: handle.name };
-    if (inside) return { type: "move", handle: null };
     return null;
   }
 
@@ -4863,6 +4958,29 @@
     ctx.strokeRect((roi.x - source.x) * sx, (roi.y - source.y) * sy, roi.width * sx, roi.height * sy);
   }
 
+
+  function drawCalibrationStatus(dialog) {
+    const target = dialog?.querySelector("[data-vbt-calibration-status]");
+    if (!target) return;
+    let plateDiameterCm = DEFAULT_PLATE_DIAMETER_CM;
+    try { plateDiameterCm = readPlateDiameterCm(dialog); } catch (_) {}
+    target.textContent = calibrationLabel(vbtState(dialog), plateDiameterCm);
+  }
+
+  function lockCurrentRoiAsCalibration(button) {
+    const dialog = button?.closest("dialog");
+    const state = vbtState(dialog);
+    const video = dialog?.querySelector("video");
+    if (!dialog || !video?.videoWidth || !video?.videoHeight || !state.plateRoi) return;
+    const roi = clampPlateRoi(state.plateRoi, video.videoWidth, video.videoHeight);
+    const pixels = setCalibrationPixelsFromRoi(dialog, roi, "manual-lock");
+    const status = dialog.querySelector("[data-vbt-pick-status]");
+    if (status) status.textContent = pixels
+      ? `現在の緑枠を距離換算の直径基準に固定しました：${Math.round(pixels)}px。`
+      : "緑枠を確認してください。";
+    drawCalibrationStatus(dialog);
+  }
+
   function nudgePlateRoi(dialog, action, amount = 2) {
     const state = vbtState(dialog);
     const video = dialog?.querySelector("video");
@@ -4881,8 +4999,9 @@
     const next = clampPlateRoi(roi, video.videoWidth, video.videoHeight);
     setVbtState(dialog, { plateRoi: next, path: [], trackingMode: "plate-roi-track" });
     const status = dialog.querySelector("[data-vbt-pick-status]");
-    if (status) status.textContent = roiAspectWarning(next) || "緑枠を微調整しました。";
+    if (status) status.textContent = roiAspectWarning(next) || "緑枠を微調整しました。速度換算の直径基準は固定したままです。";
     drawVbtOverlay(dialog);
+    drawCalibrationStatus(dialog);
   }
 
 
@@ -4940,8 +5059,12 @@
     if (!dialog || !video?.videoWidth || !video?.videoHeight) return;
     const state = vbtState(dialog);
     const roi = state.plateRoi ? clampPlateRoi(state.plateRoi, video.videoWidth, video.videoHeight) : defaultPlateRoi(video);
+    const calibrationPixels = getLockedPlateDiameterPixels(state, roi) || candidateCalibrationPixels(null, roi);
     setVbtState(dialog, {
       plateRoi: roi,
+      calibrationPlateDiameterPixels: calibrationPixels,
+      plateRoiLockedDiameterPixels: calibrationPixels,
+      calibrationSource: state.calibrationSource || "manual-init",
       roiMode: null,
       roiDrag: null,
       pickMode: null,
@@ -4953,7 +5076,7 @@
     video.pause();
     dialog.querySelector("[data-vbt-canvas]")?.classList.add("active", "roi-active");
     const status = dialog.querySelector("[data-vbt-pick-status]");
-    if (status) status.textContent = roiAspectWarning(roi) || "緑枠をドラッグし、四隅でサイズを合わせます。";
+    if (status) status.textContent = roiAspectWarning(roi) || "緑枠はドラッグで位置合わせします。速度換算の直径基準は別で固定されます。";
     const guide = dialog.querySelector("[data-vbt-video-guide]");
     if (guide) guide.textContent = "緑枠をプレート外周に合わせる";
     drawVbtOverlay(dialog);
@@ -5010,8 +5133,9 @@
     next = clampPlateRoi(next, video.videoWidth, video.videoHeight);
     setVbtState(dialog, { plateRoi: next, path: [], trackingMode: "plate-roi-track" });
     const status = dialog.querySelector("[data-vbt-pick-status]");
-    if (status) status.textContent = roiAspectWarning(next) || "緑枠をプレート外周に合わせています。";
+    if (status) status.textContent = roiAspectWarning(next) || "緑枠の位置を合わせています。サイズを変えても速度換算の直径基準は変わりません。";
     drawVbtOverlay(dialog);
+    drawCalibrationStatus(dialog);
     return true;
   }
 
@@ -5024,8 +5148,9 @@
     canvas.releasePointerCapture?.(event.pointerId);
     setVbtState(dialog, { roiMode: null, roiDrag: null });
     const status = dialog.querySelector("[data-vbt-pick-status]");
-    if (status) status.textContent = roiAspectWarning(vbtState(dialog).plateRoi) || "緑枠を設定しました。追跡できます。";
+    if (status) status.textContent = roiAspectWarning(vbtState(dialog).plateRoi) || "緑枠を設定しました。追跡窓と速度換算の直径基準は分離されています。";
     drawVbtOverlay(dialog);
+    drawCalibrationStatus(dialog);
     return true;
   }
 
@@ -5104,6 +5229,9 @@
       selectedCandidateIndex: null,
       autoDetectionConfidence: "unknown",
       autoDetectionMessage: null,
+      calibrationPlateDiameterPixels: hasFiniteNumber(calibration.plateDiameterPixels) ? Number(calibration.plateDiameterPixels) : null,
+      plateRoiLockedDiameterPixels: hasFiniteNumber(calibration.plateDiameterPixels) ? Number(calibration.plateDiameterPixels) : null,
+      calibrationSource: calibration.calibrationSource || (hasFiniteNumber(calibration.plateDiameterPixels) ? "saved" : null),
       anchorAssistMode: false,
       anchorAssistType: null,
       anchorPoint: null,
@@ -5500,7 +5628,10 @@
         markerPoint: velocityData.calibration?.markerPoint || vbtState(dialog).markerPoint || null,
         path: velocityData.measurement.path || [],
         trackingConfidence: velocityData.trackingConfidence || "unknown",
-        trackingMode: velocityData.mode || mode
+        trackingMode: velocityData.mode || mode,
+        calibrationPlateDiameterPixels: velocityData.calibration?.plateDiameterPixels || vbtState(dialog).calibrationPlateDiameterPixels || null,
+        plateRoiLockedDiameterPixels: velocityData.calibration?.plateDiameterPixels || vbtState(dialog).plateRoiLockedDiameterPixels || null,
+        calibrationSource: velocityData.calibration?.calibrationSource || vbtState(dialog).calibrationSource || null
       });
       drawVbtOverlay(dialog);
       if (guide) {
@@ -5894,6 +6025,8 @@
     if (jumpTrim) return jumpToTrimPoint(jumpTrim);
     const roiNudge = event.target.closest("[data-vbt-roi-nudge]");
     if (roiNudge) return nudgePlateRoi(roiNudge.closest("dialog"), roiNudge.dataset.vbtRoiNudge, 2);
+    const lockCalibration = event.target.closest("[data-vbt-lock-calibration]");
+    if (lockCalibration) return lockCurrentRoiAsCalibration(lockCalibration);
     const roiInit = event.target.closest("[data-vbt-roi-init]");
     if (roiInit) return initializePlateRoi(roiInit);
     const roiTrack = event.target.closest("[data-vbt-roi-track]");
@@ -5932,7 +6065,8 @@
   document.addEventListener("input", (event) => {
     if (event.target.matches("[data-vbt-playhead-range]")) handleVbtPlayheadInput(event.target);
     if (event.target.matches("[data-vbt-trim-range]")) handleTrimRange(event.target);
-    if (event.target.matches("[data-vbt-plate-preset]")) syncPlatePreset(event.target);
+    if (event.target.matches("[data-vbt-plate-preset]")) { syncPlatePreset(event.target); drawCalibrationStatus(event.target.closest("dialog")); }
+    if (event.target.matches("[data-vbt-plate-cm]")) drawCalibrationStatus(event.target.closest("dialog"));
   });
   window.addEventListener("beforeunload", clearObjectUrls);
 
