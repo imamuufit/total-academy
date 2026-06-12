@@ -1,12 +1,12 @@
-diff -ruN '--exclude=changed-files.txt' '--exclude=DIFF' v181/index.html v182/index.html
---- v181/index.html	2026-06-11 13:04:08.000000000 +0000
-+++ v182/index.html	2026-06-11 13:12:24.528617981 +0000
+diff -ruN '--exclude=changed-files.txt' '--exclude=DIFF' /mnt/data/v182full/index.html /mnt/data/v183/index.html
+--- /mnt/data/v182full/index.html	2026-06-11 13:12:24.000000000 +0000
++++ /mnt/data/v183/index.html	2026-06-12 01:06:56.415752423 +0000
 @@ -12,7 +12,7 @@
      <link rel="preload" as="image" href="home-bg-lite.jpg">
      <link rel="preload" as="image" href="icon-sheet-lite.jpg">
      <link rel="apple-touch-icon" href="apple-touch-icon.png">
--    <link rel="stylesheet" href="styles.css?v=181">
-+    <link rel="stylesheet" href="styles.css?v=182">
+-    <link rel="stylesheet" href="styles.css?v=182">
++    <link rel="stylesheet" href="styles.css?v=183">
    </head>
    <body>
      <div class="app-shell">
@@ -14,360 +14,762 @@ diff -ruN '--exclude=changed-files.txt' '--exclude=DIFF' v181/index.html v182/in
        </form>
      </dialog>
  
--    <script src="app.js?v=181"></script>
--    <script src="video.js?v=181"></script>
-+    <script src="app.js?v=182"></script>
-+    <script src="video.js?v=182"></script>
+-    <script src="app.js?v=182"></script>
+-    <script src="video.js?v=182"></script>
++    <script src="app.js?v=183"></script>
++    <script src="video.js?v=183"></script>
    </body>
  </html>
-diff -ruN '--exclude=changed-files.txt' '--exclude=DIFF' v181/manifest.webmanifest v182/manifest.webmanifest
---- v181/manifest.webmanifest	2026-06-11 13:04:08.000000000 +0000
-+++ v182/manifest.webmanifest	2026-06-11 13:12:24.541890800 +0000
+diff -ruN '--exclude=changed-files.txt' '--exclude=DIFF' /mnt/data/v182full/manifest.webmanifest /mnt/data/v183/manifest.webmanifest
+--- /mnt/data/v182full/manifest.webmanifest	2026-06-11 13:12:24.000000000 +0000
++++ /mnt/data/v183/manifest.webmanifest	2026-06-12 01:06:44.269444606 +0000
 @@ -2,7 +2,7 @@
    "name": "Platform Buddy",
    "short_name": "Buddy",
    "description": "BIG3の現在地と目標を見える化し、PRサイクル、記録、分析、大会準備までつなげるパワーリフティング向けPWAです。",
--  "start_url": "./index.html?v=181",
-+  "start_url": "./index.html?v=182",
+-  "start_url": "./index.html?v=182",
++  "start_url": "./index.html?v=183",
    "scope": "./",
    "display": "standalone",
    "background_color": "#f4efe6",
-diff -ruN '--exclude=changed-files.txt' '--exclude=DIFF' v181/sw.js v182/sw.js
---- v181/sw.js	2026-06-11 13:04:08.000000000 +0000
-+++ v182/sw.js	2026-06-11 13:12:24.529166799 +0000
+diff -ruN '--exclude=changed-files.txt' '--exclude=DIFF' /mnt/data/v182full/styles.css /mnt/data/v183/styles.css
+--- /mnt/data/v182full/styles.css	2026-06-11 13:04:08.000000000 +0000
++++ /mnt/data/v183/styles.css	2026-06-12 01:06:43.244956129 +0000
+@@ -17951,3 +17951,112 @@
+ html body .vbt-wizard-actions.three .text-button[data-vbt-marker-assist] {
+   border-color: rgba(250, 204, 21, 0.45);
+ }
++
++/* v183 VBT auto-detect observability */
++.vbt-debug-panel {
++  margin: 10px 0 12px;
++}
++.vbt-debug-drawer {
++  border: 1px solid rgba(120, 92, 54, 0.20);
++  border-radius: 14px;
++  background: rgba(255, 250, 242, 0.72);
++  overflow: hidden;
++}
++.vbt-debug-drawer summary {
++  cursor: pointer;
++  padding: 10px 12px;
++  font-weight: 900;
++  font-size: 0.86rem;
++  color: #3b2f22;
++  display: flex;
++  justify-content: space-between;
++  gap: 10px;
++  align-items: center;
++}
++.vbt-debug-drawer summary span {
++  font-size: 0.72rem;
++  color: #7c5f3d;
++  background: rgba(180, 143, 84, 0.16);
++  border-radius: 999px;
++  padding: 3px 8px;
++}
++.vbt-debug-grid {
++  display: grid;
++  grid-template-columns: repeat(3, minmax(0, 1fr));
++  gap: 8px;
++  padding: 0 12px 10px;
++}
++.vbt-debug-grid span {
++  display: grid;
++  gap: 2px;
++  border: 1px solid rgba(120, 92, 54, 0.14);
++  background: rgba(255, 255, 255, 0.50);
++  border-radius: 10px;
++  padding: 7px 8px;
++}
++.vbt-debug-grid small {
++  font-size: 0.66rem;
++  color: #7c5f3d;
++  font-weight: 800;
++  text-transform: uppercase;
++}
++.vbt-debug-grid strong {
++  font-size: 0.82rem;
++  color: #1f1a14;
++  line-height: 1.15;
++}
++.vbt-debug-montage {
++  display: grid;
++  grid-template-columns: repeat(2, minmax(0, 1fr));
++  gap: 8px;
++  padding: 0 12px 10px;
++}
++.vbt-debug-montage img {
++  width: 100%;
++  border-radius: 10px;
++  border: 1px solid rgba(23, 23, 23, 0.12);
++  background: #111;
++}
++.vbt-debug-table-wrap {
++  margin: 0 12px 10px;
++  overflow-x: auto;
++  border-radius: 10px;
++  border: 1px solid rgba(120, 92, 54, 0.16);
++}
++.vbt-debug-table {
++  width: 100%;
++  min-width: 760px;
++  border-collapse: collapse;
++  font-size: 0.72rem;
++  background: rgba(255, 255, 255, 0.62);
++}
++.vbt-debug-table th,
++.vbt-debug-table td {
++  padding: 6px 7px;
++  border-bottom: 1px solid rgba(120, 92, 54, 0.12);
++  text-align: right;
++  white-space: nowrap;
++}
++.vbt-debug-table th:first-child,
++.vbt-debug-table td:first-child,
++.vbt-debug-table th:nth-child(2),
++.vbt-debug-table td:nth-child(2) {
++  text-align: left;
++}
++.vbt-debug-table tr.selected td {
++  background: rgba(34, 197, 94, 0.10);
++  font-weight: 900;
++}
++.vbt-debug-actions {
++  display: flex;
++  justify-content: flex-end;
++  padding: 0 12px 12px;
++}
++@media (max-width: 680px) {
++  .vbt-debug-grid {
++    grid-template-columns: repeat(2, minmax(0, 1fr));
++  }
++  .vbt-debug-montage {
++    grid-template-columns: 1fr;
++  }
++}
+diff -ruN '--exclude=changed-files.txt' '--exclude=DIFF' /mnt/data/v182full/sw.js /mnt/data/v183/sw.js
+--- /mnt/data/v182full/sw.js	2026-06-11 13:12:24.000000000 +0000
++++ /mnt/data/v183/sw.js	2026-06-12 01:06:56.416300581 +0000
 @@ -1,14 +1,14 @@
--const CACHE_NAME = "platform-buddy-v181";
-+const CACHE_NAME = "platform-buddy-v182";
+-const CACHE_NAME = "platform-buddy-v182";
++const CACHE_NAME = "platform-buddy-v183";
  const CORE_ASSETS = [
    "./",
    "index.html",
--  "index.html?v=181",
-+  "index.html?v=182",
+-  "index.html?v=182",
++  "index.html?v=183",
    "styles.css",
--  "styles.css?v=181",
-+  "styles.css?v=182",
+-  "styles.css?v=182",
++  "styles.css?v=183",
    "app.js",
--  "app.js?v=181",
-+  "app.js?v=182",
+-  "app.js?v=182",
++  "app.js?v=183",
    "video.js",
--  "video.js?v=181",
-+  "video.js?v=182",
+-  "video.js?v=182",
++  "video.js?v=183",
    "manifest.webmanifest",
    "icon.svg",
    "apple-touch-icon.png",
-diff -ruN '--exclude=changed-files.txt' '--exclude=DIFF' v181/video.js v182/video.js
---- v181/video.js	2026-06-11 13:04:08.000000000 +0000
-+++ v182/video.js	2026-06-11 13:12:17.247442452 +0000
-@@ -16,6 +16,13 @@
-   const VBT_DEEP_DETECT_PERSON_SEGMENT_EVERY = 1;
-   const VBT_MARKER_ROI_MIN_PX = 18;
-   const VBT_MARKER_ROI_MAX_PX = 54;
-+  const VBT_MULTI_TRACKER_ENABLED = true;
-+  const VBT_MULTI_TRACKER_SEARCH_MIN = 14;
-+  const VBT_MULTI_TRACKER_TEMPLATE_WEIGHT = 0.38;
-+  const VBT_MULTI_TRACKER_EDGE_WEIGHT = 0.22;
-+  const VBT_MULTI_TRACKER_HISTOGRAM_WEIGHT = 0.18;
-+  const VBT_MULTI_TRACKER_MOTION_WEIGHT = 0.14;
-+  const VBT_MULTI_TRACKER_PREDICTION_WEIGHT = 0.08;
+diff -ruN '--exclude=changed-files.txt' '--exclude=DIFF' /mnt/data/v182full/video.js /mnt/data/v183/video.js
+--- /mnt/data/v182full/video.js	2026-06-11 13:12:17.000000000 +0000
++++ /mnt/data/v183/video.js	2026-06-12 01:07:20.082286246 +0000
+@@ -23,6 +23,8 @@
+   const VBT_MULTI_TRACKER_HISTOGRAM_WEIGHT = 0.18;
+   const VBT_MULTI_TRACKER_MOTION_WEIGHT = 0.14;
+   const VBT_MULTI_TRACKER_PREDICTION_WEIGHT = 0.08;
++  const VBT_DEBUG_TRACE_VERSION = "v183-score-observability";
++  const VBT_DEBUG_MONTAGE_PANELS = 5;
    let bodyPixModelPromise = null;
  
    const GENERAL_RPE_VELOCITY = {
-@@ -1154,6 +1161,7 @@
-   }
- 
-   function measurementModeLabel(mode) {
-+    if (mode === "multi-tracker-timeseries") return "複数トラッカー追跡";
-     if (mode === "plate-roi-timeseries") return "プレート追跡";
-     if (mode === "plate-roi-track") return "プレートROI追跡";
-     if (mode === "marker-assist-timeseries" || mode === "marker-assist") return "マーカー補助（非推奨）";
-@@ -1263,6 +1271,160 @@
-     return values;
-   }
- 
-+  function clampFrameRoi(roi, width, height) {
-+    if (!roi || !width || !height) return null;
-+    const minSize = 8;
-+    const w = clamp(Number(roi.width) || minSize, minSize, width);
-+    const h = clamp(Number(roi.height) || minSize, minSize, height);
-+    return {
-+      x: clamp(Number(roi.x) || 0, 0, Math.max(0, width - w - 1)),
-+      y: clamp(Number(roi.y) || 0, 0, Math.max(0, height - h - 1)),
-+      width: w,
-+      height: h
-+    };
-+  }
-+
-+  function grayAt(frame, x, y) {
-+    if (!frame?.gray || !frame.width || !frame.height) return 0;
-+    const ix = clamp(Math.round(x), 0, frame.width - 1);
-+    const iy = clamp(Math.round(y), 0, frame.height - 1);
-+    return frame.gray[iy * frame.width + ix] || 0;
-+  }
-+
-+  function edgeDensityForRoi(frame, roi, sampleSize = 14) {
-+    const safe = clampFrameRoi(roi, frame?.width || 0, frame?.height || 0);
-+    if (!frame?.gray || !safe) return 0;
-+    let edge = 0;
-+    let samples = 0;
-+    for (let sy = 1; sy < sampleSize - 1; sy += 1) {
-+      for (let sx = 1; sx < sampleSize - 1; sx += 1) {
-+        const x = safe.x + (sx / sampleSize) * safe.width;
-+        const y = safe.y + (sy / sampleSize) * safe.height;
-+        const gx = Math.abs(grayAt(frame, x + 1, y) - grayAt(frame, x - 1, y));
-+        const gy = Math.abs(grayAt(frame, x, y + 1) - grayAt(frame, x, y - 1));
-+        edge += Math.min(255, gx + gy);
-+        samples += 1;
-+      }
-+    }
-+    return samples ? edge / samples : 0;
-+  }
-+
-+  function histogramForRoi(frame, roi, bins = 12, sampleSize = 18) {
-+    const safe = clampFrameRoi(roi, frame?.width || 0, frame?.height || 0);
-+    if (!frame?.gray || !safe) return null;
-+    const hist = new Array(bins).fill(0);
-+    let total = 0;
-+    for (let sy = 0; sy < sampleSize; sy += 1) {
-+      for (let sx = 0; sx < sampleSize; sx += 1) {
-+        const x = safe.x + ((sx + 0.5) / sampleSize) * safe.width;
-+        const y = safe.y + ((sy + 0.5) / sampleSize) * safe.height;
-+        const lum = grayAt(frame, x, y);
-+        const bin = clamp(Math.floor((lum / 256) * bins), 0, bins - 1);
-+        hist[bin] += 1;
-+        total += 1;
-+      }
-+    }
-+    return hist.map((value) => value / Math.max(1, total));
-+  }
-+
-+  function histogramDistance(a, b) {
-+    if (!a || !b || a.length !== b.length) return 1;
-+    let distance = 0;
-+    for (let i = 0; i < a.length; i += 1) distance += Math.abs(a[i] - b[i]);
-+    return clamp(distance / 2, 0, 1);
-+  }
-+
-+  function roiMotionEvidence(currentFrame, previousFrame, roi, sampleSize = 12) {
-+    if (!currentFrame?.gray || !previousFrame?.gray || !roi) return 0;
-+    const safe = clampFrameRoi(roi, currentFrame.width, currentFrame.height);
-+    if (!safe) return 0;
-+    let diff = 0;
-+    let samples = 0;
-+    for (let sy = 0; sy < sampleSize; sy += 1) {
-+      for (let sx = 0; sx < sampleSize; sx += 1) {
-+        const x = safe.x + ((sx + 0.5) / sampleSize) * safe.width;
-+        const y = safe.y + ((sy + 0.5) / sampleSize) * safe.height;
-+        diff += Math.abs(grayAt(currentFrame, x, y) - grayAt(previousFrame, x, y));
-+        samples += 1;
-+      }
-+    }
-+    return samples ? clamp(diff / samples / 48, 0, 1) : 0;
-+  }
-+
-+  function buildMultiTrackerReference(frame, roi) {
-+    const safe = clampFrameRoi(roi, frame.width, frame.height);
-+    if (!safe) return null;
-+    return {
-+      roi: safe,
-+      template: sampleGrayRoi(frame, safe),
-+      edgeDensity: edgeDensityForRoi(frame, safe),
-+      histogram: histogramForRoi(frame, safe)
-+    };
-+  }
-+
-+  function multiTrackerCandidateScore({ frame, previousFrame, roi, reference, predictedCenter }) {
-+    const safe = clampFrameRoi(roi, frame.width, frame.height);
-+    if (!safe || !reference) return null;
-+    const candidateTemplate = sampleGrayRoi(frame, safe);
-+    if (!candidateTemplate) return null;
-+    const templateRaw = patchScore(reference.template, candidateTemplate);
-+    const templateQuality = 1 / (1 + Math.max(0, templateRaw) / 1500);
-+    const edgeDensity = edgeDensityForRoi(frame, safe);
-+    const edgeQuality = 1 / (1 + Math.abs(edgeDensity - reference.edgeDensity) / 26);
-+    const histogram = histogramForRoi(frame, safe);
-+    const histogramQuality = 1 - histogramDistance(reference.histogram, histogram);
-+    const motionQuality = previousFrame ? roiMotionEvidence(frame, previousFrame, safe) : 0.45;
-+    const center = roiCenter(safe);
-+    const predictionDistance = predictedCenter ? pixelDistance(center, predictedCenter) : 0;
-+    const predictionScale = Math.max(8, Math.min(safe.width, safe.height) * 0.7);
-+    const predictionQuality = predictedCenter ? 1 / (1 + predictionDistance / predictionScale) : 0.55;
-+    const fusedQuality = clamp(
-+      templateQuality * VBT_MULTI_TRACKER_TEMPLATE_WEIGHT
-+      + edgeQuality * VBT_MULTI_TRACKER_EDGE_WEIGHT
-+      + histogramQuality * VBT_MULTI_TRACKER_HISTOGRAM_WEIGHT
-+      + motionQuality * VBT_MULTI_TRACKER_MOTION_WEIGHT
-+      + predictionQuality * VBT_MULTI_TRACKER_PREDICTION_WEIGHT,
-+      0,
-+      1
-+    );
-+    return {
-+      roi: safe,
-+      fusedQuality,
-+      templateQuality,
-+      edgeQuality,
-+      histogramQuality,
-+      motionQuality,
-+      predictionQuality,
-+      templateRaw,
-+      center
-+    };
-+  }
-+
-+  function searchMultiTrackerRoi({ frame, previousFrame, currentRoi, reference, previousCenter, previousVelocity, searchRadiusX, searchRadiusY, step }) {
-+    const predictedCenter = previousCenter && previousVelocity
-+      ? { x: previousCenter.x + previousVelocity.x, y: previousCenter.y + previousVelocity.y }
-+      : previousCenter;
-+    let best = null;
-+    let validCandidates = 0;
-+    for (let dy = -searchRadiusY; dy <= searchRadiusY; dy += step) {
-+      for (let dx = -searchRadiusX; dx <= searchRadiusX; dx += step) {
-+        const candidateRoi = clampFrameRoi({
-+          x: currentRoi.x + dx,
-+          y: currentRoi.y + dy,
-+          width: currentRoi.width,
-+          height: currentRoi.height
-+        }, frame.width, frame.height);
-+        const scored = multiTrackerCandidateScore({ frame, previousFrame, roi: candidateRoi, reference, predictedCenter });
-+        if (!scored) continue;
-+        validCandidates += 1;
-+        if (!best || scored.fusedQuality > best.fusedQuality) best = scored;
-+      }
-+    }
-+    if (!best) return { roi: currentRoi, validCandidates, fusedQuality: 0, failed: true };
-+    return { ...best, validCandidates, failed: false };
-+  }
-+
-+
-   async function trackPlateRoiPath(dialog, record) {
-     const video = dialog.querySelector("video");
-     const state = vbtState(dialog);
-@@ -1283,7 +1445,8 @@
-     const aspectWarning = markerMode ? null : roiAspectWarning(plateRoi);
- 
-     await seekVideo(video, start);
--    const first = frameCanvas(video, 320);
-+    const trackingFrameWidth = 360;
-+    const first = frameCanvas(video, trackingFrameWidth);
-     const scale = first.scale;
-     const scaledRoi = {
-       x: trackingRoi.x * scale,
-@@ -1291,48 +1454,55 @@
-       width: trackingRoi.width * scale,
-       height: trackingRoi.height * scale
-     };
--    const referenceTemplate = sampleGrayRoi(grayFrame(first.ctx), scaledRoi);
--    if (!referenceTemplate) throw new Error("緑枠が動画端に近すぎます。少し内側へ移動してください。");
-+    const firstGray = grayFrame(first.ctx);
-+    const reference = buildMultiTrackerReference(firstGray, scaledRoi);
-+    if (!reference?.template) throw new Error("緑枠が動画端に近すぎます。少し内側へ移動してください。");
- 
-     const sampleLimit = getVbtTrackingSampleLimit();
--    const sampleCount = clamp(Math.round((end - start) * 24), 40, sampleLimit);
-+    const sampleCount = clamp(Math.round((end - start) * 26), 48, sampleLimit);
-     const rawPath = [];
--    let currentRoi = { ...scaledRoi };
--    const searchRadiusX = markerMode ? Math.max(20, scaledRoi.width * 2.8) : Math.max(12, scaledRoi.width * 0.75);
--    const searchRadiusY = markerMode ? Math.max(28, scaledRoi.height * 4.2) : Math.max(18, scaledRoi.height * 1.25);
--    const step = markerMode ? clamp(Math.round(Math.min(scaledRoi.width, scaledRoi.height) * 0.18), 2, 6) : clamp(Math.round(Math.min(scaledRoi.width, scaledRoi.height) * 0.12), 3, 8);
-+    let currentRoi = { ...reference.roi };
-+    let previousFrame = null;
-+    let previousCenter = null;
-+    let previousVelocity = null;
-+    const searchRadiusX = markerMode ? Math.max(20, scaledRoi.width * 2.8) : Math.max(VBT_MULTI_TRACKER_SEARCH_MIN, scaledRoi.width * 0.95);
-+    const searchRadiusY = markerMode ? Math.max(28, scaledRoi.height * 4.2) : Math.max(VBT_MULTI_TRACKER_SEARCH_MIN, scaledRoi.height * 1.55);
-+    const step = markerMode ? clamp(Math.round(Math.min(scaledRoi.width, scaledRoi.height) * 0.18), 2, 6) : clamp(Math.round(Math.min(scaledRoi.width, scaledRoi.height) * 0.11), 3, 7);
- 
-     for (let i = 0; i <= sampleCount; i += 1) {
-       const time = start + ((end - start) * i) / sampleCount;
-       await seekVideo(video, time);
--      const frame = frameCanvas(video, 320);
--      const gray = grayFrame(frame.ctx);
--      let bestRoi = currentRoi;
--      let bestScore = Infinity;
--      for (let dy = -searchRadiusY; dy <= searchRadiusY; dy += step) {
--        for (let dx = -searchRadiusX; dx <= searchRadiusX; dx += step) {
--          const candidateRoi = {
--            x: currentRoi.x + dx,
--            y: currentRoi.y + dy,
--            width: currentRoi.width,
--            height: currentRoi.height
--          };
--          const candidate = sampleGrayRoi(gray, candidateRoi);
--          const score = patchScore(referenceTemplate, candidate);
--          if (score < bestScore) {
--            bestScore = score;
--            bestRoi = candidateRoi;
--          }
--        }
-+      const frameShot = frameCanvas(video, trackingFrameWidth);
-+      const frameGray = grayFrame(frameShot.ctx);
-+      const result = VBT_MULTI_TRACKER_ENABLED
-+        ? searchMultiTrackerRoi({ frame: frameGray, previousFrame, currentRoi, reference, previousCenter, previousVelocity, searchRadiusX, searchRadiusY, step })
-+        : { roi: currentRoi, fusedQuality: 0.5, templateQuality: 0.5, edgeQuality: 0.5, histogramQuality: 0.5, motionQuality: 0.5, predictionQuality: 0.5, templateRaw: null };
-+      currentRoi = result.roi || currentRoi;
-+      const center = roiCenter(currentRoi);
-+      if (previousCenter && center) {
-+        previousVelocity = {
-+          x: clamp(center.x - previousCenter.x, -searchRadiusX * 0.5, searchRadiusX * 0.5),
-+          y: clamp(center.y - previousCenter.y, -searchRadiusY * 0.5, searchRadiusY * 0.5)
-+        };
-       }
--      currentRoi = bestRoi;
--      const center = roiCenter(bestRoi);
-+      previousCenter = center;
-+      previousFrame = frameGray;
-+      const trackerQuality = Number(result.fusedQuality) || 0;
-+      const score = Math.round((1 - trackerQuality) * 2400);
-       rawPath.push({
-         time,
--        x: center.x / frame.scale,
--        y: center.y / frame.scale,
--        score: Math.round(bestScore),
--        confidence: Number.isFinite(bestScore) ? 1 / (1 + bestScore / 1000) : null
-+        x: center.x / frameShot.scale,
-+        y: center.y / frameShot.scale,
-+        score,
-+        confidence: trackerQuality,
-+        tracker: {
-+          template: result.templateQuality,
-+          edge: result.edgeQuality,
-+          histogram: result.histogramQuality,
-+          motion: result.motionQuality,
-+          prediction: result.predictionQuality,
-+          validCandidates: result.validCandidates || 0
-+        }
-       });
+@@ -2166,11 +2168,13 @@
+       setVbtState(dialog, { anchorAssistMode: true, anchorAssistType: "plate" });
+       dialog.querySelector("[data-vbt-canvas]")?.classList.add("active", "roi-active", "anchor-active");
+       drawVbtOverlay(dialog);
++      renderVbtDebugPanel(dialog);
      }
+     if (step === "auto-detect-confirm") {
+       setVbtState(dialog, { anchorAssistMode: false, anchorAssistType: null });
+       dialog.querySelector("[data-vbt-canvas]")?.classList.add("active", "roi-active");
+       renderAutoCandidateList(dialog);
++      renderVbtDebugPanel(dialog);
+       drawVbtOverlay(dialog);
+       drawRoiPreview(dialog);
+     }
+@@ -2996,6 +3000,7 @@
+             ringScore: shapeEvidence.ringScore,
+             roundnessScore: shapeEvidence.roundnessScore,
+             hubScore: shapeEvidence.hubScore,
++            fillScore: shapeEvidence.fillScore,
+             hasBarLine,
+             lifterScore: lifterEvidence.score,
+             lifterNearScore: lifterEvidence.nearScore,
+@@ -3031,6 +3036,7 @@
+         ringScore: item.ringScore,
+         roundnessScore: item.roundnessScore,
+         hubScore: item.hubScore,
++        fillScore: item.fillScore,
+         hasBarLine: item.hasBarLine,
+         lifterScore: item.lifterScore,
+         lifterNearScore: item.lifterNearScore,
+@@ -3058,6 +3064,342 @@
+     if (bar) bar.style.width = `${clamp(Number(percent) || 0, 0, 100)}%`;
+   }
  
-@@ -1378,9 +1548,10 @@
-     ].filter(Boolean).join(" ");
- 
-     return {
--      mode: markerMode ? "marker-assist-timeseries" : "plate-roi-timeseries",
-+      mode: markerMode ? "marker-assist-timeseries" : "multi-tracker-timeseries",
-       analysisMode: "deep-precision-standard",
--      trackingMode: markerMode ? "marker-assist-timeseries" : "plate-roi-timeseries",
-+      trackingMode: markerMode ? "marker-assist-timeseries" : "multi-tracker-timeseries",
-+      trackerFusion: markerMode ? null : "template-edge-histogram-motion-prediction",
-       trackingConfidence,
-       trackingWarning: trackingWarning || null,
-       lift: record.lift,
-@@ -1400,8 +1571,9 @@
-         roiAspectRatio: plateRoi.width / plateRoi.height
-       },
-       measurement: {
--        mode: markerMode ? "marker-assist-timeseries" : "plate-roi-timeseries",
-+        mode: markerMode ? "marker-assist-timeseries" : "multi-tracker-timeseries",
-         analysisMode: "deep-precision-standard",
-+        trackerFusion: markerMode ? null : "template-edge-histogram-motion-prediction",
-         lift: record.lift,
-         expectedReps: null,
-         detectedReps: detectedRepCount,
-@@ -1421,6 +1593,7 @@
-         plateDiameterPixels,
-         metersPerPixel,
-         trackPath: path,
-+        trackerDiagnostics: rawPath.map((point) => ({ time: point.time, confidence: point.confidence, score: point.score, tracker: point.tracker })).slice(0, 240),
-         repMetrics,
-         primaryVbtMetric,
-         repVelocities: repMetrics.map((metric) => ({
++  function compactDebugNumber(value, digits = 2) {
++    const number = Number(value);
++    if (!Number.isFinite(number)) return null;
++    return Number(number.toFixed(digits));
++  }
++
++  function compactDebugRoi(roi) {
++    if (!roi) return null;
++    return {
++      x: compactDebugNumber(roi.x, 1),
++      y: compactDebugNumber(roi.y, 1),
++      width: compactDebugNumber(roi.width, 1),
++      height: compactDebugNumber(roi.height, 1),
++      centerX: compactDebugNumber(Number(roi.x) + Number(roi.width) / 2, 1),
++      centerY: compactDebugNumber(Number(roi.y) + Number(roi.height) / 2, 1)
++    };
++  }
++
++  function candidateDebugBreakdown(candidate, index = 0) {
++    if (!candidate) return null;
++    return {
++      rank: index + 1,
++      confidence: candidate.confidence || "unknown",
++      selected: false,
++      score: compactDebugNumber(candidate.score, 2),
++      temporalScore: compactDebugNumber(candidate.temporalScore, 2),
++      meanScore: compactDebugNumber(candidate.meanScore, 2),
++      sampleCount: Number(candidate.sampleCount || candidate.groupItems || 0),
++      sampleTime: compactDebugNumber(candidate.sampleTime, 3),
++      bestFrameTime: compactDebugNumber(candidate.bestFrameTime, 3),
++      roi: compactDebugRoi(candidate.roi),
++      shape: {
++        total: compactDebugNumber(candidate.shapeEvidence ?? candidate.shapeScore, 2),
++        ring: compactDebugNumber(candidate.ringScore, 2),
++        roundness: compactDebugNumber(candidate.roundnessScore, 2),
++        hub: compactDebugNumber(candidate.hubScore, 2),
++        fill: compactDebugNumber(candidate.fillScore, 2)
++      },
++      bar: {
++        score: compactDebugNumber(candidate.barScore, 2),
++        crossing: compactDebugNumber(candidate.crossingScore, 2),
++        pair: compactDebugNumber(candidate.pairScore, 2),
++        barY: compactDebugNumber(candidate.barY, 1),
++        hasBarLine: Boolean(candidate.hasBarLine)
++      },
++      lifter: {
++        personEvidence: compactDebugNumber(candidate.personEvidence ?? candidate.personScore, 3),
++        lifterEvidence: compactDebugNumber(candidate.lifterEvidence ?? candidate.lifterScore, 3),
++        lifterNear: compactDebugNumber(candidate.lifterNearScore, 3),
++        motionEvidence: compactDebugNumber(candidate.motionEvidence ?? candidate.motionScore, 3),
++        motionRatio: compactDebugNumber(candidate.motionRatio, 3),
++        horizontalDrift: compactDebugNumber(candidate.horizontalDrift, 3),
++        distanceRatio: compactDebugNumber(candidate.lifterDistanceRatio, 3)
++      },
++      raw: {
++        darkRatio: compactDebugNumber(candidate.darkRatio, 3),
++        edgeScore: compactDebugNumber(candidate.edgeScore, 2),
++        borderScore: compactDebugNumber(candidate.borderScore, 2),
++        frameWidth: candidate.frameWidth || null,
++        frameHeight: candidate.frameHeight || null
++      },
++      scoringTerms: {
++        stabilityBonus: compactDebugNumber(candidate.stabilityBonus, 2),
++        movementBonus: compactDebugNumber(candidate.movementBonus, 2),
++        driftPenalty: compactDebugNumber(candidate.driftPenalty, 2),
++        staticPenalty: compactDebugNumber(candidate.staticPenalty, 2),
++        barEvidence: compactDebugNumber(candidate.barEvidence, 2),
++        pairEvidence: compactDebugNumber(candidate.pairEvidence, 2)
++      }
++    };
++  }
++
++  function summarizePersonDebug(segmentations, sampledFrames, personContext, motionContext, personModel, personLoadError = null) {
++    const frames = Array.isArray(sampledFrames) ? sampledFrames : [];
++    const segmented = Array.isArray(segmentations) ? segmentations : [];
++    const segmentationBounds = segmented.slice(0, 10).map((item, index) => {
++      const frame = item?.frame;
++      const canvas = frame?.canvas;
++      const bounds = item?.segmentation?.data && canvas
++        ? personSegmentationBounds(item.segmentation, canvas.width, canvas.height)
++        : null;
++      return {
++        index,
++        time: compactDebugNumber(item?.time, 3),
++        hasData: Boolean(item?.segmentation?.data),
++        width: item?.segmentation?.width || canvas?.width || null,
++        height: item?.segmentation?.height || canvas?.height || null,
++        bounds: bounds ? {
++          xMin: compactDebugNumber(bounds.xMin, 1),
++          yMin: compactDebugNumber(bounds.yMin, 1),
++          xMax: compactDebugNumber(bounds.xMax, 1),
++          yMax: compactDebugNumber(bounds.yMax, 1),
++          width: compactDebugNumber(bounds.width, 1),
++          height: compactDebugNumber(bounds.height, 1),
++          hits: bounds.hits || null
++        } : null
++      };
++    });
++    return {
++      modelEnabled: VBT_PERSON_SEGMENTATION_ENABLED,
++      modelLoaded: Boolean(personModel),
++      modelLoadError: personLoadError ? String(personLoadError?.message || personLoadError) : null,
++      sampledFrameCount: frames.length,
++      segmentedFrameCount: segmented.length,
++      aiPersonDetected: Boolean(personContext?.aiPersonDetected),
++      personPixelRatio: compactDebugNumber(personContext?.personPixelRatio, 5),
++      personFrameCount: personContext?.personFrameCount || 0,
++      personRoi: compactDebugRoi(personContext?.personRoi),
++      motionFallbackUsed: !personContext && Boolean(motionContext),
++      motionRoi: compactDebugRoi(motionContext?.motionRoi || motionContext?.roi),
++      motionMaxValue: compactDebugNumber(motionContext?.maxValue, 2),
++      motionSelectedCells: motionContext?.selectedCells || null,
++      segmentationBounds
++    };
++  }
++
++  function canvasToDebugImage(canvas, maxWidth = 240) {
++    if (!canvas?.width || !canvas?.height) return null;
++    const scale = Math.min(1, maxWidth / canvas.width);
++    const out = document.createElement("canvas");
++    out.width = Math.max(1, Math.round(canvas.width * scale));
++    out.height = Math.max(1, Math.round(canvas.height * scale));
++    const ctx = out.getContext("2d");
++    ctx.drawImage(canvas, 0, 0, out.width, out.height);
++    try {
++      return out.toDataURL("image/jpeg", 0.74);
++    } catch (error) {
++      return null;
++    }
++  }
++
++  function drawScaledDebugRoi(ctx, roi, frameScale, panelScale, offsetX, offsetY, color, label) {
++    if (!roi) return;
++    const x = offsetX + roi.x * frameScale * panelScale;
++    const y = offsetY + roi.y * frameScale * panelScale;
++    const w = roi.width * frameScale * panelScale;
++    const h = roi.height * frameScale * panelScale;
++    ctx.save();
++    ctx.strokeStyle = color;
++    ctx.lineWidth = 2;
++    ctx.strokeRect(x, y, w, h);
++    ctx.font = "700 10px system-ui";
++    ctx.fillStyle = color;
++    ctx.fillText(label, x + 3, Math.max(11, y - 3));
++    ctx.restore();
++  }
++
++  function buildAutoDebugMontage(sampledFrames, allCandidates, candidateList, motionContext, lift) {
++    const frames = Array.isArray(sampledFrames) ? sampledFrames : [];
++    if (!frames.length) return [];
++    const panelCount = Math.min(VBT_DEBUG_MONTAGE_PANELS, frames.length);
++    const picked = [];
++    for (let index = 0; index < panelCount; index += 1) {
++      const ratio = panelCount === 1 ? 0 : index / (panelCount - 1);
++      const frameIndex = clamp(Math.round(ratio * (frames.length - 1)), 0, frames.length - 1);
++      if (!picked.includes(frameIndex)) picked.push(frameIndex);
++    }
++    const urls = [];
++    picked.forEach((frameIndex) => {
++      const item = frames[frameIndex];
++      const canvas = item?.frame?.canvas;
++      if (!canvas?.width || !canvas?.height) return;
++      const panelWidth = 280;
++      const panelScale = panelWidth / canvas.width;
++      const out = document.createElement("canvas");
++      out.width = panelWidth;
++      out.height = Math.max(1, Math.round(canvas.height * panelScale));
++      const ctx = out.getContext("2d");
++      ctx.drawImage(canvas, 0, 0, out.width, out.height);
++      const frameScale = item.frame.scale || 1;
++      drawScaledDebugRoi(ctx, motionContext?.roi, 1, panelScale, 0, 0, "rgba(245,158,11,0.92)", "lifter/motion");
++      const perFrameCandidates = (allCandidates || [])
++        .filter((candidate) => Number(candidate.sampleIndex) === frameIndex)
++        .sort((a, b) => Number(b.score || 0) - Number(a.score || 0))
++        .slice(0, 3);
++      perFrameCandidates.forEach((candidate, candidateIndex) => {
++        drawScaledDebugRoi(ctx, candidate.roi, frameScale, panelScale, 0, 0, candidateIndex === 0 ? "rgba(34,197,94,0.98)" : "rgba(59,130,246,0.86)", `c${candidateIndex + 1}`);
++      });
++      const winner = candidateList?.[0]?.roi;
++      if (winner) drawScaledDebugRoi(ctx, winner, frameScale, panelScale, 0, 0, "rgba(239,68,68,0.98)", "winner");
++      ctx.fillStyle = "rgba(0,0,0,0.62)";
++      ctx.fillRect(0, 0, out.width, 18);
++      ctx.fillStyle = "#fffaf2";
++      ctx.font = "700 11px system-ui";
++      ctx.fillText(`${lift || "VBT"} t=${compactDebugNumber(item.time, 2)}s / frame ${frameIndex + 1}`, 6, 13);
++      try {
++        urls.push(out.toDataURL("image/jpeg", 0.78));
++      } catch (error) {
++        const fallback = canvasToDebugImage(canvas);
++        if (fallback) urls.push(fallback);
++      }
++    });
++    return urls;
++  }
++
++  function runVbtCoordinateSelfTest(dialog) {
++    const video = dialog?.querySelector("video");
++    const canvas = dialog?.querySelector("[data-vbt-canvas]");
++    if (!video || !canvas || !syncVbtCanvas(dialog)) {
++      return { ok: false, reason: "video/canvas not ready" };
++    }
++    const rect = canvas.getBoundingClientRect();
++    const scaleX = rect.width ? canvas.width / rect.width : null;
++    const scaleY = rect.height ? canvas.height / rect.height : null;
++    const tests = [
++      { name: "top-left", clientX: rect.left, clientY: rect.top, expectedX: 0, expectedY: 0 },
++      { name: "center", clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2, expectedX: canvas.width / 2, expectedY: canvas.height / 2 },
++      { name: "bottom-right", clientX: rect.right, clientY: rect.bottom, expectedX: canvas.width, expectedY: canvas.height }
++    ].map((test) => {
++      const point = canvasPointFromEvent(canvas, { clientX: test.clientX, clientY: test.clientY });
++      const err = point ? Math.hypot(point.x - test.expectedX, point.y - test.expectedY) : Infinity;
++      return { name: test.name, x: compactDebugNumber(point?.x, 2), y: compactDebugNumber(point?.y, 2), errorPx: compactDebugNumber(err, 3), ok: err <= 0.75 };
++    });
++    return {
++      ok: tests.every((test) => test.ok),
++      video: { width: video.videoWidth || null, height: video.videoHeight || null },
++      canvas: { width: canvas.width, height: canvas.height, cssWidth: compactDebugNumber(rect.width, 2), cssHeight: compactDebugNumber(rect.height, 2), scaleX: compactDebugNumber(scaleX, 4), scaleY: compactDebugNumber(scaleY, 4) },
++      tests
++    };
++  }
++
++  function makeAutoDetectionDebugTrace({ record, start, end, sampleTimes, sampledFrames, segmentedFrames, personModel, personContext, lifterMotionContext, allCandidates, candidateList, status, message, startedAt, endedAt, personLoadError }) {
++    const selectedCandidate = candidateList?.[0] || null;
++    const candidateBreakdown = (candidateList || []).map(candidateDebugBreakdown).map((item, index) => ({ ...item, selected: index === 0 }));
++    const rawTopCandidates = (allCandidates || [])
++      .slice()
++      .sort((a, b) => Number(b.score || 0) - Number(a.score || 0))
++      .slice(0, 18)
++      .map(candidateDebugBreakdown)
++      .filter(Boolean);
++    const trace = {
++      traceVersion: VBT_DEBUG_TRACE_VERSION,
++      createdAt: new Date().toISOString(),
++      status: status || "unknown",
++      message: message || "",
++      record: {
++        id: record?.id || null,
++        lift: record?.lift || null,
++        weight: record?.weight ?? null,
++        rpe: record?.rpe ?? null,
++        videoName: record?.videoName || null,
++        videoSize: record?.videoSize || null,
++        videoType: record?.videoType || null
++      },
++      trim: { start: compactDebugNumber(start, 3), end: compactDebugNumber(end, 3), duration: compactDebugNumber(Number(end) - Number(start), 3) },
++      timing: { startedAt: compactDebugNumber(startedAt, 1), endedAt: compactDebugNumber(endedAt, 1), elapsedMs: compactDebugNumber(Number(endedAt) - Number(startedAt), 1) },
++      sampling: { requestedCount: sampleTimes?.length || 0, actualFrameCount: sampledFrames?.length || 0, firstTime: compactDebugNumber(sampleTimes?.[0], 3), lastTime: compactDebugNumber(sampleTimes?.[sampleTimes.length - 1], 3) },
++      person: summarizePersonDebug(segmentedFrames, sampledFrames, personContext, lifterMotionContext, personModel, personLoadError),
++      winner: selectedCandidate ? candidateDebugBreakdown(selectedCandidate, 0) : null,
++      candidateBreakdown,
++      rawTopCandidates,
++      montageDataUrls: buildAutoDebugMontage(sampledFrames, allCandidates, candidateList, lifterMotionContext, record?.lift)
++    };
++    return trace;
++  }
++
++  function renderDebugMetric(label, value) {
++    const display = value === null || value === undefined || value === "" ? "--" : String(value);
++    return `<span><small>${escapeHtml(label)}</small><strong>${escapeHtml(display)}</strong></span>`;
++  }
++
++  function renderVbtDebugPanel(dialog) {
++    const panels = dialog?.querySelectorAll("[data-vbt-debug-panel]");
++    if (!panels?.length) return;
++    const state = vbtState(dialog);
++    const trace = state.autoDetectionDebug || null;
++    panels.forEach((panel) => {
++      if (!trace) {
++        panel.innerHTML = `<details class="vbt-debug-drawer"><summary>開発者用 自動検出ログ</summary><p class="video-storage-note compact">まだ自動検出ログはありません。</p></details>`;
++        return;
++      }
++      const candidates = trace.candidateBreakdown || [];
++      const candidateRows = candidates.length ? candidates.map((candidate) => `
++        <tr class="${candidate.selected ? "selected" : ""}">
++          <td>${escapeHtml(candidate.rank)}</td>
++          <td>${escapeHtml(candidate.confidence)}</td>
++          <td>${escapeHtml(candidate.score ?? "--")}</td>
++          <td>${escapeHtml(candidate.temporalScore ?? "--")}</td>
++          <td>${escapeHtml(candidate.shape?.total ?? "--")}</td>
++          <td>${escapeHtml(candidate.bar?.score ?? "--")}</td>
++          <td>${escapeHtml(candidate.bar?.crossing ?? "--")}</td>
++          <td>${escapeHtml(candidate.lifter?.personEvidence ?? "--")}</td>
++          <td>${escapeHtml(candidate.lifter?.motionEvidence ?? "--")}</td>
++          <td>${escapeHtml(candidate.sampleCount ?? "--")}</td>
++        </tr>`).join("") : `<tr><td colspan="10">候補なし</td></tr>`;
++      const montage = (trace.montageDataUrls || []).length ? `
++        <div class="vbt-debug-montage">
++          ${trace.montageDataUrls.map((src, index) => `<img alt="debug anchor ${index + 1}" src="${escapeHtml(src)}">`).join("")}
++        </div>` : "";
++      panel.innerHTML = `
++        <details class="vbt-debug-drawer">
++          <summary>開発者用 自動検出ログ <span>${escapeHtml(trace.status || "unknown")}</span></summary>
++          <div class="vbt-debug-grid">
++            ${renderDebugMetric("解析", trace.status)}
++            ${renderDebugMetric("frames", trace.sampling?.actualFrameCount)}
++            ${renderDebugMetric("person", trace.person?.aiPersonDetected ? "detected" : "0 / fallback")}
++            ${renderDebugMetric("seg", `${trace.person?.segmentedFrameCount || 0}/${trace.sampling?.actualFrameCount || 0}`)}
++            ${renderDebugMetric("elapsed", trace.timing?.elapsedMs ? `${trace.timing.elapsedMs}ms` : "--")}
++            ${renderDebugMetric("winner", trace.winner?.confidence || "--")}
++          </div>
++          <p class="video-storage-note compact">${escapeHtml(trace.message || "候補スコアの内訳・人物AIの生出力・座標変換の確認用ログです。ユーザー表示ではなくデバッグ用途です。")}</p>
++          ${montage}
++          <div class="vbt-debug-table-wrap">
++            <table class="vbt-debug-table">
++              <thead><tr><th>#</th><th>信頼</th><th>総合</th><th>時系列</th><th>形状</th><th>バー</th><th>交差</th><th>人物</th><th>動き</th><th>採用</th></tr></thead>
++              <tbody>${candidateRows}</tbody>
++            </table>
++          </div>
++          <div class="vbt-debug-actions">
++            <button class="text-button compact" type="button" data-vbt-export-debug>JSONを書き出す</button>
++          </div>
++        </details>`;
++    });
++  }
++
++  function exportVbtDebugTrace(button) {
++    const dialog = button?.closest("dialog");
++    const trace = vbtState(dialog).autoDetectionDebug;
++    if (!trace) return;
++    const payload = {
++      ...trace,
++      coordinateSelfTest: runVbtCoordinateSelfTest(dialog)
++    };
++    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
++    const url = URL.createObjectURL(blob);
++    const anchor = document.createElement("a");
++    const lift = payload.record?.lift || "vbt";
++    const stamp = new Date().toISOString().replace(/[:.]/g, "-");
++    anchor.href = url;
++    anchor.download = `platform-buddy-${lift}-auto-detect-debug-${stamp}.json`;
++    document.body.append(anchor);
++    anchor.click();
++    anchor.remove();
++    setTimeout(() => URL.revokeObjectURL(url), 5000);
++  }
++
+   function makeAutoDetectSampleTimes(start, end) {
+     const duration = Math.max(0.1, end - start);
+     // Qwik VBTのように、少し待ってでも動画全体を丁寧に見る。
+@@ -3150,6 +3492,13 @@
+       group.motionRatio = motionRatio;
+       group.horizontalDrift = horizontalDrift;
+       group.meanScore = meanScore;
++      group.barEvidence = barEvidence;
++      group.pairEvidence = pairEvidence;
++      group.countRatio = countRatio;
++      group.stabilityBonus = stabilityBonus;
++      group.movementBonus = movementBonus;
++      group.driftPenalty = driftPenalty;
++      group.staticPenalty = staticPenalty;
+       group.lifterEvidence = lifterEvidence;
+       group.personEvidence = personEvidence;
+       group.shapeEvidence = shapeEvidence;
+@@ -3173,6 +3522,14 @@
+       temporalScore: bestGroup.temporalScore,
+       motionRatio: bestGroup.motionRatio,
+       horizontalDrift: bestGroup.horizontalDrift,
++      meanScore: bestGroup.meanScore,
++      barEvidence: bestGroup.barEvidence,
++      pairEvidence: bestGroup.pairEvidence,
++      countRatio: bestGroup.countRatio,
++      stabilityBonus: bestGroup.stabilityBonus,
++      movementBonus: bestGroup.movementBonus,
++      driftPenalty: bestGroup.driftPenalty,
++      staticPenalty: bestGroup.staticPenalty,
+       lifterEvidence: bestGroup.lifterEvidence,
+       personEvidence: bestGroup.personEvidence,
+       shapeEvidence: bestGroup.shapeEvidence,
+@@ -3243,6 +3600,14 @@
+         confidence,
+         score: Math.max(bestItem.score, temporalScore),
+         temporalScore,
++        meanScore,
++        barEvidence,
++        pairEvidence,
++        countRatio,
++        stabilityBonus,
++        movementBonus,
++        driftPenalty,
++        staticPenalty,
+         motionRatio,
+         horizontalDrift,
+         lifterEvidence,
+@@ -3309,6 +3674,7 @@
+     const note = dialog.querySelector("[data-vbt-auto-note]");
+     if (note) note.textContent = vbtState(dialog).autoDetectionMessage;
+     renderAutoCandidateList(dialog);
++    renderVbtDebugPanel(dialog);
+     drawVbtOverlay(dialog);
+     drawRoiPreview(dialog);
+   }
+@@ -3459,20 +3825,31 @@
+     const record = await getVideoRecord(button.dataset.vbtAutoDetect);
+     if (!dialog || !video || !record) return;
+     const previousText = button.textContent;
++    let start = 0;
++    let end = 0;
++    let detectStartedAt = performance.now();
++    let sampleTimes = [];
++    let sampledFrames = [];
++    let segmentedFrames = [];
++    let allCandidates = [];
++    let personModel = null;
++    let personContext = null;
++    let lifterMotionContext = null;
++    let candidateList = [];
+     try {
+       button.disabled = true;
+       button.textContent = "精密解析中...";
+       setVbtWizardStep(dialog, "auto-detect-loading");
+       const state = vbtState(dialog);
+-      const start = hasFiniteNumber(state.trimStart) ? Number(state.trimStart) : 0;
+-      const end = hasFiniteNumber(state.trimEnd) ? Number(state.trimEnd) : Number(video.duration || start + 1);
+-      const detectStartedAt = performance.now();
+-      const sampleTimes = makeAutoDetectSampleTimes(start, end);
++      start = hasFiniteNumber(state.trimStart) ? Number(state.trimStart) : 0;
++      end = hasFiniteNumber(state.trimEnd) ? Number(state.trimEnd) : Number(video.duration || start + 1);
++      detectStartedAt = performance.now();
++      sampleTimes = makeAutoDetectSampleTimes(start, end);
+       const deepBudgetMs = deepDetectMinimumWaitMs(sampleTimes.length, end - start);
+-      const sampledFrames = [];
+-      const segmentedFrames = [];
+-      const allCandidates = [];
+-      const personModel = await loadBodyPixModel((message, percent) => updateAutoDetectProgress(dialog, 1, message, percent));
++      sampledFrames = [];
++      segmentedFrames = [];
++      allCandidates = [];
++      personModel = await loadBodyPixModel((message, percent) => updateAutoDetectProgress(dialog, 1, message, percent));
+       updateAutoDetectProgress(dialog, 1, personModel ? "1/8 人物AIでリフター領域を確認中…" : "1/8 人物AIが使えないため動き検出で確認中…", 8);
+       for (let index = 0; index < sampleTimes.length; index += 1) {
+         const time = sampleTimes[index];
+@@ -3488,8 +3865,8 @@
+         updateAutoDetectProgress(dialog, index + 1, personModel ? "1/8 人物AIでリフター領域を確認中…" : "1/8 動いているリフター領域を確認中…", progress);
+         await new Promise((resolve) => setTimeout(resolve, 28));
+       }
+-      const personContext = buildPersonSegmentationContext(segmentedFrames, sampledFrames, record.lift);
+-      const lifterMotionContext = personContext || buildLifterMotionContext(sampledFrames, record.lift);
++      personContext = buildPersonSegmentationContext(segmentedFrames, sampledFrames, record.lift);
++      lifterMotionContext = personContext || buildLifterMotionContext(sampledFrames, record.lift);
+       setVbtState(dialog, { autoDetectionMotionContext: lifterMotionContext });
+       updateAutoDetectProgress(dialog, 2, lifterMotionContext?.aiPersonDetected ? "2/8 人物領域と動きの重なりを確認中…" : lifterMotionContext ? "2/8 リフター周辺の動き領域を確認中…" : "2/8 リフター領域が弱いため通常検出も併用中…", 42);
+       for (let index = 0; index < sampledFrames.length; index += 1) {
+@@ -3509,40 +3886,82 @@
+       }
+       updateAutoDetectProgress(dialog, 7, "7/8 候補を時間的一貫性で再評価中…", 84);
+       await waitForDeepDetectBudget(detectStartedAt, deepBudgetMs, (message, percent) => updateAutoDetectProgress(dialog, 7, message, percent), "7/8 動画全体の候補スコアを再確認中…");
+-      const candidateList = chooseTemporalPlateCandidates(allCandidates, record.lift, 3);
++      candidateList = chooseTemporalPlateCandidates(allCandidates, record.lift, 3);
+       const bestCandidate = candidateList[0];
++      const makeDebugTrace = (status, message) => makeAutoDetectionDebugTrace({
++        record,
++        start,
++        end,
++        sampleTimes,
++        sampledFrames,
++        segmentedFrames,
++        personModel,
++        personContext,
++        lifterMotionContext,
++        allCandidates,
++        candidateList,
++        status,
++        message,
++        startedAt: detectStartedAt,
++        endedAt: performance.now()
++      });
+       updateAutoDetectProgress(dialog, 8, "8/8 検出結果を準備中…", 98);
+       if (!bestCandidate) {
+-        showAnchorAssistStep(dialog, `自動検出だけではプレート候補を絞れませんでした。解析フレーム ${sampleTimes.length}件を確認しました。実際のプレート付近を1回タップしてください。`);
++        const message = `自動検出だけではプレート候補を絞れませんでした。解析フレーム ${sampleTimes.length}件を確認しました。実際のプレート付近を1回タップしてください。`;
++        setVbtState(dialog, { autoDetectionDebug: makeDebugTrace("no-candidate", message) });
++        showAnchorAssistStep(dialog, message);
+         return;
+       }
+       if (weakAutoPlateCandidates(candidateList)) {
++        const message = `プレート形状・バー接続・動きの確信度が低いため、自動候補を採用しませんでした。実際のプレート付近を1回タップしてください。解析フレーム ${sampleTimes.length}件 / 形状 ${(Number(bestCandidate.shapeEvidence ?? bestCandidate.shapeScore) || 0).toFixed(0)} / 動き ${(Number(bestCandidate.motionRatio) || 0).toFixed(2)}`;
+         setVbtState(dialog, {
+           autoPlateCandidates: candidateList,
+           selectedCandidateIndex: null,
+-          autoPlateCandidate: null
++          autoPlateCandidate: null,
++          autoDetectionDebug: makeDebugTrace("weak-candidate", message)
+         });
+-        showAnchorAssistStep(dialog, `プレート形状・バー接続・動きの確信度が低いため、自動候補を採用しませんでした。実際のプレート付近を1回タップしてください。解析フレーム ${sampleTimes.length}件 / 形状 ${(Number(bestCandidate.shapeEvidence ?? bestCandidate.shapeScore) || 0).toFixed(0)} / 動き ${(Number(bestCandidate.motionRatio) || 0).toFixed(2)}`);
++        showAnchorAssistStep(dialog, message);
+         return;
+       }
+       const lowMessage = "自動検出の信頼度：低。候補を選び、緑枠が最大プレートを囲んでいるか確認してください。";
+       const okMessage = `プレートの外周形状とバー接続から候補を${candidateList.length}件見つけました。正しい候補を選び、緑枠が最大プレートを囲んでいれば進んでください。確認フレーム ${sampleTimes.length}件 / 採用フレーム ${bestCandidate.sampleCount || 1}件 / 形状 ${(Number(bestCandidate.shapeEvidence ?? bestCandidate.shapeScore) || 0).toFixed(0)} / 動き ${(Number(bestCandidate.motionRatio) || 0).toFixed(2)}`;
++      const resultMessage = bestCandidate.confidence === "low" ? lowMessage : okMessage;
+       setVbtState(dialog, {
+         plateRoi: bestCandidate.roi,
+         autoPlateCandidate: bestCandidate,
+         autoPlateCandidates: candidateList,
+         selectedCandidateIndex: 0,
+         autoDetectionConfidence: bestCandidate.confidence,
+-        autoDetectionMessage: bestCandidate.confidence === "low" ? lowMessage : okMessage,
++        autoDetectionMessage: resultMessage,
++        autoDetectionDebug: makeDebugTrace("candidate-ready", resultMessage),
+         trackingMode: "plate-roi-track"
+       });
+       const note = dialog.querySelector("[data-vbt-auto-note]");
+       if (note) note.textContent = vbtState(dialog).autoDetectionMessage;
+       setVbtWizardStep(dialog, "auto-detect-confirm");
+     } catch (error) {
++      const message = error.message || "人物AI・リフター周辺のバーベル線・プレート候補を検出できませんでした。プレート付近を1回タップしてください。";
++      const debugTrace = makeAutoDetectionDebugTrace({
++        record,
++        start,
++        end,
++        sampleTimes,
++        sampledFrames,
++        segmentedFrames,
++        personModel,
++        personContext,
++        lifterMotionContext,
++        allCandidates,
++        candidateList,
++        status: "error",
++        message,
++        startedAt: detectStartedAt,
++        endedAt: performance.now()
++      });
+       setVbtState(dialog, {
+         autoDetectionConfidence: "failed",
+-        autoDetectionMessage: error.message || "人物AI・リフター周辺のバーベル線・プレート候補を検出できませんでした。プレート付近を1回タップしてください。"
++        autoDetectionMessage: message,
++        autoDetectionDebug: debugTrace
+       });
+       showAnchorAssistStep(dialog, vbtState(dialog).autoDetectionMessage);
+     } finally {
+@@ -3623,6 +4042,7 @@
+             <span>動画上の最大プレートの中心付近を1回タップ</span>
+             <small>細かい四角形調整ではなく、まず「ここがプレート」と教えるだけでOKです。</small>
+           </div>
++          <div class="vbt-debug-panel" data-vbt-debug-panel></div>
+           <div class="vbt-wizard-actions three">
+             <button class="text-button" type="button" data-vbt-wizard-step="trim">戻る</button>
+             <button class="text-button" type="button" data-vbt-manual-plate>緑枠で手動調整</button>
+@@ -3637,6 +4057,7 @@
+           </div>
+           <p class="video-storage-note" data-vbt-auto-note>この緑枠が最大プレートを囲んでいれば「見えます」を押してください。</p>
+           <div class="vbt-candidate-strip" data-vbt-candidate-list></div>
++          <div class="vbt-debug-panel" data-vbt-debug-panel></div>
+           <div class="vbt-roi-preview">
+             <canvas data-vbt-roi-preview-canvas></canvas>
+             <span>ROI拡大プレビュー</span>
+@@ -4993,6 +5414,8 @@
+     if (autoDetect) return runAutoPlateDetection(autoDetect);
+     const candidateSelect = event.target.closest("[data-vbt-candidate-select]");
+     if (candidateSelect) return selectAutoPlateCandidate(candidateSelect);
++    const debugExport = event.target.closest("[data-vbt-export-debug]");
++    if (debugExport) return exportVbtDebugTrace(debugExport);
+     const confirmPlate = event.target.closest("[data-vbt-confirm-plate]");
+     if (confirmPlate) return confirmAutoDetectedPlate(confirmPlate);
+     const manualPlate = event.target.closest("[data-vbt-manual-plate]");

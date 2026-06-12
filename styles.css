@@ -17951,3 +17951,112 @@ html body .vbt-overlay.marker-active {
 html body .vbt-wizard-actions.three .text-button[data-vbt-marker-assist] {
   border-color: rgba(250, 204, 21, 0.45);
 }
+
+/* v183 VBT auto-detect observability */
+.vbt-debug-panel {
+  margin: 10px 0 12px;
+}
+.vbt-debug-drawer {
+  border: 1px solid rgba(120, 92, 54, 0.20);
+  border-radius: 14px;
+  background: rgba(255, 250, 242, 0.72);
+  overflow: hidden;
+}
+.vbt-debug-drawer summary {
+  cursor: pointer;
+  padding: 10px 12px;
+  font-weight: 900;
+  font-size: 0.86rem;
+  color: #3b2f22;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+}
+.vbt-debug-drawer summary span {
+  font-size: 0.72rem;
+  color: #7c5f3d;
+  background: rgba(180, 143, 84, 0.16);
+  border-radius: 999px;
+  padding: 3px 8px;
+}
+.vbt-debug-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  padding: 0 12px 10px;
+}
+.vbt-debug-grid span {
+  display: grid;
+  gap: 2px;
+  border: 1px solid rgba(120, 92, 54, 0.14);
+  background: rgba(255, 255, 255, 0.50);
+  border-radius: 10px;
+  padding: 7px 8px;
+}
+.vbt-debug-grid small {
+  font-size: 0.66rem;
+  color: #7c5f3d;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+.vbt-debug-grid strong {
+  font-size: 0.82rem;
+  color: #1f1a14;
+  line-height: 1.15;
+}
+.vbt-debug-montage {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 0 12px 10px;
+}
+.vbt-debug-montage img {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid rgba(23, 23, 23, 0.12);
+  background: #111;
+}
+.vbt-debug-table-wrap {
+  margin: 0 12px 10px;
+  overflow-x: auto;
+  border-radius: 10px;
+  border: 1px solid rgba(120, 92, 54, 0.16);
+}
+.vbt-debug-table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+  font-size: 0.72rem;
+  background: rgba(255, 255, 255, 0.62);
+}
+.vbt-debug-table th,
+.vbt-debug-table td {
+  padding: 6px 7px;
+  border-bottom: 1px solid rgba(120, 92, 54, 0.12);
+  text-align: right;
+  white-space: nowrap;
+}
+.vbt-debug-table th:first-child,
+.vbt-debug-table td:first-child,
+.vbt-debug-table th:nth-child(2),
+.vbt-debug-table td:nth-child(2) {
+  text-align: left;
+}
+.vbt-debug-table tr.selected td {
+  background: rgba(34, 197, 94, 0.10);
+  font-weight: 900;
+}
+.vbt-debug-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 12px 12px;
+}
+@media (max-width: 680px) {
+  .vbt-debug-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .vbt-debug-montage {
+    grid-template-columns: 1fr;
+  }
+}
