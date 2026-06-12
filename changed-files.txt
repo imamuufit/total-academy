@@ -1,4 +1,4 @@
-v183.09-vbt-roi-anchor-calibration-isolated
+v183.10-vbt-dl-hub-center-snap-balanced-detect
 
 変更ファイル:
 - video.js
@@ -8,20 +8,24 @@ v183.09-vbt-roi-anchor-calibration-isolated
 - DIFF
 
 目的:
-- ROIの位置調整、ROIサイズ、速度換算基準をさらに明確に切り離す。
-- 同じ動画でROIサイズを変えた時に速度結果が大きく変わる問題を抑制する。
-- v183.08の検出精度を維持しつつ、ROI操作の設計を「位置合わせ専用」に寄せる。
+- v183.09でROIサイズと換算基準の分離は安定したため、次に自動検出候補を「プレート付近」から「プレート中心」へ寄せる。
+- 処理速度を少し犠牲にして、DLプレートの中心ハブ・円盤中心・複数フレーム一貫性をより強く評価する。
 
 主な変更:
-- trackingAnchorPoint / plateCenterPoint を追加し、追跡はROIサイズではなく中心点を基準にする。
-- 追跡窓サイズは固定されたプレート直径pxから再生成する。
-- ROIの通常ドラッグは移動専用に変更。
-- 角ハンドルによるリサイズを通常操作では無効化。
-- 微調整ボタンのサイズ変更系操作を停止し、直径基準変更は「この緑枠を直径基準に固定」だけに限定。
-- 自動候補選択時に中心点と直径pxを同時に固定。
-- 測定結果のcalibration/measurementにtrackingAnchorPointを保存。
-- 換算基準表示に「ROIサイズ非連動」を明記。
+- plateHubCenterEvidence() を追加し、黒い円盤内の銀色ハブ/中心コントラストを評価。
+- DL用の refinePlateCandidateByDisc() を再設計し、上端・脚・床寄りではなくプレート中心へスナップしやすく変更。
+- 候補スコアに hubCenterScore / hubEvidence を追加。
+- 候補ボタンと開発者ログに「中心」スコアを表示。
+- 代表フレーム数を v183.09 より増やし、複数時点で最大プレート中心が一致する候補を優先。
+- 候補抽出の時間上限を少し伸ばし、3秒前後より少し長くても精度を優先するバランスへ変更。
+- PWAキャッシュを v183.10 に更新。
 
 確認:
 - node --check video.js OK
+- node --check sw.js OK
 - python3 -m json.tool manifest.webmanifest OK
+
+実機確認ポイント:
+- DLで候補ROIがプレート上端や脚周辺ではなく、円盤中心/ハブ付近へ寄るか。
+- 検出時間が許容範囲内か。
+- ROIを動かしてもサイズ固定・換算基準非連動が維持されるか。
