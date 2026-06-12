@@ -10,11 +10,11 @@
   const VBT_PERSON_SEGMENTATION_ENABLED = true;
   const VBT_TFJS_URL = "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js";
   const VBT_BODYPIX_URL = "https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix@2.2.1/dist/body-pix.min.js";
-  const VBT_DEEP_DETECT_MIN_MS = 2800;
-  const VBT_DEEP_RESULT_ANALYSIS_MIN_MS = 3500;
-  const VBT_DEEP_DETECT_FRAME_SIZE = 448;
-  const VBT_DEEP_DETECT_PERSON_SEGMENT_EVERY = 8;
-  const VBT_PERSON_MODEL_DETECT_TIMEOUT_MS = 2500;
+  const VBT_DEEP_DETECT_MIN_MS = 900;
+  const VBT_DEEP_RESULT_ANALYSIS_MIN_MS = 2500;
+  const VBT_DEEP_DETECT_FRAME_SIZE = 416;
+  const VBT_DEEP_DETECT_PERSON_SEGMENT_EVERY = 99;
+  const VBT_PERSON_MODEL_DETECT_TIMEOUT_MS = 700;
   const VBT_MARKER_ROI_MIN_PX = 18;
   const VBT_MARKER_ROI_MAX_PX = 54;
   const VBT_MULTI_TRACKER_ENABLED = true;
@@ -24,7 +24,7 @@
   const VBT_MULTI_TRACKER_HISTOGRAM_WEIGHT = 0.18;
   const VBT_MULTI_TRACKER_MOTION_WEIGHT = 0.14;
   const VBT_MULTI_TRACKER_PREDICTION_WEIGHT = 0.08;
-  const VBT_DEBUG_TRACE_VERSION = "v183.04-fast-two-pass-detect";
+  const VBT_DEBUG_TRACE_VERSION = "v183.05-fast-prefilter-detect";
   const VBT_DEBUG_MONTAGE_PANELS = 5;
   let bodyPixModelPromise = null;
 
@@ -3086,6 +3086,12 @@
     const data = ctx.getImageData(0, 0, width, height).data;
     const minSide = Math.min(width, height);
     const lift = options.lift || "SQ";
+    const startedAt = performance.now();
+    const deadlineMs = hasFiniteNumber(options.deadlineMs)
+      ? Number(options.deadlineMs)
+      : startedAt + (hasFiniteNumber(options.frameBudgetMs) ? Number(options.frameBudgetMs) : (lift === "DL" ? 360 : 460));
+    const maxInspections = Math.max(120, Math.round(Number(options.maxInspections) || (lift === "DL" ? 320 : 460)));
+    const maxExpensiveCandidates = Math.max(18, Math.round(Number(options.maxExpensiveCandidates) || (lift === "DL" ? 54 : 72)));
     const sizeMin = lift === "DL"
       ? Math.max(34, Math.round(minSide * 0.135))
       : Math.max(26, Math.round(minSide * 0.105));
@@ -3094,8 +3100,8 @@
       : Math.max(sizeMin + 4, Math.round(minSide * 0.34));
     const region = getPlateSearchRegion(lift, width, height);
     const preferSides = lift === "OTHER" ? 0.05 : 0.24;
-    let best = null;
     const candidates = [];
+    const roughPool = [];
     const luminanceAt = (x, y) => {
       const index = (clamp(Math.round(y), 0, height - 1) * width + clamp(Math.round(x), 0, width - 1)) * 4;
       return data[index] * 0.299 + data[index + 1] * 0.587 + data[index + 2] * 0.114;
@@ -3103,143 +3109,201 @@
     const barLines = detectBarbellLineCandidates(data, width, height, lift, luminanceAt);
     const hasBarLine = barLines.length > 0;
     const motionContext = options.motionContext || null;
+    let inspections = 0;
+    let timedOut = false;
+    const shouldStop = () => performance.now() >= deadlineMs || inspections >= maxInspections;
 
-    for (let size = sizeMin; size <= sizeMax; size += Math.max(5, Math.round(sizeMin * 0.15))) {
-      const step = Math.max(6, Math.round(size * 0.22));
+    scanLoop:
+    for (let size = sizeMin; size <= sizeMax; size += Math.max(7, Math.round(sizeMin * 0.24))) {
+      const step = Math.max(10, Math.round(size * 0.34));
       const yEnd = Math.min(region.yMax, height - size - 2);
       const xEnd = Math.min(region.xMax, width - size - 2);
       for (let y = Math.round(region.yMin); y <= yEnd; y += step) {
+        if (shouldStop()) { timedOut = true; break scanLoop; }
         for (let x = Math.round(region.xMin); x <= xEnd; x += step) {
-          const centerX = x + size / 2;
-          const centerY = y + size / 2;
-          // v183.04: ここで全候補に円盤スナップを掛けると、候補数×120probeになり検出が数分化する。
-          // まず粗い候補を高速に評価し、最終候補だけを後段でスナップする二段階方式にする。
+          inspections += 1;
+          if (inspections % 16 === 0 && shouldStop()) { timedOut = true; break scanLoop; }
           const candidate = { x, y, width: size, height: size };
-          const refinedCenterX = candidate.x + candidate.width / 2;
-          const refinedCenterY = candidate.y + candidate.height / 2;
-          const sideBias = Math.abs(refinedCenterX / width - 0.5) * preferSides * 100;
+          const refinedCenterX = x + size / 2;
+          const refinedCenterY = y + size / 2;
+          const contextPrior = plateContextPrior(lift, width, height, motionContext, candidate);
+          if (contextPrior.reject) continue;
+          const sampleStep = Math.max(5, Math.round(size / 7));
           let dark = 0;
           let edge = 0;
           let borderEdge = 0;
           let samples = 0;
-          const sampleStep = Math.max(3, Math.round(size / 9));
-          for (let yy = candidate.y; yy < candidate.y + candidate.height; yy += sampleStep) {
-            for (let xx = candidate.x; xx < candidate.x + candidate.width; xx += sampleStep) {
+          for (let yy = y; yy < y + size; yy += sampleStep) {
+            for (let xx = x; xx < x + size; xx += sampleStep) {
               const lum = luminanceAt(xx, yy);
               const right = luminanceAt(xx + sampleStep, yy);
               const down = luminanceAt(xx, yy + sampleStep);
-              if (lum < 100) dark += 1;
-              edge += Math.abs(lum - right) + Math.abs(lum - down);
-              const nearBorder = xx < candidate.x + sampleStep * 1.5 || yy < candidate.y + sampleStep * 1.5 || xx > candidate.x + candidate.width - sampleStep * 2 || yy > candidate.y + candidate.height - sampleStep * 2;
-              if (nearBorder) borderEdge += Math.abs(lum - right) + Math.abs(lum - down);
+              if (lum < 104) dark += 1;
+              const localEdge = Math.abs(lum - right) + Math.abs(lum - down);
+              edge += localEdge;
+              const nearBorder = xx < x + sampleStep * 1.5 || yy < y + sampleStep * 1.5 || xx > x + size - sampleStep * 2 || yy > y + size - sampleStep * 2;
+              if (nearBorder) borderEdge += localEdge;
               samples += 1;
             }
           }
           const darkRatio = samples ? dark / samples : 0;
           const edgeScore = samples ? edge / samples : 0;
           const borderScore = samples ? borderEdge / samples : 0;
+          if (darkRatio < (lift === "DL" ? 0.12 : 0.10) || edgeScore < 8 || borderScore < 1.2) continue;
           const barMatch = barbellLineMatchScore(candidate, barLines, size);
-          const crossingScore = barbellCrossingEvidence(luminanceAt, width, height, candidate);
-          const pairScore = platePairEvidence(luminanceAt, width, height, candidate);
-          const shapeEvidence = plateShapeEvidence(luminanceAt, candidate);
-          const discEvidence = plateDiscMassEvidence(luminanceAt, candidate);
-          const lifterEvidence = lifterRegionScore(motionContext, candidate);
-          const contextPrior = plateContextPrior(lift, width, height, motionContext, candidate);
-          if (contextPrior.reject) continue;
-          const centerPenalty = Math.abs(refinedCenterX / width - 0.5) < 0.10 ? 16 : 0;
+          const centerPenalty = Math.abs(refinedCenterX / width - 0.5) < 0.10 ? 10 : 0;
           const topPenalty = refinedCenterY < height * 0.08 ? 20 : 0;
-          const floorPenalty = region.floorPenaltyY && centerY > region.floorPenaltyY ? 115 : 0;
-          const bottomTouchPenalty = lift !== "DL" && y + size > height * 0.78 ? 105 : 0;
-          // DLでは対象プレートは床〜膝下付近に出やすい。上部ラック・懸垂バー・照明反射を強く除外する。
-          const deadliftTooHigh = lift === "DL" && refinedCenterY < height * 0.40;
-          if (deadliftTooHigh && lifterEvidence.motionScore < 0.42 && crossingScore < 22) continue;
-          const deadliftHighPenalty = lift === "DL" && refinedCenterY < height * 0.48 ? 135 : 0;
-          const deadliftTooLowPenalty = lift === "DL" && refinedCenterY > height * 0.80 ? 160 : 0;
-          const shadowLike = darkRatio > 0.74 && edgeScore < 20;
-          const pillarLike = borderScore > 70 && darkRatio < 0.18 && crossingScore < 12;
-          const plateLike = (darkRatio >= 0.14 && edgeScore >= 14 && borderScore >= 4 && discEvidence.score >= 16) || (shapeEvidence.score >= 38 && discEvidence.score >= 18);
-          if (!plateLike) continue;
-          if (lift === "DL" && (discEvidence.score < 20 || discEvidence.floorSpecklePenalty > 26)) continue;
-          if (lift === "DL" && shapeEvidence.score < 42 && crossingScore < 18 && pairScore < 8 && discEvidence.score < 30) continue;
-          if (lift !== "DL" && hasBarLine && barMatch.score < 6 && crossingScore < 10 && lifterEvidence.motionScore < 0.28) continue;
-          const barPenalty = hasBarLine && barMatch.score < 8 && crossingScore < 12 ? 34 : 0;
-          const hasAiPerson = Boolean(motionContext?.aiPersonDetected);
-          const farFromPerson = hasAiPerson && lifterEvidence.personProximity < 0.22 && lifterEvidence.personScore < 0.02;
-          const staticBackgroundPenalty = motionContext && lifterEvidence.motionScore < 0.10 && lifterEvidence.nearScore < 0.26 ? 86 : 0;
-          const lifterOutsidePenalty = motionContext && lifterEvidence.outsidePenalty ? lifterEvidence.outsidePenalty : 0;
-          const personMismatchPenalty = farFromPerson ? 105 : 0;
-          const score = darkRatio * 28
-            + edgeScore * 0.18
-            + borderScore * 0.10
-            + shapeEvidence.score * 0.82
-            + discEvidence.score * 1.55
+          const floorPenalty = region.floorPenaltyY && refinedCenterY > region.floorPenaltyY ? 92 : 0;
+          const deadliftHighPenalty = lift === "DL" && refinedCenterY < height * 0.48 ? 120 : 0;
+          const deadliftTooLowPenalty = lift === "DL" && refinedCenterY > height * 0.80 ? 140 : 0;
+          const sideBias = Math.abs(refinedCenterX / width - 0.5) * preferSides * 100;
+          const roughScore = darkRatio * 36
+            + edgeScore * 0.22
+            + borderScore * 0.11
             + sideBias
-            + barMatch.score * 1.08
-            + crossingScore * 1.08
-            + pairScore * 0.82
-            + lifterEvidence.score
-            + lifterEvidence.personProximity * 58
-            + contextPrior.score * 1.15
+            + barMatch.score * 0.72
+            + contextPrior.score * 1.28
             - contextPrior.penalty
+            - centerPenalty
             - topPenalty
             - floorPenalty
-            - bottomTouchPenalty
             - deadliftHighPenalty
-            - deadliftTooLowPenalty
-            - centerPenalty
-            - barPenalty
-            - staticBackgroundPenalty
-            - lifterOutsidePenalty * 0.28
-            - personMismatchPenalty
-            - discEvidence.floorSpecklePenalty * 1.35
-            - (shadowLike ? 70 : 0)
-            - (pillarLike ? 45 : 0);
-          const scoredCandidate = {
-            x: candidate.x,
-            y: candidate.y,
-            width: candidate.width,
-            height: candidate.height,
-            score,
+            - deadliftTooLowPenalty;
+          if (roughScore < (lift === "DL" ? 30 : 26)) continue;
+          roughPool.push({
+            x,
+            y,
+            width: size,
+            height: size,
+            roughScore,
             darkRatio,
             edgeScore,
             borderScore,
-            centerY: refinedCenterY,
-            discScore: discEvidence.score,
-            discMassScore: discEvidence.discMassScore,
-            centerMassScore: discEvidence.centerMassScore,
-            cornerContrastScore: discEvidence.cornerContrastScore,
-            insideDarkRatio: discEvidence.insideDarkRatio,
-            cornerDarkRatio: discEvidence.cornerDarkRatio,
-            floorSpecklePenalty: discEvidence.floorSpecklePenalty,
             barScore: barMatch.score,
             barY: barMatch.line?.y ?? null,
-            crossingScore,
-            pairScore,
-            shapeScore: shapeEvidence.score,
-            ringScore: shapeEvidence.ringScore,
-            roundnessScore: shapeEvidence.roundnessScore,
-            hubScore: shapeEvidence.hubScore,
-            fillScore: shapeEvidence.fillScore,
             hasBarLine,
-            lifterScore: lifterEvidence.score,
-            lifterNearScore: lifterEvidence.nearScore,
-            motionScore: lifterEvidence.motionScore,
             contextPriorScore: contextPrior.score,
             contextPriorPenalty: contextPrior.penalty,
             contextPriorReason: contextPrior.reason,
             contextVerticalScore: contextPrior.verticalScore,
             contextFloorScore: contextPrior.floorScore,
             contextCenterScore: contextPrior.centerScore,
-            lifterDistanceRatio: lifterEvidence.distanceRatio
-          };
-          candidates.push(scoredCandidate);
-          if (!best || score > best.score) best = scoredCandidate;
+            centerY: refinedCenterY
+          });
         }
       }
     }
+
+    roughPool.sort((a, b) => Number(b.roughScore || 0) - Number(a.roughScore || 0));
+    const expensivePool = roughPool.slice(0, Math.min(maxExpensiveCandidates, roughPool.length));
+    for (const item of expensivePool) {
+      if (performance.now() > deadlineMs + 650 && candidates.length >= 3) break;
+      const candidate = { x: item.x, y: item.y, width: item.width, height: item.height };
+      const size = item.width;
+      const refinedCenterX = item.x + item.width / 2;
+      const refinedCenterY = item.y + item.height / 2;
+      const crossingScore = barbellCrossingEvidence(luminanceAt, width, height, candidate);
+      const shapeEvidence = plateShapeEvidence(luminanceAt, candidate);
+      const discEvidence = plateDiscMassEvidence(luminanceAt, candidate);
+      const lifterEvidence = lifterRegionScore(motionContext, candidate);
+      const contextPrior = plateContextPrior(lift, width, height, motionContext, candidate);
+      if (contextPrior.reject) continue;
+      const needPair = lift !== "DL" || (shapeEvidence.score < 42 && crossingScore < 18 && discEvidence.score < 30);
+      const pairScore = needPair ? platePairEvidence(luminanceAt, width, height, candidate) : 0;
+      const plateLike = (item.darkRatio >= 0.14 && item.edgeScore >= 12 && item.borderScore >= 3 && discEvidence.score >= 16) || (shapeEvidence.score >= 38 && discEvidence.score >= 18);
+      if (!plateLike) continue;
+      if (lift === "DL" && (discEvidence.score < 20 || discEvidence.floorSpecklePenalty > 28)) continue;
+      if (lift === "DL" && shapeEvidence.score < 42 && crossingScore < 18 && pairScore < 8 && discEvidence.score < 30) continue;
+      if (lift !== "DL" && hasBarLine && item.barScore < 6 && crossingScore < 10 && lifterEvidence.motionScore < 0.28) continue;
+      const centerPenalty = Math.abs(refinedCenterX / width - 0.5) < 0.10 ? 16 : 0;
+      const topPenalty = refinedCenterY < height * 0.08 ? 20 : 0;
+      const floorPenalty = region.floorPenaltyY && refinedCenterY > region.floorPenaltyY ? 115 : 0;
+      const bottomTouchPenalty = lift !== "DL" && item.y + size > height * 0.78 ? 105 : 0;
+      const deadliftHighPenalty = lift === "DL" && refinedCenterY < height * 0.48 ? 135 : 0;
+      const deadliftTooLowPenalty = lift === "DL" && refinedCenterY > height * 0.80 ? 160 : 0;
+      const shadowLike = item.darkRatio > 0.74 && item.edgeScore < 20;
+      const pillarLike = item.borderScore > 70 && item.darkRatio < 0.18 && crossingScore < 12;
+      const barPenalty = hasBarLine && item.barScore < 8 && crossingScore < 12 ? 34 : 0;
+      const hasAiPerson = Boolean(motionContext?.aiPersonDetected);
+      const farFromPerson = hasAiPerson && lifterEvidence.personProximity < 0.22 && lifterEvidence.personScore < 0.02;
+      const staticBackgroundPenalty = motionContext && lifterEvidence.motionScore < 0.10 && lifterEvidence.nearScore < 0.26 ? 86 : 0;
+      const lifterOutsidePenalty = motionContext && lifterEvidence.outsidePenalty ? lifterEvidence.outsidePenalty : 0;
+      const personMismatchPenalty = farFromPerson ? 105 : 0;
+      const sideBias = Math.abs(refinedCenterX / width - 0.5) * preferSides * 100;
+      const score = item.darkRatio * 28
+        + item.edgeScore * 0.18
+        + item.borderScore * 0.10
+        + shapeEvidence.score * 0.82
+        + discEvidence.score * 1.55
+        + sideBias
+        + item.barScore * 1.08
+        + crossingScore * 1.08
+        + pairScore * 0.82
+        + lifterEvidence.score
+        + lifterEvidence.personProximity * 58
+        + contextPrior.score * 1.15
+        - contextPrior.penalty
+        - topPenalty
+        - floorPenalty
+        - bottomTouchPenalty
+        - deadliftHighPenalty
+        - deadliftTooLowPenalty
+        - centerPenalty
+        - barPenalty
+        - staticBackgroundPenalty
+        - lifterOutsidePenalty * 0.28
+        - personMismatchPenalty
+        - discEvidence.floorSpecklePenalty * 1.35
+        - (shadowLike ? 70 : 0)
+        - (pillarLike ? 45 : 0);
+      candidates.push({
+        x: candidate.x,
+        y: candidate.y,
+        width: candidate.width,
+        height: candidate.height,
+        score,
+        roughScore: item.roughScore,
+        darkRatio: item.darkRatio,
+        edgeScore: item.edgeScore,
+        borderScore: item.borderScore,
+        centerY: refinedCenterY,
+        discScore: discEvidence.score,
+        discMassScore: discEvidence.discMassScore,
+        centerMassScore: discEvidence.centerMassScore,
+        cornerContrastScore: discEvidence.cornerContrastScore,
+        insideDarkRatio: discEvidence.insideDarkRatio,
+        cornerDarkRatio: discEvidence.cornerDarkRatio,
+        floorSpecklePenalty: discEvidence.floorSpecklePenalty,
+        barScore: item.barScore,
+        barY: item.barY,
+        crossingScore,
+        pairScore,
+        shapeScore: shapeEvidence.score,
+        ringScore: shapeEvidence.ringScore,
+        roundnessScore: shapeEvidence.roundnessScore,
+        hubScore: shapeEvidence.hubScore,
+        fillScore: shapeEvidence.fillScore,
+        hasBarLine,
+        lifterScore: lifterEvidence.score,
+        lifterNearScore: lifterEvidence.nearScore,
+        motionScore: lifterEvidence.motionScore,
+        contextPriorScore: contextPrior.score,
+        contextPriorPenalty: contextPrior.penalty,
+        contextPriorReason: contextPrior.reason,
+        contextVerticalScore: contextPrior.verticalScore,
+        contextFloorScore: contextPrior.floorScore,
+        contextCenterScore: contextPrior.centerScore,
+        lifterDistanceRatio: lifterEvidence.distanceRatio,
+        timedOut,
+        inspected: inspections,
+        roughPoolCount: roughPool.length
+      });
+    }
+
     const minScore = hasBarLine ? 48 : 58;
-    const toResult = (item) => {
-      const snapped = lift === "DL" ? refinePlateCandidateByDisc(luminanceAt, item, lift, width, height) : item;
+    const toResult = (item, index = 0) => {
+      const shouldSnap = lift === "DL" && index < 3;
+      const snapped = shouldSnap ? refinePlateCandidateByDisc(luminanceAt, item, lift, width, height) : item;
       const snapShape = snapped === item ? null : plateShapeEvidence(luminanceAt, snapped);
       const snapDisc = snapped === item ? null : plateDiscMassEvidence(luminanceAt, snapped);
       const roi = clampPlateRoi({
@@ -3283,6 +3347,10 @@
         contextFloorScore: item.contextFloorScore,
         contextCenterScore: item.contextCenterScore,
         lifterDistanceRatio: item.lifterDistanceRatio,
+        roughScore: item.roughScore,
+        timedOut: item.timedOut,
+        inspected: item.inspected,
+        roughPoolCount: item.roughPoolCount,
         frameWidth: Math.round(width / scale),
         frameHeight: Math.round(height / scale)
       };
@@ -3292,10 +3360,11 @@
       return candidates
         .filter((item) => item.score >= Math.max(34, minScore - 18))
         .slice(0, Math.min(options.maxCandidates || 5, lift === "DL" ? 5 : 6))
-        .map(toResult);
+        .map((item, index) => toResult(item, index));
     }
+    const best = candidates[0];
     if (!best || best.score < minScore) return null;
-    return toResult(best);
+    return toResult(best, 0);
   }
 
   function updateAutoDetectProgress(dialog, step, text, percent) {
@@ -3657,31 +3726,28 @@
 
   function makeAutoDetectSampleTimes(start, end) {
     const duration = Math.max(0.1, end - start);
-    // v183.04: プレート検出は「数分待つ精密検出」ではなく、体感10秒以内の短時間検出へ戻す。
-    // 候補抽出が重いため、動画全体を間引いて、開始・中盤・終盤の代表フレームに限定する。
+    // v183.05: 位置解析は「候補を3つ出せる精度」を維持しつつ、体感待ち時間を短縮する。
+    // まず少数の代表フレームで粗検出し、良い候補が出たらそこで打ち切る前提にする。
     const touchDevice = typeof navigator !== "undefined" && Number(navigator.maxTouchPoints) > 0;
     const narrowScreen = typeof window !== "undefined" && window.matchMedia?.("(max-width: 760px)")?.matches;
-    const maxFrames = touchDevice || narrowScreen ? 18 : 26;
-    const minFrames = touchDevice || narrowScreen ? 10 : 14;
-    const count = clamp(Math.round(duration * (touchDevice || narrowScreen ? 0.75 : 1.05)), minFrames, maxFrames);
+    const mobileLike = touchDevice || narrowScreen;
+    const maxFrames = mobileLike ? 12 : 16;
+    const minFrames = mobileLike ? 6 : 8;
+    const count = clamp(Math.round(duration * (mobileLike ? 0.34 : 0.48)), minFrames, maxFrames);
     const times = [];
     for (let index = 0; index < count; index += 1) {
       const ratio = count === 1 ? 0 : index / (count - 1);
       times.push(clamp(start + duration * ratio, start, end));
     }
-    [0.06, 0.18, 0.36, 0.50, 0.68, 0.84, 0.96].forEach((ratio) => {
+    [0.08, 0.28, 0.50, 0.72, 0.94].forEach((ratio) => {
       times.push(clamp(start + duration * ratio, start, end));
     });
-    return [...new Set(times.map((time) => Number(time.toFixed(3))))].sort((a, b) => a - b);
+    return [...new Set(times.map((time) => Number(time.toFixed(3))))].sort((a, b) => a - b).slice(0, maxFrames + 3);
   }
 
   function deepDetectMinimumWaitMs(sampleCount, durationSeconds) {
-    // 人工的な待機は最小化する。実処理が遅い場合にさらに待たせない。
-    const deviceTouch = typeof navigator !== "undefined" && Number(navigator.maxTouchPoints) > 0;
-    const base = deviceTouch ? 1600 : 2200;
-    const sampleBonus = Math.min(500, Math.max(0, sampleCount - 16) * 30);
-    const durationBonus = Math.min(500, Math.max(0, Number(durationSeconds) || 0) * 18);
-    return clamp(base + sampleBonus + durationBonus, 1200, 3200);
+    // v183.05: 人工待機は廃止。実処理が終わったらすぐ候補表示へ進む。
+    return 0;
   }
 
   async function waitForDeepDetectBudget(startedAt, targetMs, progress, message = "検出結果を確認中…") {
@@ -4128,7 +4194,7 @@
     let candidateList = [];
     try {
       button.disabled = true;
-      button.textContent = "高速検出中...";
+      button.textContent = "位置解析中...";
       setVbtWizardStep(dialog, "auto-detect-loading");
       const state = vbtState(dialog);
       start = hasFiniteNumber(state.trimStart) ? Number(state.trimStart) : 0;
@@ -4152,7 +4218,7 @@
         const frame = frameCanvas(video, VBT_DEEP_DETECT_FRAME_SIZE);
         const item = { time, frame };
         sampledFrames.push(item);
-        if (personModel && (index % VBT_DEEP_DETECT_PERSON_SEGMENT_EVERY === 0 || index === sampleTimes.length - 1)) {
+        if (personModel && (index === 0 || index === sampleTimes.length - 1) && index % VBT_DEEP_DETECT_PERSON_SEGMENT_EVERY === 0) {
           const segmentation = await segmentPersonFrame(personModel, frame);
           if (segmentation) segmentedFrames.push({ ...item, segmentation });
         }
@@ -4165,16 +4231,19 @@
       setVbtState(dialog, { autoDetectionMotionContext: lifterMotionContext });
       updateAutoDetectProgress(dialog, 2, lifterMotionContext?.aiPersonDetected ? "2/8 人物領域と動きの重なりを確認中…" : lifterMotionContext ? "2/8 リフター周辺の動き領域を確認中…" : "2/8 リフター領域が弱いため通常検出も併用中…", 42);
       const candidateStageStartedAt = performance.now();
-      const candidateStageBudgetMs = (typeof navigator !== "undefined" && Number(navigator.maxTouchPoints) > 0) ? 7200 : 9800;
+      const candidateStageBudgetMs = (typeof navigator !== "undefined" && Number(navigator.maxTouchPoints) > 0) ? 3600 : 5200;
       let candidateFramesChecked = 0;
       for (let index = 0; index < sampledFrames.length; index += 1) {
         const elapsedCandidateMs = performance.now() - candidateStageStartedAt;
-        if (elapsedCandidateMs > candidateStageBudgetMs && allCandidates.length >= 8 && candidateFramesChecked >= 8) {
+        if (elapsedCandidateMs > candidateStageBudgetMs && allCandidates.length >= 6 && candidateFramesChecked >= 5) {
           updateAutoDetectProgress(dialog, 6, "6/8 時間内に取得できた候補で再評価中…", 82);
           break;
         }
         const { time, frame } = sampledFrames[index];
-        const candidates = detectPlateCandidateFromFrame(frame, { lift: record.lift, returnCandidates: true, maxCandidates: 5, motionContext: lifterMotionContext }) || [];
+        const remainingFrames = Math.max(1, sampledFrames.length - index);
+        const remainingBudget = Math.max(700, candidateStageBudgetMs - (performance.now() - candidateStageStartedAt));
+        const perFrameBudget = clamp(remainingBudget / remainingFrames, 180, (typeof navigator !== "undefined" && Number(navigator.maxTouchPoints) > 0) ? 320 : 460);
+        const candidates = detectPlateCandidateFromFrame(frame, { lift: record.lift, returnCandidates: true, maxCandidates: 3, motionContext: lifterMotionContext, deadlineMs: performance.now() + perFrameBudget, maxInspections: record.lift === "DL" ? 300 : 430, maxExpensiveCandidates: record.lift === "DL" ? 42 : 58 }) || [];
         candidateFramesChecked += 1;
         candidates.forEach((candidate) => allCandidates.push({ ...candidate, sampleTime: time, sampleIndex: index }));
         const progress = 42 + ((index + 1) / sampledFrames.length) * 40;
