@@ -1,13 +1,630 @@
-Only in /mnt/data/v183.01: DIFF
-diff -ru /mnt/data/v183_base/index.html /mnt/data/v183.01/index.html
---- /mnt/data/v183_base/index.html	2026-06-12 01:06:56.000000000 +0000
-+++ /mnt/data/v183.01/index.html	2026-06-12 01:34:32.448536864 +0000
+diff -ru v183_01_ref/DIFF v183_02/DIFF
+--- v183_01_ref/DIFF	2026-06-12 01:34:32.000000000 +0000
++++ v183_02/DIFF	2026-06-12 01:34:32.000000000 +0000
+@@ -1,614 +0,0 @@
+-Only in /mnt/data/v183.01: DIFF
+-diff -ru /mnt/data/v183_base/index.html /mnt/data/v183.01/index.html
+---- /mnt/data/v183_base/index.html	2026-06-12 01:06:56.000000000 +0000
+-+++ /mnt/data/v183.01/index.html	2026-06-12 01:34:32.448536864 +0000
+-@@ -12,7 +12,7 @@
+-     <link rel="preload" as="image" href="home-bg-lite.jpg">
+-     <link rel="preload" as="image" href="icon-sheet-lite.jpg">
+-     <link rel="apple-touch-icon" href="apple-touch-icon.png">
+--    <link rel="stylesheet" href="styles.css?v=183">
+-+    <link rel="stylesheet" href="styles.css?v=183.01">
+-   </head>
+-   <body>
+-     <div class="app-shell">
+-@@ -1158,7 +1158,7 @@
+-       </form>
+-     </dialog>
+- 
+--    <script src="app.js?v=183"></script>
+--    <script src="video.js?v=183"></script>
+-+    <script src="app.js?v=183.01"></script>
+-+    <script src="video.js?v=183.01"></script>
+-   </body>
+- </html>
+-diff -ru /mnt/data/v183_base/manifest.webmanifest /mnt/data/v183.01/manifest.webmanifest
+---- /mnt/data/v183_base/manifest.webmanifest	2026-06-12 01:06:44.000000000 +0000
+-+++ /mnt/data/v183.01/manifest.webmanifest	2026-06-12 01:34:32.448967003 +0000
+-@@ -2,7 +2,7 @@
+-   "name": "Platform Buddy",
+-   "short_name": "Buddy",
+-   "description": "BIG3の現在地と目標を見える化し、PRサイクル、記録、分析、大会準備までつなげるパワーリフティング向けPWAです。",
+--  "start_url": "./index.html?v=183",
+-+  "start_url": "./index.html?v=183.01",
+-   "scope": "./",
+-   "display": "standalone",
+-   "background_color": "#f4efe6",
+-diff -ru /mnt/data/v183_base/sw.js /mnt/data/v183.01/sw.js
+---- /mnt/data/v183_base/sw.js	2026-06-12 01:06:56.000000000 +0000
+-+++ /mnt/data/v183.01/sw.js	2026-06-12 01:34:32.449230591 +0000
+-@@ -1,14 +1,14 @@
+--const CACHE_NAME = "platform-buddy-v183";
+-+const CACHE_NAME = "platform-buddy-v183-01";
+- const CORE_ASSETS = [
+-   "./",
+-   "index.html",
+--  "index.html?v=183",
+-+  "index.html?v=183.01",
+-   "styles.css",
+--  "styles.css?v=183",
+-+  "styles.css?v=183.01",
+-   "app.js",
+--  "app.js?v=183",
+-+  "app.js?v=183.01",
+-   "video.js",
+--  "video.js?v=183",
+-+  "video.js?v=183.01",
+-   "manifest.webmanifest",
+-   "icon.svg",
+-   "apple-touch-icon.png",
+-diff -ru /mnt/data/v183_base/video.js /mnt/data/v183.01/video.js
+---- /mnt/data/v183_base/video.js	2026-06-12 01:07:20.000000000 +0000
+-+++ /mnt/data/v183.01/video.js	2026-06-12 01:34:32.452147301 +0000
+-@@ -23,7 +23,7 @@
+-   const VBT_MULTI_TRACKER_HISTOGRAM_WEIGHT = 0.18;
+-   const VBT_MULTI_TRACKER_MOTION_WEIGHT = 0.14;
+-   const VBT_MULTI_TRACKER_PREDICTION_WEIGHT = 0.08;
+--  const VBT_DEBUG_TRACE_VERSION = "v183-score-observability";
+-+  const VBT_DEBUG_TRACE_VERSION = "v183.01-lifter-zone-gated-auto-detect";
+-   const VBT_DEBUG_MONTAGE_PANELS = 5;
+-   let bodyPixModelPromise = null;
+- 
+-@@ -2217,10 +2217,10 @@
+-         };
+-       case "DL":
+-         return {
+--          xMin: width * 0.03,
+--          xMax: width * 0.97,
+--          // DLは床上のプレートが主対象。上部ラック・照明・背景器具を拾いにくくする。
+--          yMin: height * 0.38,
+-+          xMin: width * 0.04,
+-+          xMax: width * 0.96,
+-+          // DLは床上のプレートが主対象。上半身・頭部・ラック上部を候補にしない。
+-+          yMin: height * 0.50,
+-           yMax: height * 0.96,
+-           floorPenaltyY: null,
+-           name: "deadlift"
+-@@ -2678,7 +2678,8 @@
+-       case "BP":
+-         return { xMin: width * 0.08, xMax: width * 0.92, yMin: height * 0.08, yMax: height * 0.82 };
+-       case "DL":
+--        return { xMin: width * 0.08, xMax: width * 0.92, yMin: height * 0.18, yMax: height * 0.96 };
+-+        // 床引きでは上部照明・ラック・頭部の動きをリフター領域として拾わない。
+-+        return { xMin: width * 0.10, xMax: width * 0.90, yMin: height * 0.32, yMax: height * 0.98 };
+-       default:
+-         return { xMin: width * 0.06, xMax: width * 0.94, yMin: height * 0.08, yMax: height * 0.94 };
+-     }
+-@@ -2714,7 +2715,12 @@
+-           const diff = Math.abs(current[cell] - prev[cell]);
+-           if (diff < 13) continue;
+-           const centerBias = 1 - Math.min(0.55, Math.abs((x / width) - 0.5) * 0.70);
+--          const weight = Math.pow(Math.min(90, diff) - 12, 1.08) * centerBias;
+-+          const verticalRatio = y / Math.max(1, height);
+-+          const liftZoneBias = lift === "DL"
+-+            ? clamp((verticalRatio - 0.24) / 0.56, 0.18, 1.18)
+-+            : 1;
+-+          const upperFlickerPenalty = lift === "DL" && verticalRatio < 0.38 ? 0.20 : 1;
+-+          const weight = Math.pow(Math.min(90, diff) - 12, 1.08) * centerBias * liftZoneBias * upperFlickerPenalty;
+-           heat[cell] += weight;
+-           maxValue = Math.max(maxValue, heat[cell]);
+-           total += weight;
+-@@ -2842,6 +2848,59 @@
+-   }
+- 
+- 
+-+
+-+  function plateContextPrior(lift, width, height, context, candidate) {
+-+    if (!candidate) return { score: 0, penalty: 0, reject: true, reason: "no-candidate", verticalScore: 0, floorScore: 0, centerScore: 0 };
+-+    const cx = candidate.x + candidate.width / 2;
+-+    const cy = candidate.y + candidate.height / 2;
+-+    const bottom = candidate.y + candidate.height;
+-+    const xr = cx / Math.max(1, width);
+-+    const yr = cy / Math.max(1, height);
+-+    const br = bottom / Math.max(1, height);
+-+    const frameCenterScore = clamp(1 - Math.abs(xr - 0.50) * 1.65, 0, 1);
+-+    const lifterCenterScore = context?.centerX
+-+      ? clamp(1 - Math.abs(cx - context.centerX) / Math.max(width * 0.34, 1), 0, 1)
+-+      : frameCenterScore;
+-+    let verticalScore = 0;
+-+    let floorScore = 0;
+-+    let penalty = 0;
+-+    let reject = false;
+-+    let reason = "ok";
+-+
+-+    if (lift === "DL") {
+-+      // デッドリフトのプレートは床上にあり、画面上半分の頭・胴体・ラック上部は候補にしない。
+-+      verticalScore = clamp((yr - 0.50) / 0.24, 0, 1);
+-+      floorScore = clamp((br - 0.62) / 0.18, 0, 1);
+-+      if (yr < 0.50 || br < 0.60) {
+-+        reject = true;
+-+        reason = "dl-above-floor-zone";
+-+      }
+-+      if (yr < 0.56) penalty += 90;
+-+      if (br < 0.68) penalty += 48;
+-+    } else if (lift === "SQ") {
+-+      verticalScore = yr >= 0.16 && yr <= 0.70 ? 1 : clamp(1 - Math.min(Math.abs(yr - 0.42), Math.abs(yr - 0.62)) * 3.2, 0, 1);
+-+      floorScore = yr < 0.76 ? 1 : 0;
+-+      if (yr > 0.78 || br > 0.88) {
+-+        reject = true;
+-+        reason = "sq-floor-zone";
+-+      }
+-+    } else if (lift === "BP") {
+-+      verticalScore = yr >= 0.16 && yr <= 0.76 ? 1 : clamp(1 - Math.abs(yr - 0.45) * 2.4, 0, 1);
+-+      floorScore = yr < 0.82 ? 1 : 0;
+-+      if (yr > 0.84) {
+-+        reject = true;
+-+        reason = "bp-floor-zone";
+-+      }
+-+    } else {
+-+      verticalScore = clamp(1 - Math.abs(yr - 0.55) * 1.35, 0, 1);
+-+      floorScore = 0.5;
+-+    }
+-+
+-+    const centerScore = Math.max(frameCenterScore * 0.55, lifterCenterScore);
+-+    const score = verticalScore * 46 + floorScore * 30 + centerScore * 20;
+-+    return { score, penalty, reject, reason, verticalScore, floorScore, centerScore, yr, br, xr };
+-+  }
+-+
+-   function plateShapeEvidence(luminanceAt, candidate) {
+-     if (!candidate) return { score: 0, ringScore: 0, hubScore: 0, roundnessScore: 0, fillScore: 0 };
+-     const size = candidate.width;
+-@@ -2892,9 +2951,13 @@
+-     const height = canvas.height;
+-     const data = ctx.getImageData(0, 0, width, height).data;
+-     const minSide = Math.min(width, height);
+--    const sizeMin = Math.max(26, Math.round(minSide * 0.105));
+--    const sizeMax = Math.max(sizeMin + 4, Math.round(minSide * 0.34));
+-     const lift = options.lift || "SQ";
+-+    const sizeMin = lift === "DL"
+-+      ? Math.max(34, Math.round(minSide * 0.135))
+-+      : Math.max(26, Math.round(minSide * 0.105));
+-+    const sizeMax = lift === "DL"
+-+      ? Math.max(sizeMin + 4, Math.round(minSide * 0.38))
+-+      : Math.max(sizeMin + 4, Math.round(minSide * 0.34));
+-     const region = getPlateSearchRegion(lift, width, height);
+-     const preferSides = lift === "OTHER" ? 0.05 : 0.24;
+-     let best = null;
+-@@ -2942,6 +3005,8 @@
+-           const pairScore = platePairEvidence(luminanceAt, width, height, candidate);
+-           const shapeEvidence = plateShapeEvidence(luminanceAt, candidate);
+-           const lifterEvidence = lifterRegionScore(motionContext, candidate);
+-+          const contextPrior = plateContextPrior(lift, width, height, motionContext, candidate);
+-+          if (contextPrior.reject) continue;
+-           const centerPenalty = Math.abs(centerX / width - 0.5) < 0.10 ? 16 : 0;
+-           const topPenalty = centerY < height * 0.08 ? 20 : 0;
+-           const floorPenalty = region.floorPenaltyY && centerY > region.floorPenaltyY ? 115 : 0;
+-@@ -2954,6 +3019,7 @@
+-           const pillarLike = borderScore > 70 && darkRatio < 0.18 && crossingScore < 12;
+-           const plateLike = (darkRatio >= 0.14 && edgeScore >= 14 && borderScore >= 4) || shapeEvidence.score >= 38;
+-           if (!plateLike) continue;
+-+          if (lift === "DL" && shapeEvidence.score < 42 && crossingScore < 18 && pairScore < 8) continue;
+-           if (lift !== "DL" && hasBarLine && barMatch.score < 6 && crossingScore < 10 && lifterEvidence.motionScore < 0.28) continue;
+-           const barPenalty = hasBarLine && barMatch.score < 8 && crossingScore < 12 ? 34 : 0;
+-           const hasAiPerson = Boolean(motionContext?.aiPersonDetected);
+-@@ -2971,6 +3037,8 @@
+-             + pairScore * 0.82
+-             + lifterEvidence.score
+-             + lifterEvidence.personProximity * 58
+-+            + contextPrior.score * 1.15
+-+            - contextPrior.penalty
+-             - topPenalty
+-             - floorPenalty
+-             - bottomTouchPenalty
+-@@ -3005,6 +3073,12 @@
+-             lifterScore: lifterEvidence.score,
+-             lifterNearScore: lifterEvidence.nearScore,
+-             motionScore: lifterEvidence.motionScore,
+-+            contextPriorScore: contextPrior.score,
+-+            contextPriorPenalty: contextPrior.penalty,
+-+            contextPriorReason: contextPrior.reason,
+-+            contextVerticalScore: contextPrior.verticalScore,
+-+            contextFloorScore: contextPrior.floorScore,
+-+            contextCenterScore: contextPrior.centerScore,
+-             lifterDistanceRatio: lifterEvidence.distanceRatio
+-           };
+-           candidates.push(scoredCandidate);
+-@@ -3041,6 +3115,12 @@
+-         lifterScore: item.lifterScore,
+-         lifterNearScore: item.lifterNearScore,
+-         motionScore: item.motionScore,
+-+        contextPriorScore: item.contextPriorScore,
+-+        contextPriorPenalty: item.contextPriorPenalty,
+-+        contextPriorReason: item.contextPriorReason,
+-+        contextVerticalScore: item.contextVerticalScore,
+-+        contextFloorScore: item.contextFloorScore,
+-+        contextCenterScore: item.contextCenterScore,
+-         lifterDistanceRatio: item.lifterDistanceRatio,
+-         frameWidth: Math.round(width / scale),
+-         frameHeight: Math.round(height / scale)
+-@@ -3123,7 +3203,13 @@
+-         edgeScore: compactDebugNumber(candidate.edgeScore, 2),
+-         borderScore: compactDebugNumber(candidate.borderScore, 2),
+-         frameWidth: candidate.frameWidth || null,
+--        frameHeight: candidate.frameHeight || null
+-+        frameHeight: candidate.frameHeight || null,
+-+        contextPriorScore: compactDebugNumber(candidate.contextPriorScore, 2),
+-+        contextPriorPenalty: compactDebugNumber(candidate.contextPriorPenalty, 2),
+-+        contextPriorReason: candidate.contextPriorReason || null,
+-+        contextVerticalScore: compactDebugNumber(candidate.contextVerticalScore, 3),
+-+        contextFloorScore: compactDebugNumber(candidate.contextFloorScore, 3),
+-+        contextCenterScore: compactDebugNumber(candidate.contextCenterScore, 3)
+-       },
+-       scoringTerms: {
+-         stabilityBonus: compactDebugNumber(candidate.stabilityBonus, 2),
+-@@ -3439,9 +3525,21 @@
+-     }
+-   }
+- 
+--  function chooseTemporalPlateCandidate(candidates, lift) {
+-+  function plateRepresentativeScore(item, lift) {
+-+    if (!item?.roi) return -Infinity;
+-+    const yRatio = (item.roi.y + item.roi.height / 2) / Math.max(1, Number(item.frameHeight) || 1);
+-+    const dlFloorBonus = lift === "DL" ? clamp((yRatio - 0.50) / 0.24, 0, 1) * 28 : 0;
+-+    return clamp(Number(item.score || 0), -80, 140) * 0.22
+-+      + clamp(Number(item.shapeScore || item.shapeEvidence || 0), 0, 92) * 0.42
+-+      + clamp(Number(item.barScore || 0) + Number(item.crossingScore || 0) * 0.35, 0, 75) * 0.34
+-+      + clamp(Number(item.contextPriorScore || 0), 0, 96) * 0.62
+-+      + clamp(Number(item.motionScore || 0), 0, 1) * 16
+-+      + dlFloorBonus
+-+      - clamp(Number(item.contextPriorPenalty || 0), 0, 160) * 0.35;
+-+  }
+-+
+-+  function buildTemporalPlateGroups(candidates, lift) {
+-     const clean = (candidates || []).filter((item) => item?.roi && hasFiniteNumber(item.score));
+--    if (!clean.length) return null;
+-     const groups = [];
+-     clean.forEach((candidate) => {
+-       const roi = candidate.roi;
+-@@ -3450,8 +3548,10 @@
+-       const size = Math.max(roi.width, roi.height);
+-       let group = groups.find((item) => {
+-         const dx = Math.abs(item.centerX - centerX) / Math.max(size, item.size, 1);
+-+        const dy = Math.abs(item.centerY - centerY) / Math.max(size, item.size, 1);
+-         const ds = Math.abs(item.size - size) / Math.max(size, item.size, 1);
+--        return dx < 0.55 && ds < 0.36;
+-+        const allowedDy = lift === "DL" ? 1.35 : 1.05;
+-+        return dx < 0.55 && dy < allowedDy && ds < 0.34;
+-       });
+-       if (!group) {
+-         group = { items: [], centerX, centerY, size };
+-@@ -3463,164 +3563,151 @@
+-       group.centerY = (group.centerY * (n - 1) + centerY) / n;
+-       group.size = (group.size * (n - 1) + size) / n;
+-     });
+-+    return { clean, groups };
+-+  }
+- 
+--    let bestGroup = null;
+--    groups.forEach((group) => {
+--      const items = group.items.sort((a, b) => a.sampleTime - b.sampleTime);
+--      const scores = items.map((item) => Number(item.score)).filter(Number.isFinite);
+--      const meanScore = scores.reduce((sum, value) => sum + value, 0) / Math.max(1, scores.length);
+--      const ys = items.map((item) => item.roi.y + item.roi.height / 2);
+--      const xs = items.map((item) => item.roi.x + item.roi.width / 2);
+--      const yRange = Math.max(...ys) - Math.min(...ys);
+--      const xRange = Math.max(...xs) - Math.min(...xs);
+--      const size = Math.max(1, group.size);
+--      const motionRatio = yRange / size;
+--      const horizontalDrift = xRange / size;
+--      const countRatio = items.length / Math.max(1, clean.length);
+--      const barEvidence = items.reduce((sum, item) => sum + Number(item.barScore || 0) + Number(item.crossingScore || 0) * 0.35, 0) / Math.max(1, items.length);
+--      const pairEvidence = items.reduce((sum, item) => sum + Number(item.pairScore || 0), 0) / Math.max(1, items.length);
+--      const shapeEvidence = items.reduce((sum, item) => sum + Number(item.shapeScore || 0), 0) / Math.max(1, items.length);
+--      const lifterEvidence = items.reduce((sum, item) => sum + Number(item.lifterNearScore || 0), 0) / Math.max(1, items.length);
+--      const personEvidence = items.reduce((sum, item) => sum + Math.max(Number(item.personProximity || 0), Number(item.personScore || 0)), 0) / Math.max(1, items.length);
+--      const motionEvidence = items.reduce((sum, item) => sum + Number(item.motionScore || 0), 0) / Math.max(1, items.length);
+--      const movementBonus = motionRatio > 0.12 ? Math.min(34, motionRatio * 38) : (lift === "DL" ? 0 : -18);
+--      const stabilityBonus = Math.min(36, items.length * 5.5) + countRatio * 18;
+--      const driftPenalty = horizontalDrift > 1.05 ? 28 : horizontalDrift > 0.62 ? 12 : 0;
+--      const staticPenalty = motionEvidence < 0.10 && lifterEvidence < 0.22 && personEvidence < 0.24 ? 54 : 0;
+--      const temporalScore = meanScore + stabilityBonus + movementBonus + barEvidence * 0.28 + pairEvidence * 0.26 + shapeEvidence * 0.72 + lifterEvidence * 14 + personEvidence * 38 + motionEvidence * 44 - driftPenalty - staticPenalty;
+--      group.temporalScore = temporalScore;
+--      group.motionRatio = motionRatio;
+--      group.horizontalDrift = horizontalDrift;
+--      group.meanScore = meanScore;
+--      group.barEvidence = barEvidence;
+--      group.pairEvidence = pairEvidence;
+--      group.countRatio = countRatio;
+--      group.stabilityBonus = stabilityBonus;
+--      group.movementBonus = movementBonus;
+--      group.driftPenalty = driftPenalty;
+--      group.staticPenalty = staticPenalty;
+--      group.lifterEvidence = lifterEvidence;
+--      group.personEvidence = personEvidence;
+--      group.shapeEvidence = shapeEvidence;
+--      group.motionEvidence = motionEvidence;
+--      if (!bestGroup || temporalScore > bestGroup.temporalScore) bestGroup = group;
+--    });
+--
+--    if (!bestGroup) return null;
+--    const first = bestGroup.items.sort((a, b) => a.sampleTime - b.sampleTime)[0];
+--    const bestItem = bestGroup.items.reduce((best, item) => item.score > best.score ? item : best, first);
+--    const confidence = bestGroup.temporalScore > 125 && bestGroup.motionRatio > 0.10
+-+  function scoreTemporalPlateGroup(group, clean, lift) {
+-+    const items = group.items.sort((a, b) => a.sampleTime - b.sampleTime);
+-+    const scores = items.map((item) => Number(item.score)).filter(Number.isFinite);
+-+    const meanScore = scores.reduce((sum, value) => sum + value, 0) / Math.max(1, scores.length);
+-+    const ys = items.map((item) => item.roi.y + item.roi.height / 2);
+-+    const xs = items.map((item) => item.roi.x + item.roi.width / 2);
+-+    const yRange = Math.max(...ys) - Math.min(...ys);
+-+    const xRange = Math.max(...xs) - Math.min(...xs);
+-+    const size = Math.max(1, group.size);
+-+    const motionRatio = yRange / size;
+-+    const horizontalDrift = xRange / size;
+-+    const countRatio = items.length / Math.max(1, clean.length);
+-+    const barEvidence = items.reduce((sum, item) => sum + Number(item.barScore || 0) + Number(item.crossingScore || 0) * 0.35, 0) / Math.max(1, items.length);
+-+    const pairEvidence = items.reduce((sum, item) => sum + Number(item.pairScore || 0), 0) / Math.max(1, items.length);
+-+    const shapeEvidence = items.reduce((sum, item) => sum + Number(item.shapeScore || item.shapeEvidence || 0), 0) / Math.max(1, items.length);
+-+    const lifterEvidence = items.reduce((sum, item) => sum + Number(item.lifterNearScore || 0), 0) / Math.max(1, items.length);
+-+    const personEvidence = items.reduce((sum, item) => sum + Math.max(Number(item.personProximity || 0), Number(item.personScore || 0)), 0) / Math.max(1, items.length);
+-+    const motionEvidence = items.reduce((sum, item) => sum + Number(item.motionScore || 0), 0) / Math.max(1, items.length);
+-+    const contextEvidence = items.reduce((sum, item) => sum + Number(item.contextPriorScore || 0), 0) / Math.max(1, items.length);
+-+    const contextPenalty = items.reduce((sum, item) => sum + Number(item.contextPriorPenalty || 0), 0) / Math.max(1, items.length);
+-+    const movementBonus = motionRatio > 0.12 ? Math.min(18, motionRatio * 18) : (lift === "DL" ? 0 : -10);
+-+    const stabilityBonus = Math.min(18, items.length * 2.25) + clamp(countRatio * 16, 0, 16);
+-+    const driftPenalty = horizontalDrift > 1.05 ? 28 : horizontalDrift > 0.62 ? 12 : 0;
+-+    const staticPenalty = motionEvidence < 0.10 && lifterEvidence < 0.22 && personEvidence < 0.24 ? 34 : 0;
+-+    const normalizedMean = clamp(meanScore, -80, 140);
+-+    const temporalScore = normalizedMean * 0.18
+-+      + clamp(barEvidence, 0, 78) * 0.34
+-+      + clamp(pairEvidence, 0, 26) * 0.16
+-+      + clamp(shapeEvidence, 0, 92) * 0.34
+-+      + clamp(contextEvidence, 0, 96) * 0.52
+-+      + clamp(lifterEvidence, 0, 1) * 10
+-+      + clamp(personEvidence, 0, 1) * 14
+-+      + clamp(motionEvidence, 0, 1) * 18
+-+      + movementBonus
+-+      + stabilityBonus
+-+      - driftPenalty
+-+      - staticPenalty
+-+      - clamp(contextPenalty, 0, 160) * 0.35;
+-+    const representative = items.reduce((best, item) => plateRepresentativeScore(item, lift) > plateRepresentativeScore(best, lift) ? item : best, items[0]);
+-+    const confidence = temporalScore > 84 && motionRatio > 0.08
+-       ? "high"
+--      : bestGroup.temporalScore > 92
+-+      : temporalScore > 58
+-         ? "middle"
+-         : "low";
+-     return {
+--      ...first,
+--      roi: first.roi,
+-+      items,
+-+      representative,
+-       confidence,
+--      score: Math.max(bestItem.score, bestGroup.temporalScore),
+--      temporalScore: bestGroup.temporalScore,
+--      motionRatio: bestGroup.motionRatio,
+--      horizontalDrift: bestGroup.horizontalDrift,
+--      meanScore: bestGroup.meanScore,
+--      barEvidence: bestGroup.barEvidence,
+--      pairEvidence: bestGroup.pairEvidence,
+--      countRatio: bestGroup.countRatio,
+--      stabilityBonus: bestGroup.stabilityBonus,
+--      movementBonus: bestGroup.movementBonus,
+--      driftPenalty: bestGroup.driftPenalty,
+--      staticPenalty: bestGroup.staticPenalty,
+--      lifterEvidence: bestGroup.lifterEvidence,
+--      personEvidence: bestGroup.personEvidence,
+--      shapeEvidence: bestGroup.shapeEvidence,
+--      motionEvidence: bestGroup.motionEvidence,
+--      sampleCount: bestGroup.items.length,
+--      bestFrameTime: bestItem.sampleTime
+-+      temporalScore,
+-+      motionRatio,
+-+      horizontalDrift,
+-+      meanScore,
+-+      barEvidence,
+-+      pairEvidence,
+-+      countRatio,
+-+      stabilityBonus,
+-+      movementBonus,
+-+      driftPenalty,
+-+      staticPenalty,
+-+      lifterEvidence,
+-+      personEvidence,
+-+      shapeEvidence,
+-+      motionEvidence,
+-+      contextEvidence,
+-+      contextPenalty,
+-+      sampleCount: items.length,
+-+      bestFrameTime: representative.sampleTime,
+-+      representativeScore: plateRepresentativeScore(representative, lift)
+-     };
+-   }
+- 
+--  function chooseTemporalPlateCandidates(candidates, lift, limit = 3) {
+--    const clean = (candidates || []).filter((item) => item?.roi && hasFiniteNumber(item.score));
+--    if (!clean.length) return [];
+--    const groups = [];
+--    clean.forEach((candidate) => {
+--      const roi = candidate.roi;
+--      const centerX = roi.x + roi.width / 2;
+--      const centerY = roi.y + roi.height / 2;
+--      const size = Math.max(roi.width, roi.height);
+--      let group = groups.find((item) => {
+--        const dx = Math.abs(item.centerX - centerX) / Math.max(size, item.size, 1);
+--        const ds = Math.abs(item.size - size) / Math.max(size, item.size, 1);
+--        return dx < 0.55 && ds < 0.36;
+--      });
+--      if (!group) {
+--        group = { items: [], centerX, centerY, size };
+--        groups.push(group);
+--      }
+--      group.items.push(candidate);
+--      const n = group.items.length;
+--      group.centerX = (group.centerX * (n - 1) + centerX) / n;
+--      group.centerY = (group.centerY * (n - 1) + centerY) / n;
+--      group.size = (group.size * (n - 1) + size) / n;
+-+  function chooseTemporalPlateCandidate(candidates, lift) {
+-+    const { clean, groups } = buildTemporalPlateGroups(candidates, lift);
+-+    if (!clean.length || !groups.length) return null;
+-+    let best = null;
+-+    groups.forEach((group) => {
+-+      const scored = scoreTemporalPlateGroup(group, clean, lift);
+-+      if (!best || scored.temporalScore > best.temporalScore) best = scored;
+-     });
+-+    if (!best?.representative) return null;
+-+    return {
+-+      ...best.representative,
+-+      roi: best.representative.roi,
+-+      confidence: best.confidence,
+-+      score: best.temporalScore,
+-+      temporalScore: best.temporalScore,
+-+      motionRatio: best.motionRatio,
+-+      horizontalDrift: best.horizontalDrift,
+-+      meanScore: best.meanScore,
+-+      barEvidence: best.barEvidence,
+-+      pairEvidence: best.pairEvidence,
+-+      countRatio: best.countRatio,
+-+      stabilityBonus: best.stabilityBonus,
+-+      movementBonus: best.movementBonus,
+-+      driftPenalty: best.driftPenalty,
+-+      staticPenalty: best.staticPenalty,
+-+      lifterEvidence: best.lifterEvidence,
+-+      personEvidence: best.personEvidence,
+-+      shapeEvidence: best.shapeEvidence,
+-+      motionEvidence: best.motionEvidence,
+-+      contextEvidence: best.contextEvidence,
+-+      contextPenalty: best.contextPenalty,
+-+      representativeScore: best.representativeScore,
+-+      sampleCount: best.sampleCount,
+-+      bestFrameTime: best.bestFrameTime
+-+    };
+-+  }
+- 
+--    const ranked = groups.map((group) => {
+--      const items = group.items.sort((a, b) => a.sampleTime - b.sampleTime);
+--      const scores = items.map((item) => Number(item.score)).filter(Number.isFinite);
+--      const meanScore = scores.reduce((sum, value) => sum + value, 0) / Math.max(1, scores.length);
+--      const ys = items.map((item) => item.roi.y + item.roi.height / 2);
+--      const xs = items.map((item) => item.roi.x + item.roi.width / 2);
+--      const yRange = Math.max(...ys) - Math.min(...ys);
+--      const xRange = Math.max(...xs) - Math.min(...xs);
+--      const size = Math.max(1, group.size);
+--      const motionRatio = yRange / size;
+--      const horizontalDrift = xRange / size;
+--      const countRatio = items.length / Math.max(1, clean.length);
+--      const barEvidence = items.reduce((sum, item) => sum + Number(item.barScore || 0) + Number(item.crossingScore || 0) * 0.35, 0) / Math.max(1, items.length);
+--      const pairEvidence = items.reduce((sum, item) => sum + Number(item.pairScore || 0), 0) / Math.max(1, items.length);
+--      const shapeEvidence = items.reduce((sum, item) => sum + Number(item.shapeScore || 0), 0) / Math.max(1, items.length);
+--      const lifterEvidence = items.reduce((sum, item) => sum + Number(item.lifterNearScore || 0), 0) / Math.max(1, items.length);
+--      const personEvidence = items.reduce((sum, item) => sum + Math.max(Number(item.personProximity || 0), Number(item.personScore || 0)), 0) / Math.max(1, items.length);
+--      const motionEvidence = items.reduce((sum, item) => sum + Number(item.motionScore || 0), 0) / Math.max(1, items.length);
+--      const movementBonus = motionRatio > 0.12 ? Math.min(34, motionRatio * 38) : (lift === "DL" ? 0 : -18);
+--      const stabilityBonus = Math.min(36, items.length * 5.5) + countRatio * 18;
+--      const driftPenalty = horizontalDrift > 1.05 ? 28 : horizontalDrift > 0.62 ? 12 : 0;
+--      const staticPenalty = motionEvidence < 0.10 && lifterEvidence < 0.22 && personEvidence < 0.24 ? 54 : 0;
+--      const temporalScore = meanScore + stabilityBonus + movementBonus + barEvidence * 0.28 + pairEvidence * 0.26 + shapeEvidence * 0.72 + lifterEvidence * 14 + personEvidence * 38 + motionEvidence * 44 - driftPenalty - staticPenalty;
+--      const first = items[0];
+--      const bestItem = items.reduce((best, item) => item.score > best.score ? item : best, first);
+--      const confidence = temporalScore > 125 && motionRatio > 0.10
+--        ? "high"
+--        : temporalScore > 92
+--          ? "middle"
+--          : "low";
+-+  function chooseTemporalPlateCandidates(candidates, lift, limit = 3) {
+-+    const { clean, groups } = buildTemporalPlateGroups(candidates, lift);
+-+    if (!clean.length || !groups.length) return [];
+-+    return groups.map((group) => {
+-+      const scored = scoreTemporalPlateGroup(group, clean, lift);
+-+      const rep = scored.representative;
+-       return {
+--        ...first,
+--        roi: first.roi,
+--        confidence,
+--        score: Math.max(bestItem.score, temporalScore),
+--        temporalScore,
+--        meanScore,
+--        barEvidence,
+--        pairEvidence,
+--        countRatio,
+--        stabilityBonus,
+--        movementBonus,
+--        driftPenalty,
+--        staticPenalty,
+--        motionRatio,
+--        horizontalDrift,
+--        lifterEvidence,
+--        personEvidence,
+--        shapeEvidence,
+--        motionEvidence,
+--        sampleCount: items.length,
+--        bestFrameTime: bestItem.sampleTime,
+--        groupItems: items.length
+-+        ...rep,
+-+        roi: rep.roi,
+-+        confidence: scored.confidence,
+-+        score: scored.temporalScore,
+-+        temporalScore: scored.temporalScore,
+-+        meanScore: scored.meanScore,
+-+        barEvidence: scored.barEvidence,
+-+        pairEvidence: scored.pairEvidence,
+-+        countRatio: scored.countRatio,
+-+        stabilityBonus: scored.stabilityBonus,
+-+        movementBonus: scored.movementBonus,
+-+        driftPenalty: scored.driftPenalty,
+-+        staticPenalty: scored.staticPenalty,
+-+        motionRatio: scored.motionRatio,
+-+        horizontalDrift: scored.horizontalDrift,
+-+        lifterEvidence: scored.lifterEvidence,
+-+        personEvidence: scored.personEvidence,
+-+        shapeEvidence: scored.shapeEvidence,
+-+        motionEvidence: scored.motionEvidence,
+-+        contextEvidence: scored.contextEvidence,
+-+        contextPenalty: scored.contextPenalty,
+-+        representativeScore: scored.representativeScore,
+-+        sampleCount: scored.sampleCount,
+-+        bestFrameTime: scored.bestFrameTime,
+-+        groupItems: scored.sampleCount
+-       };
+--    });
+--
+--    return ranked
+-+    })
+-       .sort((a, b) => Number(b.score || 0) - Number(a.score || 0))
+-       .slice(0, Math.max(1, Number(limit) || 3));
+-   }
+-@@ -3685,15 +3772,21 @@
+-     if (!list.length) return true;
+-     const bestShape = Math.max(...list.map((item) => Number(item.shapeEvidence ?? item.shapeScore ?? 0) || 0));
+-     const bestMotion = Math.max(...list.map((item) => Number(item.motionRatio ?? item.motionScore ?? 0) || 0));
+--    const bestBar = Math.max(...list.map((item) => Number(item.barScore ?? 0) || 0));
+-+    const bestBar = Math.max(...list.map((item) => Number(item.barScore ?? 0) + Number(item.crossingScore ?? 0) * 0.35 || 0));
+-     const bestPerson = Math.max(...list.map((item) => Number(item.personEvidence ?? item.lifterEvidence ?? 0) || 0));
+--    const highConfidence = list.some((item) => item.confidence === "high" && Number(item.shapeEvidence ?? item.shapeScore ?? 0) >= 42 && (Number(item.motionRatio ?? 0) > 0.28 || Number(item.barScore ?? 0) >= 38));
+-+    const bestContext = Math.max(...list.map((item) => Number(item.contextEvidence ?? item.contextPriorScore ?? 0) || 0));
+-+    const highConfidence = list.some((item) => item.confidence === "high"
+-+      && Number(item.score || 0) >= 62
+-+      && Number(item.contextEvidence ?? item.contextPriorScore ?? 0) >= 42
+-+      && Number(item.shapeEvidence ?? item.shapeScore ?? 0) >= 44
+-+      && (Number(item.motionRatio ?? 0) > 0.18 || (Number(item.barScore ?? 0) + Number(item.crossingScore ?? 0) * 0.35) >= 36));
+-     if (highConfidence) return false;
+--    // 人物AIが0の動画では人物スコアを信用しない。プレート形状・バー接続・動きを主判定にする。
+--    if (bestShape < 36) return true;
+--    if (bestBar < 30 && bestMotion < 0.42) return true;
+--    // 候補が人物から遠く、かつプレート形状も弱いならタップ補助へ逃がす。
+--    if (bestPerson < 0.04 && bestShape < 48 && bestMotion < 0.50) return true;
+-+    // 人物AIが0の動画では人物スコアを主判定にしない。ただし、種目別の位置条件とプレート形状は必須にする。
+-+    if (bestContext < 38) return true;
+-+    if (bestShape < 40) return true;
+-+    if (bestBar < 28 && bestMotion < 0.32) return true;
+-+    // 候補が人物から遠く、かつプレート形状・種目別位置も弱いならタップ補助へ逃がす。
+-+    if (bestPerson < 0.04 && bestShape < 50 && bestMotion < 0.42 && bestContext < 55) return true;
+-     return false;
+-   }
+- 
+diff -ru v183_01_ref/index.html v183_02/index.html
+--- v183_01_ref/index.html	2026-06-12 01:34:32.000000000 +0000
++++ v183_02/index.html	2026-06-12 01:46:03.952416306 +0000
 @@ -12,7 +12,7 @@
      <link rel="preload" as="image" href="home-bg-lite.jpg">
      <link rel="preload" as="image" href="icon-sheet-lite.jpg">
      <link rel="apple-touch-icon" href="apple-touch-icon.png">
--    <link rel="stylesheet" href="styles.css?v=183">
-+    <link rel="stylesheet" href="styles.css?v=183.01">
+-    <link rel="stylesheet" href="styles.css?v=183.01">
++    <link rel="stylesheet" href="styles.css?v=183.02">
    </head>
    <body>
      <div class="app-shell">
@@ -15,600 +632,522 @@ diff -ru /mnt/data/v183_base/index.html /mnt/data/v183.01/index.html
        </form>
      </dialog>
  
--    <script src="app.js?v=183"></script>
--    <script src="video.js?v=183"></script>
-+    <script src="app.js?v=183.01"></script>
-+    <script src="video.js?v=183.01"></script>
+-    <script src="app.js?v=183.01"></script>
+-    <script src="video.js?v=183.01"></script>
++    <script src="app.js?v=183.02"></script>
++    <script src="video.js?v=183.02"></script>
    </body>
  </html>
-diff -ru /mnt/data/v183_base/manifest.webmanifest /mnt/data/v183.01/manifest.webmanifest
---- /mnt/data/v183_base/manifest.webmanifest	2026-06-12 01:06:44.000000000 +0000
-+++ /mnt/data/v183.01/manifest.webmanifest	2026-06-12 01:34:32.448967003 +0000
+diff -ru v183_01_ref/manifest.webmanifest v183_02/manifest.webmanifest
+--- v183_01_ref/manifest.webmanifest	2026-06-12 01:34:32.000000000 +0000
++++ v183_02/manifest.webmanifest	2026-06-12 01:46:03.953059338 +0000
 @@ -2,7 +2,7 @@
    "name": "Platform Buddy",
    "short_name": "Buddy",
    "description": "BIG3の現在地と目標を見える化し、PRサイクル、記録、分析、大会準備までつなげるパワーリフティング向けPWAです。",
--  "start_url": "./index.html?v=183",
-+  "start_url": "./index.html?v=183.01",
+-  "start_url": "./index.html?v=183.01",
++  "start_url": "./index.html?v=183.02",
    "scope": "./",
    "display": "standalone",
    "background_color": "#f4efe6",
-diff -ru /mnt/data/v183_base/sw.js /mnt/data/v183.01/sw.js
---- /mnt/data/v183_base/sw.js	2026-06-12 01:06:56.000000000 +0000
-+++ /mnt/data/v183.01/sw.js	2026-06-12 01:34:32.449230591 +0000
+diff -ru v183_01_ref/sw.js v183_02/sw.js
+--- v183_01_ref/sw.js	2026-06-12 01:34:32.000000000 +0000
++++ v183_02/sw.js	2026-06-12 01:46:03.952809876 +0000
 @@ -1,14 +1,14 @@
--const CACHE_NAME = "platform-buddy-v183";
-+const CACHE_NAME = "platform-buddy-v183-01";
+-const CACHE_NAME = "platform-buddy-v183-01";
++const CACHE_NAME = "platform-buddy-v183-02";
  const CORE_ASSETS = [
    "./",
    "index.html",
--  "index.html?v=183",
-+  "index.html?v=183.01",
+-  "index.html?v=183.01",
++  "index.html?v=183.02",
    "styles.css",
--  "styles.css?v=183",
-+  "styles.css?v=183.01",
+-  "styles.css?v=183.01",
++  "styles.css?v=183.02",
    "app.js",
--  "app.js?v=183",
-+  "app.js?v=183.01",
+-  "app.js?v=183.01",
++  "app.js?v=183.02",
    "video.js",
--  "video.js?v=183",
-+  "video.js?v=183.01",
+-  "video.js?v=183.01",
++  "video.js?v=183.02",
    "manifest.webmanifest",
    "icon.svg",
    "apple-touch-icon.png",
-diff -ru /mnt/data/v183_base/video.js /mnt/data/v183.01/video.js
---- /mnt/data/v183_base/video.js	2026-06-12 01:07:20.000000000 +0000
-+++ /mnt/data/v183.01/video.js	2026-06-12 01:34:32.452147301 +0000
+diff -ru v183_01_ref/video.js v183_02/video.js
+--- v183_01_ref/video.js	2026-06-12 01:34:32.000000000 +0000
++++ v183_02/video.js	2026-06-12 01:47:06.987754173 +0000
 @@ -23,7 +23,7 @@
    const VBT_MULTI_TRACKER_HISTOGRAM_WEIGHT = 0.18;
    const VBT_MULTI_TRACKER_MOTION_WEIGHT = 0.14;
    const VBT_MULTI_TRACKER_PREDICTION_WEIGHT = 0.08;
--  const VBT_DEBUG_TRACE_VERSION = "v183-score-observability";
-+  const VBT_DEBUG_TRACE_VERSION = "v183.01-lifter-zone-gated-auto-detect";
+-  const VBT_DEBUG_TRACE_VERSION = "v183.01-lifter-zone-gated-auto-detect";
++  const VBT_DEBUG_TRACE_VERSION = "v183.02-dl-plate-disc-snap-auto-detect";
    const VBT_DEBUG_MONTAGE_PANELS = 5;
    let bodyPixModelPromise = null;
  
-@@ -2217,10 +2217,10 @@
-         };
-       case "DL":
-         return {
--          xMin: width * 0.03,
--          xMax: width * 0.97,
--          // DLは床上のプレートが主対象。上部ラック・照明・背景器具を拾いにくくする。
--          yMin: height * 0.38,
-+          xMin: width * 0.04,
-+          xMax: width * 0.96,
-+          // DLは床上のプレートが主対象。上半身・頭部・ラック上部を候補にしない。
-+          yMin: height * 0.50,
-           yMax: height * 0.96,
-           floorPenaltyY: null,
-           name: "deadlift"
-@@ -2678,7 +2678,8 @@
-       case "BP":
-         return { xMin: width * 0.08, xMax: width * 0.92, yMin: height * 0.08, yMax: height * 0.82 };
-       case "DL":
--        return { xMin: width * 0.08, xMax: width * 0.92, yMin: height * 0.18, yMax: height * 0.96 };
-+        // 床引きでは上部照明・ラック・頭部の動きをリフター領域として拾わない。
-+        return { xMin: width * 0.10, xMax: width * 0.90, yMin: height * 0.32, yMax: height * 0.98 };
-       default:
-         return { xMin: width * 0.06, xMax: width * 0.94, yMin: height * 0.08, yMax: height * 0.94 };
-     }
-@@ -2714,7 +2715,12 @@
-           const diff = Math.abs(current[cell] - prev[cell]);
-           if (diff < 13) continue;
-           const centerBias = 1 - Math.min(0.55, Math.abs((x / width) - 0.5) * 0.70);
--          const weight = Math.pow(Math.min(90, diff) - 12, 1.08) * centerBias;
-+          const verticalRatio = y / Math.max(1, height);
-+          const liftZoneBias = lift === "DL"
-+            ? clamp((verticalRatio - 0.24) / 0.56, 0.18, 1.18)
-+            : 1;
-+          const upperFlickerPenalty = lift === "DL" && verticalRatio < 0.38 ? 0.20 : 1;
-+          const weight = Math.pow(Math.min(90, diff) - 12, 1.08) * centerBias * liftZoneBias * upperFlickerPenalty;
-           heat[cell] += weight;
-           maxValue = Math.max(maxValue, heat[cell]);
-           total += weight;
-@@ -2842,6 +2848,59 @@
+@@ -1450,12 +1450,21 @@
+     const trackingFrameWidth = 360;
+     const first = frameCanvas(video, trackingFrameWidth);
+     const scale = first.scale;
+-    const scaledRoi = {
++    let scaledRoi = {
+       x: trackingRoi.x * scale,
+       y: trackingRoi.y * scale,
+       width: trackingRoi.width * scale,
+       height: trackingRoi.height * scale
+     };
++    if (!markerMode && record?.lift === "DL") {
++      const firstPixels = first.ctx.getImageData(0, 0, first.canvas.width, first.canvas.height).data;
++      const firstLum = (x, y) => {
++        const index = (clamp(Math.round(y), 0, first.canvas.height - 1) * first.canvas.width + clamp(Math.round(x), 0, first.canvas.width - 1)) * 4;
++        return firstPixels[index] * 0.299 + firstPixels[index + 1] * 0.587 + firstPixels[index + 2] * 0.114;
++      };
++      // ROIサイズや床の入り方で速度が変わりすぎるため、初回フレームでプレート円盤の中心へ内部スナップする。
++      scaledRoi = refinePlateCandidateByDisc(firstLum, scaledRoi, "DL", first.canvas.width, first.canvas.height);
++    }
+     const firstGray = grayFrame(first.ctx);
+     const reference = buildMultiTrackerReference(firstGray, scaledRoi);
+     if (!reference?.template) throw new Error("緑枠が動画端に近すぎます。少し内側へ移動してください。");
+@@ -2868,15 +2877,24 @@
+     let reason = "ok";
+ 
+     if (lift === "DL") {
+-      // デッドリフトのプレートは床上にあり、画面上半分の頭・胴体・ラック上部は候補にしない。
+-      verticalScore = clamp((yr - 0.50) / 0.24, 0, 1);
+-      floorScore = clamp((br - 0.62) / 0.18, 0, 1);
++      // デッドリフトは「床側なら何でもよい」ではなく、床上の最大プレート円盤を探す。
++      // 前版は床ゾーンを強く優遇しすぎ、プレート下の床面ROIが勝つケースがあった。
++      const idealCenterY = 0.68;
++      const idealBottomY = 0.79;
++      verticalScore = clamp(1 - Math.abs(yr - idealCenterY) * 4.1, 0, 1);
++      floorScore = clamp(1 - Math.abs(br - idealBottomY) * 3.4, 0, 1);
+       if (yr < 0.50 || br < 0.60) {
+         reject = true;
+         reason = "dl-above-floor-zone";
+       }
++      if (yr > 0.84 || br > 0.98) {
++        reject = true;
++        reason = "dl-below-plate-floor-zone";
++      }
+       if (yr < 0.56) penalty += 90;
+       if (br < 0.68) penalty += 48;
++      if (yr > 0.76) penalty += (yr - 0.76) * 420;
++      if (br > 0.90) penalty += (br - 0.90) * 360;
+     } else if (lift === "SQ") {
+       verticalScore = yr >= 0.16 && yr <= 0.70 ? 1 : clamp(1 - Math.min(Math.abs(yr - 0.42), Math.abs(yr - 0.62)) * 3.2, 0, 1);
+       floorScore = yr < 0.76 ? 1 : 0;
+@@ -2944,6 +2962,114 @@
+     return { score, ringScore, hubScore, roundnessScore, fillScore };
    }
  
- 
 +
-+  function plateContextPrior(lift, width, height, context, candidate) {
-+    if (!candidate) return { score: 0, penalty: 0, reject: true, reason: "no-candidate", verticalScore: 0, floorScore: 0, centerScore: 0 };
-+    const cx = candidate.x + candidate.width / 2;
-+    const cy = candidate.y + candidate.height / 2;
-+    const bottom = candidate.y + candidate.height;
-+    const xr = cx / Math.max(1, width);
-+    const yr = cy / Math.max(1, height);
-+    const br = bottom / Math.max(1, height);
-+    const frameCenterScore = clamp(1 - Math.abs(xr - 0.50) * 1.65, 0, 1);
-+    const lifterCenterScore = context?.centerX
-+      ? clamp(1 - Math.abs(cx - context.centerX) / Math.max(width * 0.34, 1), 0, 1)
-+      : frameCenterScore;
-+    let verticalScore = 0;
-+    let floorScore = 0;
-+    let penalty = 0;
-+    let reject = false;
-+    let reason = "ok";
-+
-+    if (lift === "DL") {
-+      // デッドリフトのプレートは床上にあり、画面上半分の頭・胴体・ラック上部は候補にしない。
-+      verticalScore = clamp((yr - 0.50) / 0.24, 0, 1);
-+      floorScore = clamp((br - 0.62) / 0.18, 0, 1);
-+      if (yr < 0.50 || br < 0.60) {
-+        reject = true;
-+        reason = "dl-above-floor-zone";
++  function plateDiscMassEvidence(luminanceAt, candidate) {
++    if (!candidate) return { score: 0, discMassScore: 0, centerMassScore: 0, cornerContrastScore: 0, insideDarkRatio: 0, cornerDarkRatio: 0, floorSpecklePenalty: 0 };
++    const size = candidate.width;
++    const cx = candidate.x + size / 2;
++    const cy = candidate.y + size / 2;
++    const radius = size / 2;
++    const grid = 17;
++    let insideCount = 0;
++    let insideDark = 0;
++    let insideLum = 0;
++    let centerCount = 0;
++    let centerDark = 0;
++    let cornerCount = 0;
++    let cornerDark = 0;
++    let cornerLum = 0;
++    let topInsideDark = 0;
++    let bottomInsideDark = 0;
++    let topInsideCount = 0;
++    let bottomInsideCount = 0;
++    let speckleEdge = 0;
++    for (let gy = 0; gy < grid; gy += 1) {
++      const ny = -1 + (gy / Math.max(1, grid - 1)) * 2;
++      for (let gx = 0; gx < grid; gx += 1) {
++        const nx = -1 + (gx / Math.max(1, grid - 1)) * 2;
++        const px = cx + nx * radius;
++        const py = cy + ny * radius;
++        const lum = luminanceAt(px, py);
++        const r = Math.hypot(nx, ny);
++        if (r <= 0.68) {
++          insideCount += 1;
++          insideLum += lum;
++          if (lum < 112) insideDark += 1;
++          if (Math.abs(ny) <= 0.24 && Math.abs(nx) <= 0.34) {
++            centerCount += 1;
++            if (lum < 128) centerDark += 1;
++          }
++          if (ny < -0.05) {
++            topInsideCount += 1;
++            if (lum < 112) topInsideDark += 1;
++          } else if (ny > 0.05) {
++            bottomInsideCount += 1;
++            if (lum < 112) bottomInsideDark += 1;
++          }
++        } else if (Math.abs(nx) > 0.72 && Math.abs(ny) > 0.72) {
++          cornerCount += 1;
++          cornerLum += lum;
++          if (lum < 112) cornerDark += 1;
++        }
++        if (r > 0.74) {
++          speckleEdge += Math.abs(lum - luminanceAt(px + radius * 0.08, py)) + Math.abs(lum - luminanceAt(px, py + radius * 0.08));
++        }
 +      }
-+      if (yr < 0.56) penalty += 90;
-+      if (br < 0.68) penalty += 48;
-+    } else if (lift === "SQ") {
-+      verticalScore = yr >= 0.16 && yr <= 0.70 ? 1 : clamp(1 - Math.min(Math.abs(yr - 0.42), Math.abs(yr - 0.62)) * 3.2, 0, 1);
-+      floorScore = yr < 0.76 ? 1 : 0;
-+      if (yr > 0.78 || br > 0.88) {
-+        reject = true;
-+        reason = "sq-floor-zone";
-+      }
-+    } else if (lift === "BP") {
-+      verticalScore = yr >= 0.16 && yr <= 0.76 ? 1 : clamp(1 - Math.abs(yr - 0.45) * 2.4, 0, 1);
-+      floorScore = yr < 0.82 ? 1 : 0;
-+      if (yr > 0.84) {
-+        reject = true;
-+        reason = "bp-floor-zone";
-+      }
-+    } else {
-+      verticalScore = clamp(1 - Math.abs(yr - 0.55) * 1.35, 0, 1);
-+      floorScore = 0.5;
 +    }
-+
-+    const centerScore = Math.max(frameCenterScore * 0.55, lifterCenterScore);
-+    const score = verticalScore * 46 + floorScore * 30 + centerScore * 20;
-+    return { score, penalty, reject, reason, verticalScore, floorScore, centerScore, yr, br, xr };
++    const insideDarkRatio = insideDark / Math.max(1, insideCount);
++    const cornerDarkRatio = cornerDark / Math.max(1, cornerCount);
++    const insideAvg = insideLum / Math.max(1, insideCount);
++    const cornerAvg = cornerLum / Math.max(1, cornerCount);
++    const centerDarkRatio = centerDark / Math.max(1, centerCount);
++    const topDarkRatio = topInsideDark / Math.max(1, topInsideCount);
++    const bottomDarkRatio = bottomInsideDark / Math.max(1, bottomInsideCount);
++    const cornerContrastScore = clamp((cornerAvg - insideAvg) * 0.32 + (insideDarkRatio - cornerDarkRatio) * 58, 0, 34);
++    const discMassScore = clamp((insideDarkRatio - 0.12) * 76, 0, 30);
++    const centerMassScore = clamp((centerDarkRatio - 0.10) * 46, 0, 18);
++    const verticalMassScore = clamp(1 - Math.abs(topDarkRatio - bottomDarkRatio) * 1.65, 0, 1) * 12;
++    const floorSpecklePenalty = cornerDarkRatio > 0.18 && Math.abs(insideDarkRatio - cornerDarkRatio) < 0.08
++      ? clamp((speckleEdge / Math.max(1, grid * grid)) * 0.16 + 18, 0, 34)
++      : 0;
++    const score = clamp(cornerContrastScore + discMassScore + centerMassScore + verticalMassScore - floorSpecklePenalty, 0, 82);
++    return { score, discMassScore, centerMassScore, cornerContrastScore, verticalMassScore, insideDarkRatio, cornerDarkRatio, centerDarkRatio, topDarkRatio, bottomDarkRatio, floorSpecklePenalty };
 +  }
 +
-   function plateShapeEvidence(luminanceAt, candidate) {
-     if (!candidate) return { score: 0, ringScore: 0, hubScore: 0, roundnessScore: 0, fillScore: 0 };
-     const size = candidate.width;
-@@ -2892,9 +2951,13 @@
-     const height = canvas.height;
-     const data = ctx.getImageData(0, 0, width, height).data;
-     const minSide = Math.min(width, height);
--    const sizeMin = Math.max(26, Math.round(minSide * 0.105));
--    const sizeMax = Math.max(sizeMin + 4, Math.round(minSide * 0.34));
-     const lift = options.lift || "SQ";
-+    const sizeMin = lift === "DL"
-+      ? Math.max(34, Math.round(minSide * 0.135))
-+      : Math.max(26, Math.round(minSide * 0.105));
-+    const sizeMax = lift === "DL"
-+      ? Math.max(sizeMin + 4, Math.round(minSide * 0.38))
-+      : Math.max(sizeMin + 4, Math.round(minSide * 0.34));
-     const region = getPlateSearchRegion(lift, width, height);
-     const preferSides = lift === "OTHER" ? 0.05 : 0.24;
-     let best = null;
-@@ -2942,6 +3005,8 @@
++  function refinePlateCandidateByDisc(luminanceAt, candidate, lift, width, height) {
++    if (!candidate || lift !== "DL") return candidate;
++    const baseSize = candidate.width;
++    const baseCenterX = candidate.x + candidate.width / 2;
++    const baseCenterY = candidate.y + candidate.height / 2;
++    let best = null;
++    const sizeFactors = [0.72, 0.84, 0.96, 1.08];
++    const offsets = [-0.62, -0.38, -0.18, 0, 0.18, 0.36];
++    const xOffsets = [-0.24, -0.10, 0, 0.10, 0.24];
++    sizeFactors.forEach((factor) => {
++      const size = clamp(Math.round(baseSize * factor), 30, Math.min(width, height) * 0.34);
++      offsets.forEach((oy) => {
++        xOffsets.forEach((ox) => {
++          const cx = baseCenterX + ox * baseSize;
++          const cy = baseCenterY + oy * baseSize;
++          const probe = {
++            x: clamp(cx - size / 2, 1, Math.max(1, width - size - 1)),
++            y: clamp(cy - size / 2, 1, Math.max(1, height - size - 1)),
++            width: size,
++            height: size
++          };
++          const shape = plateShapeEvidence(luminanceAt, probe);
++          const disc = plateDiscMassEvidence(luminanceAt, probe);
++          const yr = (probe.y + probe.height / 2) / Math.max(1, height);
++          const br = (probe.y + probe.height) / Math.max(1, height);
++          const idealY = clamp(1 - Math.abs(yr - 0.68) * 4.2, 0, 1) * 18;
++          const bottomOk = clamp(1 - Math.abs(br - 0.80) * 3.5, 0, 1) * 12;
++          const tooLowPenalty = yr > 0.80 ? (yr - 0.80) * 120 : 0;
++          const score = shape.score * 0.44 + disc.score * 1.16 + idealY + bottomOk - disc.floorSpecklePenalty - tooLowPenalty;
++          if (!best || score > best.score) best = { candidate: probe, shape, disc, score };
++        });
++      });
++    });
++    return best?.candidate || candidate;
++  }
++
+   function detectPlateCandidateFromFrame(frame, options = {}) {
+     if (!frame?.ctx || !frame?.canvas) return null;
+     const { canvas, ctx, scale } = frame;
+@@ -2978,21 +3104,24 @@
+         for (let x = Math.round(region.xMin); x <= xEnd; x += step) {
+           const centerX = x + size / 2;
+           const centerY = y + size / 2;
+-          const candidate = { x, y, width: size, height: size };
+-          const sideBias = Math.abs(centerX / width - 0.5) * preferSides * 100;
++          let candidate = { x, y, width: size, height: size };
++          candidate = refinePlateCandidateByDisc(luminanceAt, candidate, lift, width, height);
++          const refinedCenterX = candidate.x + candidate.width / 2;
++          const refinedCenterY = candidate.y + candidate.height / 2;
++          const sideBias = Math.abs(refinedCenterX / width - 0.5) * preferSides * 100;
+           let dark = 0;
+           let edge = 0;
+           let borderEdge = 0;
+           let samples = 0;
+           const sampleStep = Math.max(3, Math.round(size / 9));
+-          for (let yy = y; yy < y + size; yy += sampleStep) {
+-            for (let xx = x; xx < x + size; xx += sampleStep) {
++          for (let yy = candidate.y; yy < candidate.y + candidate.height; yy += sampleStep) {
++            for (let xx = candidate.x; xx < candidate.x + candidate.width; xx += sampleStep) {
+               const lum = luminanceAt(xx, yy);
+               const right = luminanceAt(xx + sampleStep, yy);
+               const down = luminanceAt(xx, yy + sampleStep);
+               if (lum < 100) dark += 1;
+               edge += Math.abs(lum - right) + Math.abs(lum - down);
+-              const nearBorder = xx < x + sampleStep * 1.5 || yy < y + sampleStep * 1.5 || xx > x + size - sampleStep * 2 || yy > y + size - sampleStep * 2;
++              const nearBorder = xx < candidate.x + sampleStep * 1.5 || yy < candidate.y + sampleStep * 1.5 || xx > candidate.x + candidate.width - sampleStep * 2 || yy > candidate.y + candidate.height - sampleStep * 2;
+               if (nearBorder) borderEdge += Math.abs(lum - right) + Math.abs(lum - down);
+               samples += 1;
+             }
+@@ -3004,22 +3133,25 @@
+           const crossingScore = barbellCrossingEvidence(luminanceAt, width, height, candidate);
            const pairScore = platePairEvidence(luminanceAt, width, height, candidate);
            const shapeEvidence = plateShapeEvidence(luminanceAt, candidate);
++          const discEvidence = plateDiscMassEvidence(luminanceAt, candidate);
            const lifterEvidence = lifterRegionScore(motionContext, candidate);
-+          const contextPrior = plateContextPrior(lift, width, height, motionContext, candidate);
-+          if (contextPrior.reject) continue;
-           const centerPenalty = Math.abs(centerX / width - 0.5) < 0.10 ? 16 : 0;
-           const topPenalty = centerY < height * 0.08 ? 20 : 0;
+           const contextPrior = plateContextPrior(lift, width, height, motionContext, candidate);
+           if (contextPrior.reject) continue;
+-          const centerPenalty = Math.abs(centerX / width - 0.5) < 0.10 ? 16 : 0;
+-          const topPenalty = centerY < height * 0.08 ? 20 : 0;
++          const centerPenalty = Math.abs(refinedCenterX / width - 0.5) < 0.10 ? 16 : 0;
++          const topPenalty = refinedCenterY < height * 0.08 ? 20 : 0;
            const floorPenalty = region.floorPenaltyY && centerY > region.floorPenaltyY ? 115 : 0;
-@@ -2954,6 +3019,7 @@
+           const bottomTouchPenalty = lift !== "DL" && y + size > height * 0.78 ? 105 : 0;
+           // DLでは対象プレートは床〜膝下付近に出やすい。上部ラック・懸垂バー・照明反射を強く除外する。
+-          const deadliftTooHigh = lift === "DL" && centerY < height * 0.40;
++          const deadliftTooHigh = lift === "DL" && refinedCenterY < height * 0.40;
+           if (deadliftTooHigh && lifterEvidence.motionScore < 0.42 && crossingScore < 22) continue;
+-          const deadliftHighPenalty = lift === "DL" && centerY < height * 0.48 ? 135 : 0;
++          const deadliftHighPenalty = lift === "DL" && refinedCenterY < height * 0.48 ? 135 : 0;
++          const deadliftTooLowPenalty = lift === "DL" && refinedCenterY > height * 0.80 ? 160 : 0;
+           const shadowLike = darkRatio > 0.74 && edgeScore < 20;
            const pillarLike = borderScore > 70 && darkRatio < 0.18 && crossingScore < 12;
-           const plateLike = (darkRatio >= 0.14 && edgeScore >= 14 && borderScore >= 4) || shapeEvidence.score >= 38;
+-          const plateLike = (darkRatio >= 0.14 && edgeScore >= 14 && borderScore >= 4) || shapeEvidence.score >= 38;
++          const plateLike = (darkRatio >= 0.14 && edgeScore >= 14 && borderScore >= 4 && discEvidence.score >= 16) || (shapeEvidence.score >= 38 && discEvidence.score >= 18);
            if (!plateLike) continue;
-+          if (lift === "DL" && shapeEvidence.score < 42 && crossingScore < 18 && pairScore < 8) continue;
+-          if (lift === "DL" && shapeEvidence.score < 42 && crossingScore < 18 && pairScore < 8) continue;
++          if (lift === "DL" && (discEvidence.score < 20 || discEvidence.floorSpecklePenalty > 26)) continue;
++          if (lift === "DL" && shapeEvidence.score < 42 && crossingScore < 18 && pairScore < 8 && discEvidence.score < 30) continue;
            if (lift !== "DL" && hasBarLine && barMatch.score < 6 && crossingScore < 10 && lifterEvidence.motionScore < 0.28) continue;
            const barPenalty = hasBarLine && barMatch.score < 8 && crossingScore < 12 ? 34 : 0;
            const hasAiPerson = Boolean(motionContext?.aiPersonDetected);
-@@ -2971,6 +3037,8 @@
-             + pairScore * 0.82
-             + lifterEvidence.score
-             + lifterEvidence.personProximity * 58
-+            + contextPrior.score * 1.15
-+            - contextPrior.penalty
-             - topPenalty
+@@ -3030,7 +3162,8 @@
+           const score = darkRatio * 28
+             + edgeScore * 0.18
+             + borderScore * 0.10
+-            + shapeEvidence.score * 1.18
++            + shapeEvidence.score * 0.82
++            + discEvidence.score * 1.55
+             + sideBias
+             + barMatch.score * 1.08
+             + crossingScore * 1.08
+@@ -3043,23 +3176,32 @@
              - floorPenalty
              - bottomTouchPenalty
-@@ -3005,6 +3073,12 @@
-             lifterScore: lifterEvidence.score,
-             lifterNearScore: lifterEvidence.nearScore,
-             motionScore: lifterEvidence.motionScore,
-+            contextPriorScore: contextPrior.score,
-+            contextPriorPenalty: contextPrior.penalty,
-+            contextPriorReason: contextPrior.reason,
-+            contextVerticalScore: contextPrior.verticalScore,
-+            contextFloorScore: contextPrior.floorScore,
-+            contextCenterScore: contextPrior.centerScore,
-             lifterDistanceRatio: lifterEvidence.distanceRatio
-           };
-           candidates.push(scoredCandidate);
-@@ -3041,6 +3115,12 @@
-         lifterScore: item.lifterScore,
-         lifterNearScore: item.lifterNearScore,
-         motionScore: item.motionScore,
-+        contextPriorScore: item.contextPriorScore,
-+        contextPriorPenalty: item.contextPriorPenalty,
-+        contextPriorReason: item.contextPriorReason,
-+        contextVerticalScore: item.contextVerticalScore,
-+        contextFloorScore: item.contextFloorScore,
-+        contextCenterScore: item.contextCenterScore,
-         lifterDistanceRatio: item.lifterDistanceRatio,
-         frameWidth: Math.round(width / scale),
-         frameHeight: Math.round(height / scale)
-@@ -3123,7 +3203,13 @@
-         edgeScore: compactDebugNumber(candidate.edgeScore, 2),
-         borderScore: compactDebugNumber(candidate.borderScore, 2),
-         frameWidth: candidate.frameWidth || null,
--        frameHeight: candidate.frameHeight || null
-+        frameHeight: candidate.frameHeight || null,
-+        contextPriorScore: compactDebugNumber(candidate.contextPriorScore, 2),
-+        contextPriorPenalty: compactDebugNumber(candidate.contextPriorPenalty, 2),
-+        contextPriorReason: candidate.contextPriorReason || null,
-+        contextVerticalScore: compactDebugNumber(candidate.contextVerticalScore, 3),
-+        contextFloorScore: compactDebugNumber(candidate.contextFloorScore, 3),
-+        contextCenterScore: compactDebugNumber(candidate.contextCenterScore, 3)
+             - deadliftHighPenalty
++            - deadliftTooLowPenalty
+             - centerPenalty
+             - barPenalty
+             - staticBackgroundPenalty
+             - lifterOutsidePenalty * 0.28
+             - personMismatchPenalty
++            - discEvidence.floorSpecklePenalty * 1.35
+             - (shadowLike ? 70 : 0)
+             - (pillarLike ? 45 : 0);
+           const scoredCandidate = {
+-            x,
+-            y,
+-            width: size,
+-            height: size,
++            x: candidate.x,
++            y: candidate.y,
++            width: candidate.width,
++            height: candidate.height,
+             score,
+             darkRatio,
+             edgeScore,
+             borderScore,
+-            centerY,
++            centerY: refinedCenterY,
++            discScore: discEvidence.score,
++            discMassScore: discEvidence.discMassScore,
++            centerMassScore: discEvidence.centerMassScore,
++            cornerContrastScore: discEvidence.cornerContrastScore,
++            insideDarkRatio: discEvidence.insideDarkRatio,
++            cornerDarkRatio: discEvidence.cornerDarkRatio,
++            floorSpecklePenalty: discEvidence.floorSpecklePenalty,
+             barScore: barMatch.score,
+             barY: barMatch.line?.y ?? null,
+             crossingScore,
+@@ -3107,6 +3249,13 @@
+         crossingScore: item.crossingScore,
+         pairScore: item.pairScore,
+         shapeScore: item.shapeScore,
++        discScore: item.discScore,
++        discMassScore: item.discMassScore,
++        centerMassScore: item.centerMassScore,
++        cornerContrastScore: item.cornerContrastScore,
++        insideDarkRatio: item.insideDarkRatio,
++        cornerDarkRatio: item.cornerDarkRatio,
++        floorSpecklePenalty: item.floorSpecklePenalty,
+         ringScore: item.ringScore,
+         roundnessScore: item.roundnessScore,
+         hubScore: item.hubScore,
+@@ -3180,7 +3329,14 @@
+         ring: compactDebugNumber(candidate.ringScore, 2),
+         roundness: compactDebugNumber(candidate.roundnessScore, 2),
+         hub: compactDebugNumber(candidate.hubScore, 2),
+-        fill: compactDebugNumber(candidate.fillScore, 2)
++        fill: compactDebugNumber(candidate.fillScore, 2),
++        disc: compactDebugNumber(candidate.discScore, 2),
++        discMass: compactDebugNumber(candidate.discMassScore, 2),
++        centerMass: compactDebugNumber(candidate.centerMassScore, 2),
++        cornerContrast: compactDebugNumber(candidate.cornerContrastScore, 2),
++        insideDarkRatio: compactDebugNumber(candidate.insideDarkRatio, 3),
++        cornerDarkRatio: compactDebugNumber(candidate.cornerDarkRatio, 3),
++        floorSpecklePenalty: compactDebugNumber(candidate.floorSpecklePenalty, 2)
        },
-       scoringTerms: {
-         stabilityBonus: compactDebugNumber(candidate.stabilityBonus, 2),
-@@ -3439,9 +3525,21 @@
-     }
+       bar: {
+         score: compactDebugNumber(candidate.barScore, 2),
+@@ -3429,12 +3585,13 @@
+           <td>${escapeHtml(candidate.score ?? "--")}</td>
+           <td>${escapeHtml(candidate.temporalScore ?? "--")}</td>
+           <td>${escapeHtml(candidate.shape?.total ?? "--")}</td>
++          <td>${escapeHtml(candidate.shape?.disc ?? "--")}</td>
+           <td>${escapeHtml(candidate.bar?.score ?? "--")}</td>
+           <td>${escapeHtml(candidate.bar?.crossing ?? "--")}</td>
+           <td>${escapeHtml(candidate.lifter?.personEvidence ?? "--")}</td>
+           <td>${escapeHtml(candidate.lifter?.motionEvidence ?? "--")}</td>
+           <td>${escapeHtml(candidate.sampleCount ?? "--")}</td>
+-        </tr>`).join("") : `<tr><td colspan="10">候補なし</td></tr>`;
++        </tr>`).join("") : `<tr><td colspan="11">候補なし</td></tr>`;
+       const montage = (trace.montageDataUrls || []).length ? `
+         <div class="vbt-debug-montage">
+           ${trace.montageDataUrls.map((src, index) => `<img alt="debug anchor ${index + 1}" src="${escapeHtml(src)}">`).join("")}
+@@ -3454,7 +3611,7 @@
+           ${montage}
+           <div class="vbt-debug-table-wrap">
+             <table class="vbt-debug-table">
+-              <thead><tr><th>#</th><th>信頼</th><th>総合</th><th>時系列</th><th>形状</th><th>バー</th><th>交差</th><th>人物</th><th>動き</th><th>採用</th></tr></thead>
++              <thead><tr><th>#</th><th>信頼</th><th>総合</th><th>時系列</th><th>形状</th><th>円盤</th><th>バー</th><th>交差</th><th>人物</th><th>動き</th><th>採用</th></tr></thead>
+               <tbody>${candidateRows}</tbody>
+             </table>
+           </div>
+@@ -3528,13 +3685,16 @@
+   function plateRepresentativeScore(item, lift) {
+     if (!item?.roi) return -Infinity;
+     const yRatio = (item.roi.y + item.roi.height / 2) / Math.max(1, Number(item.frameHeight) || 1);
+-    const dlFloorBonus = lift === "DL" ? clamp((yRatio - 0.50) / 0.24, 0, 1) * 28 : 0;
+-    return clamp(Number(item.score || 0), -80, 140) * 0.22
+-      + clamp(Number(item.shapeScore || item.shapeEvidence || 0), 0, 92) * 0.42
++    const dlZoneBonus = lift === "DL" ? clamp(1 - Math.abs(yRatio - 0.68) * 4.2, 0, 1) * 30 : 0;
++    const dlTooLowPenalty = lift === "DL" && yRatio > 0.80 ? (yRatio - 0.80) * 130 : 0;
++    return clamp(Number(item.score || 0), -80, 140) * 0.20
++      + clamp(Number(item.shapeScore || item.shapeEvidence || 0), 0, 92) * 0.34
++      + clamp(Number(item.discScore || 0), 0, 82) * 0.58
+       + clamp(Number(item.barScore || 0) + Number(item.crossingScore || 0) * 0.35, 0, 75) * 0.34
+       + clamp(Number(item.contextPriorScore || 0), 0, 96) * 0.62
+       + clamp(Number(item.motionScore || 0), 0, 1) * 16
+-      + dlFloorBonus
++      + dlZoneBonus
++      - dlTooLowPenalty
+       - clamp(Number(item.contextPriorPenalty || 0), 0, 160) * 0.35;
    }
  
--  function chooseTemporalPlateCandidate(candidates, lift) {
-+  function plateRepresentativeScore(item, lift) {
-+    if (!item?.roi) return -Infinity;
-+    const yRatio = (item.roi.y + item.roi.height / 2) / Math.max(1, Number(item.frameHeight) || 1);
-+    const dlFloorBonus = lift === "DL" ? clamp((yRatio - 0.50) / 0.24, 0, 1) * 28 : 0;
-+    return clamp(Number(item.score || 0), -80, 140) * 0.22
-+      + clamp(Number(item.shapeScore || item.shapeEvidence || 0), 0, 92) * 0.42
-+      + clamp(Number(item.barScore || 0) + Number(item.crossingScore || 0) * 0.35, 0, 75) * 0.34
-+      + clamp(Number(item.contextPriorScore || 0), 0, 96) * 0.62
-+      + clamp(Number(item.motionScore || 0), 0, 1) * 16
-+      + dlFloorBonus
-+      - clamp(Number(item.contextPriorPenalty || 0), 0, 160) * 0.35;
-+  }
-+
-+  function buildTemporalPlateGroups(candidates, lift) {
-     const clean = (candidates || []).filter((item) => item?.roi && hasFiniteNumber(item.score));
--    if (!clean.length) return null;
-     const groups = [];
-     clean.forEach((candidate) => {
-       const roi = candidate.roi;
-@@ -3450,8 +3548,10 @@
-       const size = Math.max(roi.width, roi.height);
-       let group = groups.find((item) => {
-         const dx = Math.abs(item.centerX - centerX) / Math.max(size, item.size, 1);
-+        const dy = Math.abs(item.centerY - centerY) / Math.max(size, item.size, 1);
-         const ds = Math.abs(item.size - size) / Math.max(size, item.size, 1);
--        return dx < 0.55 && ds < 0.36;
-+        const allowedDy = lift === "DL" ? 1.35 : 1.05;
-+        return dx < 0.55 && dy < allowedDy && ds < 0.34;
-       });
-       if (!group) {
-         group = { items: [], centerX, centerY, size };
-@@ -3463,164 +3563,151 @@
-       group.centerY = (group.centerY * (n - 1) + centerY) / n;
-       group.size = (group.size * (n - 1) + size) / n;
-     });
-+    return { clean, groups };
-+  }
- 
--    let bestGroup = null;
--    groups.forEach((group) => {
--      const items = group.items.sort((a, b) => a.sampleTime - b.sampleTime);
--      const scores = items.map((item) => Number(item.score)).filter(Number.isFinite);
--      const meanScore = scores.reduce((sum, value) => sum + value, 0) / Math.max(1, scores.length);
--      const ys = items.map((item) => item.roi.y + item.roi.height / 2);
--      const xs = items.map((item) => item.roi.x + item.roi.width / 2);
--      const yRange = Math.max(...ys) - Math.min(...ys);
--      const xRange = Math.max(...xs) - Math.min(...xs);
--      const size = Math.max(1, group.size);
--      const motionRatio = yRange / size;
--      const horizontalDrift = xRange / size;
--      const countRatio = items.length / Math.max(1, clean.length);
--      const barEvidence = items.reduce((sum, item) => sum + Number(item.barScore || 0) + Number(item.crossingScore || 0) * 0.35, 0) / Math.max(1, items.length);
--      const pairEvidence = items.reduce((sum, item) => sum + Number(item.pairScore || 0), 0) / Math.max(1, items.length);
--      const shapeEvidence = items.reduce((sum, item) => sum + Number(item.shapeScore || 0), 0) / Math.max(1, items.length);
--      const lifterEvidence = items.reduce((sum, item) => sum + Number(item.lifterNearScore || 0), 0) / Math.max(1, items.length);
--      const personEvidence = items.reduce((sum, item) => sum + Math.max(Number(item.personProximity || 0), Number(item.personScore || 0)), 0) / Math.max(1, items.length);
--      const motionEvidence = items.reduce((sum, item) => sum + Number(item.motionScore || 0), 0) / Math.max(1, items.length);
--      const movementBonus = motionRatio > 0.12 ? Math.min(34, motionRatio * 38) : (lift === "DL" ? 0 : -18);
--      const stabilityBonus = Math.min(36, items.length * 5.5) + countRatio * 18;
--      const driftPenalty = horizontalDrift > 1.05 ? 28 : horizontalDrift > 0.62 ? 12 : 0;
--      const staticPenalty = motionEvidence < 0.10 && lifterEvidence < 0.22 && personEvidence < 0.24 ? 54 : 0;
--      const temporalScore = meanScore + stabilityBonus + movementBonus + barEvidence * 0.28 + pairEvidence * 0.26 + shapeEvidence * 0.72 + lifterEvidence * 14 + personEvidence * 38 + motionEvidence * 44 - driftPenalty - staticPenalty;
--      group.temporalScore = temporalScore;
--      group.motionRatio = motionRatio;
--      group.horizontalDrift = horizontalDrift;
--      group.meanScore = meanScore;
--      group.barEvidence = barEvidence;
--      group.pairEvidence = pairEvidence;
--      group.countRatio = countRatio;
--      group.stabilityBonus = stabilityBonus;
--      group.movementBonus = movementBonus;
--      group.driftPenalty = driftPenalty;
--      group.staticPenalty = staticPenalty;
--      group.lifterEvidence = lifterEvidence;
--      group.personEvidence = personEvidence;
--      group.shapeEvidence = shapeEvidence;
--      group.motionEvidence = motionEvidence;
--      if (!bestGroup || temporalScore > bestGroup.temporalScore) bestGroup = group;
--    });
--
--    if (!bestGroup) return null;
--    const first = bestGroup.items.sort((a, b) => a.sampleTime - b.sampleTime)[0];
--    const bestItem = bestGroup.items.reduce((best, item) => item.score > best.score ? item : best, first);
--    const confidence = bestGroup.temporalScore > 125 && bestGroup.motionRatio > 0.10
-+  function scoreTemporalPlateGroup(group, clean, lift) {
-+    const items = group.items.sort((a, b) => a.sampleTime - b.sampleTime);
-+    const scores = items.map((item) => Number(item.score)).filter(Number.isFinite);
-+    const meanScore = scores.reduce((sum, value) => sum + value, 0) / Math.max(1, scores.length);
-+    const ys = items.map((item) => item.roi.y + item.roi.height / 2);
-+    const xs = items.map((item) => item.roi.x + item.roi.width / 2);
-+    const yRange = Math.max(...ys) - Math.min(...ys);
-+    const xRange = Math.max(...xs) - Math.min(...xs);
-+    const size = Math.max(1, group.size);
-+    const motionRatio = yRange / size;
-+    const horizontalDrift = xRange / size;
-+    const countRatio = items.length / Math.max(1, clean.length);
-+    const barEvidence = items.reduce((sum, item) => sum + Number(item.barScore || 0) + Number(item.crossingScore || 0) * 0.35, 0) / Math.max(1, items.length);
-+    const pairEvidence = items.reduce((sum, item) => sum + Number(item.pairScore || 0), 0) / Math.max(1, items.length);
-+    const shapeEvidence = items.reduce((sum, item) => sum + Number(item.shapeScore || item.shapeEvidence || 0), 0) / Math.max(1, items.length);
-+    const lifterEvidence = items.reduce((sum, item) => sum + Number(item.lifterNearScore || 0), 0) / Math.max(1, items.length);
-+    const personEvidence = items.reduce((sum, item) => sum + Math.max(Number(item.personProximity || 0), Number(item.personScore || 0)), 0) / Math.max(1, items.length);
-+    const motionEvidence = items.reduce((sum, item) => sum + Number(item.motionScore || 0), 0) / Math.max(1, items.length);
-+    const contextEvidence = items.reduce((sum, item) => sum + Number(item.contextPriorScore || 0), 0) / Math.max(1, items.length);
-+    const contextPenalty = items.reduce((sum, item) => sum + Number(item.contextPriorPenalty || 0), 0) / Math.max(1, items.length);
-+    const movementBonus = motionRatio > 0.12 ? Math.min(18, motionRatio * 18) : (lift === "DL" ? 0 : -10);
-+    const stabilityBonus = Math.min(18, items.length * 2.25) + clamp(countRatio * 16, 0, 16);
-+    const driftPenalty = horizontalDrift > 1.05 ? 28 : horizontalDrift > 0.62 ? 12 : 0;
-+    const staticPenalty = motionEvidence < 0.10 && lifterEvidence < 0.22 && personEvidence < 0.24 ? 34 : 0;
-+    const normalizedMean = clamp(meanScore, -80, 140);
-+    const temporalScore = normalizedMean * 0.18
-+      + clamp(barEvidence, 0, 78) * 0.34
-+      + clamp(pairEvidence, 0, 26) * 0.16
-+      + clamp(shapeEvidence, 0, 92) * 0.34
-+      + clamp(contextEvidence, 0, 96) * 0.52
-+      + clamp(lifterEvidence, 0, 1) * 10
-+      + clamp(personEvidence, 0, 1) * 14
-+      + clamp(motionEvidence, 0, 1) * 18
-+      + movementBonus
-+      + stabilityBonus
-+      - driftPenalty
-+      - staticPenalty
-+      - clamp(contextPenalty, 0, 160) * 0.35;
-+    const representative = items.reduce((best, item) => plateRepresentativeScore(item, lift) > plateRepresentativeScore(best, lift) ? item : best, items[0]);
-+    const confidence = temporalScore > 84 && motionRatio > 0.08
-       ? "high"
--      : bestGroup.temporalScore > 92
-+      : temporalScore > 58
-         ? "middle"
-         : "low";
-     return {
--      ...first,
--      roi: first.roi,
-+      items,
-+      representative,
-       confidence,
--      score: Math.max(bestItem.score, bestGroup.temporalScore),
--      temporalScore: bestGroup.temporalScore,
--      motionRatio: bestGroup.motionRatio,
--      horizontalDrift: bestGroup.horizontalDrift,
--      meanScore: bestGroup.meanScore,
--      barEvidence: bestGroup.barEvidence,
--      pairEvidence: bestGroup.pairEvidence,
--      countRatio: bestGroup.countRatio,
--      stabilityBonus: bestGroup.stabilityBonus,
--      movementBonus: bestGroup.movementBonus,
--      driftPenalty: bestGroup.driftPenalty,
--      staticPenalty: bestGroup.staticPenalty,
--      lifterEvidence: bestGroup.lifterEvidence,
--      personEvidence: bestGroup.personEvidence,
--      shapeEvidence: bestGroup.shapeEvidence,
--      motionEvidence: bestGroup.motionEvidence,
--      sampleCount: bestGroup.items.length,
--      bestFrameTime: bestItem.sampleTime
-+      temporalScore,
-+      motionRatio,
-+      horizontalDrift,
-+      meanScore,
-+      barEvidence,
-+      pairEvidence,
-+      countRatio,
-+      stabilityBonus,
-+      movementBonus,
-+      driftPenalty,
-+      staticPenalty,
-+      lifterEvidence,
-+      personEvidence,
-+      shapeEvidence,
-+      motionEvidence,
-+      contextEvidence,
-+      contextPenalty,
-+      sampleCount: items.length,
-+      bestFrameTime: representative.sampleTime,
-+      representativeScore: plateRepresentativeScore(representative, lift)
-     };
+@@ -3581,6 +3741,11 @@
+     const barEvidence = items.reduce((sum, item) => sum + Number(item.barScore || 0) + Number(item.crossingScore || 0) * 0.35, 0) / Math.max(1, items.length);
+     const pairEvidence = items.reduce((sum, item) => sum + Number(item.pairScore || 0), 0) / Math.max(1, items.length);
+     const shapeEvidence = items.reduce((sum, item) => sum + Number(item.shapeScore || item.shapeEvidence || 0), 0) / Math.max(1, items.length);
++    const discEvidence = items.reduce((sum, item) => sum + Number(item.discScore || 0), 0) / Math.max(1, items.length);
++    const floorSpecklePenalty = items.reduce((sum, item) => sum + Number(item.floorSpecklePenalty || 0), 0) / Math.max(1, items.length);
++    const avgYRatio = items.reduce((sum, item) => sum + ((item.roi.y + item.roi.height / 2) / Math.max(1, Number(item.frameHeight) || 1)), 0) / Math.max(1, items.length);
++    const dlZoneBonus = lift === "DL" ? clamp(1 - Math.abs(avgYRatio - 0.68) * 4.0, 0, 1) * 24 : 0;
++    const dlTooLowPenalty = lift === "DL" && avgYRatio > 0.80 ? (avgYRatio - 0.80) * 150 : 0;
+     const lifterEvidence = items.reduce((sum, item) => sum + Number(item.lifterNearScore || 0), 0) / Math.max(1, items.length);
+     const personEvidence = items.reduce((sum, item) => sum + Math.max(Number(item.personProximity || 0), Number(item.personScore || 0)), 0) / Math.max(1, items.length);
+     const motionEvidence = items.reduce((sum, item) => sum + Number(item.motionScore || 0), 0) / Math.max(1, items.length);
+@@ -3594,13 +3759,17 @@
+     const temporalScore = normalizedMean * 0.18
+       + clamp(barEvidence, 0, 78) * 0.34
+       + clamp(pairEvidence, 0, 26) * 0.16
+-      + clamp(shapeEvidence, 0, 92) * 0.34
+-      + clamp(contextEvidence, 0, 96) * 0.52
++      + clamp(shapeEvidence, 0, 92) * 0.24
++      + clamp(discEvidence, 0, 82) * 0.58
++      + clamp(contextEvidence, 0, 96) * 0.42
+       + clamp(lifterEvidence, 0, 1) * 10
+       + clamp(personEvidence, 0, 1) * 14
+       + clamp(motionEvidence, 0, 1) * 18
+       + movementBonus
+       + stabilityBonus
++      + dlZoneBonus
++      - dlTooLowPenalty
++      - floorSpecklePenalty * 0.72
+       - driftPenalty
+       - staticPenalty
+       - clamp(contextPenalty, 0, 160) * 0.35;
+@@ -3628,6 +3797,9 @@
+       lifterEvidence,
+       personEvidence,
+       shapeEvidence,
++      discEvidence,
++      floorSpecklePenalty,
++      avgYRatio,
+       motionEvidence,
+       contextEvidence,
+       contextPenalty,
+@@ -3665,6 +3837,9 @@
+       lifterEvidence: best.lifterEvidence,
+       personEvidence: best.personEvidence,
+       shapeEvidence: best.shapeEvidence,
++      discEvidence: best.discEvidence,
++      floorSpecklePenalty: best.floorSpecklePenalty,
++      avgYRatio: best.avgYRatio,
+       motionEvidence: best.motionEvidence,
+       contextEvidence: best.contextEvidence,
+       contextPenalty: best.contextPenalty,
+@@ -3699,6 +3874,9 @@
+         lifterEvidence: scored.lifterEvidence,
+         personEvidence: scored.personEvidence,
+         shapeEvidence: scored.shapeEvidence,
++        discEvidence: scored.discEvidence,
++        floorSpecklePenalty: scored.floorSpecklePenalty,
++        avgYRatio: scored.avgYRatio,
+         motionEvidence: scored.motionEvidence,
+         contextEvidence: scored.contextEvidence,
+         contextPenalty: scored.contextPenalty,
+@@ -3731,7 +3909,7 @@
+           const shape = hasFiniteNumber(candidate.shapeEvidence ?? candidate.shapeScore) ? Number(candidate.shapeEvidence ?? candidate.shapeScore).toFixed(0) : "--";
+           const bar = hasFiniteNumber(candidate.barScore) ? Number(candidate.barScore).toFixed(0) : "--";
+           return `<button type="button" class="vbt-candidate-button ${selected ? "selected" : ""}" data-vbt-candidate-select="${index}">
+-            <strong>候補${index + 1}</strong><span>信頼${confidence} / 形状 ${shape} / 動き ${move} / バー ${bar}</span>
++            <strong>候補${index + 1}</strong><span>信頼${confidence} / 形状 ${shape} / 円盤 ${hasFiniteNumber(candidate.discEvidence ?? candidate.discScore) ? Number(candidate.discEvidence ?? candidate.discScore).toFixed(0) : "--"} / 動き ${move} / バー ${bar}</span>
+           </button>`;
+         }).join("")}
+       </div>
+@@ -3767,7 +3945,7 @@
    }
  
--  function chooseTemporalPlateCandidates(candidates, lift, limit = 3) {
--    const clean = (candidates || []).filter((item) => item?.roi && hasFiniteNumber(item.score));
--    if (!clean.length) return [];
--    const groups = [];
--    clean.forEach((candidate) => {
--      const roi = candidate.roi;
--      const centerX = roi.x + roi.width / 2;
--      const centerY = roi.y + roi.height / 2;
--      const size = Math.max(roi.width, roi.height);
--      let group = groups.find((item) => {
--        const dx = Math.abs(item.centerX - centerX) / Math.max(size, item.size, 1);
--        const ds = Math.abs(item.size - size) / Math.max(size, item.size, 1);
--        return dx < 0.55 && ds < 0.36;
--      });
--      if (!group) {
--        group = { items: [], centerX, centerY, size };
--        groups.push(group);
--      }
--      group.items.push(candidate);
--      const n = group.items.length;
--      group.centerX = (group.centerX * (n - 1) + centerX) / n;
--      group.centerY = (group.centerY * (n - 1) + centerY) / n;
--      group.size = (group.size * (n - 1) + size) / n;
-+  function chooseTemporalPlateCandidate(candidates, lift) {
-+    const { clean, groups } = buildTemporalPlateGroups(candidates, lift);
-+    if (!clean.length || !groups.length) return null;
-+    let best = null;
-+    groups.forEach((group) => {
-+      const scored = scoreTemporalPlateGroup(group, clean, lift);
-+      if (!best || scored.temporalScore > best.temporalScore) best = scored;
-     });
-+    if (!best?.representative) return null;
-+    return {
-+      ...best.representative,
-+      roi: best.representative.roi,
-+      confidence: best.confidence,
-+      score: best.temporalScore,
-+      temporalScore: best.temporalScore,
-+      motionRatio: best.motionRatio,
-+      horizontalDrift: best.horizontalDrift,
-+      meanScore: best.meanScore,
-+      barEvidence: best.barEvidence,
-+      pairEvidence: best.pairEvidence,
-+      countRatio: best.countRatio,
-+      stabilityBonus: best.stabilityBonus,
-+      movementBonus: best.movementBonus,
-+      driftPenalty: best.driftPenalty,
-+      staticPenalty: best.staticPenalty,
-+      lifterEvidence: best.lifterEvidence,
-+      personEvidence: best.personEvidence,
-+      shapeEvidence: best.shapeEvidence,
-+      motionEvidence: best.motionEvidence,
-+      contextEvidence: best.contextEvidence,
-+      contextPenalty: best.contextPenalty,
-+      representativeScore: best.representativeScore,
-+      sampleCount: best.sampleCount,
-+      bestFrameTime: best.bestFrameTime
-+    };
-+  }
  
--    const ranked = groups.map((group) => {
--      const items = group.items.sort((a, b) => a.sampleTime - b.sampleTime);
--      const scores = items.map((item) => Number(item.score)).filter(Number.isFinite);
--      const meanScore = scores.reduce((sum, value) => sum + value, 0) / Math.max(1, scores.length);
--      const ys = items.map((item) => item.roi.y + item.roi.height / 2);
--      const xs = items.map((item) => item.roi.x + item.roi.width / 2);
--      const yRange = Math.max(...ys) - Math.min(...ys);
--      const xRange = Math.max(...xs) - Math.min(...xs);
--      const size = Math.max(1, group.size);
--      const motionRatio = yRange / size;
--      const horizontalDrift = xRange / size;
--      const countRatio = items.length / Math.max(1, clean.length);
--      const barEvidence = items.reduce((sum, item) => sum + Number(item.barScore || 0) + Number(item.crossingScore || 0) * 0.35, 0) / Math.max(1, items.length);
--      const pairEvidence = items.reduce((sum, item) => sum + Number(item.pairScore || 0), 0) / Math.max(1, items.length);
--      const shapeEvidence = items.reduce((sum, item) => sum + Number(item.shapeScore || 0), 0) / Math.max(1, items.length);
--      const lifterEvidence = items.reduce((sum, item) => sum + Number(item.lifterNearScore || 0), 0) / Math.max(1, items.length);
--      const personEvidence = items.reduce((sum, item) => sum + Math.max(Number(item.personProximity || 0), Number(item.personScore || 0)), 0) / Math.max(1, items.length);
--      const motionEvidence = items.reduce((sum, item) => sum + Number(item.motionScore || 0), 0) / Math.max(1, items.length);
--      const movementBonus = motionRatio > 0.12 ? Math.min(34, motionRatio * 38) : (lift === "DL" ? 0 : -18);
--      const stabilityBonus = Math.min(36, items.length * 5.5) + countRatio * 18;
--      const driftPenalty = horizontalDrift > 1.05 ? 28 : horizontalDrift > 0.62 ? 12 : 0;
--      const staticPenalty = motionEvidence < 0.10 && lifterEvidence < 0.22 && personEvidence < 0.24 ? 54 : 0;
--      const temporalScore = meanScore + stabilityBonus + movementBonus + barEvidence * 0.28 + pairEvidence * 0.26 + shapeEvidence * 0.72 + lifterEvidence * 14 + personEvidence * 38 + motionEvidence * 44 - driftPenalty - staticPenalty;
--      const first = items[0];
--      const bestItem = items.reduce((best, item) => item.score > best.score ? item : best, first);
--      const confidence = temporalScore > 125 && motionRatio > 0.10
--        ? "high"
--        : temporalScore > 92
--          ? "middle"
--          : "low";
-+  function chooseTemporalPlateCandidates(candidates, lift, limit = 3) {
-+    const { clean, groups } = buildTemporalPlateGroups(candidates, lift);
-+    if (!clean.length || !groups.length) return [];
-+    return groups.map((group) => {
-+      const scored = scoreTemporalPlateGroup(group, clean, lift);
-+      const rep = scored.representative;
-       return {
--        ...first,
--        roi: first.roi,
--        confidence,
--        score: Math.max(bestItem.score, temporalScore),
--        temporalScore,
--        meanScore,
--        barEvidence,
--        pairEvidence,
--        countRatio,
--        stabilityBonus,
--        movementBonus,
--        driftPenalty,
--        staticPenalty,
--        motionRatio,
--        horizontalDrift,
--        lifterEvidence,
--        personEvidence,
--        shapeEvidence,
--        motionEvidence,
--        sampleCount: items.length,
--        bestFrameTime: bestItem.sampleTime,
--        groupItems: items.length
-+        ...rep,
-+        roi: rep.roi,
-+        confidence: scored.confidence,
-+        score: scored.temporalScore,
-+        temporalScore: scored.temporalScore,
-+        meanScore: scored.meanScore,
-+        barEvidence: scored.barEvidence,
-+        pairEvidence: scored.pairEvidence,
-+        countRatio: scored.countRatio,
-+        stabilityBonus: scored.stabilityBonus,
-+        movementBonus: scored.movementBonus,
-+        driftPenalty: scored.driftPenalty,
-+        staticPenalty: scored.staticPenalty,
-+        motionRatio: scored.motionRatio,
-+        horizontalDrift: scored.horizontalDrift,
-+        lifterEvidence: scored.lifterEvidence,
-+        personEvidence: scored.personEvidence,
-+        shapeEvidence: scored.shapeEvidence,
-+        motionEvidence: scored.motionEvidence,
-+        contextEvidence: scored.contextEvidence,
-+        contextPenalty: scored.contextPenalty,
-+        representativeScore: scored.representativeScore,
-+        sampleCount: scored.sampleCount,
-+        bestFrameTime: scored.bestFrameTime,
-+        groupItems: scored.sampleCount
-       };
--    });
--
--    return ranked
-+    })
-       .sort((a, b) => Number(b.score || 0) - Number(a.score || 0))
-       .slice(0, Math.max(1, Number(limit) || 3));
-   }
-@@ -3685,15 +3772,21 @@
+-  function weakAutoPlateCandidates(candidates) {
++  function weakAutoPlateCandidates(candidates, lift = null) {
+     const list = (candidates || []).filter((item) => item?.roi);
      if (!list.length) return true;
      const bestShape = Math.max(...list.map((item) => Number(item.shapeEvidence ?? item.shapeScore ?? 0) || 0));
-     const bestMotion = Math.max(...list.map((item) => Number(item.motionRatio ?? item.motionScore ?? 0) || 0));
--    const bestBar = Math.max(...list.map((item) => Number(item.barScore ?? 0) || 0));
-+    const bestBar = Math.max(...list.map((item) => Number(item.barScore ?? 0) + Number(item.crossingScore ?? 0) * 0.35 || 0));
-     const bestPerson = Math.max(...list.map((item) => Number(item.personEvidence ?? item.lifterEvidence ?? 0) || 0));
--    const highConfidence = list.some((item) => item.confidence === "high" && Number(item.shapeEvidence ?? item.shapeScore ?? 0) >= 42 && (Number(item.motionRatio ?? 0) > 0.28 || Number(item.barScore ?? 0) >= 38));
-+    const bestContext = Math.max(...list.map((item) => Number(item.contextEvidence ?? item.contextPriorScore ?? 0) || 0));
-+    const highConfidence = list.some((item) => item.confidence === "high"
-+      && Number(item.score || 0) >= 62
-+      && Number(item.contextEvidence ?? item.contextPriorScore ?? 0) >= 42
-+      && Number(item.shapeEvidence ?? item.shapeScore ?? 0) >= 44
-+      && (Number(item.motionRatio ?? 0) > 0.18 || (Number(item.barScore ?? 0) + Number(item.crossingScore ?? 0) * 0.35) >= 36));
+@@ -3779,11 +3957,14 @@
+       && Number(item.score || 0) >= 62
+       && Number(item.contextEvidence ?? item.contextPriorScore ?? 0) >= 42
+       && Number(item.shapeEvidence ?? item.shapeScore ?? 0) >= 44
++      && (lift !== "DL" || Number(item.discEvidence ?? item.discScore ?? 0) >= 24)
+       && (Number(item.motionRatio ?? 0) > 0.18 || (Number(item.barScore ?? 0) + Number(item.crossingScore ?? 0) * 0.35) >= 36));
      if (highConfidence) return false;
--    // 人物AIが0の動画では人物スコアを信用しない。プレート形状・バー接続・動きを主判定にする。
--    if (bestShape < 36) return true;
--    if (bestBar < 30 && bestMotion < 0.42) return true;
--    // 候補が人物から遠く、かつプレート形状も弱いならタップ補助へ逃がす。
--    if (bestPerson < 0.04 && bestShape < 48 && bestMotion < 0.50) return true;
-+    // 人物AIが0の動画では人物スコアを主判定にしない。ただし、種目別の位置条件とプレート形状は必須にする。
-+    if (bestContext < 38) return true;
-+    if (bestShape < 40) return true;
-+    if (bestBar < 28 && bestMotion < 0.32) return true;
-+    // 候補が人物から遠く、かつプレート形状・種目別位置も弱いならタップ補助へ逃がす。
-+    if (bestPerson < 0.04 && bestShape < 50 && bestMotion < 0.42 && bestContext < 55) return true;
-     return false;
-   }
- 
+     // 人物AIが0の動画では人物スコアを主判定にしない。ただし、種目別の位置条件とプレート形状は必須にする。
++    const bestDisc = Math.max(...list.map((item) => Number(item.discEvidence ?? item.discScore ?? 0) || 0));
+     if (bestContext < 38) return true;
+     if (bestShape < 40) return true;
++    if (lift === "DL" && bestDisc < 24) return true;
+     if (bestBar < 28 && bestMotion < 0.32) return true;
+     // 候補が人物から遠く、かつプレート形状・種目別位置も弱いならタップ補助へ逃がす。
+     if (bestPerson < 0.04 && bestShape < 50 && bestMotion < 0.42 && bestContext < 55) return true;
+@@ -4005,8 +4186,8 @@
+         showAnchorAssistStep(dialog, message);
+         return;
+       }
+-      if (weakAutoPlateCandidates(candidateList)) {
+-        const message = `プレート形状・バー接続・動きの確信度が低いため、自動候補を採用しませんでした。実際のプレート付近を1回タップしてください。解析フレーム ${sampleTimes.length}件 / 形状 ${(Number(bestCandidate.shapeEvidence ?? bestCandidate.shapeScore) || 0).toFixed(0)} / 動き ${(Number(bestCandidate.motionRatio) || 0).toFixed(2)}`;
++      if (weakAutoPlateCandidates(candidateList, record.lift)) {
++        const message = `プレート形状・バー接続・動きの確信度が低いため、自動候補を採用しませんでした。実際のプレート付近を1回タップしてください。解析フレーム ${sampleTimes.length}件 / 形状 ${(Number(bestCandidate.shapeEvidence ?? bestCandidate.shapeScore) || 0).toFixed(0)} / 円盤 ${(Number(bestCandidate.discEvidence ?? bestCandidate.discScore) || 0).toFixed(0)} / 動き ${(Number(bestCandidate.motionRatio) || 0).toFixed(2)}`;
+         setVbtState(dialog, {
+           autoPlateCandidates: candidateList,
+           selectedCandidateIndex: null,
+@@ -4017,7 +4198,7 @@
+         return;
+       }
+       const lowMessage = "自動検出の信頼度：低。候補を選び、緑枠が最大プレートを囲んでいるか確認してください。";
+-      const okMessage = `プレートの外周形状とバー接続から候補を${candidateList.length}件見つけました。正しい候補を選び、緑枠が最大プレートを囲んでいれば進んでください。確認フレーム ${sampleTimes.length}件 / 採用フレーム ${bestCandidate.sampleCount || 1}件 / 形状 ${(Number(bestCandidate.shapeEvidence ?? bestCandidate.shapeScore) || 0).toFixed(0)} / 動き ${(Number(bestCandidate.motionRatio) || 0).toFixed(2)}`;
++      const okMessage = `プレートの外周形状とバー接続から候補を${candidateList.length}件見つけました。正しい候補を選び、緑枠が最大プレートを囲んでいれば進んでください。確認フレーム ${sampleTimes.length}件 / 採用フレーム ${bestCandidate.sampleCount || 1}件 / 形状 ${(Number(bestCandidate.shapeEvidence ?? bestCandidate.shapeScore) || 0).toFixed(0)} / 円盤 ${(Number(bestCandidate.discEvidence ?? bestCandidate.discScore) || 0).toFixed(0)} / 動き ${(Number(bestCandidate.motionRatio) || 0).toFixed(2)}`;
+       const resultMessage = bestCandidate.confidence === "low" ? lowMessage : okMessage;
+       setVbtState(dialog, {
+         plateRoi: bestCandidate.roi,
