@@ -24,8 +24,11 @@
   const VBT_MULTI_TRACKER_HISTOGRAM_WEIGHT = 0.18;
   const VBT_MULTI_TRACKER_MOTION_WEIGHT = 0.14;
   const VBT_MULTI_TRACKER_PREDICTION_WEIGHT = 0.08;
-  const VBT_DEBUG_TRACE_VERSION = "v183.10-dl-hub-center-snap-balanced-detect";
+  const VBT_DEBUG_TRACE_VERSION = "v183.11-rep-count-guard-dl-bounce-filter";
   const VBT_DEBUG_MONTAGE_PANELS = 5;
+  const VBT_DL_MIN_VALID_ROM_M = 0.30;
+  const VBT_DL_SOFT_MIN_VALID_ROM_M = 0.24;
+  const VBT_MIN_CONCENTRIC_DURATION_S = 0.20;
   let bodyPixModelPromise = null;
 
   const GENERAL_RPE_VELOCITY = {
@@ -1063,6 +1066,93 @@
     });
   }
 
+  function expectedRepCountFromRecord(record) {
+    const reps = Number(record?.reps);
+    return Number.isFinite(reps) && reps > 0 ? Math.round(reps) : null;
+  }
+
+  function minimumRomMetersForLift(lift) {
+    if (lift === "DL") return VBT_DL_MIN_VALID_ROM_M;
+    if (lift === "SQ") return 0.18;
+    if (lift === "BP") return 0.08;
+    return 0.08;
+  }
+
+  function repMetricStartTime(metric) {
+    return Number(metric?.concentric?.rawStartTime ?? metric?.concentric?.startTime ?? metric?.eccentric?.rawStartTime ?? metric?.eccentric?.startTime ?? 0);
+  }
+
+  function repMetricScore(metric, lift) {
+    const rom = Number(metric?.totalRomMeters) || 0;
+    const conDuration = Number(metric?.concentric?.duration) || 0;
+    const conVelocity = Number(metric?.concentric?.meanVelocity) || 0;
+    const peakVelocity = Number(metric?.concentric?.peakVelocity) || 0;
+    const durationScore = conDuration >= VBT_MIN_CONCENTRIC_DURATION_S ? 1 : 0.25;
+    const velocityScore = conVelocity > 0.05 && conVelocity < 1.6 ? 1 : 0.35;
+    const peakPenalty = peakVelocity > 2.0 ? 0.55 : 1;
+    const romTarget = lift === "DL" ? 0.45 : lift === "SQ" ? 0.35 : 0.12;
+    const romScore = Math.min(1.4, rom / Math.max(0.01, romTarget));
+    return romScore * durationScore * velocityScore * peakPenalty;
+  }
+
+  function sanitizeRepMetricsForExpectedCount(metrics, expectedReps, lift) {
+    const list = Array.isArray(metrics) ? metrics.filter(Boolean) : [];
+    const expected = Number(expectedReps);
+    const hasExpected = Number.isFinite(expected) && expected > 0;
+    const hardMinRom = minimumRomMetersForLift(lift);
+    const softMinRom = lift === "DL" ? VBT_DL_SOFT_MIN_VALID_ROM_M : hardMinRom * 0.75;
+    const excluded = [];
+    let candidates = list.filter((metric) => {
+      const rom = Number(metric?.totalRomMeters) || 0;
+      const conDuration = Number(metric?.concentric?.duration) || 0;
+      const conVelocity = Number(metric?.concentric?.meanVelocity) || 0;
+      const tooShortRom = lift === "DL" ? rom < softMinRom : rom < softMinRom;
+      const tooShortDuration = conDuration > 0 && conDuration < VBT_MIN_CONCENTRIC_DURATION_S;
+      const tooFastOrZero = conVelocity <= 0.04 || conVelocity > 1.8;
+      if (tooShortRom || tooShortDuration || tooFastOrZero) {
+        excluded.push({ ...metric, excludedReason: tooShortRom ? "ROM不足/床バウンド" : tooShortDuration ? "挙上時間不足" : "速度外れ値" });
+        return false;
+      }
+      return true;
+    });
+
+    if (lift === "DL") {
+      const strong = candidates.filter((metric) => Number(metric?.totalRomMeters) >= hardMinRom);
+      if (strong.length >= Math.min(hasExpected ? expected : 1, candidates.length)) {
+        excluded.push(...candidates.filter((metric) => Number(metric?.totalRomMeters) < hardMinRom).map((metric) => ({ ...metric, excludedReason: "DL最小ROM未満" })));
+        candidates = strong;
+      }
+    }
+
+    if (hasExpected && candidates.length > expected) {
+      const selectedSet = new Set(candidates
+        .slice()
+        .sort((a, b) => repMetricScore(b, lift) - repMetricScore(a, lift))
+        .slice(0, expected));
+      const over = candidates.filter((metric) => !selectedSet.has(metric)).map((metric) => ({ ...metric, excludedReason: "入力Rep数超過" }));
+      excluded.push(...over);
+      candidates = candidates.filter((metric) => selectedSet.has(metric));
+    }
+
+    candidates = candidates
+      .slice()
+      .sort((a, b) => repMetricStartTime(a) - repMetricStartTime(b))
+      .map((metric, index) => ({
+        ...metric,
+        repIndex: index + 1,
+        qualityNote: metric.qualityNote || (hasExpected ? "入力Rep数に合わせて採用" : metric.qualityNote),
+        repQuality: metric.repQuality ? { ...metric.repQuality, note: metric.repQuality.note || (hasExpected ? "入力Rep数に合わせて採用" : null) } : metric.repQuality
+      }));
+
+    return {
+      metrics: candidates,
+      excluded: excluded.sort((a, b) => repMetricStartTime(a) - repMetricStartTime(b)),
+      expectedReps: hasExpected ? expected : null,
+      detectedBeforeFilter: list.length,
+      excludedCount: excluded.length
+    };
+  }
+
   function getPrimaryVbtMetric(metrics) {
     const velocities = (metrics || []).map((metric) => metric.concentric?.meanVelocity).filter(Number.isFinite);
     const best = velocities.length ? Math.max(...velocities) : null;
@@ -1536,11 +1626,14 @@
       throw new Error("プレートの上下移動を捉えられませんでした。緑枠と測定範囲を確認してください。");
     }
     const metersPerPixel = (plateDiameterCm / 100) / plateDiameterPixels;
-    const repPhases = detectRepPhases(path, record.lift, null);
-    const repMetrics = calculateRepVelocityMetrics(repPhases, { path, metersPerPixel, lift: record.lift, expectedReps: null });
+    const expectedReps = expectedRepCountFromRecord(record);
+    const rawRepPhases = detectRepPhases(path, record.lift, null);
+    const rawRepMetrics = calculateRepVelocityMetrics(rawRepPhases, { path, metersPerPixel, lift: record.lift, expectedReps });
+    const repFilter = sanitizeRepMetricsForExpectedCount(rawRepMetrics, expectedReps, record.lift);
+    const repMetrics = repFilter.metrics;
     const detectedRepCount = repMetrics.length;
     const primaryVbtMetric = getPrimaryVbtMetric(repMetrics);
-    const repWarning = validateRepDetection(repMetrics, null);
+    const repWarning = validateRepDetection(repMetrics, expectedReps);
     const concentricVelocities = repMetrics.map((metric) => metric.concentric?.meanVelocity).filter(Number.isFinite);
     const distanceMeters = repMetrics.length
       ? repMetrics.reduce((sum, metric) => sum + metric.totalRomMeters, 0) / repMetrics.length
@@ -1557,13 +1650,14 @@
       verticalTravelPixels,
       pathTravelPixels,
       scores: rawPath.map((point) => point.score),
-      expectedReps: detectedRepCount || 1
+      expectedReps: expectedReps || detectedRepCount || 1
     });
     const trackingWarning = [
       aspectWarning,
       trackingConfidence === "low" ? "追跡の信頼度が低めです。手動2点測定でも確認してください。" : null,
       repWarning || null,
-      getTrimLengthWarning(record.lift, detectedRepCount || null, durationSeconds)
+      repFilter.excludedCount ? `除外候補 ${repFilter.excludedCount}件（床バウンド/微細揺れ/入力Rep数超過）` : null,
+      getTrimLengthWarning(record.lift, expectedReps || detectedRepCount || null, durationSeconds)
     ].filter(Boolean).join(" ");
 
     return {
@@ -1575,7 +1669,7 @@
       trackingWarning: trackingWarning || null,
       lift: record.lift,
       weight: Number(record.weight) || null,
-      reps: detectedRepCount || Number(record.reps) || null,
+      reps: expectedReps || detectedRepCount || Number(record.reps) || null,
       rpe: Number(record.rpe) || null,
       calibration: {
         plateDiameterCm,
@@ -1597,8 +1691,10 @@
         analysisMode: "deep-precision-standard",
         trackerFusion: markerMode ? null : "template-edge-histogram-motion-prediction",
         lift: record.lift,
-        expectedReps: null,
+        expectedReps,
         detectedReps: detectedRepCount,
+        detectedBeforeFilter: repFilter.detectedBeforeFilter,
+        excludedRepCount: repFilter.excludedCount,
         startRoi: plateRoi,
         markerRoi: markerMode ? trackingRoi : null,
         markerAssistUsed: Boolean(markerMode),
@@ -1620,6 +1716,7 @@
         trackPath: path,
         trackerDiagnostics: rawPath.map((point) => ({ time: point.time, confidence: point.confidence, score: point.score, tracker: point.tracker })).slice(0, 240),
         repMetrics,
+        excludedRepMetrics: repFilter.excluded,
         primaryVbtMetric,
         repVelocities: repMetrics.map((metric) => ({
           rep: metric.repIndex,

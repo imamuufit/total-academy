@@ -1,379 +1,206 @@
---- v183_09/video.js	2026-06-12 06:45:37.940113057 +0000
-+++ v183_10/video.js	2026-06-12 07:10:10.668590816 +0000
-@@ -24,7 +24,7 @@
+--- /mnt/data/v183_10/video.js	2026-06-12 07:10:10.668590816 +0000
++++ /mnt/data/v183_11/video.js	2026-06-12 07:30:22.270956970 +0000
+@@ -24,8 +24,11 @@
    const VBT_MULTI_TRACKER_HISTOGRAM_WEIGHT = 0.18;
    const VBT_MULTI_TRACKER_MOTION_WEIGHT = 0.14;
    const VBT_MULTI_TRACKER_PREDICTION_WEIGHT = 0.08;
--  const VBT_DEBUG_TRACE_VERSION = "v183.09-roi-anchor-calibration-isolated";
-+  const VBT_DEBUG_TRACE_VERSION = "v183.10-dl-hub-center-snap-balanced-detect";
+-  const VBT_DEBUG_TRACE_VERSION = "v183.10-dl-hub-center-snap-balanced-detect";
++  const VBT_DEBUG_TRACE_VERSION = "v183.11-rep-count-guard-dl-bounce-filter";
    const VBT_DEBUG_MONTAGE_PANELS = 5;
++  const VBT_DL_MIN_VALID_ROM_M = 0.30;
++  const VBT_DL_SOFT_MIN_VALID_ROM_M = 0.24;
++  const VBT_MIN_CONCENTRIC_DURATION_S = 0.20;
    let bodyPixModelPromise = null;
  
-@@ -3185,18 +3185,73 @@
-     return { score, discMassScore, centerMassScore, cornerContrastScore, verticalMassScore, insideDarkRatio, cornerDarkRatio, centerDarkRatio, topDarkRatio, bottomDarkRatio, floorSpecklePenalty };
+   const GENERAL_RPE_VELOCITY = {
+@@ -1063,6 +1066,93 @@
+     });
    }
  
-+  function plateHubCenterEvidence(luminanceAt, candidate) {
-+    if (!candidate) return { score: 0, hubContrastScore: 0, brightHubScore: 0, darkHubScore: 0, ringDarkScore: 0, centerAvg: 0, ringAvg: 0 };
-+    const size = candidate.width;
-+    const cx = candidate.x + size / 2;
-+    const cy = candidate.y + size / 2;
-+    const radius = size / 2;
-+    const grid = 15;
-+    let centerCount = 0;
-+    let centerLum = 0;
-+    let centerBright = 0;
-+    let centerDark = 0;
-+    let ringCount = 0;
-+    let ringLum = 0;
-+    let ringDark = 0;
-+    let outerCount = 0;
-+    let outerLum = 0;
-+    for (let gy = 0; gy < grid; gy += 1) {
-+      const ny = -1 + (gy / Math.max(1, grid - 1)) * 2;
-+      for (let gx = 0; gx < grid; gx += 1) {
-+        const nx = -1 + (gx / Math.max(1, grid - 1)) * 2;
-+        const r = Math.hypot(nx, ny);
-+        const lum = luminanceAt(cx + nx * radius, cy + ny * radius);
-+        if (r <= 0.24) {
-+          centerCount += 1;
-+          centerLum += lum;
-+          if (lum > 145) centerBright += 1;
-+          if (lum < 95) centerDark += 1;
-+        } else if (r >= 0.34 && r <= 0.64) {
-+          ringCount += 1;
-+          ringLum += lum;
-+          if (lum < 118) ringDark += 1;
-+        } else if (r >= 0.72 && r <= 0.92) {
-+          outerCount += 1;
-+          outerLum += lum;
-+        }
-+      }
-+    }
-+    const centerAvg = centerLum / Math.max(1, centerCount);
-+    const ringAvg = ringLum / Math.max(1, ringCount);
-+    const outerAvg = outerLum / Math.max(1, outerCount);
-+    const brightHubRatio = centerBright / Math.max(1, centerCount);
-+    const darkHubRatio = centerDark / Math.max(1, centerCount);
-+    const ringDarkRatio = ringDark / Math.max(1, ringCount);
-+    // DLの正面〜斜め横では、黒いプレート内に銀色ハブが見えることが多い。
-+    // ただしハブが暗く見える動画もあるため、明るい中心・暗い中心の両方を許容し、周囲リングとの差を重視する。
-+    const hubContrastScore = clamp(Math.abs(centerAvg - ringAvg) * 0.42 + Math.abs(centerAvg - outerAvg) * 0.12, 0, 28);
-+    const brightHubScore = clamp(brightHubRatio * 24 + Math.max(0, centerAvg - ringAvg - 8) * 0.28, 0, 28);
-+    const darkHubScore = clamp(darkHubRatio * 14 + Math.max(0, ringAvg - centerAvg - 8) * 0.18, 0, 16);
-+    const ringDarkScore = clamp(ringDarkRatio * 18, 0, 18);
-+    const score = clamp(hubContrastScore + Math.max(brightHubScore, darkHubScore) + ringDarkScore, 0, 70);
-+    return { score, hubContrastScore, brightHubScore, darkHubScore, ringDarkScore, centerAvg, ringAvg, outerAvg, brightHubRatio, darkHubRatio, ringDarkRatio };
++  function expectedRepCountFromRecord(record) {
++    const reps = Number(record?.reps);
++    return Number.isFinite(reps) && reps > 0 ? Math.round(reps) : null;
 +  }
 +
-   function refinePlateCandidateByDisc(luminanceAt, candidate, lift, width, height) {
-     if (!candidate || lift !== "DL") return candidate;
-     const baseSize = candidate.width;
-     const baseCenterX = candidate.x + candidate.width / 2;
-     const baseCenterY = candidate.y + candidate.height / 2;
-     let best = null;
--    const sizeFactors = [0.78, 0.94, 1.08];
--    const offsets = [-0.38, -0.16, 0.10, 0.30];
--    const xOffsets = [-0.14, 0, 0.14];
-+    // v183.10: 近い候補を「プレート中心」へ寄せるため、ハブ/中心コントラストを明示的に見る。
-+    // 以前は黒い円盤量を強く見すぎて、プレート上端・脚・床寄りに止まりやすかった。
-+    const sizeFactors = [0.82, 0.94, 1.04, 1.16, 1.28];
-+    const yOffsets = [-0.42, -0.24, -0.08, 0.08, 0.24, 0.40, 0.56];
-+    const xOffsets = [-0.28, -0.14, 0, 0.14, 0.28];
-     sizeFactors.forEach((factor) => {
--      const size = clamp(Math.round(baseSize * factor), 30, Math.min(width, height) * 0.34);
--      offsets.forEach((oy) => {
-+      const size = clamp(Math.round(baseSize * factor), 30, Math.min(width, height) * 0.36);
-+      yOffsets.forEach((oy) => {
-         xOffsets.forEach((ox) => {
-           const cx = baseCenterX + ox * baseSize;
-           const cy = baseCenterY + oy * baseSize;
-@@ -3208,17 +3263,41 @@
-           };
-           const shape = plateShapeEvidence(luminanceAt, probe);
-           const disc = plateDiscMassEvidence(luminanceAt, probe);
-+          const hub = plateHubCenterEvidence(luminanceAt, probe);
-+          const prior = plateContextPrior(lift, width, height, null, probe);
-+          if (prior.reject) return;
-           const yr = (probe.y + probe.height / 2) / Math.max(1, height);
-           const br = (probe.y + probe.height) / Math.max(1, height);
--          const idealY = clamp(1 - Math.abs(yr - 0.68) * 4.2, 0, 1) * 18;
--          const bottomOk = clamp(1 - Math.abs(br - 0.80) * 3.5, 0, 1) * 12;
--          const tooLowPenalty = yr > 0.80 ? (yr - 0.80) * 120 : 0;
--          const score = shape.score * 0.44 + disc.score * 1.16 + idealY + bottomOk - disc.floorSpecklePenalty - tooLowPenalty;
--          if (!best || score > best.score) best = { candidate: probe, shape, disc, score };
-+          const idealY = clamp(1 - Math.abs(yr - 0.68) * 3.8, 0, 1) * 18;
-+          const bottomOk = clamp(1 - Math.abs(br - 0.80) * 3.1, 0, 1) * 10;
-+          const tooLowPenalty = yr > 0.81 ? (yr - 0.81) * 150 : 0;
-+          const tooHighPenalty = yr < 0.52 ? (0.52 - yr) * 120 : 0;
-+          const floorPenalty = disc.floorSpecklePenalty * 1.35;
-+          const enoughPlate = disc.score >= 18 || shape.score >= 42 || hub.score >= 22;
-+          if (!enoughPlate) return;
-+          const score = shape.score * 0.42
-+            + disc.score * 1.02
-+            + hub.score * 1.34
-+            + prior.score * 0.34
-+            + idealY
-+            + bottomOk
-+            - prior.penalty * 0.20
-+            - floorPenalty
-+            - tooLowPenalty
-+            - tooHighPenalty;
-+          if (!best || score > best.score) best = { candidate: probe, shape, disc, hub, score };
-         });
-       });
-     });
--    return best?.candidate || candidate;
-+    if (!best) return candidate;
++  function minimumRomMetersForLift(lift) {
++    if (lift === "DL") return VBT_DL_MIN_VALID_ROM_M;
++    if (lift === "SQ") return 0.18;
++    if (lift === "BP") return 0.08;
++    return 0.08;
++  }
++
++  function repMetricStartTime(metric) {
++    return Number(metric?.concentric?.rawStartTime ?? metric?.concentric?.startTime ?? metric?.eccentric?.rawStartTime ?? metric?.eccentric?.startTime ?? 0);
++  }
++
++  function repMetricScore(metric, lift) {
++    const rom = Number(metric?.totalRomMeters) || 0;
++    const conDuration = Number(metric?.concentric?.duration) || 0;
++    const conVelocity = Number(metric?.concentric?.meanVelocity) || 0;
++    const peakVelocity = Number(metric?.concentric?.peakVelocity) || 0;
++    const durationScore = conDuration >= VBT_MIN_CONCENTRIC_DURATION_S ? 1 : 0.25;
++    const velocityScore = conVelocity > 0.05 && conVelocity < 1.6 ? 1 : 0.35;
++    const peakPenalty = peakVelocity > 2.0 ? 0.55 : 1;
++    const romTarget = lift === "DL" ? 0.45 : lift === "SQ" ? 0.35 : 0.12;
++    const romScore = Math.min(1.4, rom / Math.max(0.01, romTarget));
++    return romScore * durationScore * velocityScore * peakPenalty;
++  }
++
++  function sanitizeRepMetricsForExpectedCount(metrics, expectedReps, lift) {
++    const list = Array.isArray(metrics) ? metrics.filter(Boolean) : [];
++    const expected = Number(expectedReps);
++    const hasExpected = Number.isFinite(expected) && expected > 0;
++    const hardMinRom = minimumRomMetersForLift(lift);
++    const softMinRom = lift === "DL" ? VBT_DL_SOFT_MIN_VALID_ROM_M : hardMinRom * 0.75;
++    const excluded = [];
++    let candidates = list.filter((metric) => {
++      const rom = Number(metric?.totalRomMeters) || 0;
++      const conDuration = Number(metric?.concentric?.duration) || 0;
++      const conVelocity = Number(metric?.concentric?.meanVelocity) || 0;
++      const tooShortRom = lift === "DL" ? rom < softMinRom : rom < softMinRom;
++      const tooShortDuration = conDuration > 0 && conDuration < VBT_MIN_CONCENTRIC_DURATION_S;
++      const tooFastOrZero = conVelocity <= 0.04 || conVelocity > 1.8;
++      if (tooShortRom || tooShortDuration || tooFastOrZero) {
++        excluded.push({ ...metric, excludedReason: tooShortRom ? "ROM不足/床バウンド" : tooShortDuration ? "挙上時間不足" : "速度外れ値" });
++        return false;
++      }
++      return true;
++    });
++
++    if (lift === "DL") {
++      const strong = candidates.filter((metric) => Number(metric?.totalRomMeters) >= hardMinRom);
++      if (strong.length >= Math.min(hasExpected ? expected : 1, candidates.length)) {
++        excluded.push(...candidates.filter((metric) => Number(metric?.totalRomMeters) < hardMinRom).map((metric) => ({ ...metric, excludedReason: "DL最小ROM未満" })));
++        candidates = strong;
++      }
++    }
++
++    if (hasExpected && candidates.length > expected) {
++      const selectedSet = new Set(candidates
++        .slice()
++        .sort((a, b) => repMetricScore(b, lift) - repMetricScore(a, lift))
++        .slice(0, expected));
++      const over = candidates.filter((metric) => !selectedSet.has(metric)).map((metric) => ({ ...metric, excludedReason: "入力Rep数超過" }));
++      excluded.push(...over);
++      candidates = candidates.filter((metric) => selectedSet.has(metric));
++    }
++
++    candidates = candidates
++      .slice()
++      .sort((a, b) => repMetricStartTime(a) - repMetricStartTime(b))
++      .map((metric, index) => ({
++        ...metric,
++        repIndex: index + 1,
++        qualityNote: metric.qualityNote || (hasExpected ? "入力Rep数に合わせて採用" : metric.qualityNote),
++        repQuality: metric.repQuality ? { ...metric.repQuality, note: metric.repQuality.note || (hasExpected ? "入力Rep数に合わせて採用" : null) } : metric.repQuality
++      }));
++
 +    return {
-+      ...best.candidate,
-+      snapShapeScore: best.shape.score,
-+      snapDiscScore: best.disc.score,
-+      snapHubScore: best.hub.score,
-+      snapCenterAvg: best.hub.centerAvg,
-+      snapRingAvg: best.hub.ringAvg
++      metrics: candidates,
++      excluded: excluded.sort((a, b) => repMetricStartTime(a) - repMetricStartTime(b)),
++      expectedReps: hasExpected ? expected : null,
++      detectedBeforeFilter: list.length,
++      excludedCount: excluded.length
 +    };
-   }
- 
-   function detectPlateCandidateFromFrame(frame, options = {}) {
-@@ -3355,6 +3434,7 @@
-       const crossingScore = barbellCrossingEvidence(luminanceAt, width, height, candidate);
-       const shapeEvidence = plateShapeEvidence(luminanceAt, candidate);
-       const discEvidence = plateDiscMassEvidence(luminanceAt, candidate);
-+      const hubEvidence = plateHubCenterEvidence(luminanceAt, candidate);
-       const lifterEvidence = lifterRegionScore(motionContext, candidate);
-       const contextPrior = plateContextPrior(lift, width, height, motionContext, candidate);
-       if (contextPrior.reject) continue;
-@@ -3362,10 +3442,10 @@
-       if (dlGate.reject) continue;
-       const needPair = lift !== "DL" || (shapeEvidence.score < 42 && crossingScore < 18 && discEvidence.score < 30);
-       const pairScore = needPair ? platePairEvidence(luminanceAt, width, height, candidate) : 0;
--      const plateLike = (item.darkRatio >= 0.14 && item.edgeScore >= 12 && item.borderScore >= 3 && discEvidence.score >= 16) || (shapeEvidence.score >= 38 && discEvidence.score >= 18);
-+      const plateLike = (item.darkRatio >= 0.14 && item.edgeScore >= 12 && item.borderScore >= 3 && (discEvidence.score >= 16 || hubEvidence.score >= 20)) || (shapeEvidence.score >= 38 && (discEvidence.score >= 18 || hubEvidence.score >= 18));
-       if (!plateLike) continue;
--      if (lift === "DL" && (discEvidence.score < 20 || discEvidence.floorSpecklePenalty > 28)) continue;
--      if (lift === "DL" && shapeEvidence.score < 42 && crossingScore < 18 && pairScore < 8 && discEvidence.score < 30) continue;
-+      if (lift === "DL" && (discEvidence.score < 18 && hubEvidence.score < 22 || discEvidence.floorSpecklePenalty > 30)) continue;
-+      if (lift === "DL" && shapeEvidence.score < 42 && crossingScore < 18 && pairScore < 8 && discEvidence.score < 30 && hubEvidence.score < 24) continue;
-       if (lift !== "DL" && hasBarLine && item.barScore < 6 && crossingScore < 10 && lifterEvidence.motionScore < 0.28) continue;
-       const centerPenalty = Math.abs(refinedCenterX / width - 0.5) < 0.10 ? 16 : 0;
-       const topPenalty = refinedCenterY < height * 0.08 ? 20 : 0;
-@@ -3386,7 +3466,8 @@
-         + item.edgeScore * 0.18
-         + item.borderScore * 0.10
-         + shapeEvidence.score * 0.82
--        + discEvidence.score * 1.55
-+        + discEvidence.score * 1.38
-+        + hubEvidence.score * 1.18
-         + sideBias
-         + item.barScore * 1.08
-         + crossingScore * 1.08
-@@ -3422,6 +3503,10 @@
-         borderScore: item.borderScore,
-         centerY: refinedCenterY,
-         discScore: discEvidence.score,
-+        hubCenterScore: hubEvidence.score,
-+        hubContrastScore: hubEvidence.hubContrastScore,
-+        brightHubScore: hubEvidence.brightHubScore,
-+        darkHubScore: hubEvidence.darkHubScore,
-         discMassScore: discEvidence.discMassScore,
-         centerMassScore: discEvidence.centerMassScore,
-         cornerContrastScore: discEvidence.cornerContrastScore,
-@@ -3463,6 +3548,7 @@
-       const snapped = shouldSnap ? refinePlateCandidateByDisc(luminanceAt, item, lift, width, height) : item;
-       const snapShape = snapped === item ? null : plateShapeEvidence(luminanceAt, snapped);
-       const snapDisc = snapped === item ? null : plateDiscMassEvidence(luminanceAt, snapped);
-+      const snapHub = snapped === item ? null : plateHubCenterEvidence(luminanceAt, snapped);
-       const roi = clampPlateRoi({
-         x: snapped.x / scale,
-         y: snapped.y / scale,
-@@ -3483,6 +3569,10 @@
-         pairScore: item.pairScore,
-         shapeScore: snapShape?.score ?? item.shapeScore,
-         discScore: snapDisc?.score ?? item.discScore,
-+        hubCenterScore: snapHub?.score ?? item.hubCenterScore,
-+        hubContrastScore: snapHub?.hubContrastScore ?? item.hubContrastScore,
-+        brightHubScore: snapHub?.brightHubScore ?? item.brightHubScore,
-+        darkHubScore: snapHub?.darkHubScore ?? item.darkHubScore,
-         discMassScore: snapDisc?.discMassScore ?? item.discMassScore,
-         centerMassScore: snapDisc?.centerMassScore ?? item.centerMassScore,
-         cornerContrastScore: snapDisc?.cornerContrastScore ?? item.cornerContrastScore,
-@@ -3572,6 +3662,10 @@
-         hub: compactDebugNumber(candidate.hubScore, 2),
-         fill: compactDebugNumber(candidate.fillScore, 2),
-         disc: compactDebugNumber(candidate.discScore, 2),
-+        hubCenter: compactDebugNumber(candidate.hubCenterScore, 2),
-+        hubContrast: compactDebugNumber(candidate.hubContrastScore, 2),
-+        brightHub: compactDebugNumber(candidate.brightHubScore, 2),
-+        darkHub: compactDebugNumber(candidate.darkHubScore, 2),
-         discMass: compactDebugNumber(candidate.discMassScore, 2),
-         centerMass: compactDebugNumber(candidate.centerMassScore, 2),
-         cornerContrast: compactDebugNumber(candidate.cornerContrastScore, 2),
-@@ -3889,23 +3983,24 @@
- 
-   function makeAutoDetectSampleTimes(start, end) {
-     const duration = Math.max(0.1, end - start);
--    // v183.08: v183.05系の過剰な高速化でラックへ吸われたため、代表フレームを少し戻す。
--    // ただし数分化しないよう、上限は20枚台に抑え、粗検出→上位精査の二段階は維持する。
-+    // v183.10: v183.09でROI/換算分離は安定したため、検出は少しだけ処理量を戻す。
-+    // 目的は「近い候補」ではなく、複数時点で最大プレート中心・ハブが一致する候補を拾うこと。
-     const touchDevice = typeof navigator !== "undefined" && Number(navigator.maxTouchPoints) > 0;
-     const narrowScreen = typeof window !== "undefined" && window.matchMedia?.("(max-width: 760px)")?.matches;
-     const mobileLike = touchDevice || narrowScreen;
--    const maxFrames = mobileLike ? 18 : 24;
--    const minFrames = mobileLike ? 9 : 11;
--    const count = clamp(Math.round(duration * (mobileLike ? 0.50 : 0.66)), minFrames, maxFrames);
-+    const maxFrames = mobileLike ? 26 : 34;
-+    const minFrames = mobileLike ? 12 : 15;
-+    const count = clamp(Math.round(duration * (mobileLike ? 0.78 : 0.95)), minFrames, maxFrames);
-     const times = [];
-     for (let index = 0; index < count; index += 1) {
-       const ratio = count === 1 ? 0 : index / (count - 1);
-       times.push(clamp(start + duration * ratio, start, end));
++  }
++
+   function getPrimaryVbtMetric(metrics) {
+     const velocities = (metrics || []).map((metric) => metric.concentric?.meanVelocity).filter(Number.isFinite);
+     const best = velocities.length ? Math.max(...velocities) : null;
+@@ -1536,11 +1626,14 @@
+       throw new Error("プレートの上下移動を捉えられませんでした。緑枠と測定範囲を確認してください。");
      }
--    [0.06, 0.16, 0.28, 0.42, 0.50, 0.64, 0.78, 0.92, 0.98].forEach((ratio) => {
-+    // DLでは床引き開始・ロックアウト・戻しでプレートの見え方が変わるため、要所を厚めに確認する。
-+    [0.04, 0.08, 0.14, 0.22, 0.32, 0.42, 0.50, 0.58, 0.68, 0.78, 0.88, 0.94, 0.985].forEach((ratio) => {
-       times.push(clamp(start + duration * ratio, start, end));
+     const metersPerPixel = (plateDiameterCm / 100) / plateDiameterPixels;
+-    const repPhases = detectRepPhases(path, record.lift, null);
+-    const repMetrics = calculateRepVelocityMetrics(repPhases, { path, metersPerPixel, lift: record.lift, expectedReps: null });
++    const expectedReps = expectedRepCountFromRecord(record);
++    const rawRepPhases = detectRepPhases(path, record.lift, null);
++    const rawRepMetrics = calculateRepVelocityMetrics(rawRepPhases, { path, metersPerPixel, lift: record.lift, expectedReps });
++    const repFilter = sanitizeRepMetricsForExpectedCount(rawRepMetrics, expectedReps, record.lift);
++    const repMetrics = repFilter.metrics;
+     const detectedRepCount = repMetrics.length;
+     const primaryVbtMetric = getPrimaryVbtMetric(repMetrics);
+-    const repWarning = validateRepDetection(repMetrics, null);
++    const repWarning = validateRepDetection(repMetrics, expectedReps);
+     const concentricVelocities = repMetrics.map((metric) => metric.concentric?.meanVelocity).filter(Number.isFinite);
+     const distanceMeters = repMetrics.length
+       ? repMetrics.reduce((sum, metric) => sum + metric.totalRomMeters, 0) / repMetrics.length
+@@ -1557,13 +1650,14 @@
+       verticalTravelPixels,
+       pathTravelPixels,
+       scores: rawPath.map((point) => point.score),
+-      expectedReps: detectedRepCount || 1
++      expectedReps: expectedReps || detectedRepCount || 1
      });
--    return [...new Set(times.map((time) => Number(time.toFixed(3))))].sort((a, b) => a - b).slice(0, maxFrames + 4);
-+    return [...new Set(times.map((time) => Number(time.toFixed(3))))].sort((a, b) => a - b).slice(0, maxFrames + 6);
-   }
+     const trackingWarning = [
+       aspectWarning,
+       trackingConfidence === "low" ? "追跡の信頼度が低めです。手動2点測定でも確認してください。" : null,
+       repWarning || null,
+-      getTrimLengthWarning(record.lift, detectedRepCount || null, durationSeconds)
++      repFilter.excludedCount ? `除外候補 ${repFilter.excludedCount}件（床バウンド/微細揺れ/入力Rep数超過）` : null,
++      getTrimLengthWarning(record.lift, expectedReps || detectedRepCount || null, durationSeconds)
+     ].filter(Boolean).join(" ");
  
-   function deepDetectMinimumWaitMs(sampleCount, durationSeconds) {
-@@ -3936,7 +4031,8 @@
-     const dlSidePenalty = lift === "DL" ? Math.max(0, Math.abs(xRatio - 0.52) - 0.24) * 170 : 0;
-     return clamp(Number(item.score || 0), -80, 140) * 0.20
-       + clamp(Number(item.shapeScore || item.shapeEvidence || 0), 0, 92) * 0.34
--      + clamp(Number(item.discScore || 0), 0, 82) * 0.58
-+      + clamp(Number(item.discScore || 0), 0, 82) * 0.50
-+      + clamp(Number(item.hubCenterScore || 0), 0, 70) * 0.46
-       + clamp(Number(item.barScore || 0) + Number(item.crossingScore || 0) * 0.35, 0, 75) * 0.34
-       + clamp(Number(item.contextPriorScore || 0), 0, 96) * 0.62
-       + clamp(Number(item.motionScore || 0), 0, 1) * 16
-@@ -3990,6 +4086,7 @@
-     const pairEvidence = items.reduce((sum, item) => sum + Number(item.pairScore || 0), 0) / Math.max(1, items.length);
-     const shapeEvidence = items.reduce((sum, item) => sum + Number(item.shapeScore || item.shapeEvidence || 0), 0) / Math.max(1, items.length);
-     const discEvidence = items.reduce((sum, item) => sum + Number(item.discScore || 0), 0) / Math.max(1, items.length);
-+    const hubEvidence = items.reduce((sum, item) => sum + Number(item.hubCenterScore || 0), 0) / Math.max(1, items.length);
-     const floorSpecklePenalty = items.reduce((sum, item) => sum + Number(item.floorSpecklePenalty || 0), 0) / Math.max(1, items.length);
-     const avgYRatio = items.reduce((sum, item) => sum + ((item.roi.y + item.roi.height / 2) / Math.max(1, Number(item.frameHeight) || 1)), 0) / Math.max(1, items.length);
-     const avgXRatio = items.reduce((sum, item) => sum + ((item.roi.x + item.roi.width / 2) / Math.max(1, Number(item.frameWidth) || 1)), 0) / Math.max(1, items.length);
-@@ -4010,7 +4107,8 @@
-       + clamp(barEvidence, 0, 78) * 0.34
-       + clamp(pairEvidence, 0, 26) * 0.16
-       + clamp(shapeEvidence, 0, 92) * 0.24
--      + clamp(discEvidence, 0, 82) * 0.58
-+      + clamp(discEvidence, 0, 82) * 0.46
-+      + clamp(hubEvidence, 0, 70) * 0.36
-       + clamp(contextEvidence, 0, 96) * 0.42
-       + clamp(lifterEvidence, 0, 1) * 10
-       + clamp(personEvidence, 0, 1) * 14
-@@ -4049,6 +4147,7 @@
-       personEvidence,
-       shapeEvidence,
-       discEvidence,
-+      hubEvidence,
-       floorSpecklePenalty,
-       avgYRatio,
-       avgXRatio,
-@@ -4090,6 +4189,8 @@
-       personEvidence: best.personEvidence,
-       shapeEvidence: best.shapeEvidence,
-       discEvidence: best.discEvidence,
-+      hubEvidence: best.hubEvidence,
-+      hubCenterScore: best.hubEvidence,
-       floorSpecklePenalty: best.floorSpecklePenalty,
-       avgYRatio: best.avgYRatio,
-       motionEvidence: best.motionEvidence,
-@@ -4127,6 +4228,8 @@
-         personEvidence: scored.personEvidence,
-         shapeEvidence: scored.shapeEvidence,
-         discEvidence: scored.discEvidence,
-+        hubEvidence: scored.hubEvidence,
-+        hubCenterScore: scored.hubEvidence,
-         floorSpecklePenalty: scored.floorSpecklePenalty,
-         avgYRatio: scored.avgYRatio,
-         avgXRatio: scored.avgXRatio,
-@@ -4161,8 +4264,9 @@
-           const move = hasFiniteNumber(candidate.motionRatio) ? Number(candidate.motionRatio).toFixed(2) : "--";
-           const shape = hasFiniteNumber(candidate.shapeEvidence ?? candidate.shapeScore) ? Number(candidate.shapeEvidence ?? candidate.shapeScore).toFixed(0) : "--";
-           const bar = hasFiniteNumber(candidate.barScore) ? Number(candidate.barScore).toFixed(0) : "--";
-+          const hub = hasFiniteNumber(candidate.hubEvidence ?? candidate.hubCenterScore) ? Number(candidate.hubEvidence ?? candidate.hubCenterScore).toFixed(0) : "--";
-           return `<button type="button" class="vbt-candidate-button ${selected ? "selected" : ""}" data-vbt-candidate-select="${index}">
--            <strong>候補${index + 1}</strong><span>信頼${confidence} / 形状 ${shape} / 円盤 ${hasFiniteNumber(candidate.discEvidence ?? candidate.discScore) ? Number(candidate.discEvidence ?? candidate.discScore).toFixed(0) : "--"} / 動き ${move} / バー ${bar}</span>
-+            <strong>候補${index + 1}</strong><span>信頼${confidence} / 形状 ${shape} / 円盤 ${hasFiniteNumber(candidate.discEvidence ?? candidate.discScore) ? Number(candidate.discEvidence ?? candidate.discScore).toFixed(0) : "--"} / 中心 ${hub} / 動き ${move} / バー ${bar}</span>
-           </button>`;
-         }).join("")}
-       </div>
-@@ -4413,7 +4517,7 @@
-       setVbtState(dialog, { autoDetectionMotionContext: lifterMotionContext });
-       updateAutoDetectProgress(dialog, 2, lifterMotionContext?.aiPersonDetected ? "2/8 人物領域と動きの重なりを確認中…" : lifterMotionContext ? "2/8 リフター周辺の動き領域を確認中…" : "2/8 リフター領域が弱いため通常検出も併用中…", 42);
-       const candidateStageStartedAt = performance.now();
--      const candidateStageBudgetMs = (typeof navigator !== "undefined" && Number(navigator.maxTouchPoints) > 0) ? 2600 : 3600;
-+      const candidateStageBudgetMs = (typeof navigator !== "undefined" && Number(navigator.maxTouchPoints) > 0) ? 5200 : 6800;
-       let candidateFramesChecked = 0;
-       for (let index = 0; index < sampledFrames.length; index += 1) {
-         const elapsedCandidateMs = performance.now() - candidateStageStartedAt;
-@@ -4424,8 +4528,8 @@
-         const { time, frame } = sampledFrames[index];
-         const remainingFrames = Math.max(1, sampledFrames.length - index);
-         const remainingBudget = Math.max(700, candidateStageBudgetMs - (performance.now() - candidateStageStartedAt));
--        const perFrameBudget = clamp(remainingBudget / remainingFrames, 130, (typeof navigator !== "undefined" && Number(navigator.maxTouchPoints) > 0) ? 260 : 360);
--        const candidates = detectPlateCandidateFromFrame(frame, { lift: record.lift, returnCandidates: true, maxCandidates: 3, motionContext: lifterMotionContext, deadlineMs: performance.now() + perFrameBudget, maxInspections: record.lift === "DL" ? 380 : 500, maxExpensiveCandidates: record.lift === "DL" ? 46 : 62 }) || [];
-+        const perFrameBudget = clamp(remainingBudget / remainingFrames, 190, (typeof navigator !== "undefined" && Number(navigator.maxTouchPoints) > 0) ? 420 : 560);
-+        const candidates = detectPlateCandidateFromFrame(frame, { lift: record.lift, returnCandidates: true, maxCandidates: 3, motionContext: lifterMotionContext, deadlineMs: performance.now() + perFrameBudget, maxInspections: record.lift === "DL" ? 620 : 760, maxExpensiveCandidates: record.lift === "DL" ? 78 : 96 }) || [];
-         candidateFramesChecked += 1;
-         candidates.forEach((candidate) => allCandidates.push({ ...candidate, sampleTime: time, sampleIndex: index }));
-         const progress = 42 + ((index + 1) / sampledFrames.length) * 40;
-@@ -4468,7 +4572,7 @@
-         return;
-       }
-       if (weakAutoPlateCandidates(candidateList, record.lift)) {
--        const message = `プレート形状・バー接続・動きの確信度が低いため、自動候補を採用しませんでした。実際のプレート付近を1回タップしてください。解析フレーム ${sampleTimes.length}件 / 形状 ${(Number(bestCandidate.shapeEvidence ?? bestCandidate.shapeScore) || 0).toFixed(0)} / 円盤 ${(Number(bestCandidate.discEvidence ?? bestCandidate.discScore) || 0).toFixed(0)} / 動き ${(Number(bestCandidate.motionRatio) || 0).toFixed(2)}`;
-+        const message = `プレート形状・バー接続・動きの確信度が低いため、自動候補を採用しませんでした。実際のプレート付近を1回タップしてください。解析フレーム ${sampleTimes.length}件 / 形状 ${(Number(bestCandidate.shapeEvidence ?? bestCandidate.shapeScore) || 0).toFixed(0)} / 円盤 ${(Number(bestCandidate.discEvidence ?? bestCandidate.discScore) || 0).toFixed(0)} / 中心 ${(Number(bestCandidate.hubEvidence ?? bestCandidate.hubCenterScore) || 0).toFixed(0)} / 動き ${(Number(bestCandidate.motionRatio) || 0).toFixed(2)}`;
-         setVbtState(dialog, {
-           autoPlateCandidates: candidateList,
-           selectedCandidateIndex: null,
-@@ -4479,7 +4583,7 @@
-         return;
-       }
-       const lowMessage = "自動検出の信頼度：低。候補を選び、緑枠が最大プレートを囲んでいるか確認してください。";
--      const okMessage = `プレートの外周形状とバー接続から候補を${candidateList.length}件見つけました。正しい候補を選び、緑枠が最大プレートを囲んでいれば進んでください。確認フレーム ${sampleTimes.length}件 / 採用フレーム ${bestCandidate.sampleCount || 1}件 / 形状 ${(Number(bestCandidate.shapeEvidence ?? bestCandidate.shapeScore) || 0).toFixed(0)} / 円盤 ${(Number(bestCandidate.discEvidence ?? bestCandidate.discScore) || 0).toFixed(0)} / 動き ${(Number(bestCandidate.motionRatio) || 0).toFixed(2)}`;
-+      const okMessage = `プレートの外周形状とバー接続から候補を${candidateList.length}件見つけました。正しい候補を選び、緑枠が最大プレートを囲んでいれば進んでください。確認フレーム ${sampleTimes.length}件 / 採用フレーム ${bestCandidate.sampleCount || 1}件 / 形状 ${(Number(bestCandidate.shapeEvidence ?? bestCandidate.shapeScore) || 0).toFixed(0)} / 円盤 ${(Number(bestCandidate.discEvidence ?? bestCandidate.discScore) || 0).toFixed(0)} / 中心 ${(Number(bestCandidate.hubEvidence ?? bestCandidate.hubCenterScore) || 0).toFixed(0)} / 動き ${(Number(bestCandidate.motionRatio) || 0).toFixed(2)}`;
-       const resultMessage = bestCandidate.confidence === "low" ? lowMessage : okMessage;
-       const bestCalibrationPixels = candidateCalibrationPixels(bestCandidate, bestCandidate.roi);
-       const bestAnchor = roiCenter(bestCandidate.roi);
---- v183_09/manifest.webmanifest	2026-06-12 06:45:55.798546316 +0000
-+++ v183_10/manifest.webmanifest	2026-06-12 07:10:19.611748548 +0000
+     return {
+@@ -1575,7 +1669,7 @@
+       trackingWarning: trackingWarning || null,
+       lift: record.lift,
+       weight: Number(record.weight) || null,
+-      reps: detectedRepCount || Number(record.reps) || null,
++      reps: expectedReps || detectedRepCount || Number(record.reps) || null,
+       rpe: Number(record.rpe) || null,
+       calibration: {
+         plateDiameterCm,
+@@ -1597,8 +1691,10 @@
+         analysisMode: "deep-precision-standard",
+         trackerFusion: markerMode ? null : "template-edge-histogram-motion-prediction",
+         lift: record.lift,
+-        expectedReps: null,
++        expectedReps,
+         detectedReps: detectedRepCount,
++        detectedBeforeFilter: repFilter.detectedBeforeFilter,
++        excludedRepCount: repFilter.excludedCount,
+         startRoi: plateRoi,
+         markerRoi: markerMode ? trackingRoi : null,
+         markerAssistUsed: Boolean(markerMode),
+@@ -1620,6 +1716,7 @@
+         trackPath: path,
+         trackerDiagnostics: rawPath.map((point) => ({ time: point.time, confidence: point.confidence, score: point.score, tracker: point.tracker })).slice(0, 240),
+         repMetrics,
++        excludedRepMetrics: repFilter.excluded,
+         primaryVbtMetric,
+         repVelocities: repMetrics.map((metric) => ({
+           rep: metric.repIndex,
+--- /mnt/data/v183_10/manifest.webmanifest	2026-06-12 07:10:19.611748548 +0000
++++ /mnt/data/v183_11/manifest.webmanifest	2026-06-12 07:30:22.271826304 +0000
 @@ -2,7 +2,7 @@
    "name": "Platform Buddy",
    "short_name": "Buddy",
    "description": "BIG3の現在地と目標を見える化し、PRサイクル、記録、分析、大会準備までつなげるパワーリフティング向けPWAです。",
--  "start_url": "./index.html?v=183.09",
-+  "start_url": "./index.html?v=183.10",
+-  "start_url": "./index.html?v=183.10",
++  "start_url": "./index.html?v=183.11",
    "scope": "./",
    "display": "standalone",
    "background_color": "#f4efe6",
---- v183_09/sw.js	2026-06-12 06:45:55.799666945 +0000
-+++ v183_10/sw.js	2026-06-12 07:10:19.612859440 +0000
+--- /mnt/data/v183_10/sw.js	2026-06-12 07:10:19.612859440 +0000
++++ /mnt/data/v183_11/sw.js	2026-06-12 07:30:22.272500916 +0000
 @@ -1,14 +1,14 @@
--const CACHE_NAME = "platform-buddy-v183-09";
-+const CACHE_NAME = "platform-buddy-v183-10";
+-const CACHE_NAME = "platform-buddy-v183-10";
++const CACHE_NAME = "platform-buddy-v183-11";
  const CORE_ASSETS = [
    "./",
    "index.html",
--  "index.html?v=183.09",
-+  "index.html?v=183.10",
+-  "index.html?v=183.10",
++  "index.html?v=183.11",
    "styles.css",
--  "styles.css?v=183.08",
-+  "styles.css?v=183.10",
+-  "styles.css?v=183.10",
++  "styles.css?v=183.11",
    "app.js",
--  "app.js?v=183.08",
-+  "app.js?v=183.10",
+-  "app.js?v=183.10",
++  "app.js?v=183.11",
    "video.js",
--  "video.js?v=183.08",
-+  "video.js?v=183.10",
+-  "video.js?v=183.10",
++  "video.js?v=183.11",
    "manifest.webmanifest",
    "icon.svg",
    "apple-touch-icon.png",

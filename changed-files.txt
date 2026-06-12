@@ -1,31 +1,18 @@
-v183.10-vbt-dl-hub-center-snap-balanced-detect
+v183.11-vbt-rep-count-guard-dl-bounce-filter
 
-変更ファイル:
+Changed files:
 - video.js
-- manifest.webmanifest
 - sw.js
+- manifest.webmanifest
 - changed-files.txt
 - DIFF
 
-目的:
-- v183.09でROIサイズと換算基準の分離は安定したため、次に自動検出候補を「プレート付近」から「プレート中心」へ寄せる。
-- 処理速度を少し犠牲にして、DLプレートの中心ハブ・円盤中心・複数フレーム一貫性をより強く評価する。
-
-主な変更:
-- plateHubCenterEvidence() を追加し、黒い円盤内の銀色ハブ/中心コントラストを評価。
-- DL用の refinePlateCandidateByDisc() を再設計し、上端・脚・床寄りではなくプレート中心へスナップしやすく変更。
-- 候補スコアに hubCenterScore / hubEvidence を追加。
-- 候補ボタンと開発者ログに「中心」スコアを表示。
-- 代表フレーム数を v183.09 より増やし、複数時点で最大プレート中心が一致する候補を優先。
-- 候補抽出の時間上限を少し伸ばし、3秒前後より少し長くても精度を優先するバランスへ変更。
-- PWAキャッシュを v183.10 に更新。
-
-確認:
-- node --check video.js OK
-- node --check sw.js OK
-- python3 -m json.tool manifest.webmanifest OK
-
-実機確認ポイント:
-- DLで候補ROIがプレート上端や脚周辺ではなく、円盤中心/ハブ付近へ寄るか。
-- 検出時間が許容範囲内か。
-- ROIを動かしてもサイズ固定・換算基準非連動が維持されるか。
+Summary:
+- 入力Rep数をVBTレップ区間検出の最終採用条件に使用。
+- DL x2 の動画で、4/4 や 5/5 として保存される誤認定を防ぐ安全装置を追加。
+- DLの有効Repに最小ROM・最小挙上時間・速度外れ値ゲートを追加。
+- 9〜20cm程度の小さい上下動を床バウンド/微細揺れ/追跡ズレとして除外。
+- 検出候補が入力Rep数を超えた場合、ROM・速度・時間の整合が良い上位Repだけを採用。
+- 測定データに detectedBeforeFilter / excludedRepCount / excludedRepMetrics を保存。
+- 結果警告に除外候補数を表示。
+- PWAキャッシュを v183.11 に更新。
