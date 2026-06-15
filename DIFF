@@ -1,240 +1,437 @@
---- video.js.bak
-+++ video.js
+--- v183.04.03/index.html
++++ v183.04.04/index.html
+@@ -12,7 +12,7 @@
+     <link rel="preload" as="image" href="home-bg-lite.jpg">
+     <link rel="preload" as="image" href="icon-sheet-lite.jpg">
+     <link rel="apple-touch-icon" href="apple-touch-icon.png">
+-    <link rel="stylesheet" href="styles.css?v=183.04.02">
++    <link rel="stylesheet" href="styles.css?v=183.04.04">
+   </head>
+   <body>
+     <div class="app-shell">
+@@ -1158,7 +1158,7 @@
+       </form>
+     </dialog>
+ 
+-    <script src="app.js?v=183.04.02"></script>
+-    <script src="video.js?v=183.04.02"></script>
++    <script src="app.js?v=183.04.04"></script>
++    <script src="video.js?v=183.04.04"></script>
+   </body>
+ </html>
+
+--- v183.04.03/video.js
++++ v183.04.04/video.js
 @@ -24,7 +24,7 @@
    const VBT_MULTI_TRACKER_HISTOGRAM_WEIGHT = 0.18;
    const VBT_MULTI_TRACKER_MOTION_WEIGHT = 0.14;
    const VBT_MULTI_TRACKER_PREDICTION_WEIGHT = 0.08;
--  const VBT_DEBUG_TRACE_VERSION = "v183.04.02-feedback-learning-data";
-+  const VBT_DEBUG_TRACE_VERSION = "v183.04.03-ai-rep-detect-no-input";
+-  const VBT_DEBUG_TRACE_VERSION = "v183.04.03-ai-rep-detect-no-input";
++  const VBT_DEBUG_TRACE_VERSION = "v183.04.04-deterministic-detect-ai-rep-stability";
    const VBT_DETECTION_FEEDBACK_KEY = "platformBuddyVbtDetectionFeedbackV1";
    const VBT_DL_MIN_VALID_ROM_M = 0.30;
    const VBT_DL_SOFT_MIN_VALID_ROM_M = 0.24;
-@@ -265,7 +265,8 @@
- 
-   function videoTitle(record) {
-     const weight = record.weight ? `${formatNumber(record.weight)}kg` : "重量未入力";
--    const reps = record.reps ? ` x ${formatNumber(record.reps)}` : "";
-+    const titleReps = record.userProvidedReps === true ? record.reps : (record.aiDetectedReps || record.detectedReps || null);
-+    const reps = titleReps ? ` x ${formatNumber(titleReps)}${record.userProvidedReps === true ? "" : " AI"}` : "";
-     const rpe = record.rpe ? ` @${formatNumber(record.rpe)}` : "";
-     return `${liftLabel(record.lift)} ${weight}${reps}${rpe}`;
-   }
-@@ -282,7 +283,7 @@
-     const distanceMeters = finiteOrNaN(measurement.distanceMeters ?? data?.distanceMeters);
-     const durationSeconds = finiteOrNaN(measurement.durationSeconds ?? data?.durationSeconds);
-     const detectedReps = Number(measurement.detectedReps ?? primary.repCountDetected ?? repMetrics.length);
--    const expectedReps = Number(measurement.expectedReps ?? data?.reps ?? velocityData.reps);
-+    const expectedReps = Number(measurement.expectedReps ?? null);
-     const trackingConfidence = velocityData.trackingConfidence || measurement.trackingConfidence || data?.trackingConfidence || "unknown";
-     const plateDiameterCm = finiteOrNaN(calibration.plateDiameterCm ?? measurement.plateDiameterCm ?? data?.plateDiameterCm);
-     const existingWarning = velocityData.trackingWarning || measurement.warning || velocityData.warning || data?.warningMessage || data?.warning;
-@@ -353,7 +354,7 @@
-     const peakVelocityRaw = primaryVbtMetric.bestRepConcentricMeanVelocity ?? record?.peakVelocity;
-     const velocityLossPercentRaw = primaryVbtMetric.velocityLossPercent ?? record?.velocityLossPercent;
-     const detectedRepsRaw = measurement.detectedReps ?? primaryVbtMetric.repCountDetected;
--    const expectedRepsRaw = measurement.expectedReps ?? record?.reps ?? velocityData.reps;
-+    const expectedRepsRaw = measurement.expectedReps ?? (record?.userProvidedReps === true || record?.repsSource === "user" ? record?.reps : null);
-     const lastRepVelocity = hasFiniteNumber(lastRepVelocityRaw) ? Number(lastRepVelocityRaw) : null;
-     const peakVelocity = hasFiniteNumber(peakVelocityRaw) ? Number(peakVelocityRaw) : null;
-     const velocityLossPercent = hasFiniteNumber(velocityLossPercentRaw) ? Number(velocityLossPercentRaw) : null;
-@@ -819,6 +820,65 @@
-     return phases;
-   }
- 
-+  function detectAutoRepPhasesByMotionBursts(path, lift) {
-+    const smoothed = smoothTrackPath(path);
-+    if (!Array.isArray(smoothed) || smoothed.length < 6) return [];
-+    const yValues = smoothed.map((point) => Number(point.y)).filter(Number.isFinite);
-+    const yRange = yValues.length ? Math.max(...yValues) - Math.min(...yValues) : 0;
-+    if (!Number.isFinite(yRange) || yRange < 8) return [];
-+    const phases = [];
-+    const minPrimaryTravel = Math.max(7, yRange * (lift === "DL" ? 0.20 : 0.18));
-+    const minReturnTravel = Math.max(5, yRange * (lift === "DL" ? 0.14 : 0.13));
-+    const minDuration = lift === "DL" ? 0.18 : 0.16;
-+    const segments = movementSegmentsFromPath(smoothed);
-+    const travelOf = (segment) => Number(segment?.travel) || Math.abs(Number(smoothed[segment?.endIndex]?.y) - Number(smoothed[segment?.startIndex]?.y));
-+    const durationOf = (segment) => Number(segment?.duration) || (Number(smoothed[segment?.endIndex]?.time) - Number(smoothed[segment?.startIndex]?.time));
-+    const startTimeOf = (segment) => Number(segment?.startTime ?? smoothed[segment?.startIndex]?.time ?? 0);
-+    const endTimeOf = (segment) => Number(segment?.endTime ?? smoothed[segment?.endIndex]?.time ?? 0);
-+
-+    if (lift === "DL") {
-+      let lastAcceptedStart = -Infinity;
-+      for (let index = 0; index < segments.length; index += 1) {
-+        const concentric = segments[index];
-+        if (!concentric || concentric.direction !== -1) continue;
-+        const travel = travelOf(concentric);
-+        const duration = durationOf(concentric);
-+        const startTime = startTimeOf(concentric);
-+        if (travel < minPrimaryTravel || duration < minDuration) continue;
-+        if (startTime - lastAcceptedStart < 0.65 && travel < minPrimaryTravel * 1.35) continue;
-+        const eccentric = segments.slice(index + 1).find((segment) => segment.direction === 1 && travelOf(segment) >= minReturnTravel) || null;
-+        phases.push({
-+          repIndex: phases.length + 1,
-+          concentric: { startIndex: concentric.startIndex, endIndex: concentric.endIndex },
-+          eccentric: eccentric ? { startIndex: eccentric.startIndex, endIndex: eccentric.endIndex } : null,
-+          restBeforeSeconds: phases.length ? Math.max(0, startTime - endTimeOf(segments.find((segment) => segment.endIndex === phases.at(-1).eccentric?.endIndex) || concentric)) : null,
-+          autoDetected: true
-+        });
-+        lastAcceptedStart = startTime;
-+        if (eccentric) index = Math.max(index, segments.findIndex((segment) => segment.startIndex === eccentric.startIndex));
-+      }
-+      return phases;
-+    }
-+
-+    for (let index = 0; index < segments.length; index += 1) {
-+      const eccentric = segments[index];
-+      if (!eccentric || eccentric.direction !== 1) continue;
-+      if (travelOf(eccentric) < minReturnTravel || durationOf(eccentric) < minDuration) continue;
-+      const concentricIndex = segments.slice(index + 1).findIndex((segment) => segment.direction === -1 && travelOf(segment) >= minPrimaryTravel && durationOf(segment) >= minDuration);
-+      if (concentricIndex < 0) continue;
-+      const concentric = segments[index + 1 + concentricIndex];
-+      phases.push({
-+        repIndex: phases.length + 1,
-+        eccentric: { startIndex: eccentric.startIndex, endIndex: eccentric.endIndex },
-+        concentric: { startIndex: concentric.startIndex, endIndex: concentric.endIndex },
-+        restBeforeSeconds: phases.length ? Math.max(0, startTimeOf(eccentric) - Number(smoothed[phases.at(-1).concentric.endIndex]?.time || 0)) : null,
-+        autoDetected: true
-+      });
-+      index = segments.findIndex((segment) => segment.startIndex === concentric.startIndex);
-+    }
-+    return phases;
-+  }
-+
-   function detectRepPhases(path, lift, expectedReps) {
-     const smoothed = smoothTrackPath(path);
-     if (smoothed.length < 5) return [];
-@@ -884,7 +944,11 @@
-       }
-     }
- 
--    return phases.length ? phases : detectRepPhasesByTurns(path, lift, expectedReps);
-+    const turnFallback = detectRepPhasesByTurns(path, lift, expectedReps);
-+    const autoBurstFallback = Number(expectedReps) > 0 ? [] : detectAutoRepPhasesByMotionBursts(path, lift);
-+    const primary = phases.length ? phases : turnFallback;
-+    if (!Number(expectedReps) && autoBurstFallback.length > primary.length) return autoBurstFallback;
-+    return primary.length ? primary : autoBurstFallback;
-   }
- 
-   function getTrimLengthWarning(lift, reps, durationSeconds) {
-@@ -1068,8 +1132,19 @@
-   }
- 
-   function expectedRepCountFromRecord(record) {
--    const reps = Number(record?.reps);
--    return Number.isFinite(reps) && reps > 0 ? Math.round(reps) : null;
-+    // v183.04.03: レップ入力欄は廃止済み。record.reps は過去のAI検出結果として残ることがあるため、
-+    // これを「ユーザー入力の期待Rep数」として扱うと、次回解析が1Repなどに固定されてしまう。
-+    const explicit = Number(record?.expectedReps);
-+    if (Number.isFinite(explicit) && explicit > 0) return Math.round(explicit);
-+    if (record?.userProvidedReps === true || record?.repsSource === "user") {
-+      const reps = Number(record?.reps);
-+      return Number.isFinite(reps) && reps > 0 ? Math.round(reps) : null;
-+    }
-+    return null;
-+  }
-+
-+  function hasUserExpectedReps(record) {
-+    return expectedRepCountFromRecord(record) !== null;
-   }
- 
-   function minimumRomMetersForLift(lift) {
-@@ -1140,8 +1215,8 @@
-       .map((metric, index) => ({
-         ...metric,
-         repIndex: index + 1,
--        qualityNote: metric.qualityNote || (hasExpected ? "入力Rep数に合わせて採用" : metric.qualityNote),
--        repQuality: metric.repQuality ? { ...metric.repQuality, note: metric.repQuality.note || (hasExpected ? "入力Rep数に合わせて採用" : null) } : metric.repQuality
-+        qualityNote: metric.qualityNote || (hasExpected ? "入力Rep数に合わせて採用" : "AI自動検出"),
-+        repQuality: metric.repQuality ? { ...metric.repQuality, note: metric.repQuality.note || (hasExpected ? "入力Rep数に合わせて採用" : "AI自動検出") } : metric.repQuality
-       }));
- 
-     return {
-@@ -1649,7 +1724,7 @@
-       aspectWarning,
-       trackingConfidence === "low" ? "追跡の信頼度が低めです。手動2点測定でも確認してください。" : null,
-       repWarning || null,
--      repFilter.excludedCount ? `除外候補 ${repFilter.excludedCount}件（床バウンド/微細揺れ/入力Rep数超過）` : null,
-+      repFilter.excludedCount ? `除外候補 ${repFilter.excludedCount}件（床バウンド/微細揺れ${expectedReps ? "/入力Rep数超過" : ""}）` : null,
-       getTrimLengthWarning(record.lift, expectedReps || detectedRepCount || null, durationSeconds)
-     ].filter(Boolean).join(" ");
- 
-@@ -1662,7 +1737,7 @@
-       trackingWarning: trackingWarning || null,
-       lift: record.lift,
-       weight: Number(record.weight) || null,
--      reps: expectedReps || detectedRepCount || Number(record.reps) || null,
-+      reps: detectedRepCount || expectedReps || (record.userProvidedReps === true ? Number(record.reps) : null) || null,
-       rpe: Number(record.rpe) || null,
-       calibration: {
-         plateDiameterCm,
-@@ -1887,7 +1962,7 @@
-       trackingWarning,
+@@ -1779,6 +1779,7 @@
+         trackerDiagnostics: rawPath.map((point) => ({ time: point.time, confidence: point.confidence, score: point.score, tracker: point.tracker })).slice(0, 240),
+         repMetrics,
+         excludedRepMetrics: repFilter.excluded,
++        excludedRepCandidates: repFilter.excluded,
+         primaryVbtMetric,
+         repVelocities: repMetrics.map((metric) => ({
+           rep: metric.repIndex,
+@@ -1951,7 +1952,7 @@
+       pathTravelPixels,
+       scores: rawPath.map((point) => point.score)
+     });
+-    const warning = measurementWarning({ durationSeconds, distanceMeters, meanVelocity, reps: record.reps });
++    const warning = measurementWarning({ durationSeconds, distanceMeters, meanVelocity, reps: expectedRepCountFromRecord(record) });
+     const trackingWarning = trackingConfidence === "low"
+       ? "追跡の信頼度が低いです。緑枠を見直すか、手動2点で確認してください。"
+       : warning || null;
+@@ -2004,7 +2005,7 @@
+     const distanceMeters = verticalPixels * metersPerPixel;
+     const durationSeconds = endTime - startTime;
+     const meanVelocity = distanceMeters / durationSeconds;
+-    const warning = measurementWarning({ durationSeconds, distanceMeters, meanVelocity, reps: record.reps });
++    const warning = measurementWarning({ durationSeconds, distanceMeters, meanVelocity, reps: expectedRepCountFromRecord(record) });
+     const path = [
+       { time: startTime, ...state.startPoint },
+       { time: endTime, ...state.endPoint }
+@@ -2016,7 +2017,7 @@
+       trackingWarning: warning || null,
        lift: record.lift,
        weight: Number(record.weight) || null,
 -      reps: Number(record.reps) || null,
-+      reps: Number(detectedRepCount) || Number(record.aiDetectedReps) || (record.userProvidedReps === true ? Number(record.reps) : null) || null,
++      reps: expectedRepCountFromRecord(record),
        rpe: Number(record.rpe) || null,
-       calibration: { plateDiameterCm, plateDiameterPixels, metersPerPixel, targetPoint, estimatedPlatePixels: estimatedPlatePixels || null },
-       measurement: {
-@@ -2023,7 +2098,7 @@
-     const bestVelocityRaw = primary.bestRepConcentricMeanVelocity;
-     const velocityLossRaw = primary.velocityLossPercent;
-     const detectedRepsRaw = measurement.detectedReps ?? primary.repCountDetected;
--    const expectedRepsRaw = measurement.expectedReps ?? data.reps;
-+    const expectedRepsRaw = measurement.expectedReps ?? null;
-     const lastVelocity = hasFiniteNumber(lastVelocityRaw) ? Number(lastVelocityRaw) : null;
-     const setAverage = hasFiniteNumber(setAverageRaw) ? Number(setAverageRaw) : null;
-     const heroVelocity = lastVelocity !== null ? lastVelocity : setAverage;
-@@ -3842,7 +3917,8 @@
-       id: record?.id || null,
-       lift: record?.lift || null,
-       weight: hasFiniteNumber(record?.weight) ? Number(record.weight) : null,
--      reps: hasFiniteNumber(record?.reps) ? Number(record.reps) : null,
-+      reps: record?.userProvidedReps === true && hasFiniteNumber(record?.reps) ? Number(record.reps) : null,
-+        aiDetectedReps: hasFiniteNumber(record?.aiDetectedReps) ? Number(record.aiDetectedReps) : null,
-       rpe: hasFiniteNumber(record?.rpe) ? Number(record.rpe) : null,
-       createdAt: record?.createdAt || record?.date || null,
-       video: {
-@@ -4588,7 +4664,7 @@
-     const startGuide = getVbtStartGuide(record.lift);
-     const initialStep = vbtWizardInitialStep(record);
-     const resultMarkup = vbtResultMarkup({ ...measurement, ...velocityData, lift: record.lift, rpe: record.rpe });
--    const recordRepLabel = record.reps ? ` × ${formatNumber(record.reps)}` : " × AI判定";
-+    const recordRepLabel = record.userProvidedReps === true && record.reps ? ` × ${formatNumber(record.reps)}` : (record.aiDetectedReps ? ` × ${formatNumber(record.aiDetectedReps)} AI` : " × AI判定");
-     const setSummary = `${liftLabel(record.lift)} ${formatNumber(record.weight)}kg${recordRepLabel} @${formatNumber(record.rpe)}`;
-     return `
-       <section class="manual-vbt-card vbt-wizard" data-vbt-card data-vbt-wizard-root>
-@@ -5572,7 +5648,11 @@
+       calibration: {
+         plateDiameterCm,
+@@ -2479,7 +2480,7 @@
+       }
+     }
+ 
+-    candidates.sort((a, b) => b.score - a.score);
++    candidates.sort(deterministicRawPlateCandidateCompare);
+     const merged = [];
+     candidates.forEach((candidate) => {
+       if (merged.some((item) => Math.abs(item.y - candidate.y) < height * 0.025)) return;
+@@ -3407,7 +3408,7 @@
+             lifterDistanceRatio: lifterEvidence.distanceRatio
+           };
+           candidates.push(scoredCandidate);
+-          if (!best || score > best.score) best = scoredCandidate;
++          if (!best || deterministicRawPlateCandidateCompare(scoredCandidate, best) < 0) best = scoredCandidate;
+         }
+       }
+     }
+@@ -3461,7 +3462,7 @@
+         frameHeight: Math.round(height / scale)
+       };
+     };
+-    candidates.sort((a, b) => b.score - a.score);
++    candidates.sort(deterministicRawPlateCandidateCompare);
+     if (options.returnCandidates) {
+       return candidates
+         .filter((item) => item.score >= Math.max(34, minScore - 18))
+@@ -3665,7 +3666,7 @@
+       drawScaledDebugRoi(ctx, motionContext?.roi, 1, panelScale, 0, 0, "rgba(245,158,11,0.92)", "lifter/motion");
+       const perFrameCandidates = (allCandidates || [])
+         .filter((candidate) => Number(candidate.sampleIndex) === frameIndex)
+-        .sort((a, b) => Number(b.score || 0) - Number(a.score || 0))
++        .sort(deterministicCandidateCompare)
+         .slice(0, 3);
+       perFrameCandidates.forEach((candidate, candidateIndex) => {
+         drawScaledDebugRoi(ctx, candidate.roi, frameScale, panelScale, 0, 0, candidateIndex === 0 ? "rgba(34,197,94,0.98)" : "rgba(59,130,246,0.86)", `c${candidateIndex + 1}`);
+@@ -3718,7 +3719,7 @@
+     const candidateBreakdown = (candidateList || []).map(candidateDebugBreakdown).map((item, index) => ({ ...item, selected: index === 0 }));
+     const rawTopCandidates = (allCandidates || [])
+       .slice()
+-      .sort((a, b) => Number(b.score || 0) - Number(a.score || 0))
++      .sort(deterministicCandidateCompare)
+       .slice(0, 18)
+       .map(candidateDebugBreakdown)
+       .filter(Boolean);
+@@ -3852,6 +3853,56 @@
+     }
+   }
+ 
++  function getVbtFeedbackCenterCorrection(lift) {
++    const samples = loadVbtDetectionFeedback()
++      .filter((item) => item?.verdict === "corrected"
++        && (!lift || item?.record?.lift === lift)
++        && item?.selectedCandidate?.roi
++        && item?.correctedCenterPoint
++        && Number(item?.record?.video?.width) > 0
++        && Number(item?.record?.video?.height) > 0)
++      .map((item) => ({
++        dxRatio: (Number(item.correctedCenterPoint.x) - Number(item.selectedCandidate.roi.centerX)) / Number(item.record.video.width),
++        dyRatio: (Number(item.correctedCenterPoint.y) - Number(item.selectedCandidate.roi.centerY)) / Number(item.record.video.height)
++      }))
++      .filter((item) => Number.isFinite(item.dxRatio) && Number.isFinite(item.dyRatio));
++    if (samples.length < 3) return null;
++    return {
++      sampleCount: samples.length,
++      dxRatio: clamp(median(samples.map((item) => item.dxRatio)), -0.18, 0.18),
++      dyRatio: clamp(median(samples.map((item) => item.dyRatio)), -0.18, 0.18)
++    };
++  }
++
++  function applyFeedbackCenterCorrection(candidates, lift) {
++    const list = Array.isArray(candidates) ? candidates.slice() : [];
++    const correction = getVbtFeedbackCenterCorrection(lift);
++    if (!correction || !list.length) return list;
++    const anchor = list.slice().sort(deterministicCandidateCompare)[0];
++    const anchorCenter = candidateCenter(anchor);
++    const frameWidth = Math.max(1, Number(anchor?.frameWidth || anchor?.sourceWidth || 0));
++    const frameHeight = Math.max(1, Number(anchor?.frameHeight || anchor?.sourceHeight || 0));
++    if (!Number.isFinite(anchorCenter.x) || !Number.isFinite(anchorCenter.y) || frameWidth <= 1 || frameHeight <= 1) return list;
++    const target = {
++      x: anchorCenter.x + correction.dxRatio * frameWidth,
++      y: anchorCenter.y + correction.dyRatio * frameHeight
++    };
++    return list.map((candidate) => {
++      const center = candidateCenter(candidate);
++      const distanceRatio = Math.hypot((center.x - target.x) / frameWidth, (center.y - target.y) / frameHeight);
++      const learningScoreAdjustment = clamp(5 - distanceRatio * 22, -3, 5);
++      return {
++        ...candidate,
++        score: Number(candidate.score || 0) + learningScoreAdjustment,
++        learningCorrection: {
++          ...correction,
++          distanceRatio,
++          scoreAdjustment: learningScoreAdjustment
++        }
++      };
++    });
++  }
++
+   function summarizeFeedbackTrace(trace) {
+     if (!trace) return null;
+     return {
+@@ -3895,7 +3946,8 @@
+       bar: hasFiniteNumber(candidate.barScore) ? Number(candidate.barScore) : null,
+       person: hasFiniteNumber(candidate.personEvidence ?? candidate.lifterEvidence) ? Number(candidate.personEvidence ?? candidate.lifterEvidence) : null,
+       context: hasFiniteNumber(candidate.contextEvidence ?? candidate.contextPriorScore) ? Number(candidate.contextEvidence ?? candidate.contextPriorScore) : null,
+-      sampleCount: candidate.sampleCount ?? candidate.groupItems ?? null
++      sampleCount: candidate.sampleCount ?? candidate.groupItems ?? null,
++      learningCorrection: candidate.learningCorrection || null
+     };
+   }
+ 
+@@ -3968,6 +4020,15 @@
+     const state = vbtState(dialog);
+     const selectedIndex = hasFiniteNumber(state.selectedCandidateIndex) ? Number(state.selectedCandidateIndex) : 0;
+     const recent = list.slice(-1)[0];
++    const learningCorrection = getVbtFeedbackCenterCorrection(dialog?._vbtRecord?.lift);
++    const learningVideo = dialog?.querySelector("video");
++    const learningDxPx = learningCorrection && learningVideo?.videoWidth ? Math.round(learningCorrection.dxRatio * learningVideo.videoWidth) : null;
++    const learningDyPx = learningCorrection && learningVideo?.videoHeight ? Math.round(learningCorrection.dyRatio * learningVideo.videoHeight) : null;
++    const learningDxDisplay = learningDxPx !== null ? `${learningDxPx}px` : `${Math.round((learningCorrection?.dxRatio || 0) * 100)}%`;
++    const learningDyDisplay = learningDyPx !== null ? `${learningDyPx}px` : `${Math.round((learningCorrection?.dyRatio || 0) * 100)}%`;
++    const learningNote = learningCorrection
++      ? `<p class="video-storage-note compact">学習補正: ${learningCorrection.sampleCount}件から中心候補を横${learningDxDisplay} / 縦${learningDyDisplay}だけ慎重に補正します。</p>`
++      : `<p class="video-storage-note compact">学習補正: 正解中心の修正が3件たまると、候補順位へ小さく反映します。</p>`;
+     const just = justSaved ? `<p class="video-storage-note compact success">保存しました: ${justSaved === "good" ? "正解候補" : justSaved === "bad" ? "不正解候補" : "正解中心点"}</p>` : "";
+     panels.forEach((panel) => {
+       panel.innerHTML = `
+@@ -3978,6 +4039,7 @@
+           </div>
+           <p class="video-storage-note compact">候補${Number(selectedIndex) + 1}の正誤を保存します。違う場合は丸点を正しいプレート中心へ合わせてから「正解中心を保存」を押してください。</p>
+           ${just}
++          ${learningNote}
+           <div class="vbt-feedback-actions">
+             <button type="button" class="text-button compact" data-vbt-feedback="good">👍 良い</button>
+             <button type="button" class="text-button compact" data-vbt-feedback="bad">👎 違う</button>
+@@ -4038,6 +4100,20 @@
+     return [...new Set(times.map((time) => Number(time.toFixed(3))))].sort((a, b) => a - b);
+   }
+ 
++  function makeDeterministicCandidateFrameIndexes(frameCount) {
++    const count = Math.max(0, Number(frameCount) || 0);
++    if (!count) return [];
++    const touchDevice = typeof navigator !== "undefined" && Number(navigator.maxTouchPoints) > 0;
++    const narrowScreen = typeof window !== "undefined" && window.matchMedia?.("(max-width: 760px)")?.matches;
++    const limit = Math.min(count, touchDevice || narrowScreen ? 14 : 22);
++    const indexes = [];
++    for (let index = 0; index < limit; index += 1) {
++      const ratio = limit === 1 ? 0 : index / (limit - 1);
++      indexes.push(clamp(Math.round(ratio * (count - 1)), 0, count - 1));
++    }
++    return [...new Set(indexes)].sort((a, b) => a - b);
++  }
++
+   function deepDetectMinimumWaitMs(sampleCount, durationSeconds) {
+     // 人工的な待機は最小化する。実処理が遅い場合にさらに待たせない。
+     const deviceTouch = typeof navigator !== "undefined" && Number(navigator.maxTouchPoints) > 0;
+@@ -4077,8 +4153,42 @@
+       - clamp(Number(item.contextPriorPenalty || 0), 0, 160) * 0.35;
+   }
+ 
++  function candidateCenter(candidate) {
++    const roi = candidate?.roi;
++    return roi ? {
++      x: Number(roi.x || 0) + Number(roi.width || 0) / 2,
++      y: Number(roi.y || 0) + Number(roi.height || 0) / 2
++    } : { x: Infinity, y: Infinity };
++  }
++
++  function deterministicRawPlateCandidateCompare(a, b) {
++    return Number(b?.score || 0) - Number(a?.score || 0)
++      || Number(a?.y || 0) - Number(b?.y || 0)
++      || Number(a?.x || 0) - Number(b?.x || 0)
++      || Number(a?.width || 0) - Number(b?.width || 0)
++      || Number(a?.height || 0) - Number(b?.height || 0);
++  }
++
++  function deterministicCandidateCompare(a, b) {
++    const aCenter = candidateCenter(a);
++    const bCenter = candidateCenter(b);
++    return Number(b?.score || 0) - Number(a?.score || 0)
++      || Number(b?.sampleCount || b?.groupItems || 0) - Number(a?.sampleCount || a?.groupItems || 0)
++      || Number(b?.representativeScore || 0) - Number(a?.representativeScore || 0)
++      || Number(b?.motionRatio || b?.motionScore || 0) - Number(a?.motionRatio || a?.motionScore || 0)
++      || Number(b?.discEvidence || b?.discScore || 0) - Number(a?.discEvidence || a?.discScore || 0)
++      || Number(a?.sampleTime || 0) - Number(b?.sampleTime || 0)
++      || aCenter.y - bCenter.y
++      || aCenter.x - bCenter.x
++      || Number(a?.roi?.width || 0) - Number(b?.roi?.width || 0)
++      || Number(a?.roi?.height || 0) - Number(b?.roi?.height || 0);
++  }
++
+   function buildTemporalPlateGroups(candidates, lift) {
+-    const clean = (candidates || []).filter((item) => item?.roi && hasFiniteNumber(item.score));
++    const clean = (candidates || [])
++      .filter((item) => item?.roi && hasFiniteNumber(item.score))
++      .slice()
++      .sort((a, b) => Number(a.sampleTime || 0) - Number(b.sampleTime || 0) || deterministicCandidateCompare(a, b));
+     const groups = [];
+     clean.forEach((candidate) => {
+       const roi = candidate.roi;
+@@ -4106,7 +4216,7 @@
+   }
+ 
+   function scoreTemporalPlateGroup(group, clean, lift) {
+-    const items = group.items.sort((a, b) => a.sampleTime - b.sampleTime);
++    const items = group.items.sort((a, b) => Number(a.sampleTime || 0) - Number(b.sampleTime || 0) || deterministicCandidateCompare(a, b));
+     const scores = items.map((item) => Number(item.score)).filter(Number.isFinite);
+     const meanScore = scores.reduce((sum, value) => sum + value, 0) / Math.max(1, scores.length);
+     const ys = items.map((item) => item.roi.y + item.roi.height / 2);
+@@ -4194,7 +4304,10 @@
+     let best = null;
+     groups.forEach((group) => {
+       const scored = scoreTemporalPlateGroup(group, clean, lift);
+-      if (!best || scored.temporalScore > best.temporalScore) best = scored;
++      if (!best || deterministicCandidateCompare(
++        { ...scored.representative, score: scored.temporalScore, sampleCount: scored.sampleCount, representativeScore: scored.representativeScore },
++        { ...best.representative, score: best.temporalScore, sampleCount: best.sampleCount, representativeScore: best.representativeScore }
++      ) < 0) best = scored;
+     });
+     if (!best?.representative) return null;
+     return {
+@@ -4231,7 +4344,7 @@
+   function chooseTemporalPlateCandidates(candidates, lift, limit = 3) {
+     const { clean, groups } = buildTemporalPlateGroups(candidates, lift);
+     if (!clean.length || !groups.length) return [];
+-    return groups.map((group) => {
++    const ranked = groups.map((group) => {
+       const scored = scoreTemporalPlateGroup(group, clean, lift);
+       const rep = scored.representative;
+       return {
+@@ -4264,8 +4377,10 @@
+         bestFrameTime: scored.bestFrameTime,
+         groupItems: scored.sampleCount
+       };
+-    })
+-      .sort((a, b) => Number(b.score || 0) - Number(a.score || 0))
++    }).sort(deterministicCandidateCompare);
++    const learned = applyFeedbackCenterCorrection(ranked, lift);
++    return learned
++      .sort(deterministicCandidateCompare)
+       .slice(0, Math.max(1, Number(limit) || 3));
+   }
+ 
+@@ -4529,31 +4644,28 @@
+         await new Promise((resolve) => setTimeout(resolve, 4));
+       }
+       personContext = buildPersonSegmentationContext(segmentedFrames, sampledFrames, record.lift);
+-      lifterMotionContext = personContext || buildLifterMotionContext(sampledFrames, record.lift);
++      // Person AI is diagnostic-only. Candidate ranking always uses the same frame-motion context
++      // so model load timing cannot change the selected plate for the same video.
++      lifterMotionContext = buildLifterMotionContext(sampledFrames, record.lift);
+       setVbtState(dialog, { autoDetectionMotionContext: lifterMotionContext });
+       updateAutoDetectProgress(dialog, 2, lifterMotionContext?.aiPersonDetected ? "2/8 人物領域と動きの重なりを確認中…" : lifterMotionContext ? "2/8 リフター周辺の動き領域を確認中…" : "2/8 リフター領域が弱いため通常検出も併用中…", 42);
+-      const candidateStageStartedAt = performance.now();
+-      const candidateStageBudgetMs = (typeof navigator !== "undefined" && Number(navigator.maxTouchPoints) > 0) ? 7200 : 9800;
++      const candidateFrameIndexes = makeDeterministicCandidateFrameIndexes(sampledFrames.length);
+       let candidateFramesChecked = 0;
+-      for (let index = 0; index < sampledFrames.length; index += 1) {
+-        const elapsedCandidateMs = performance.now() - candidateStageStartedAt;
+-        if (elapsedCandidateMs > candidateStageBudgetMs && allCandidates.length >= 8 && candidateFramesChecked >= 8) {
+-          updateAutoDetectProgress(dialog, 6, "6/8 時間内に取得できた候補で再評価中…", 82);
+-          break;
+-        }
++      for (let candidateIndex = 0; candidateIndex < candidateFrameIndexes.length; candidateIndex += 1) {
++        const index = candidateFrameIndexes[candidateIndex];
+         const { time, frame } = sampledFrames[index];
+         const candidates = detectPlateCandidateFromFrame(frame, { lift: record.lift, returnCandidates: true, maxCandidates: 5, motionContext: lifterMotionContext }) || [];
+         candidateFramesChecked += 1;
+         candidates.forEach((candidate) => allCandidates.push({ ...candidate, sampleTime: time, sampleIndex: index }));
+-        const progress = 42 + ((index + 1) / sampledFrames.length) * 40;
+-        const message = index < sampledFrames.length * 0.25
++        const progress = 42 + ((candidateIndex + 1) / candidateFrameIndexes.length) * 40;
++        const message = candidateIndex < candidateFrameIndexes.length * 0.25
+           ? "3/8 バーベル線と候補プレートを抽出中…"
+-          : index < sampledFrames.length * 0.50
++          : candidateIndex < candidateFrameIndexes.length * 0.50
+             ? "4/8 候補がリフター周辺にあるか照合中…"
+-            : index < sampledFrames.length * 0.75
++            : candidateIndex < candidateFrameIndexes.length * 0.75
+               ? "5/8 動画内で一緒に動く候補を検証中…"
+               : "6/8 影・床・背景ラックを除外中…";
+-        updateAutoDetectProgress(dialog, index + 1, message, progress);
++        updateAutoDetectProgress(dialog, candidateIndex + 1, message, progress);
+         await new Promise((resolve) => setTimeout(resolve, 0));
+       }
+       updateAutoDetectProgress(dialog, 7, "7/8 候補を時間的一貫性で再評価中…", 84);
+@@ -4788,7 +4900,7 @@
+           </div>
+           <div class="vbt-set-summary-card">
+             <span>${escapeHtml(liftLabel(record.lift))}</span>
+-            <strong>${escapeHtml(formatNumber(record.weight))}kg ${record.reps ? `× ${escapeHtml(formatNumber(record.reps))}` : "× AI判定"}</strong>
++            <strong>${escapeHtml(formatNumber(record.weight))}kg ${record.userProvidedReps === true && record.reps ? `× ${escapeHtml(formatNumber(record.reps))}` : record.aiDetectedReps ? `× ${escapeHtml(formatNumber(record.aiDetectedReps))} AI` : "× AI判定"}</strong>
+             <em>@${escapeHtml(formatNumber(record.rpe))}</em>
+             <p>レップ数は動画解析から自動判定します。重量・日付・RPEを確認して解析してください。</p>
+           </div>
+@@ -5647,13 +5759,17 @@
+         ?? velocityData.measurement?.detectedReps
          ?? (velocityData.measurement?.repMetrics || []).length
          ?? null;
-       if (Number.isFinite(Number(detectedRepCount)) && Number(detectedRepCount) > 0) {
--        record.reps = Number(detectedRepCount);
-+        record.aiDetectedReps = Number(detectedRepCount);
-+        record.detectedReps = Number(detectedRepCount);
-+        if (record.userProvidedReps === true || record.repsSource === "user") {
-+          record.reps = Number(record.reps) || Number(detectedRepCount);
-+        }
+-      if (Number.isFinite(Number(detectedRepCount)) && Number(detectedRepCount) > 0) {
++      const hasDetectedRepCount = Number.isFinite(Number(detectedRepCount));
++      if (hasDetectedRepCount) {
+         record.aiDetectedReps = Number(detectedRepCount);
+         record.detectedReps = Number(detectedRepCount);
+         if (record.userProvidedReps === true || record.repsSource === "user") {
+           record.reps = Number(record.reps) || Number(detectedRepCount);
+         }
        }
++      record.excludedRepCandidates = velocityData.measurement?.excludedRepCandidates
++        || velocityData.measurement?.excludedRepMetrics
++        || [];
        record.analysis = { ...(record.analysis || {}), velocityData };
        record.updatedAt = new Date().toISOString();
-@@ -5587,7 +5667,7 @@
+       await saveVideoRecord(record);
+@@ -5667,7 +5783,7 @@
          liftLabel: liftLabel(record.lift),
          weight: Number(record.weight) || null,
          weightKg: Number(record.weight) || null,
--        reps: Number(record.reps) || null,
-+        reps: Number(detectedRepCount) || Number(record.aiDetectedReps) || (record.userProvidedReps === true ? Number(record.reps) : null) || null,
+-        reps: Number(detectedRepCount) || Number(record.aiDetectedReps) || (record.userProvidedReps === true ? Number(record.reps) : null) || null,
++        reps: hasDetectedRepCount ? Number(detectedRepCount) : (record.userProvidedReps === true ? Number(record.reps) || null : null),
          rpe: Number(record.rpe) || null,
          subjectiveRpe: Number(record.rpe) || null,
          tag: record.setType || null,
-@@ -5895,7 +5975,10 @@
-       date: els.date.value || today(),
-       lift: els.lift.value,
-       weight: Number(els.weight.value || 0),
--      reps: els.reps ? Number(els.reps.value || 0) : null,
-+      reps: els.reps && Number(els.reps.value || 0) > 0 ? Number(els.reps.value || 0) : null,
-+      userProvidedReps: Boolean(els.reps && Number(els.reps.value || 0) > 0),
-+      repsSource: els.reps && Number(els.reps.value || 0) > 0 ? "user" : "ai",
-+      aiDetectedReps: null,
-       rpe: Number(els.rpe.value || 0),
-       setType: els.setType.value,
-       videoName: file.name,
+@@ -5684,6 +5800,9 @@
+         ) || null,
+         velocityLossPercent: velocityData.primaryVbtMetric?.velocityLossPercent ?? null,
+         primaryVbtMetric: velocityData.primaryVbtMetric || null,
++        aiDetectedReps: hasDetectedRepCount ? Number(detectedRepCount) : null,
++        detectedReps: hasDetectedRepCount ? Number(detectedRepCount) : null,
++        excludedRepCandidates: record.excludedRepCandidates,
+         measurementMode: velocityData.mode || mode,
+         validVelocity: status.profileEligible,
+         profileEligible: status.profileEligible,
+
+--- v183.04.03/sw.js
++++ v183.04.04/sw.js
+@@ -1,14 +1,14 @@
+-const CACHE_NAME = "platform-buddy-v183-04-03";
++const CACHE_NAME = "platform-buddy-v183-04-04";
+ const CORE_ASSETS = [
+   "./",
+   "index.html",
+-  "index.html?v=183.04.03",
++  "index.html?v=183.04.04",
+   "styles.css",
+-  "styles.css?v=183.04.03",
++  "styles.css?v=183.04.04",
+   "app.js",
+-  "app.js?v=183.04.03",
++  "app.js?v=183.04.04",
+   "video.js",
+-  "video.js?v=183.04.03",
++  "video.js?v=183.04.04",
+   "manifest.webmanifest",
+   "icon.svg",
+   "apple-touch-icon.png",
+
+--- v183.04.03/manifest.webmanifest
++++ v183.04.04/manifest.webmanifest
+@@ -2,7 +2,7 @@
+   "name": "Platform Buddy",
+   "short_name": "Buddy",
+   "description": "BIG3の現在地と目標を見える化し、PRサイクル、記録、分析、大会準備までつなげるパワーリフティング向けPWAです。",
+-  "start_url": "./index.html?v=183.04.03",
++  "start_url": "./index.html?v=183.04.04",
+   "scope": "./",
+   "display": "standalone",
+   "background_color": "#f4efe6",

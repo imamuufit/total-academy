@@ -1,14 +1,34 @@
-v183.04.03 AIレップ自動検出前提の修正
+Platform Buddy v183.04.04
+vbt-deterministic-detect-ai-rep-stability
 
-変更ファイル:
+Changed files:
+- index.html
+  - Align styles.css, app.js, and video.js query versions to v183.04.04.
 - video.js
+  - Make candidate frame selection and candidate tie-breaking deterministic.
+  - Keep Person AI diagnostic-only so model timing does not change plate selection.
+  - Add cautious lift-specific center correction learned from corrected feedback records.
+  - Show learning-correction diagnostics in the feedback panel.
+  - Keep automatic rep detection independent from legacy record.reps unless explicitly user-provided.
+  - Save aiDetectedReps, detectedReps, and excludedRepCandidates with video/VBT records.
 - sw.js
+  - Update PWA cache and core asset query versions to v183.04.04.
 - manifest.webmanifest
+  - Update start_url to v183.04.04.
 
-変更内容:
-- レップ入力欄が廃止されている前提に合わせ、record.reps を期待Rep数として扱わないよう修正。
-- AI検出後に record.reps を上書きせず、aiDetectedReps / detectedReps として保存するよう変更。
-- 既存/過去レコードの record.reps が1などで残っていても、次回解析の上限として使わない安全装置を追加。
-- 入力Rep数がない場合でも複数レップを拾いやすいよう、モーションバースト型の自動Rep検出fallbackを追加。
-- saved VBT record には検出Rep数を保存し、動画元レコードはAI判定モードを維持。
-- フィードバックJSONで record.reps が null だった状況に合わせて、表示/保存/警告文をAI判定前提へ整理。
+Not changed:
+- app.js
+- styles.css
+- platform-pr-v3
+- save data structure outside additive VBT record fields
+- Buddy Method / PLAN generation logic
+- angle or orientation analysis
+- assets or image files
+
+Verification:
+- video.js syntax check: passed
+- sw.js syntax check: passed
+- manifest.webmanifest JSON parse: passed
+- PWA version alignment: passed
+- no direct record.reps use as automatic detection upper limit: passed
+- browser visual verification: unavailable because local file navigation was blocked by the in-app browser security policy
