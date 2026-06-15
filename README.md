@@ -2,6 +2,16 @@
 
 Platform Buddyは、BIG3の現在地と目標を見える化し、PRサイクル、記録、分析、大会準備までつなげて管理できるパワーリフティング向けPWAです。
 
+## Development References
+
+UI・UXやVBTを変更する前に、以下を確認してください。
+
+- [UI/UX設計基準](docs/UI_REFERENCE.md)
+- [VBT仕様書](docs/VBT_SPEC.md)
+- [UI/UX現状レビュー](docs/UI_REVIEW_2026-06-15.md)
+
+開発時は `platform-pr-v3` と既存ユーザーデータを保持し、VBTを専用機器の完全な代替として扱わないでください。
+
 ## v109の更新内容
 
 このv109では、HOME上部の旧紹介ブロックと新ヒーローの二重表示を整理し、2回目以降ユーザー向けにHOMEヒーローをコンパクト化しました。
