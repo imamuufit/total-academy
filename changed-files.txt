@@ -1,34 +1,4 @@
-Platform Buddy v183.04.04
-vbt-deterministic-detect-ai-rep-stability
-
-Changed files:
-- index.html
-  - Align styles.css, app.js, and video.js query versions to v183.04.04.
-- video.js
-  - Make candidate frame selection and candidate tie-breaking deterministic.
-  - Keep Person AI diagnostic-only so model timing does not change plate selection.
-  - Add cautious lift-specific center correction learned from corrected feedback records.
-  - Show learning-correction diagnostics in the feedback panel.
-  - Keep automatic rep detection independent from legacy record.reps unless explicitly user-provided.
-  - Save aiDetectedReps, detectedReps, and excludedRepCandidates with video/VBT records.
-- sw.js
-  - Update PWA cache and core asset query versions to v183.04.04.
-- manifest.webmanifest
-  - Update start_url to v183.04.04.
-
-Not changed:
-- app.js
-- styles.css
-- platform-pr-v3
-- save data structure outside additive VBT record fields
-- Buddy Method / PLAN generation logic
-- angle or orientation analysis
-- assets or image files
-
-Verification:
-- video.js syntax check: passed
-- sw.js syntax check: passed
-- manifest.webmanifest JSON parse: passed
-- PWA version alignment: passed
-- no direct record.reps use as automatic detection upper limit: passed
-- browser visual verification: unavailable because local file navigation was blocked by the in-app browser security policy
+﻿index.html
+styles.css
+sw.js
+manifest.webmanifest
