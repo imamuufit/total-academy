@@ -1,0 +1,188 @@
+/* v183.04.06: compact guide control cascade guard.
+   Loaded after styles.css so old fixed-guide rules cannot override it. */
+html body .guide-mode-bar,
+html body[data-active-view="home"] .guide-mode-bar {
+  position: fixed !important;
+  left: auto !important;
+  right: 12px !important;
+  bottom: calc(88px + env(safe-area-inset-bottom)) !important;
+  z-index: 120 !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  min-height: 0 !important;
+  display: block !important;
+  gap: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--text-main) !important;
+  transform: none !important;
+  backdrop-filter: none !important;
+  overflow: visible !important;
+}
+
+html body .guide-mode-bar[open],
+html body[data-active-view="home"] .guide-mode-bar[open] {
+  z-index: 150 !important;
+}
+
+html body .guide-mode-bar > .guide-mode-trigger,
+html body[data-active-view="home"] .guide-mode-bar > .guide-mode-trigger {
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
+  min-height: 48px !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 0 !important;
+  border: 1px solid var(--line) !important;
+  border-bottom: 3px solid var(--accent) !important;
+  border-radius: 999px !important;
+  background: #fffaf2 !important;
+  color: var(--text-main) !important;
+  box-shadow: 0 10px 24px rgba(51, 42, 29, 0.14) !important;
+  cursor: pointer !important;
+  list-style: none !important;
+}
+
+html body .guide-mode-bar > .guide-mode-trigger::-webkit-details-marker {
+  display: none !important;
+}
+
+html body .guide-mode-bar > .guide-mode-trigger::marker {
+  content: "" !important;
+}
+
+html body .guide-mode-bar > .guide-mode-trigger span,
+html body[data-active-view="home"] .guide-mode-bar > .guide-mode-trigger span {
+  display: inline !important;
+  color: var(--text-main) !important;
+  font-size: 0.72rem !important;
+  font-weight: 1000 !important;
+  line-height: 1 !important;
+  letter-spacing: 0 !important;
+  white-space: nowrap !important;
+  text-shadow: none !important;
+  writing-mode: horizontal-tb !important;
+}
+
+html body .guide-mode-bar:not([open]) > .guide-mode-popover,
+html body[data-active-view="home"] .guide-mode-bar:not([open]) > .guide-mode-popover {
+  display: none !important;
+}
+
+html body .guide-mode-bar[open] > .guide-mode-popover,
+html body.guide-off .guide-mode-bar[open] > .guide-mode-popover,
+html body[data-active-view="home"] .guide-mode-bar[open] > .guide-mode-popover,
+html body.guide-off[data-active-view="home"] .guide-mode-bar[open] > .guide-mode-popover {
+  position: absolute !important;
+  right: 0 !important;
+  bottom: 58px !important;
+  width: min(232px, calc(100vw - 24px)) !important;
+  min-width: 0 !important;
+  display: grid !important;
+  gap: 10px !important;
+  padding: 12px !important;
+  border: 1px solid var(--line) !important;
+  border-left: 4px solid var(--accent) !important;
+  border-radius: 14px !important;
+  background: #fffaf2 !important;
+  color: var(--text-main) !important;
+  box-shadow: 0 16px 40px rgba(51, 42, 29, 0.18) !important;
+}
+
+html body .guide-mode-popover > .guide-mode-copy,
+html body.guide-off .guide-mode-popover > .guide-mode-copy {
+  min-width: 0 !important;
+  display: grid !important;
+  gap: 3px !important;
+}
+
+html body .guide-mode-popover .guide-mode-copy span,
+html body.guide-off .guide-mode-popover .guide-mode-copy span,
+html body[data-active-view="home"] .guide-mode-popover .guide-mode-copy span {
+  display: inline !important;
+  color: var(--text-main) !important;
+  font-size: 0.9rem !important;
+  font-weight: 1000 !important;
+  line-height: 1.2 !important;
+  white-space: normal !important;
+  text-shadow: none !important;
+}
+
+html body .guide-mode-popover .guide-mode-copy small,
+html body.guide-off .guide-mode-popover .guide-mode-copy small,
+html body[data-active-view="home"] .guide-mode-popover .guide-mode-copy small {
+  display: inline !important;
+  color: var(--text-sub) !important;
+  font-size: 0.76rem !important;
+  font-weight: 800 !important;
+  line-height: 1.35 !important;
+  text-shadow: none !important;
+}
+
+html body .guide-mode-popover .guide-mode-toggle,
+html body[data-active-view="home"] .guide-mode-popover .guide-mode-toggle {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 40px !important;
+  padding: 0 14px !important;
+  border: 1px solid var(--button-dark) !important;
+  border-radius: 999px !important;
+  background: var(--button-dark) !important;
+  color: #fffaf2 !important;
+  font-size: 0.86rem !important;
+  font-weight: 1000 !important;
+  text-shadow: none !important;
+  box-shadow: none !important;
+}
+
+html body .guide-mode-popover .guide-mode-toggle[aria-pressed="false"] {
+  border-color: var(--line-strong) !important;
+  background: #fff7ed !important;
+  color: var(--text-sub) !important;
+}
+
+html body .guide-mode-popover .guide-mode-close {
+  min-height: 34px !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 999px !important;
+  background: #ffffff !important;
+  color: var(--text-main) !important;
+  font-size: 0.78rem !important;
+  font-weight: 900 !important;
+  box-shadow: none !important;
+}
+
+@media (max-width: 640px) {
+  html body .guide-mode-bar,
+  html body[data-active-view="home"] .guide-mode-bar {
+    right: 10px !important;
+    bottom: calc(92px + env(safe-area-inset-bottom)) !important;
+  }
+
+  html body .guide-mode-bar > .guide-mode-trigger,
+  html body[data-active-view="home"] .guide-mode-bar > .guide-mode-trigger {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+  }
+
+  html body .guide-mode-bar > .guide-mode-trigger span {
+    font-size: 0.66rem !important;
+  }
+
+  html body .guide-mode-bar[open] > .guide-mode-popover,
+  html body.guide-off .guide-mode-bar[open] > .guide-mode-popover,
+  html body[data-active-view="home"] .guide-mode-bar[open] > .guide-mode-popover,
+  html body.guide-off[data-active-view="home"] .guide-mode-bar[open] > .guide-mode-popover {
+    width: min(218px, calc(100vw - 20px)) !important;
+    bottom: 54px !important;
+    padding: 10px !important;
+  }
+}
