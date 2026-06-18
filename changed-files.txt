@@ -1,4 +1,4 @@
-guide-panel-cascade.css
+vbt-empty-state-copy.js
 sw.js
 manifest.webmanifest
 changed-files.txt
