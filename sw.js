@@ -1,18 +1,18 @@
-const CACHE_NAME = "platform-buddy-v183-04-07";
+const CACHE_NAME = "platform-buddy-v183-04-08";
 const CORE_ASSETS = [
   "./",
   "index.html",
-  "index.html?v=183.04.07",
+  "index.html?v=183.04.08",
   "styles.css",
-  "styles.css?v=183.04.07",
+  "styles.css?v=183.04.08",
   "guide-panel-cascade.css",
-  "guide-panel-cascade.css?v=183.04.07",
+  "guide-panel-cascade.css?v=183.04.08",
   "vbt-empty-state-copy.js",
-  "vbt-empty-state-copy.js?v=183.04.07",
+  "vbt-empty-state-copy.js?v=183.04.08",
   "app.js",
-  "app.js?v=183.04.07",
+  "app.js?v=183.04.08",
   "video.js",
-  "video.js?v=183.04.07",
+  "video.js?v=183.04.08",
   "manifest.webmanifest",
   "icon.svg",
   "apple-touch-icon.png",
@@ -64,23 +64,23 @@ const GUIDE_PANEL_SCRIPT = `
 
 function upgradeIndexHtml(html) {
   let next = html
-    .replace(/styles\.css\?v=183\.04\.(04|06)/g, "styles.css?v=183.04.07")
-    .replace(/app\.js\?v=183\.04\.(04|06)/g, "app.js?v=183.04.07")
-    .replace(/video\.js\?v=183\.04\.(04|06)/g, "video.js?v=183.04.07");
+    .replace(/styles\.css\?v=183\.04\.(04|06|07)/g, "styles.css?v=183.04.08")
+    .replace(/app\.js\?v=183\.04\.(04|06|07)/g, "app.js?v=183.04.08")
+    .replace(/video\.js\?v=183\.04\.(04|06|07)/g, "video.js?v=183.04.08");
 
   if (!next.includes("guide-panel-cascade.css")) {
     next = next.replace(
-      /<link rel="stylesheet" href="styles\.css\?v=183\.04\.07">/,
-      '<link rel="stylesheet" href="styles.css?v=183.04.07">\n    <link rel="stylesheet" href="guide-panel-cascade.css?v=183.04.07">'
+      /<link rel="stylesheet" href="styles\.css\?v=183\.04\.08">/,
+      '<link rel="stylesheet" href="styles.css?v=183.04.08">\n    <link rel="stylesheet" href="guide-panel-cascade.css?v=183.04.08">'
     );
   } else {
-    next = next.replace(/guide-panel-cascade\.css\?v=183\.04\.(05|06)/g, "guide-panel-cascade.css?v=183.04.07");
+    next = next.replace(/guide-panel-cascade\.css\?v=183\.04\.(05|06|07)/g, "guide-panel-cascade.css?v=183.04.08");
   }
 
   if (!next.includes("vbt-empty-state-copy.js")) {
-    next = next.replace("</body>", '    <script src="vbt-empty-state-copy.js?v=183.04.07"></script>\n  </body>');
+    next = next.replace("</body>", '    <script src="vbt-empty-state-copy.js?v=183.04.08"></script>\n  </body>');
   } else {
-    next = next.replace(/vbt-empty-state-copy\.js\?v=183\.04\.(06)/g, "vbt-empty-state-copy.js?v=183.04.07");
+    next = next.replace(/vbt-empty-state-copy\.js\?v=183\.04\.(07)/g, "vbt-empty-state-copy.js?v=183.04.08");
   }
 
   if (!next.includes('id="guideModePanel"')) {
