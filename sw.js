@@ -1,18 +1,18 @@
-const CACHE_NAME = "platform-buddy-v183-04-08";
+const CACHE_NAME = "platform-buddy-v183-04-09";
 const CORE_ASSETS = [
   "./",
   "index.html",
-  "index.html?v=183.04.08",
+  "index.html?v=183.04.09",
   "styles.css",
-  "styles.css?v=183.04.08",
+  "styles.css?v=183.04.09",
   "guide-panel-cascade.css",
-  "guide-panel-cascade.css?v=183.04.08",
-  "vbt-empty-state-copy.js",
-  "vbt-empty-state-copy.js?v=183.04.08",
+  "guide-panel-cascade.css?v=183.04.09",
+  "vbt-private-mode.js",
+  "vbt-private-mode.js?v=183.04.09",
   "app.js",
-  "app.js?v=183.04.08",
+  "app.js?v=183.04.09",
   "video.js",
-  "video.js?v=183.04.08",
+  "video.js?v=183.04.09",
   "manifest.webmanifest",
   "icon.svg",
   "apple-touch-icon.png",
@@ -64,23 +64,24 @@ const GUIDE_PANEL_SCRIPT = `
 
 function upgradeIndexHtml(html) {
   let next = html
-    .replace(/styles\.css\?v=183\.04\.(04|06|07)/g, "styles.css?v=183.04.08")
-    .replace(/app\.js\?v=183\.04\.(04|06|07)/g, "app.js?v=183.04.08")
-    .replace(/video\.js\?v=183\.04\.(04|06|07)/g, "video.js?v=183.04.08");
+    .replace(/styles\.css\?v=183\.04\.(04|06|07|08)/g, "styles.css?v=183.04.09")
+    .replace(/app\.js\?v=183\.04\.(04|06|07|08)/g, "app.js?v=183.04.09")
+    .replace(/video\.js\?v=183\.04\.(04|06|07|08)/g, "video.js?v=183.04.09");
 
   if (!next.includes("guide-panel-cascade.css")) {
     next = next.replace(
-      /<link rel="stylesheet" href="styles\.css\?v=183\.04\.08">/,
-      '<link rel="stylesheet" href="styles.css?v=183.04.08">\n    <link rel="stylesheet" href="guide-panel-cascade.css?v=183.04.08">'
+      /<link rel="stylesheet" href="styles\.css\?v=183\.04\.09">/,
+      '<link rel="stylesheet" href="styles.css?v=183.04.09">\n    <link rel="stylesheet" href="guide-panel-cascade.css?v=183.04.09">'
     );
   } else {
-    next = next.replace(/guide-panel-cascade\.css\?v=183\.04\.(05|06|07)/g, "guide-panel-cascade.css?v=183.04.08");
+    next = next.replace(/guide-panel-cascade\.css\?v=183\.04\.(05|06|07|08)/g, "guide-panel-cascade.css?v=183.04.09");
   }
 
-  if (!next.includes("vbt-empty-state-copy.js")) {
-    next = next.replace("</body>", '    <script src="vbt-empty-state-copy.js?v=183.04.08"></script>\n  </body>');
+  next = next.replace(/\s*<script src="vbt-empty-state-copy\.js\?v=183\.04\.(07|08)"><\/script>/g, "");
+  if (!next.includes("vbt-private-mode.js")) {
+    next = next.replace("</body>", '    <script src="vbt-private-mode.js?v=183.04.09"></script>\n  </body>');
   } else {
-    next = next.replace(/vbt-empty-state-copy\.js\?v=183\.04\.(07)/g, "vbt-empty-state-copy.js?v=183.04.08");
+    next = next.replace(/vbt-private-mode\.js\?v=183\.04\.(08)/g, "vbt-private-mode.js?v=183.04.09");
   }
 
   if (!next.includes('id="guideModePanel"')) {

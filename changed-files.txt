@@ -1,4 +1,4 @@
-vbt-empty-state-copy.js
+vbt-private-mode.js
 sw.js
 manifest.webmanifest
 changed-files.txt
