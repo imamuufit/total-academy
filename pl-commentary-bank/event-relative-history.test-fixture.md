@@ -44,3 +44,11 @@ History date equal to or after the selected event date is excluded.
 ## Case F: blank competition name
 
 Confirmed history with a valid date and source id but blank `competitionName` is excluded to avoid displaying a date-only ambiguous competition.
+
+## Case G: invalid calendar date
+
+```json
+{ "date": "2026-02-30", "competitionName": "存在しない日付の大会", "confirmed": true, "sourceIds": ["hpa-invalid-date"] }
+```
+
+Expected: excluded; dates must be real calendar dates, not only strings shaped like `YYYY-MM-DD`.
