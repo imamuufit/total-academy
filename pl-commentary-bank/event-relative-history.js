@@ -23,8 +23,13 @@ function resolveEventBaseDate(event) {
   return normalizeDate(event.dateFrom) || normalizeDate(event.dateTo) || normalizeDate(event.date);
 }
 
+function firstNonEmptySourceId(history) {
+  if (!Array.isArray(history?.sourceIds)) return "";
+  return String(history.sourceIds.find((sourceId) => String(sourceId || "").trim().length > 0) || "").trim();
+}
+
 function hasNonEmptySourceId(history) {
-  return Array.isArray(history?.sourceIds) && history.sourceIds.some((sourceId) => String(sourceId || "").trim().length > 0);
+  return firstNonEmptySourceId(history).length > 0;
 }
 
 function hasCompetitionName(history) {
@@ -52,9 +57,7 @@ function sortConfirmedHistories(histories) {
     const nameCompare = String(a.competitionName || "").localeCompare(String(b.competitionName || ""), "ja");
     if (nameCompare !== 0) return nameCompare;
 
-    const aFirstSource = String(a.sourceIds?.[0] || "");
-    const bFirstSource = String(b.sourceIds?.[0] || "");
-    return aFirstSource.localeCompare(bFirstSource, "ja");
+    return firstNonEmptySourceId(a).localeCompare(firstNonEmptySourceId(b), "ja");
   });
 }
 
@@ -116,6 +119,7 @@ function buildMechanicalProgressDiff(previousTwo) {
 export {
   HISTORY_SHORTAGE_LABEL,
   buildMechanicalProgressDiff,
+  firstNonEmptySourceId,
   hasNonEmptySourceId,
   isConfirmedPriorHistory,
   resolveEventBaseDate,
