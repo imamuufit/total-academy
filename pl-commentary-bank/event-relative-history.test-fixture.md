@@ -52,3 +52,11 @@ Confirmed history with a valid date and source id but blank `competitionName` is
 ```
 
 Expected: excluded; dates must be real calendar dates, not only strings shaped like `YYYY-MM-DD`.
+
+## Case H: first blank source id with later non-empty id
+
+```json
+{ "date": "2025-10-18", "competitionName": "北海道クラシックPL", "confirmed": true, "sourceIds": ["", "hpa-2025-autumn"] }
+```
+
+Expected: eligible; sort tie-breaker uses `hpa-2025-autumn`, the first non-empty source id, not the blank first array slot.
