@@ -11,7 +11,7 @@ Use the selected event date as the athlete-specific base date. Prefer `dateFrom`
 A history entry is eligible only when all of the following are true:
 
 - `confirmed === true`
-- `date` is a valid `YYYY-MM-DD` date
+- `date` is a valid `YYYY-MM-DD` real calendar date
 - `date` is strictly before the selected event base date
 - `competitionName` is not blank
 - `sourceIds` contains at least one non-empty value
