@@ -24,7 +24,7 @@ Sort eligible histories by:
 
 1. date
 2. competition name
-3. first source id
+3. first non-empty source id
 
 Select only the latest two eligible histories for `前々回→前回`.
 
