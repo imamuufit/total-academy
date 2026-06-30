@@ -18,6 +18,10 @@ function normalizeDate(value) {
   return isRealCalendarDate ? text : "";
 }
 
+function normalizeCompetitionName(value) {
+  return String(value || "").trim();
+}
+
 function resolveEventBaseDate(event) {
   if (!event || typeof event !== "object") return "";
   return normalizeDate(event.dateFrom) || normalizeDate(event.dateTo) || normalizeDate(event.date);
@@ -33,7 +37,7 @@ function hasNonEmptySourceId(history) {
 }
 
 function hasCompetitionName(history) {
-  return String(history?.competitionName || "").trim().length > 0;
+  return normalizeCompetitionName(history?.competitionName).length > 0;
 }
 
 function isConfirmedPriorHistory(history, baseDate) {
@@ -54,7 +58,7 @@ function sortConfirmedHistories(histories) {
     const dateCompare = normalizeDate(a.date).localeCompare(normalizeDate(b.date));
     if (dateCompare !== 0) return dateCompare;
 
-    const nameCompare = String(a.competitionName || "").localeCompare(String(b.competitionName || ""), "ja");
+    const nameCompare = normalizeCompetitionName(a.competitionName).localeCompare(normalizeCompetitionName(b.competitionName), "ja");
     if (nameCompare !== 0) return nameCompare;
 
     return firstNonEmptySourceId(a).localeCompare(firstNonEmptySourceId(b), "ja");
@@ -122,6 +126,7 @@ export {
   firstNonEmptySourceId,
   hasNonEmptySourceId,
   isConfirmedPriorHistory,
+  normalizeCompetitionName,
   resolveEventBaseDate,
   selectPreviousTwoHistories,
   sortConfirmedHistories
