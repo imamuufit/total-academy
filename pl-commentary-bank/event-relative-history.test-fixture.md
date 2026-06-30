@@ -68,3 +68,11 @@ Expected: eligible; sort tie-breaker uses `hpa-2025-autumn`, the first non-empty
 ```
 
 Expected: eligible; blank checks and sort comparisons use the trimmed competition name.
+
+## Case J: missing selected event base date
+
+```json
+{ "dateFrom": "", "dateTo": "", "date": "" }
+```
+
+Expected: `履歴不足`; do not select prior histories when no valid event base date exists.

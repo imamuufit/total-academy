@@ -6,6 +6,8 @@ This contract protects the PL Commentary Bank `前々回→前回` feature while
 
 Use the selected event date as the athlete-specific base date. Prefer `dateFrom`, then `dateTo`, then `date`.
 
+If no valid selected event base date exists, do not select prior histories and show `履歴不足`.
+
 ## Eligible histories
 
 A history entry is eligible only when all of the following are true:
