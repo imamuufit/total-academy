@@ -13,7 +13,7 @@ A history entry is eligible only when all of the following are true:
 - `confirmed === true`
 - `date` is a valid `YYYY-MM-DD` real calendar date
 - `date` is strictly before the selected event base date
-- `competitionName` is not blank
+- `competitionName` is not blank after trimming whitespace
 - `sourceIds` contains at least one non-empty value
 
 Do not use unconfirmed candidate data.
@@ -23,7 +23,7 @@ Do not use unconfirmed candidate data.
 Sort eligible histories by:
 
 1. date
-2. competition name
+2. trimmed competition name
 3. first non-empty source id
 
 Select only the latest two eligible histories for `前々回→前回`.
