@@ -60,3 +60,11 @@ Expected: excluded; dates must be real calendar dates, not only strings shaped l
 ```
 
 Expected: eligible; sort tie-breaker uses `hpa-2025-autumn`, the first non-empty source id, not the blank first array slot.
+
+## Case I: competition name with surrounding whitespace
+
+```json
+{ "date": "2025-10-18", "competitionName": "  北海道クラシックPL  ", "confirmed": true, "sourceIds": ["hpa-2025-autumn"] }
+```
+
+Expected: eligible; blank checks and sort comparisons use the trimmed competition name.
